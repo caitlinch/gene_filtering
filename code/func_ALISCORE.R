@@ -10,7 +10,7 @@ aliscore <- function(alignment_path, output_path, gaps = "5char", w, r, tree_pat
   dataset <- basename(dirname(alignment_path))
   output_path <- ifelse(missing(output_path),paste0(dirname(alignment_path),"/"),output_path) # if output_path is missing, set it to the same directory as the alignment
   # Make a file name to save the output csv with 
-  output_csv_name <- paste0(output_path,loci_name,"_ALISCORE_alignmentQuality.csv")
+  output_csv_name <- paste0(output_path,loci_name,"_ALISCORE_locusAlignmentQuality.csv")
   if ((file.exists(output_csv_name) == TRUE) && (redo == FALSE)){
     # If the csv file already exists and you don't want to redo the analysis, this just skips that particular alignment
     print(paste0(dataset, " - ", loci_name," - alignment skipped"))
