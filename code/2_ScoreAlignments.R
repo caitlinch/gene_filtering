@@ -9,7 +9,7 @@ run_location = "mac"
 
 if (run_location == "mac"){
   BA_dir <- "/Users/caitlincherryh/Documents/Repositories/BenchmarkAlignments_DataSubSet/"
-  output_dir <- "/Users/caitlincherryh/Documents/Repositories/BenchmarkAlignments_DataSubSet/"
+  output_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/"
   treelikeness_dir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the code for treelikeness statistics and processing is
   empirical_treelikeness_dir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the code for empirical data and alignment scoring is
   exec_folder <- "/Users/caitlincherryh/Documents/Honours/Executables/"
@@ -43,14 +43,12 @@ print("Extract alignment file paths")
 #als <- extract.BA.files(dir = BA_dir, order_by = "ntaxa")
 als <- extract.BA.files(dir = "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/", order_by = "ntaxa")
 
-print("Testing alignment quality")
-# Sample aliscore function call: aliscore(al, gaps = "5char", w = 6, aliscore_path = exec_paths[["ALISCORE"]], quality_threshold = 0.5, redo = FALSE)
+
 # Run aliscore on each alignment in the als
+# Sample aliscore function call: aliscore(al, gaps = "5char", w = 6, aliscore_path = exec_paths[["ALISCORE"]], quality_threshold = 0.5, redo = FALSE)
+print("Testing alignment quality")
 lapply(als, aliscore, gaps = "5char", w = 6, aliscore_path = exec_paths[["ALISCORE"]], quality_threshold = 0.5, redo = FALSE)
 
-alipath <- "/Users/caitlincherryh/Documents/Honours/Executables/Aliscore_v.2.0/Aliscore.02.2.pl"
-#alipath <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/Anderson_2013/Aliscore.02.2.pl"
-p <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/Anderson_2013/COI.nex"
-op <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/Anderson_2013/16S.nex.fasta_List_random.txt"
-n <- read.nexus.data(p)
-d <- as.DNAbin(n)
+# Collate alignment quality scoring metrics for each locus into one big old csv file
+results_file <- paste0(output_dir,basename(BA_dir),"_collatedAlignmentQuality.csv")
+df <- collate.bootstraps(directory = BA_dir, file.name = "locusAlignmentQuality", id = "", output.file.name = results_file)
