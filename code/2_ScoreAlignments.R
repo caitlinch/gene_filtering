@@ -8,9 +8,8 @@ run_location = "mac"
 # run_location = "soma"
 
 if (run_location == "mac"){
-  BA_dir <- "/Users/caitlincherryh/Documents/Repositories/BenchmarkAlignments_DataSubSet/"
-  BA_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/"
-  output_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/"
+  BA_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/run1_BA_AlQualTest/"
+  output_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/run1_BA_AlQualTest_results/"
   treelikeness_dir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the code for treelikeness statistics and processing is
   empirical_treelikeness_dir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the code for empirical data and alignment scoring is
   exec_folder <- "/Users/caitlincherryh/Documents/Honours/Executables/"
@@ -52,7 +51,8 @@ test_order <- c('Richart_2015','Smith_2014','Crawford_2012','Leache_2015','Meikl
                 'Anderson_2013','Worobey_2014a','Day_2013','Branstetter_2017','Wainwright_2012','Horn_2014',
                 'Tolley_2013','Reddy_2017','Murray_2013','Near_2013','Looney_2016','Pyron_2011') 
                 # This is ntaxa order, excluding Worobey because some of the taxa there have names with "*" in and that will crash ALISCORE
-als <- extract.BA.files(dir = "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/", order_by = test_order)
+als <- extract.BA.files(dir = "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/", 
+                        order_by = "user-specified", user_ordered_list = test_order)
 
 
 # Run aliscore on each alignment in the als
