@@ -1,3 +1,5 @@
+# R functions to check the quality of a given alignment
+
 library(ape)
 
 # This function evaluates whether a given locus has a high or low quality alignment
@@ -21,7 +23,7 @@ aliscore <- function(alignment_path, output_path, gaps = "5char", w, r, tree_pat
     # Change the wd to where you want the files created by ALISCORE to go
     setwd(output_path)
     # Form the ALISCORE command, collect the information to feed into the ALISCORE program
-    N <- ifelse(gaps == "5char","","-N") # gaps treated as 5th character if the -N option is not invoked - -N means gaps are ambiguous character
+    N <- ifelse(gaps == "5char","","-N") # gaps treated as 5th character if the -N option is not invoked (here if value for gaps is set a "5char") -> -N means gaps are ambiguous character
     w <- ifelse(missing(w), "-w 6", paste("-w", w)) # window size
     r <- ifelse(missing(r), "", paste("-r", r)) # number of random pairs to use - if -r used with no argument or -r not used, the program selectes 4*N pairs where N = number of taxa
     t <- ifelse(missing(tree_path), "", paste("-t",tree_path)) # the path to the tree if using a tree
