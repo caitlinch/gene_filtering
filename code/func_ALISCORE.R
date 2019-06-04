@@ -4,7 +4,7 @@ library(ape)
 
 # This function evaluates whether a given locus has a high or low quality alignment
 # This function runs ALISCORE on a given alignment and outputs whether the alignment is high or low quality based on the selected quality threshold (proportion of randomly similar sites from 0 to 1)
-aliscore <- function(alignment_path, output_path, gaps = "5char", w, r, tree_path, l, s, o, aliscore_path, quality_threshold = 0.5, redo = FALSE){
+aliscore <- function(alignment_path, output_path, gaps = "5char", w, r, tree_path, l, s, o, aliscore_paths, quality_threshold = 0.5, redo = FALSE){
   # Extract the names of the dataset and the loci name so you can output them into a nice dataframe at the end
   loci_name <- gsub(".nex","",basename(alignment_path))
   dataset <- basename(dirname(alignment_path))
@@ -17,6 +17,15 @@ aliscore <- function(alignment_path, output_path, gaps = "5char", w, r, tree_pat
   } else {
     # If you do want to redo the analysis OR the analysis hasn't been done yet, this will run the alignment and create the quality check output csv for the alignment
     print(paste0(dataset, " - ", loci_name," - alignment processing"))
+    # Copy the ALISCORE perl file and the module file into this folder if they are not already here.
+    aliscore_file <- paste0(dirname(alignment_path),"/Aliscore.02.2.pl")
+    module_file <- paste0(dirname(alignment_path),"/Aliscore_module.pm")
+    if (file.exists(aliscore_file) == FALSE){
+      file.copy(aliscore_paths[1],aliscore_file)
+    }
+    if (file.exists(module_file) == FALSE){
+      file.copy(aliscore_paths[2],module_file)
+    }
     # Check if this alignment has already been processed: if it has already been run, and redo = FALSE, skip the alignment
     # Convert alignment to a fasta if it isn't already
     fasta_path <- check.fasta.format(alignment_path)
@@ -31,11 +40,16 @@ aliscore <- function(alignment_path, output_path, gaps = "5char", w, r, tree_pat
     s <- ifelse(missing(s), "", "-s") # generate strict profile - 1 no = no (not median)
     o <- ifelse(missing(o), "", paste("-o", paste(o, collapse = ","))) # outgroups
     # Run the ALISCORE program
-    command <- paste("perl",aliscore_path,"-i",fasta_path,N,w,r,t,l,s,o)
+    command <- paste("perl",aliscore_file,"-i",fasta_path,N,w,r,t,l,s,o)
     print(command)
     system(command)
     # Open the file that contains the list of sites that are randomly similar
-    op_file <- paste0(fasta_path,"_List_random.txt")
+    files <- list.files(dirname(alignment_path))
+    files <- files[grep(paste0(loci_name,".nex"),files)]
+    op_file <- files[grep("List",files)]
+    if (length(op_file)>1){
+      op_file <- op_file[1]
+    }
     rss_sites <- as.numeric(strsplit(readLines(op_file),split=" ")[[1]])
     # Extract the number of sites and taxa from the nexus file
     params <- get.nexus.parameters(alignment_path)
@@ -43,10 +57,10 @@ aliscore <- function(alignment_path, output_path, gaps = "5char", w, r, tree_pat
     # Calculate the proportion of sites that are randomly similar
     proportion_rss <- length(rss_sites)/nchar
     # If the proportion of sites that are randomly similar is higher than the quality threshold, the alignment passes the quality check
-    if (proportion_rss < quality_threshold){
+    if (proportion_rss > quality_threshold){
       quality_check <- "FAIL"
       print(paste0(dataset, " - ", loci_name," - loci FAILED quality test : ",proportion_rss))
-    } else if (proportion_rss >= quality_threshold){
+    } else if (proportion_rss <= quality_threshold){
       quality_check <- "PASS"
       print(paste0(dataset, " - ", loci_name," - loci PASSED quality test : ",proportion_rss))
     }
