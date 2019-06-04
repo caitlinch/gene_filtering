@@ -8,7 +8,7 @@ run_location = "mac"
 # run_location = "soma"
 
 if (run_location == "mac"){
-  #BA_dir <- "/Users/caitlincherryh/Documents/Repositories/BenchmarkAlignments_DataSubSet/"
+  BA_dir <- "/Users/caitlincherryh/Documents/Repositories/BenchmarkAlignments_DataSubSet/"
   BA_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/"
   output_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/"
   treelikeness_dir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the code for treelikeness statistics and processing is
@@ -44,7 +44,15 @@ source(paste0(empirical_treelikeness_dir,"code/func_ALISCORE.R"))
 # If order = "user-specified", the user can select which order the datasets will be run in - providing a subset of the dataset names will run a subset of the alignments
 print("Extract alignment file paths")
 #als <- extract.BA.files(dir = BA_dir, order_by = "ntaxa")
-als <- extract.BA.files(dir = "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/", order_by = "ntaxa")
+test_order <- c('Richart_2015','Smith_2014','Crawford_2012','Leache_2015','Meiklejohn_2016','Faircloth_2013',
+                'McCormack_2013','Wood_2012','Bergsten_2013','Ran_2018_dna','Brown_2012','Cognato_2001',
+                'Dornburg_2012','Prebus_2017','Sauquet_2011','Broughton_2013','Siler_2013','Devitt_2013',
+                'Kawahara_2013','Cannon_2016_dna','Lartillot_2012','Oaks_2011','Wu_2018_dna','Worobey_2014c',
+                'Rightmyer_2013','Seago_2011','Moyle_2016','Fong_2012','Unmack_2013','Sharanowski_2011',
+                'Anderson_2013','Worobey_2014a','Day_2013','Branstetter_2017','Wainwright_2012','Horn_2014',
+                'Tolley_2013','Reddy_2017','Murray_2013','Near_2013','Looney_2016','Pyron_2011') 
+                # This is ntaxa order, excluding Worobey because some of the taxa there have names with "*" in and that will crash ALISCORE
+als <- extract.BA.files(dir = "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/", order_by = test_order)
 
 
 # Run aliscore on each alignment in the als
