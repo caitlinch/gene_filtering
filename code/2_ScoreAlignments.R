@@ -51,8 +51,7 @@ test_order <- c('Richart_2015','Smith_2014','Crawford_2012','Leache_2015','Meikl
                 'Anderson_2013','Worobey_2014a','Day_2013','Branstetter_2017','Wainwright_2012','Horn_2014',
                 'Tolley_2013','Reddy_2017','Murray_2013','Near_2013','Looney_2016','Pyron_2011') 
                 # This is ntaxa order, excluding Worobey because some of the taxa there have names with "*" in and that will crash ALISCORE
-als <- extract.BA.files(dir = "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/", 
-                        order_by = "user-specified", user_ordered_list = test_order)
+als <- extract.BA.files(dir = BA_dir, order_by = "user-specified", user_ordered_list = test_order)
 
 
 # Run aliscore on each alignment in the als
