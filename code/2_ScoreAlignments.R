@@ -8,16 +8,17 @@ run_location = "mac"
 # run_location = "soma"
 
 if (run_location == "mac"){
-  BA_dir <- "/Users/caitlincherryh/Documents/Repositories/BenchmarkAlignments_DataSubSet/"
+  #BA_dir <- "/Users/caitlincherryh/Documents/Repositories/BenchmarkAlignments_DataSubSet/"
+  BA_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/"
   output_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/test_01_aliscoretest/"
   treelikeness_dir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the code for treelikeness statistics and processing is
   empirical_treelikeness_dir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the code for empirical data and alignment scoring is
   exec_folder <- "/Users/caitlincherryh/Documents/Honours/Executables/"
   # Create a vector with all of the executable file paths
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("3seq","iqtree","Phi","SimBac","SplitsTree.app/Contents/MacOS/JavaApplicationStub","Aliscore_v.2.0/Aliscore.02.2.pl")
+  exec_paths <- c("3seq","iqtree","Phi","SimBac","SplitsTree.app/Contents/MacOS/JavaApplicationStub","Aliscore_v.2.0/Aliscore.02.2.pl","Aliscore_v.2.0/Aliscore_module.pm")
   exec_paths <- paste0(exec_folder,exec_paths)
-  names(exec_paths) <- c("3seq","IQTree","Phi","SimBac","SplitsTree", "ALISCORE")
+  names(exec_paths) <- c("3seq","IQTree","Phi","SimBac","SplitsTree", "ALISCORE","ALISCORE_module")
   source(paste0(treelikeness_dir,"code/func_BA.R"))
 } else if (run_location=="soma"){
   BA_dir <- "/data/caitlin/treelikeness/BenchmarkAlignments_DataSubSet/"
@@ -27,14 +28,16 @@ if (run_location == "mac"){
   # Create a vector with all of the executable file paths
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("/data/caitlin/linux_executables/3seq/3seq","/data/caitlin/linux_executables/iqtree/bin/iqtree","/data/caitlin/linux_executables/PhiPack/Phi",
-                  "/data/caitlin/linux_executables/SimBac/SimBac","/data/caitlin/splitstree4/SplitsTree", "/data/caitlin/linux_executables/Aliscore_v.2.0/Aliscore.02.2.pl")
-  names(exec_paths) <- c("3seq","IQTree","Phi","SimBac","SplitsTree","ALISCORE")
+                  "/data/caitlin/linux_executables/SimBac/SimBac","/data/caitlin/splitstree4/SplitsTree", "/data/caitlin/linux_executables/Aliscore_v.2.0/Aliscore.02.2.pl",
+                  "/data/caitlin/linux_executables/Aliscore_v.2.0/Aliscore_module.pm")
+  names(exec_paths) <- c("3seq","IQTree","Phi","SimBac","SplitsTree","ALISCORE","ALISCORE_module")
   source(paste0(treelikeness_dir,"code/func_BA_parallel.R")) # run code parallel
 } 
 
 # Source files for functions
 source(paste0(treelikeness_dir,"code/func_process_data.R"))
 source(paste0(treelikeness_dir,"code/func_parametric_bootstrap.R"))
+source(paste0(empirical_treelikeness_dir,"code/func_ALISCORE.R"))
 
 # Extract the file names of the alignments
 # Accepted values for order are none (as ordered in directory), from smallest to largest number of taxa ("ntaxa") or numer of partitions ("npartitions")
@@ -46,9 +49,10 @@ als <- extract.BA.files(dir = "/Users/caitlincherryh/Documents/Chapter01_TestSta
 
 # Run aliscore on each alignment in the als
 # Sample aliscore function call: aliscore(al, gaps = "5char", w = 6, aliscore_path = exec_paths[["ALISCORE"]], quality_threshold = 0.5, redo = FALSE)
+# Putting in a blank r value means r isn't missing and so it will test 4*N pairs, and will not test the nodes on the tree
 print("Testing alignment quality")
-lapply(als, aliscore, gaps = "5char", w = 6, aliscore_path = exec_paths[["ALISCORE"]], quality_threshold = 0.5, redo = FALSE)
+lapply(als, aliscore, gaps = "5char", w = 6, r = " ", aliscore_paths = c(exec_paths[["ALISCORE"]],exec_paths[["ALISCORE_module"]]), quality_threshold = 0.5, redo = TRUE)
 
 # Collate alignment quality scoring metrics for each locus into one big old csv file
 results_file <- paste0(output_dir,basename(BA_dir),"_collatedAlignmentQuality.csv")
-df <- collate.bootstraps(directory = BA_dir, file.name = "locusAlignmentQuality", id = "", output.file.name = results_file)
+df <- collate.bootstraps(directory = BA_dir, file.name = "locusAlignmentQuality", id = "", output.file.name = results_file) 
