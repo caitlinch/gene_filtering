@@ -49,22 +49,34 @@ aliscore <- function(alignment_path, output_path, gaps = "5char", w, r, tree_pat
     files <- files[grep(basename(fasta_path),files)]
     op_file <- files[grep("List",files)]
     print(paste0("opening output: ",op_file))
-    if (length(op_file)>1){
-      op_file <- op_file[1]
-    }
-    rss_sites <- as.numeric(strsplit(readLines(op_file),split=" ")[[1]])
     # Extract the number of sites and taxa from the nexus file
     params <- get.nexus.parameters(alignment_path)
     nchar <- params$n_chars
-    # Calculate the proportion of sites that are randomly similar
-    proportion_rss <- length(rss_sites)/nchar
-    # If the proportion of sites that are randomly similar is higher than the quality threshold, the alignment passes the quality check
-    if (proportion_rss > quality_threshold){
-      quality_check <- "FAIL"
-      print(paste0(dataset, " - ", loci_name," - loci FAILED quality test : ",proportion_rss))
-    } else if (proportion_rss <= quality_threshold){
-      quality_check <- "PASS"
-      print(paste0(dataset, " - ", loci_name," - loci PASSED quality test : ",proportion_rss))
+    # If the file exists, create a nice row of results
+    if (length(op_file) >= 1){
+      # If multiple hits, select the first one
+      if (length(op_file)>1){
+        op_file <- op_file[1]
+      }
+      # Open the list of randomly similar sites
+      rss_sites <- as.numeric(strsplit(readLines(op_file),split=" ")[[1]])
+      # Calculate the proportion of sites that are randomly similar
+      proportion_rss <- length(rss_sites)/nchar
+      # If the proportion of sites that are randomly similar is higher than the quality threshold, the alignment passes the quality check
+      if (proportion_rss > quality_threshold){
+        quality_check <- "FAIL"
+        print(paste0(dataset, " - ", loci_name," - loci FAILED quality test : ",proportion_rss))
+      } else if (proportion_rss <= quality_threshold){
+        quality_check <- "PASS"
+        print(paste0(dataset, " - ", loci_name," - loci PASSED quality test : ",proportion_rss))
+      }
+    } else {
+      # If no output file exists, record that into the csv
+      print(paste0(dataset, " - ", loci_name," - loci run error"))
+      # If the file doesn't exist, create a nice row of missing values
+      rss_sites <- "RUN_ERROR"
+      proportion_rss <- "RUN_ERROR"
+      quality_check <- "NA"
     }
     # Output the information about the alignment and the results of the quality check using ALISCORE
     df <- data.frame(dataset,loci_name,alignment_path,params$n_taxa,nchar,length(rss_sites),proportion_rss,quality_check)
