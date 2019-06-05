@@ -46,7 +46,7 @@ print("Extract alignment file paths")
 test_order <- c('Richart_2015','Smith_2014','Crawford_2012','Leache_2015','Meiklejohn_2016','Faircloth_2013',
                 'McCormack_2013','Wood_2012','Bergsten_2013','Ran_2018_dna','Brown_2012','Cognato_2001',
                 'Dornburg_2012','Prebus_2017','Sauquet_2011','Broughton_2013','Siler_2013','Devitt_2013',
-                'Kawahara_2013','Cannon_2016_dna','Lartillot_2012','Oaks_2011','Wu_2018_dna','Worobey_2014c',
+                'Kawahara_2013','Cannon_2016_dna','Lartillot_2012','Oaks_2011','Worobey_2014c',
                 'Rightmyer_2013','Seago_2011','Moyle_2016','Fong_2012','Unmack_2013','Sharanowski_2011',
                 'Anderson_2013','Worobey_2014a','Day_2013','Branstetter_2017','Wainwright_2012','Horn_2014',
                 'Tolley_2013','Reddy_2017','Murray_2013','Near_2013','Looney_2016','Pyron_2011') 
@@ -58,7 +58,7 @@ als <- extract.BA.files(dir = BA_dir, order_by = "user-specified", user_ordered_
 # Sample aliscore function call: aliscore(al, gaps = "5char", w = 6, aliscore_path = exec_paths[["ALISCORE"]], quality_threshold = 0.5, redo = FALSE)
 # Putting in a blank r value means r isn't missing and so it will test 4*N pairs, and will not test the nodes on the tree
 print("Testing alignment quality")
-lapply(als, aliscore, gaps = "5char", w = 6, r = " ", aliscore_paths = c(exec_paths[["ALISCORE"]],exec_paths[["ALISCORE_module"]]), quality_threshold = 0.5, redo = TRUE)
+lapply(als, aliscore, gaps = "5char", w = 6, r = " ", aliscore_paths = c(exec_paths[["ALISCORE"]],exec_paths[["ALISCORE_module"]]), quality_threshold = 0.5, redo = FALSE)
 
 # Collate alignment quality scoring metrics for each locus into one big old csv file
 results_file <- paste0(output_dir,basename(BA_dir),"_collatedAlignmentQuality.csv")
