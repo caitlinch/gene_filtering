@@ -5,6 +5,7 @@ library(ape)
 # This function evaluates whether a given locus has a high or low quality alignment
 # This function runs ALISCORE on a given alignment and outputs whether the alignment is high or low quality based on the selected quality threshold (proportion of randomly similar sites from 0 to 1)
 aliscore <- function(alignment_path, output_path, gaps = "5char", w, r, tree_path, l, s, o, aliscore_paths, quality_threshold = 0.5, redo = FALSE){
+  print(paste0("checking ",alignment_path))
   # Extract the names of the dataset and the loci name so you can output them into a nice dataframe at the end
   loci_name <- gsub(".nex","",basename(alignment_path))
   dataset <- basename(dirname(alignment_path))
@@ -27,7 +28,7 @@ aliscore <- function(alignment_path, output_path, gaps = "5char", w, r, tree_pat
       file.copy(aliscore_paths[2],module_file)
     }
     # Check if this alignment has already been processed: if it has already been run, and redo = FALSE, skip the alignment
-    # Convert alignment to a fasta if it isn't already
+    # Convert alignment to a fasta (with no "?" - replace them with "N" so ALISCORE will run) if it isn't already
     fasta_path <- check.fasta.format(alignment_path)
     # Change the wd to where you want the files created by ALISCORE to go
     setwd(output_path)
@@ -40,13 +41,14 @@ aliscore <- function(alignment_path, output_path, gaps = "5char", w, r, tree_pat
     s <- ifelse(missing(s), "", "-s") # generate strict profile - 1 no = no (not median)
     o <- ifelse(missing(o), "", paste("-o", paste(o, collapse = ","))) # outgroups
     # Run the ALISCORE program
-    command <- paste("perl",aliscore_file,"-i",fasta_path,N,w,r,t,l,s,o)
+    command <- paste("perl -I ",module_file,aliscore_file,"-i",fasta_path,N,w,r,t,l,s,o)
     print(command)
     system(command)
     # Open the file that contains the list of sites that are randomly similar
     files <- list.files(dirname(alignment_path))
-    files <- files[grep(paste0(loci_name,".nex"),files)]
+    files <- files[grep(basename(fasta_path),files)]
     op_file <- files[grep("List",files)]
+    print(paste0("opening output: ",op_file))
     if (length(op_file)>1){
       op_file <- op_file[1]
     }
@@ -80,16 +82,28 @@ check.fasta.format <- function(alignment_path){
   # If an alignment is in fasta format, the alignment name is returned
   # If an alignment is nexus format, it is converted to fasta and the fasta name returned
   filetype = tail(strsplit(alignment_path,"\\.")[[1]],n=1) # extract file format
-  if (filetype == "fasta"){
+  if (filetype == "fasta"|| filetype == "fas"){
     # if the alignment is already in fasta format, return the file
+    fasta.name <- paste0(gsub(paste0(".",filetype),"",alignment_path),"_noq.fasta")
+    fasta.noq(fasta.name)
     return(alignment_path)
   } else if (filetype == "nexus" || filetype == "nex"){
     # Phipack only reads in Phylip or fasta format - need to convert if the alignment is a nexus file
     data = as.DNAbin(read.nexus.data(alignment_path)) # read in nexus format alignment
-    fasta.name <- paste0(alignment_path,".fasta") # make a name for the fasta alignment by adding .fasta (super original ;) )
+    fasta.name <- paste0(alignment_path,"_noq.fasta") # make a name for the fasta alignment by adding .fasta (super original ;) )
     write.FASTA(x = data, file = fasta.name) # output alignment as a fasta format
+    fasta.noq(fasta.name)
     return(fasta.name)
   }
+}
+
+
+
+# This function takes the "?" in a file and changes them to "N" so that ALISCORE will run
+fasta.noq <- function(alignment_path){
+  fasta_file <- readLines(alignment_path)
+  fasta_file <- gsub("\\?","N",fasta_file)
+  writeLines(fasta_file,alignment_path)
 }
 
 
