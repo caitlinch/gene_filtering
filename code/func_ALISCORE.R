@@ -122,11 +122,34 @@ fasta.noq <- function(alignment_path){
 
 # Given a nexus file, this function extracts the taxa, number of characters and number of taxa
 get.nexus.parameters <- function(nexus_file){
+  # Open the nexus file and get the information you want from it
   n <- read.nexus.data(nexus_file)
   taxa <- names(n)
   n_taxa <- length(taxa)
   n_chars <- length(n[[1]])
+  # stick the params together and return them
   params <- list(taxa,n_taxa,n_chars)
   names(params) <- c("taxa","n_taxa","n_chars")
   return(params)
 }
+
+
+
+# Function to check whether an alignment has been processed by ALISCORE, and return the alignment path if it hasn't
+ALISCORE.output.exists <- function(al){
+  # construct the file name
+  loci_name <- gsub(".nex","",basename(al))
+  dataset <- basename(dirname(al))
+  output_path <- paste0(dirname(al),"/")
+  output_csv_name <- paste0(output_path,loci_name,"_ALISCORE_locusAlignmentQuality.csv")
+  # Check whether that file exists
+  if (file.exists(output_csv_name) == TRUE){
+    # return nothing because the file has already been run
+    file_result <- character(0)
+  } else if (file.exists(output_csv_name) == FALSE){
+    # return the alignment because it hasn't been run
+    file_result <- al
+  }
+  return(file_result)
+}
+  
