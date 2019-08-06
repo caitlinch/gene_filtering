@@ -1,4 +1,7 @@
-# R functions to check the quality of a given alignment
+### empirical_treelikeness/code/func_ALISCORE.R
+## R functions to check the quality of a given alignment, using the program ALISCORE (Misof and Misof 2009; Kück et al 2009)
+## ALISCORE available here: https://www.zfmk.de/en/research/research-centres-and-groups/aliscore
+# Caitlin Cherryh 2019
 
 library(ape)
 

@@ -1,3 +1,14 @@
+### empirical_treelikeness/code/1_TestStatistics_EmpiricalData.R
+## R program to apply treelikeness statistics to transcriptomes from empirical data
+## Specifically designed to work with Rob Lanfear's "BenchmarkAlignments"
+## BenchmarkAlignments and metadata have CC0 or CCBY licenses and are available here: https://github.com/roblanf/BenchmarkAlignments
+## A number of additional software packages are required, specifically:
+##     - IQTREE (Nguyen et al 2015) (http://www.iqtree.org/)
+##     - 3SEQ (Lam et al 2018) (http://mol.ax/software/3seq/)
+##     - PHI test (Bruen et al 2006) (https://www.maths.otago.ac.nz/~dbryant/software.html)
+##     - Splitstree (Huson and Bryant 2006) (http://www.splitstree.org/)
+# Caitlin Cherryh 2019
+
 # Script to apply test statistics and parametric bootstrap to empirical data sets in the BenchmarkAlignments database
 
 print("opening packages")
@@ -23,9 +34,9 @@ if (run_location == "mac"){
   exec_folder <- "/Users/caitlincherryh/Documents/Honours/Executables/"
   # Create a vector with all of the executable file paths
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("3seq","iqtree","Phi","SimBac","SplitsTree.app/Contents/MacOS/JavaApplicationStub")
+  exec_paths <- c("3seq","iqtree","Phi","SplitsTree.app/Contents/MacOS/JavaApplicationStub")
   exec_paths <- paste0(exec_folder,exec_paths)
-  names(exec_paths) <- c("3seq","IQTree","Phi","SimBac","SplitsTree")
+  names(exec_paths) <- c("3seq","IQTree","Phi","SplitsTree")
   source(paste0(treedir,"code/func_BA.R"))
 } else if (run_location=="soma"){
   input_dir <- "/data/caitlin/treelikeness/BenchmarkAlignments_DataSubSet/"
@@ -60,7 +71,11 @@ outgroups_speciesName <- c("Gallus gallus", "Meleagris gallopavo", "Anolis carol
 
 # Extract the loci from the folder
 loci <- list.files(input_dir)
+# Remove the three alignment files from the folder
+loci <- loci[grep("alignment",loci,invert=TRUE)]
+loci <- loci[grep("README",loci,invert=TRUE)]
 
+# Call the trim function to remove all the species you want to remove from the alignment (unless you want to keep ALL the species in the alignment)
 
 
 

@@ -1,4 +1,7 @@
-# Script to check the quality of alignments from empirical data sets in the BenchmarkAlignments database
+### empirical_treelikeness/code/2_ScoreAlignments.R
+## R program to calculate and analyse the sequence quality of transcriptomes from empirical data
+## Using the program ALISCORE (Misof and Misof 2009; Kück et al 2009) (https://www.zfmk.de/en/research/research-centres-and-groups/aliscore)
+# Caitlin Cherryh 2019
 
 print("opening packages")
 library(ape)
