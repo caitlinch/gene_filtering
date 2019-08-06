@@ -52,7 +52,7 @@ test_order <- c('Richart_2015','Smith_2014','Crawford_2012','Leache_2015','Meikl
                 'Tolley_2013','Reddy_2017','Murray_2013','Near_2013','Looney_2016','Pyron_2011') 
                 # This is ntaxa order, excluding Worobey because some of the taxa there have names with "*" in and that will crash ALISCORE
 als <- extract.BA.files(dir = BA_dir, order_by = "user-specified", user_ordered_list = test_order)
-
+missing_als <- unlist(lapply(als,ALISCORE.output.exists)) # extract only the alignments that _haven't_ been run <- allows you to test why these don't work!
 
 # Run aliscore on each alignment in the als
 # Sample aliscore function call: aliscore(al, gaps = "5char", w = 6, aliscore_path = exec_paths[["ALISCORE"]], quality_threshold = 0.5, redo = FALSE)
