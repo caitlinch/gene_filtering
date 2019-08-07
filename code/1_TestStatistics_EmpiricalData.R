@@ -34,9 +34,9 @@ if (run_location == "mac"){
   exec_folder <- "/Users/caitlincherryh/Documents/Honours/Executables/"
   # Create a vector with all of the executable file paths
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("3seq","iqtree","Phi","SplitsTree.app/Contents/MacOS/JavaApplicationStub")
+  exec_paths <- c("3seq","iqtree-1.7-beta13_sCF/bin/iqtree","SplitsTree.app/Contents/MacOS/JavaApplicationStub")
   exec_paths <- paste0(exec_folder,exec_paths)
-  names(exec_paths) <- c("3seq","IQTree","Phi","SplitsTree")
+  names(exec_paths) <- c("3seq","IQTree","SplitsTree")
   source(paste0(treedir,"code/func_BA.R"))
 } else if (run_location=="soma"){
   input_dir <- "/data/caitlin/treelikeness/BenchmarkAlignments_DataSubSet/"
@@ -44,9 +44,8 @@ if (run_location == "mac"){
   treedir <- "/data/caitlin/treelikeness/" # where the code is
   # Create a vector with all of the executable file paths
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("/data/caitlin/linux_executables/3seq/3seq","/data/caitlin/linux_executables/iqtree/bin/iqtree","/data/caitlin/linux_executables/PhiPack/Phi",
-                  "/data/caitlin/linux_executables/SimBac/SimBac","/data/caitlin/splitstree4/SplitsTree")
-  names(exec_paths) <- c("3seq","IQTree","Phi","SimBac","SplitsTree")
+  exec_paths <- c("/data/caitlin/linux_executables/3seq/3seq","/data/caitlin/linux_executables/iqtree/bin/iqtree","/data/caitlin/splitstree4/SplitsTree")
+  names(exec_paths) <- c("3seq","IQTree","SplitsTree")
   source(paste0(treedir,"code/func_BA_parallel.R")) # run code parallel
 }
 
@@ -88,7 +87,7 @@ print("trimming alignments")
 test_al <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/ENSG00000000419dna.nex"
 
 # for testing non-parallel
-sCF(iqtree_path,alignment_path, num_threads = "AUTO")
+sCF(iqtree_path = exec_paths["IQTree"], alignment_path = test_al, num_threads = "AUTO", num_quartets = 1000)
 
 # For actual running: 
 #sCF(iqtree_path,alignment_path, num_threads = "1") # set num_threads to 1 so can parallelise at a higher level
