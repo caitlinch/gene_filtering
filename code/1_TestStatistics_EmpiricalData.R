@@ -71,13 +71,27 @@ outgroups_speciesName <- c("Gallus gallus", "Meleagris gallopavo", "Anolis carol
 
 # Extract the loci from the folder
 loci <- list.files(input_dir)
+loci <- paste0(input_dir, loci)
 # Remove the three alignment files from the folder
 loci <- loci[grep("alignment",loci,invert=TRUE)]
 loci <- loci[grep("README",loci,invert=TRUE)]
+# Create path for whole alignment file
+whole_alignment <- paste0(input_dir, "alignment.nex")
 
+print("trimming alignments")
 # Call the trim function to remove all the species you want to remove from the alignment (unless you want to keep ALL the species in the alignment)
+# cutSpecies(alignment_path, keep, output_path_provided = "FALSE")
+#lapply(loci, cutSpecies, keep = mammals, output_path_provided = FALSE) # trim all the unwanted species from the collected loci
+#cutSpecies(alignment_path = whole_alignment, keep = mammals, output_path_provided = FALSE) # trim all the unwanted species from the whole alignment file
 
+# test alignment for sampling
+test_al <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/ENSG00000000419dna.nex"
 
+# for testing non-parallel
+sCF(iqtree_path,alignment_path, num_threads = "AUTO")
+
+# For actual running: 
+#sCF(iqtree_path,alignment_path, num_threads = "1") # set num_threads to 1 so can parallelise at a higher level
 
 # Calculate the test statistics and run the bootstraps
 print("starting analysis")
