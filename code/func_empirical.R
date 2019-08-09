@@ -32,6 +32,10 @@ cutSpecies <- function(alignment_path, keep, output_path_provided = "FALSE", out
   writeLines(nexus,out_path) # output the edited nexus file
 }
 
+
+
+
+
 # Function to call IQ-tree, and estimate a maximum likelihood tree and corresponding the site concordance factors
 # Site concordance factors (sCF) are the fraction of decisive alignmen sites supporting that branch
 # sCF Citation: Minh B.Q., Hahn M., Lanfear R. (2018) New methods to calculate concordance factors for phylogenomic datasets. https://doi.org/10.1101/487801
@@ -53,8 +57,12 @@ sCF <- function(iqtree_path,alignment_path, num_threads = "AUTO", num_quartets =
   }
 }
 
+
+
+
+
 # Functions to run test statistics on empirical datasets
-empirical.runTS <- function(alignment_path, program_paths, bootstrap_id){
+empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.num_threads, iqtree.num_quartets){
   print("in empirical.runTS")
   print(alignment_path)
   # extract the alignment folder from the alignment path
@@ -101,48 +109,25 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id){
   n_taxa <- length(n)
   n_char <- length(unlist(n[1]))
   
-  # Run IQ-tree on the alignment (if it hasn't already been run), and get the likelihood mapping results
-  # Check that the original alignment ran ok
-  if (file.exists(paste0(alignment_path,".iqtree")) == FALSE || file.exists(paste0(alignment_path,".treefile")) == FALSE || file.exists(paste0(alignment_path,".lmap.eps")) == FALSE){
-    print("need to run IQ-Tree - missing files")
-    n <- read.nexus.data(alignment_path)
-    n_taxa <- length(n)
-    # Run IQ-tree on the alignment (if it hasn't already been run), and get the likelihood mapping results
-    print("run IQTree")
-    call.IQTREE.quartet(program_paths[["IQTree"]],alignment_path,n_taxa)
-  }
+  # Run IQ-tree on the alignment (if it hasn't already been run), and get the site concordance factor results
+  sCF <- function(iqtree_path, alignment_path, num_threads = iqtree.num_threads, num_quartets = iqtree.num_quartets)
   
   # Change to the log (storage for log files) folder for this alignment - means that 3seq and Phi files will be saved into a unique folder
-  print("run PHI and 3SEQ")
+  print("run 3SEQ")
   setwd(log_folder)
-  # Get paths to PhiPac, 3SEQ
-  phi_path <- program_paths[["Phi"]] # get path to phipack executable
+  # Get path to 3SEQ
   seq_path <- program_paths[["3seq"]] # get path to 3seq executable
-  # Phipack only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
+  # 3SEQ only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
   fasta.name <- paste0(log_folder,output_id,".fasta") # make a name for the fasta alignment by adding .fasta (super original ;) )
   write.fasta(sequences = n,names = names(n), file.out = fasta.name) # output alignment as a fasta format
-  # run PHIPACK and 3seq 
-  # Note that Phi and 3Seq will only be run if they haven't already been run (checks for log files)
-  if (file.exists(paste0(log_folder,"Phi.log")) == FALSE){
-    phi_command <- paste0(phi_path," -f ",fasta.name, " -v") # assemble system command
-    system(phi_command) #call phipack
-  }
+  # run 3seq 
+  # Note that 3Seq will only be run if they haven't already been run (checks for log files)
   if (file.exists(paste0(log_folder,"3s.log")) == FALSE){
     seq_command <- paste0(seq_path," -f ", fasta.name)
     system(seq_command) #call 3SEQ
   }
   
-  # Both PhiPack and 3SEQ will have created a file with the information about the statistics in
-  # Extract significance from Phi Pack output
-  phi_file <- paste0(log_folder,"Phi.log")
-  phi_file <- readLines(phi_file)
-  ind      <- grep("p-Value",phi_file)
-  phi_sig <- as.numeric(strsplit(phi_file[ind+3],":")[[1]][2])
-  ind      <- grep("PHI Values",phi_file)
-  phi_mean <- as.numeric(strsplit(phi_file[ind+4],"      ","")[[1]][2])
-  phi_var <- as.numeric(strsplit(phi_file[ind+5],"      ","")[[1]][2])
-  phi_obs <- as.numeric(strsplit(phi_file[ind+6],"      ","")[[1]][2])
-  
+  # 3SEQ will have created a file with the information about the statistics in
   # Extract results output from 3Seq output
   seq_file <- paste0(log_folder,"3s.log")
   seq_log <- readLines(seq_file) # open file
@@ -162,44 +147,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id){
   
   # Change back to directory containing alignments and iqtree files
   setwd(alignment_folder)
-  
-  # Extract quartet mapping
-  print("extract likelihood mapping")
-  iq_log_path <- paste0(alignment_path,".iqtree")
-  iq_log <- readLines(iq_log_path)
-  ind <- grep("Number of fully resolved  quartets",iq_log)
-  resolved_q <- as.numeric(strsplit(strsplit(iq_log[ind],":")[[1]][2],"\\(")[[1]][1])
-  ind <- grep("Number of partly resolved quartets",iq_log)
-  partly_resolved_q <- as.numeric(strsplit(strsplit(iq_log[ind],":")[[1]][2],"\\(")[[1]][1])
-  ind <- grep("Number of unresolved",iq_log)
-  unresolved_q <- as.numeric(strsplit(strsplit(iq_log[ind],":")[[1]][2],"\\(")[[1]][1])
-  total_q <- (resolved_q+partly_resolved_q+unresolved_q)
-  prop_resolved <- resolved_q/total_q
-  
-  # Calculate the median and mean delta score 
-  print("estimate delta plots")
-  pdmm <- as.matrix(mldist.pdm(alignment_path)) # open pairwise distance matrix as a matrix
-  deltaplot_results <- delta.plot(pdmm, k = 51, plot = FALSE) # calculate the delta.plot
-  counts <- deltaplot_results$counts
-  intervals <- seq(0,1,(1/(length(counts)-1)))
-  deltaplot_df <- data.frame(intervals,counts)
-  names(deltaplot_df) <- c("intervals","counts")
-  deltaplot_df_name <- paste0(alignment_folder,output_id,"_deltaplot_histogram.csv")
-  write.csv(deltaplot_df,file = deltaplot_df_name, row.names = FALSE)
-  # Want to calculate the mean and median delta q value - unfortunately the delta.plot function doesn't output raw data, so make a pseudo data set using the histogram values
-  mean_dq <- mean(rep(deltaplot_df$intervals,deltaplot_df$counts)) # turn the interval data into a long list of "raw" values and calculate the mean
-  median_dq <- median(rep(deltaplot_df$intervals,deltaplot_df$counts)) # turn the interval data into a long list of "raw" values and calculate the median
-  mode_dq <- deltaplot_df[order(deltaplot_df$count, decreasing = TRUE),][1,1] # sort the dataframe by count values and extract the mode
-  
-  # Run my test statistics
-  print("run my test statistics")
-  # run pdm ratio (TS1) (modified splittable percentage)
-  splittable_percentage <- pdm.ratio(iqpath = program_paths[["IQTree"]], path = alignment_path)
-  # run normalised.pdm.difference.sum (TS2a) (sum of difference of normalised matrix)
-  npds <- normalised.pdm.diff.sum(iqpath = program_paths[["IQTree"]], path = alignment_path)
-  # run normalised pdm difference average (TS2b) (mean of difference of normalised matrix)
-  npdm <- normalised.pdm.diff.mean(iqpath = program_paths[["IQTree"]], path = alignment_path)
-  
+
   # Run trimmed and untrimmed versions of the split decomposition and NeighborNet tree proportion
   # Splitstree needs a specific file format - so create a new nexus file with a taxa block
   new_nexus_file <- paste0(alignment_folder,output_id,"_withTaxaBlock.nexus")
@@ -221,14 +169,12 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id){
   results_file <- paste0(alignment_folder,output_id,"_testStatistics.csv")
   # Make somewhere to store the results
   df_names <- c("dataset","loci","bootstrap_replicate_id","n_taxa","n_sites","alignment_file",
-                "PHI_mean","PHI_variance","PHI_observed","PHI_sig","3SEQ_num_recombinant_triplets","3SEQ_num_distinct_recombinant_sequences","3SEQ_p_value","num_quartets",
-                "num_resolved_quartets","prop_resolved_quartets","num_partially_resolved_quartets","num_unresolved_quartets", "splittable_percentage","pdm_difference",
-                "pdm_average","split_decomposition_untrimmed", "neighbour_net_untrimmed", "split_decomposition_trimmed","neighbour_net_trimmed","mean_delta_q","median_delta_q","mode_delta_q")
+                "3SEQ_num_recombinant_triplets","3SEQ_num_distinct_recombinant_sequences","3SEQ_p_value",
+                "split_decomposition_untrimmed", "neighbour_net_untrimmed", "split_decomposition_trimmed","neighbour_net_trimmed")
   df <- data.frame(matrix(nrow=0,ncol=length(df_names))) # create an empty dataframe of the correct size
   op_row <- c(dataset,loci_name,rep_id,n_taxa,n_char,alignment_path,
-              phi_mean,phi_var,phi_obs,phi_sig,num_trips,num_dis,seq_sig,total_q,resolved_q,
-              prop_resolved,partly_resolved_q,unresolved_q,splittable_percentage,npds,npdm,sd_untrimmed,nn_untrimmed,
-              sd_trimmed,nn_trimmed,mean_dq,median_dq,mode_dq) # collect all the information
+              num_trips,num_dis,seq_sig,
+              sd_untrimmed,nn_untrimmed,sd_trimmed,nn_trimmed) # collect all the information
   df <- rbind(df,op_row,stringsAsFactors = FALSE) # place row in dataframe
   names(df) <- df_names # add names to the df so you know what's what
   
@@ -237,7 +183,10 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id){
 
 
 
-do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment_path, alignment_params, program_paths){
+
+
+# Function to calculate one empirical bootstrap for an empirical alignment
+do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment_path, alignment_params, program_paths, iqtree.num_threads, iqtree.num_quartets){
   print("in do1.empirical.parametric.bootstrap")
   print(empirical_alignment_path)
   print(bootstrap_id)
@@ -364,12 +313,15 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
   # Run all the test statistics
   # bootstrap_id will be "bootstrapReplicateXXXX" where XXXX is a number
   print("run test statistics")
-  empirical.runTS(alignment_path = bootstrap_alignment_path, program_paths = program_paths, bootstrap_id = bootstrap_id)
+  empirical.runTS(alignment_path = bootstrap_alignment_path, program_paths = program_paths, bootstrap_id = bootstrap_id, iqtree.num_threads, iqtree.num_quartets)
 }
 
 
 
-empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths, number_of_replicates){
+
+
+# Function to act as outer shell for all the layers in performing test statistics and parametric bootstraps
+empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths, number_of_replicates, iqtree.num_threads, iqtree.num_quartets){
   print("in empirical.bootstraps.wrapper")
   print(empirical_alignment_path)
   # Create output file names, the name of the loci and the file path of the loci location
@@ -397,13 +349,13 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
     ts_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_testStatistics.csv")
     if (file.exists(ts_file) == FALSE){
       print("run test statistics")
-      empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment")
+      empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment", iqtree.num_threads, iqtree.num_quartets)
     }
     
     #Check that the test statistic file ran ok 
     if (file.exists(ts_file) == FALSE){
       print("need to rerun test statistics")
-      empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment")
+      empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment", iqtree.num_threads, iqtree.num_quartets)
     }
     
     #Extract the parameters from the .iqtree log file.
@@ -420,7 +372,7 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
     # If the alignment doesn't exist OR the test statistic csv doesnt exist, this indicates a complete run has not previously been done 
     # These bootstrap replicates will thus be calculates
     # This should save A BUNCH of time because it means if the test statistic file exists, you don't have to run Splitstree four times
-    print("run bootstrap replicates")
+    print("run ",number_of_replicates," bootstrap replicates")
     bs_als <- paste0(alignment_folder,"/",loci_name,"_",bootstrap_ids,"/",loci_name,"_",bootstrap_ids,".nex")
     ts_csvs <- paste0(alignment_folder,"/",loci_name,"_",bootstrap_ids,"/",loci_name,"_",bootstrap_ids,"_testStatistics.csv")
     missing_als <- bs_als[!file.exists(bs_als)]
@@ -431,7 +383,8 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
     print(paste0("Number of alignments to run = ",length(ids_to_run)))
     print("run all previously-unrun bootstraps")
     if(length(ids_to_run)>0){
-      lapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, alignment_params = params, program_paths = program_paths)
+      lapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, alignment_params = params, 
+             program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets)
     }
     
     # Before you can collate all the bootstrap files, you need to check every bootstrap ran and rerun the failed ones
@@ -451,7 +404,8 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
     print(paste0("Number of missing alignments to rerun = ",length(als_to_rerun)))
     # Rerun the missing als
     if (length(als_to_rerun)>0){
-      lapply(als_to_rerun, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, alignment_params = params, program_paths = program_paths)
+      lapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, alignment_params = params, 
+             program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets)
     }
     
     # collate the bootstrap info into 1 file
@@ -489,9 +443,12 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
 }
 
 
+
+
+
+# Quick function to randomly add/subtract to make sure that the number of sites in each gamma category is correct
 fix.gammaCategory.siteNums <- function(df,num){
   print("fix gamma categories")
-  # Quick function to randomly add/subtract to make sure that the number of sites in each gamma category is correct
   if (sum(df$cat_sites)==num){
     # If the sum of the num of sites = num of sites, return the df (all is good)
     return(df)
@@ -514,4 +471,72 @@ fix.gammaCategory.siteNums <- function(df,num){
     return(df)
   }
 }
+
+
+
+
+
+# Function to open a phylogenetic network
+# Calculate the split decomposition
+estimateNetwork <- function(alignment_path, splitstree_path, network_algorithm = "neighbournet"){
+  call.SplitsTree(splitstree_path,alignment_path,network_algorithm)
+  # Retrieve the file name for the splits output file
+  splits.filepath <- splits.filename(alignment_path)
+  
+  # Get the number of splits by opening the splits block and reading the number after "nsplits-"
+  splits_text <- readLines(splits.filepath)
+  splits_row <- splits_text[grep("nsplits",splits_text)]
+  nsplits <- str_extract_all(splits_row,"[0-9]+")[[1]][2]
+  
+  # Check whether there are valid splits in the splits block
+  # If there are, open the splits
+ if (as.numeric(nsplits) > 0){
+    # Otherwise, if the network does contain more than 0 splits:
+    # Extract the splits 
+    splits <- read.nexus.splits(splits.filepath) # Open the splits from SplitsTree
+ }
+  return(splits)
+}
+
+#test params
+alignment_path = test_al
+splitstree_path=exec_paths["SplitsTree"]
+network_algorithm = "neighbournet"
+# get the splits
+x <- estimateNetwork(test_al,exec_paths["SplitsTree"],network_algorithm = "neighbournet")
+# turn splits into network
+xnet <- as.networx(x)
+# open up the pdm
+pdm <- mldist.pdm(test_mldist)
+# make an nj tree
+njtree <- nj(as.matrix(pdm))
+
+
+# create a vector of labels for the network corresponding to edges in the tree
+edge.lab <- createLabel(xnet, njtree, njtree$edge[,2], "edge")
+# Show the correspondingly labelled tree and network in R
+par(mfrow=c(1,2))  
+plot(njtree, "u", rotate.tree = 180, cex=.7,edge.color=edge.col2)
+# check whether something in network but not tree
+edge.col2 <- createLabel(njtree, xnet, "pink", nomatch="grey")
+edgelabels(njtree$edge[,2],col="blue", frame="none", cex=.7)
+
+# find edges that are in the network but not in the tree
+edge.col <- rep("black", nrow(xnet$edge))
+edge.col[ is.na(edge.lab) ] <- "red"
+# or a simpler alternative...
+edge.col <- createLabel(xnet, njtree, "black", nomatch="red")
+x <- plot(xnet, edge.label = edge.lab, show.edge.label = T, "2D", edge.color = edge.col,
+          col.edge.label = "blue", cex=.7)
+
+# need to estimate network as highest supported tree from 
+# exclude trivial splits
+split = x[1]
+# get a list of taxa for each split, if it's either 1 or 15, then exclude it (trivial split). Then you can just create a neighbour joining network from there
+# get highest supporting split
+# find which split that is
+big_split <- which(attr(x,"weights")==max(attr(x,"weights")))
+
+
+
 

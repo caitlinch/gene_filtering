@@ -53,6 +53,7 @@ if (run_location == "mac"){
 source(paste0(treedir,"code/func_test_statistic.R"))
 source(paste0(treedir,"code/func_process_data.R"))
 source(paste0(treedir,"code/func_parametric_bootstrap.R"))
+source(paste0(maindir,"func_empirical.R"))
 
 # Initialise list of species of interest
 mammals <- c("CALLI_JAC", "MACAC_FAS", "MACAC_MUL", "PAPIO_ANU", "CHLOR_SAB", "DAUBE_MAD", "GORIL_GOR", "HOMO_SAP", "PAN_PAN", "PAN_TRO", "PONGO_ABE",
@@ -77,31 +78,44 @@ loci <- loci[grep("README",loci,invert=TRUE)]
 # Create path for whole alignment file
 whole_alignment <- paste0(input_dir, "alignment.nex")
 
+# Trim the unecessary species from the alignments
 print("trimming alignments")
 # Call the trim function to remove all the species you want to remove from the alignment (unless you want to keep ALL the species in the alignment)
 # cutSpecies(alignment_path, keep, output_path_provided = "FALSE")
 #lapply(loci, cutSpecies, keep = mammals, output_path_provided = FALSE) # trim all the unwanted species from the collected loci
 #cutSpecies(alignment_path = whole_alignment, keep = mammals, output_path_provided = FALSE) # trim all the unwanted species from the whole alignment file
 
-# test alignment for sampling
-test_al <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/ENSG00000000419dna.nex"
-
-# for testing non-parallel
-sCF(iqtree_path = exec_paths["IQTree"], alignment_path = test_al, num_threads = "AUTO", num_quartets = 1000)
-
-# For actual running: 
-#sCF(iqtree_path,alignment_path, num_threads = "1") # set num_threads to 1 so can parallelise at a higher level
 
 # Calculate the test statistics and run the bootstraps
 print("starting analysis")
-# To run for one alignment: empirical.bootstraps.wrapper(empirical_alignment_path = empirical_alignment_path, program_paths = program_paths, number_of_replicates = 9)
+print("apply treelikeness test statistics")
+# To run for one alignment: empirical.bootstraps.wrapper(empirical_alignment_path = empirical_alignment_path, program_paths = program_paths,
+#                                                        number_of_replicates = 9, iqtree.num_threads = AUTO, iqtree.num_quartets = 100)
+# Parameter choice:
+#       ~ iqtree.num_thread = 1: allows parallelisation higher up in the workflow
+#       ~ iqtree.num_quartets = 1000: greater than 100 quartets necessary for stable sCF values
+
 if (run_location=="soma"){
-  #lapply(als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 99) 
+  #lapply(als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 99, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
 } else if (run_location=="mac"){
-  #lapply(als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 9) 
+  #lapply(als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 5, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
 }
 
+print("collate resulst")
 # Collate all the results
 #results_file <- paste0(output_dir,basename(BA_dir),"_completeResults.csv")
 #df <- collate.bootstraps(directory = BA_dir, file.name = "pValues", id = "", output.file.name = results_file)
 
+# test alignment for sampling
+test_al <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/ENSG00000000419dna.nex"
+test_als <- paste0("/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/",list.files("/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/"))
+test_mldist <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/ENSG00000000419dna.nex" # don't include mldist
+
+# test mst
+pdm <- mldist.pdm(test_mldist) 
+
+# for testing non-parallel
+#sCF(iqtree_path = exec_paths["IQTree"], alignment_path = test_al, num_threads = "AUTO", num_quartets = 1000)
+
+# for testing whole implementation
+#lapply(als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 5, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
