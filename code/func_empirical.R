@@ -498,44 +498,12 @@ estimateNetwork <- function(alignment_path, splitstree_path, network_algorithm =
   return(splits)
 }
 
-#test params
-alignment_path = test_al
-splitstree_path=exec_paths["SplitsTree"]
-network_algorithm = "neighbournet"
-# get the splits
-x <- estimateNetwork(test_al,exec_paths["SplitsTree"],network_algorithm = "neighbournet")
-# turn splits into network
-xnet <- as.networx(x)
-# open up the pdm
-pdm <- mldist.pdm(test_mldist)
-# make an nj tree
-njtree <- nj(as.matrix(pdm))
 
 
-# create a vector of labels for the network corresponding to edges in the tree
-edge.lab <- createLabel(xnet, njtree, njtree$edge[,2], "edge")
-# Show the correspondingly labelled tree and network in R
-par(mfrow=c(1,2))  
-plot(njtree, "u", rotate.tree = 180, cex=.7,edge.color=edge.col2)
-# check whether something in network but not tree
-edge.col2 <- createLabel(njtree, xnet, "pink", nomatch="grey")
-edgelabels(njtree$edge[,2],col="blue", frame="none", cex=.7)
 
-# find edges that are in the network but not in the tree
-edge.col <- rep("black", nrow(xnet$edge))
-edge.col[ is.na(edge.lab) ] <- "red"
-# or a simpler alternative...
-edge.col <- createLabel(xnet, njtree, "black", nomatch="red")
-x <- plot(xnet, edge.label = edge.lab, show.edge.label = T, "2D", edge.color = edge.col,
-          col.edge.label = "blue", cex=.7)
 
-# need to estimate network as highest supported tree from 
-# exclude trivial splits
-split = x[1]
-# get a list of taxa for each split, if it's either 1 or 15, then exclude it (trivial split). Then you can just create a neighbour joining network from there
-# get highest supporting split
-# find which split that is
-big_split <- which(attr(x,"weights")==max(attr(x,"weights")))
+
+
 
 
 
