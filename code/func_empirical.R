@@ -55,6 +55,14 @@ sCF <- function(iqtree_path,alignment_path, num_threads = "AUTO", num_quartets =
     print(call)
     system(call) # call IQ-tree!
   }
+  # retrieve the sCF from the output
+  scf_table <- read.table(paste0(alignment_path,".treefile.cf.stat"), header = TRUE, sep = "\t")
+  scfs_val <- scf_table$sCF
+  branch_id_val <- scf_table$ID
+  mean_scf_val <- round(mean(scf_table$sCF), digits = 2)
+  median_scf_val <- round(median(scf_table$sCF), digits = 2)
+  scf_extracts <- list(mean_scf = mean_scf_val, median_scf = median_scf_val, all_scfs = scfs_val, branch_ids = branch_id_val )
+  return(scf_extracts)
 }
 
 
@@ -164,21 +172,35 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   sd_trimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]], path = new_nexus_file, network_algorithm = "split decomposition", trimmed = TRUE, tree_path = initial_iqtree_tree, run_IQTREE = FALSE)
   nn_trimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]], path = new_nexus_file, network_algorithm = "neighbournet", trimmed = TRUE, tree_path = initial_iqtree_tree, run_IQTREE = FALSE)
   
+  
   # Name the test statistics file using the output id (this way if it's a  bootstrap replicate, it adds the replicate number!)
   print(paste0("output results for ",output_id))
   results_file <- paste0(alignment_folder,output_id,"_testStatistics.csv")
   # Make somewhere to store the results
   df_names <- c("dataset","loci","bootstrap_replicate_id","n_taxa","n_sites","alignment_file",
                 "3SEQ_num_recombinant_triplets","3SEQ_num_distinct_recombinant_sequences","3SEQ_p_value",
-                "split_decomposition_untrimmed", "neighbour_net_untrimmed", "split_decomposition_trimmed","neighbour_net_trimmed")
+                "split_decomposition_untrimmed", "neighbour_net_untrimmed", "split_decomposition_trimmed","neighbour_net_trimmed",
+                "sCF_mean", "sCF_median")
   df <- data.frame(matrix(nrow=0,ncol=length(df_names))) # create an empty dataframe of the correct size
   op_row <- c(dataset,loci_name,rep_id,n_taxa,n_char,alignment_path,
               num_trips,num_dis,seq_sig,
-              sd_untrimmed,nn_untrimmed,sd_trimmed,nn_trimmed) # collect all the information
+              sd_untrimmed,nn_untrimmed,sd_trimmed,nn_trimmed,
+              sCF$mean_scf, sCF$median_scf) # collect all the information
   df <- rbind(df,op_row,stringsAsFactors = FALSE) # place row in dataframe
   names(df) <- df_names # add names to the df so you know what's what
-  
   write.csv(df,file = results_file, row.names = FALSE)
+  
+  # Repeat the above to create an output folder for the sCF values
+  print(paste0("output sCF values for ",output_id))
+  results_file <- paste0(alignment_folder,output_id,"_sCF_branch.csv")
+  # Make somewhere to store the results
+  op_row <- c(dataset,loci_name,rep_id,n_taxa,n_char,alignment_path,sCF$all_scfs) # collect all the information
+  df <- data.frame(matrix(nrow=0,ncol=length(op_row))) # create an empty dataframe of the correct size
+  df_names <- c("dataset","loci","bootstrap_replicate_id","n_taxa","n_sites","alignment_file", sCF$branch_ids)
+  df <- rbind(df,op_row,stringsAsFactors = FALSE) # place row in dataframe
+  names(df) <- df_names # add names to the df so you know what's what
+  write.csv(df,file = results_file, row.names = FALSE)
+  
 }
 
 
@@ -423,22 +445,15 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
     ts_df <- read.csv(ts_file)
     # Calculate the p_values of the variables of interest
     # Calculate the p-values for each test statistic
-    ts_df$PHI_mean_sig <- calculate.p_value(p_value_df$PHI_mean, p_value_df$bootstrap_id)
-    ts_df$PHI_observed_sig <- calculate.p_value(p_value_df$PHI_observed, p_value_df$bootstrap_id)
     ts_df$x3seq_sig <- calculate.p_value(p_value_df$X3SEQ_num_distinct_recombinant_sequences, p_value_df$bootstrap_id)
-    ts_df$prop_resolved_quartets_sig <- calculate.p_value(p_value_df$prop_resolved_quartets, p_value_df$bootstrap_id)
-    ts_df$splittable_percentage_sig <- calculate.p_value(p_value_df$splittable_percentage, p_value_df$bootstrap_id)
-    ts_df$pdm_difference_sig <- calculate.p_value(p_value_df$pdm_difference, p_value_df$bootstrap_id)
-    ts_df$pdm_average_sig <- calculate.p_value(p_value_df$pdm_average, p_value_df$bootstrap_id)
     ts_df$sd_untrimmed_sig <- calculate.p_value(p_value_df$split_decomposition_untrimmed, p_value_df$bootstrap_id)
     ts_df$nn_untrimmed_sig <- calculate.p_value(p_value_df$neighbour_net_untrimmed, p_value_df$bootstrap_id)
     ts_df$sd_trimmed_sig <- calculate.p_value(p_value_df$split_decomposition_trimmed, p_value_df$bootstrap_id)
     ts_df$nn_trimmed_sig <- calculate.p_value(p_value_df$neighbour_net_trimmed, p_value_df$bootstrap_id)
-    ts_df$mean_delta_q_sig  <- calculate.p_value(p_value_df$mean_delta_q, p_value_df$bootstrap_id)
-    ts_df$median_delta_q_sig <- calculate.p_value(p_value_df$median_delta_q, p_value_df$bootstrap_id)
-    ts_df$mode_delta_q_sig <- calculate.p_value(p_value_df$mode_delta_q, p_value_df$bootstrap_id)
     # Output the p-values file
     write.csv(ts_df,file = p_value_file, row.names = FALSE)
+    
+    #collate sCF files here
   }
 }
 
