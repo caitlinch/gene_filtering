@@ -154,6 +154,8 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   seq_sig <- strsplit(seq_sig,"=")[[1]][2] # extract the p value
   seq_sig <- trimws(seq_sig) # trim the whitespace from the number of distinct recombinant sequences
   # record proportion of recombinant sequences
+  print(paste0("num_dis = ",num_dis))
+  print(paste0("n_taxa = ",n_taxa))
   prop_recomb_seq <- num_dis/n_taxa
   
   # Change back to directory containing alignments and iqtree files
