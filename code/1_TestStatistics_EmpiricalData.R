@@ -81,14 +81,19 @@ outgroups_speciesName <- c("Gallus gallus", "Meleagris gallopavo", "Anolis carol
                            "Danio rerio", "Gasterosteus aculeatus")
 
 # Extract the loci from the folder of interest
-loci <- list.files(input_dir)
-loci <- paste0(input_dir, loci)
+full_loci <- list.files(input_dir)
+full_loci <- paste0(input_dir, full_loci)
 # Remove the three alignment files from the folder
-loci <- loci[grep("alignment",loci,invert=TRUE)]
-loci <- loci[grep("README",loci,invert=TRUE)]
-# Exclude unwanted files from analysis
-loci <- loci[grep(".nex",loci)]
-loci <- loci[grep(".nex.",loci,invert=TRUE)]
+full_loci <- full_loci[grep("alignment",full_loci,invert=TRUE)]
+full_loci <- full_loci[grep("README",full_loci,invert=TRUE)]
+# Exclude unwanted files (from previous output) from analysis
+full_loci <- full_loci[grep(".nex",full_loci)]
+full_loci <- full_loci[grep(".nex.",full_loci,invert=TRUE)]
+# Remove first, second and third codon positions from the folder (run only whole transcriptomes)
+loci <- full_loci[grep("1st",full_loci,invert=TRUE)]
+loci <- loci[grep("2nd",loci,invert=TRUE)]
+loci <- loci[grep("3rd",loci,invert=TRUE)]
+
 
 # Create path for whole alignment file
 whole_alignment <- paste0(input_dir, "alignment.nex")
