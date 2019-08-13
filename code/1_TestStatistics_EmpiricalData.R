@@ -98,11 +98,11 @@ print("apply treelikeness test statistics")
 if (run_location=="soma"){
   #lapply(als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 99, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
 } else if (run_location=="mac"){
-  #lapply(als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 5, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
+  lapply(als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 5, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
 }
 
 print("collate resulst")
-# Collate all the results
+# Collate all the dataframes together
 #results_file <- paste0(output_dir,basename(BA_dir),"_completeResults.csv")
 #df <- collate.bootstraps(directory = BA_dir, file.name = "pValues", id = "", output.file.name = results_file)
 
@@ -112,10 +112,16 @@ test_als <- paste0("/Users/caitlincherryh/Documents/Chapter01_TestStatistics_Ben
 test_mldist <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/ENSG00000000419dna.nex" # don't include mldist
 
 # test mst
-pdm <- mldist.pdm(test_mldist) 
+# pdm <- mldist.pdm(test_mldist) 
 
 # for testing non-parallel
 #sCF(iqtree_path = exec_paths["IQTree"], alignment_path = test_al, num_threads = "AUTO", num_quartets = 1000)
 
 # for testing whole implementation
 #lapply(als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 5, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
+
+scf_file <- '/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/ENSG00000000419dna.nex.treefile.cf.stat'
+
+# testing bootstrap etc
+lapply(test_als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 5, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
+
