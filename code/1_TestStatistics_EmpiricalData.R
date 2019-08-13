@@ -37,7 +37,6 @@ if (run_location == "mac"){
   exec_paths <- c("3seq","iqtree-1.7-beta13_sCF/bin/iqtree","SplitsTree.app/Contents/MacOS/JavaApplicationStub")
   exec_paths <- paste0(exec_folder,exec_paths)
   names(exec_paths) <- c("3seq","IQTree","SplitsTree")
-  source(paste0(treedir,"code/func_BA.R"))
 } else if (run_location=="soma"){
   input_dir <- "/data/caitlin/treelikeness/BenchmarkAlignments_DataSubSet/"
   output_dir <- "/data/caitlin/treelikeness/BenchmarkAlignments_DataSubSet_Results/"
@@ -46,14 +45,13 @@ if (run_location == "mac"){
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("/data/caitlin/linux_executables/3seq/3seq","/data/caitlin/linux_executables/iqtree/bin/iqtree","/data/caitlin/splitstree4/SplitsTree")
   names(exec_paths) <- c("3seq","IQTree","SplitsTree")
-  source(paste0(treedir,"code/func_BA_parallel.R")) # run code parallel
 }
 
 # Source files for functions
 source(paste0(treedir,"code/func_test_statistic.R"))
 source(paste0(treedir,"code/func_process_data.R"))
 source(paste0(treedir,"code/func_parametric_bootstrap.R"))
-source(paste0(maindir,"func_empirical.R"))
+source(paste0(maindir,"code/func_empirical.R"))
 
 # Initialise list of species of interest
 mammals <- c("CALLI_JAC", "MACAC_FAS", "MACAC_MUL", "PAPIO_ANU", "CHLOR_SAB", "DAUBE_MAD", "GORIL_GOR", "HOMO_SAP", "PAN_PAN", "PAN_TRO", "PONGO_ABE",
@@ -87,8 +85,8 @@ print("trimming alignments")
 
 
 # Calculate the test statistics and run the bootstraps
-print("starting analysis")
-print("apply treelikeness test statistics")
+#print("starting analysis")
+#print("apply treelikeness test statistics")
 # To run for one alignment: empirical.bootstraps.wrapper(empirical_alignment_path = empirical_alignment_path, program_paths = program_paths,
 #                                                        number_of_replicates = 9, iqtree.num_threads = AUTO, iqtree.num_quartets = 100)
 # Parameter choice:
@@ -98,10 +96,10 @@ print("apply treelikeness test statistics")
 if (run_location=="soma"){
   #lapply(als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 99, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
 } else if (run_location=="mac"){
-  lapply(als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 5, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
+  #lapply(als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 5, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
 }
 
-print("collate resulst")
+#print("collate resulst")
 # Collate all the dataframes together
 #results_file <- paste0(output_dir,basename(BA_dir),"_completeResults.csv")
 #df <- collate.bootstraps(directory = BA_dir, file.name = "pValues", id = "", output.file.name = results_file)
@@ -125,5 +123,5 @@ scf_file <- '/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkA
 # testing bootstrap etc
 #lapply(test_als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 5, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
 #empirical.runTS(alignment_path = test_al, program_paths = exec_paths, bootstrap_id = "alignment", iqtree.num_threads = 1, iqtree.num_quartets = 1000)
-empirical.bootstraps.wrapper(empirical_alignment_path = test_al, program_paths = exec_paths, number_of_replicates = 9, iqtree.num_threads = 1, iqtree.num_quartets = 1000)
+#empirical.bootstraps.wrapper(empirical_alignment_path = test_al, program_paths = exec_paths, number_of_replicates = 9, iqtree.num_threads = 1, iqtree.num_quartets = 1000)
 
