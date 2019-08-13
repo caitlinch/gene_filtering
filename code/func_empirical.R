@@ -398,7 +398,7 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
     # If the alignment doesn't exist OR the test statistic csv doesnt exist, this indicates a complete run has not previously been done 
     # These bootstrap replicates will thus be calculates
     # This should save A BUNCH of time because it means if the test statistic file exists, you don't have to run Splitstree four times
-    print("run ",number_of_replicates," bootstrap replicates")
+    print(paste0("run ",number_of_replicates," bootstrap replicates"))
     bs_als <- paste0(alignment_folder,"/",loci_name,"_",bootstrap_ids,"/",loci_name,"_",bootstrap_ids,".nex")
     ts_csvs <- paste0(alignment_folder,"/",loci_name,"_",bootstrap_ids,"/",loci_name,"_",bootstrap_ids,"_testStatistics.csv")
     missing_als <- bs_als[!file.exists(bs_als)]
