@@ -39,7 +39,7 @@ cutSpecies <- function(alignment_path, keep, output_path_provided = "FALSE", out
 # Function to call IQ-tree, and estimate a maximum likelihood tree and corresponding the site concordance factors
 # Site concordance factors (sCF) are the fraction of decisive alignmen sites supporting that branch
 # sCF Citation: Minh B.Q., Hahn M., Lanfear R. (2018) New methods to calculate concordance factors for phylogenomic datasets. https://doi.org/10.1101/487801
-sCF <- function(iqtree_path,alignment_path, num_threads = "AUTO", num_quartets = 100){
+calculate.sCF <- function(iqtree_path,alignment_path, num_threads = "AUTO", num_quartets = 100){
   # Check if the tree file already exists and if it doesn't, run IQ-tree and create it
   if (file.exists(paste0(alignment_path,".treefile")) == FALSE){
     # Given an alignment, estimate the maximum likelihood tree
@@ -118,7 +118,8 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   n_char <- length(unlist(n[1]))
   
   # Run IQ-tree on the alignment (if it hasn't already been run), and get the site concordance factor results
-  sCF <- function(iqtree_path, alignment_path, num_threads = iqtree.num_threads, num_quartets = iqtree.num_quartets)
+  sCF <- calculate.sCF(iqtree_path = program_paths["IQTree"], alignment_path, num_threads = iqtree.num_threads, num_quartets = iqtree.num_quartets)
+  initial_iqtree_tree <- paste0(alignment_path,".treefile")
   
   # Change to the log (storage for log files) folder for this alignment - means that 3seq and Phi files will be saved into a unique folder
   print("run 3SEQ")
