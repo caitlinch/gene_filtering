@@ -22,32 +22,38 @@ library(TreeSim)
 
 print("initialising namespace")
 
-run_location = "mac"
-# run_location = "soma"
+# run_location = "mac"
+run_location = "soma"
 
 
 if (run_location == "mac"){
   input_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/empiricalData/Wu_2018_dna_loci/"
   output_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/output/output_20190806/"
-  treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the code is
-  maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/"
+  treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
+  maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
+  
   exec_folder <- "/Users/caitlincherryh/Documents/Honours/Executables/"
   # Create a vector with all of the executable file paths
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("3seq","iqtree-1.7-beta13_sCF/bin/iqtree","SplitsTree.app/Contents/MacOS/JavaApplicationStub")
   exec_paths <- paste0(exec_folder,exec_paths)
   names(exec_paths) <- c("3seq","IQTree","SplitsTree")
+  
   # set number of cores and reps for bootstraps
   cores_to_use = 1
   reps_to_do = 9
+  
 } else if (run_location=="soma"){
-  input_dir <- "/data/caitlin/treelikeness/BenchmarkAlignments_DataSubSet/"
-  output_dir <- "/data/caitlin/treelikeness/BenchmarkAlignments_DataSubSet_Results/"
-  treedir <- "/data/caitlin/treelikeness/" # where the code is
+  input_dir <- "/data/caitlin/empirical_treelikeness/Wu_2018_dna/"
+  output_dir <- "/data/caitlin/empirical_treelikeness/Wu_2018_dna_results/"
+  treedir <- "/data/caitlin/treelikeness/" # where the treelikeness code is
+  maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness code is
+  
   # Create a vector with all of the executable file paths
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("/data/caitlin/linux_executables/3seq/3seq","/data/caitlin/linux_executables/iqtree/bin/iqtree","/data/caitlin/splitstree4/SplitsTree")
+  exec_paths <- c("/data/caitlin/linux_executables/3seq/3seq","data/caitlin/linux_executables/iqtree-1.7-beta13-Linux/bin/iqtree","/data/caitlin/splitstree4/SplitsTree")
   names(exec_paths) <- c("3seq","IQTree","SplitsTree")
+  
   # set number of cores and reps for bootstraps
   cores_to_use = 25
   reps_to_do= 199
@@ -58,15 +64,6 @@ source(paste0(treedir,"code/func_test_statistic.R"))
 source(paste0(treedir,"code/func_process_data.R"))
 source(paste0(treedir,"code/func_parametric_bootstrap.R"))
 source(paste0(maindir,"code/func_empirical.R"))
-
-# Files for testing
-input_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_04_finalTest/"
-output_dir <- input_dir
-test_al <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/ENSG00000000419dna.nex"
-test_als <- paste0("/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/",
-                   c("ENSG00000000419dna.nex","ENSG00000000457dna.nex","ENSG00000001036dna.nex","ENSG00000001084dna.nex"))
-test_mldist <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/ENSG00000000419dna.nex" # don't include mldist extension
-test_scf_file <- '/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/ENSG00000000419dna.nex.treefile.cf.stat'
 
 # Begin main body of code
 # Initialise list of species of interest
