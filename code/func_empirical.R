@@ -463,8 +463,6 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
     ts_df$sCF_median_sig          <- calculate.p_value(p_value_df$sCF_median, p_value_df$bootstrap_id)
     # Output the p-values file
     write.csv(ts_df,file = p_value_file, row.names = FALSE)
-    
-    #collate sCF files here
   }
 }
 
