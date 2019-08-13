@@ -49,8 +49,8 @@ if (run_location == "mac"){
   exec_paths <- c("/data/caitlin/linux_executables/3seq/3seq","/data/caitlin/linux_executables/iqtree/bin/iqtree","/data/caitlin/splitstree4/SplitsTree")
   names(exec_paths) <- c("3seq","IQTree","SplitsTree")
   # set number of cores and reps for bootstraps
-  cores_to_use = 20
-  reps_to_do= 99
+  cores_to_use = 25
+  reps_to_do= 199
 }
 
 # Source files for functions
@@ -60,6 +60,8 @@ source(paste0(treedir,"code/func_parametric_bootstrap.R"))
 source(paste0(maindir,"code/func_empirical.R"))
 
 # Files for testing
+input_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_04_finalTest/"
+output_dir <- input_dir
 test_al <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/ENSG00000000419dna.nex"
 test_als <- paste0("/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/",
                    c("ENSG00000000419dna.nex","ENSG00000000457dna.nex","ENSG00000001036dna.nex","ENSG00000001084dna.nex"))
@@ -104,17 +106,17 @@ print("trimming alignments")
 # Calculate the test statistics and run the bootstraps
 print("starting analysis")
 print("apply treelikeness test statistics")
-# To run for one alignment: empirical.bootstraps.wrapper(empirical_alignment_path = empirical_alignment_path, program_paths = program_paths,
-#                                                        number_of_replicates = 9, iqtree.num_threads = AUTO, iqtree.num_quartets = 100)
+# To run locally for one alignment: empirical.bootstraps.wrapper(empirical_alignment_path = empirical_alignment_path, program_paths = program_paths,
+#                                                        number_of_replicates = 9, iqtree.num_threads = AUTO, iqtree.num_quartets = 100,
+#                                                        num_of_cores = 1)
 # Parameter choice:
 #       ~ iqtree.num_thread = 1: allows parallelisation higher up in the workflow
 #       ~ iqtree.num_quartets = 1000: greater than 100 quartets necessary for stable sCF values
-
-#lapply(als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = 1, iqtree.num_quartets = 1000, num_of_cores = cores_to_use) 
+lapply(loci,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = 1, iqtree.num_quartets = 1000, num_of_cores = cores_to_use) 
 
 
 print("collate results")
 # Collate all the dataframes together
-#results_file <- paste0(output_dir,basename(BA_dir),"_completeResults.csv")
-#df <- collate.bootstraps(directory = BA_dir, file.name = "pValues", id = "", output.file.name = results_file)
+results_file <- paste0(output_dir,basename(input_dir),"_completeResults.csv")
+results_df <- collate.bootstraps(directory = input_dir, file.name = "pValues", id = "", output.file.name = results_file)
 

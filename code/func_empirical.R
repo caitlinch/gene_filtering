@@ -160,7 +160,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   # Change back to directory containing alignments and iqtree files
   setwd(alignment_folder)
 
-  # Run trimmed and untrimmed versions of the split decomposition and NeighborNet tree proportion
+  # Run trimmed and untrimmed versions of the NeighborNet tree proportion
   # Splitstree needs a specific file format - so create a new nexus file with a taxa block
   new_nexus_file <- paste0(alignment_folder,output_id,"_withTaxaBlock.nexus")
   write.nexus.data(n, file = new_nexus_file,datablock = FALSE, interleaved = FALSE)
@@ -171,9 +171,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   writeLines(nexus_edit,new_nexus_file) # output the edited nexus file
   # Call the test statistic functions
   initial_iqtree_tree <- paste0(alignment_path,".treefile")
-  sd_untrimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]], path = new_nexus_file, network_algorithm = "split decomposition", trimmed = FALSE, tree_path = initial_iqtree_tree, run_IQTREE = FALSE)
   nn_untrimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]], path = new_nexus_file, network_algorithm = "neighbournet", trimmed = FALSE, tree_path = initial_iqtree_tree, run_IQTREE = FALSE)
-  sd_trimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]], path = new_nexus_file, network_algorithm = "split decomposition", trimmed = TRUE, tree_path = initial_iqtree_tree, run_IQTREE = FALSE)
   nn_trimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]], path = new_nexus_file, network_algorithm = "neighbournet", trimmed = TRUE, tree_path = initial_iqtree_tree, run_IQTREE = FALSE)
   
   
@@ -183,12 +181,12 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   # Make somewhere to store the results
   df_names <- c("dataset","loci","bootstrap_replicate_id","n_taxa","n_sites","alignment_file",
                 "3SEQ_num_recombinant_triplets","3SEQ_num_distinct_recombinant_sequences","3SEQ_prop_recombinant_sequences","3SEQ_p_value",
-                "split_decomposition_untrimmed", "neighbour_net_untrimmed", "split_decomposition_trimmed","neighbour_net_trimmed",
+                "neighbour_net_untrimmed","neighbour_net_trimmed",
                 "sCF_mean", "sCF_median")
   df <- data.frame(matrix(nrow=0,ncol=length(df_names))) # create an empty dataframe of the correct size
   op_row <- c(dataset,loci_name,rep_id,n_taxa,n_char,alignment_path,
               num_trips,num_dis,prop_recomb_seq,seq_sig,
-              sd_untrimmed,nn_untrimmed,sd_trimmed,nn_trimmed,
+              nn_untrimmed,nn_trimmed,
               sCF$mean_scf, sCF$median_scf) # collect all the information
   df <- rbind(df,op_row,stringsAsFactors = FALSE) # place row in dataframe
   names(df) <- df_names # add names to the df so you know what's what
@@ -352,7 +350,7 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
   print(empirical_alignment_path)
   # Create output file names, the name of the loci and the file path of the loci location
   collated_ts_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_testStatistics_collatedBSReplicates.csv")
-  collated_sCF_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"branchSCF_collatedBSReplicates.csv")
+  collated_sCF_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_branchSCF_collatedBSReplicates.csv")
   p_value_file  <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_pValues.csv")
   parameters_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_parameterValues.csv")
   gamma_categories_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_gammaCategories.csv")
@@ -456,9 +454,7 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
     # Calculate the p-values for each test statistic
     ts_df$x3seq_numRecomSeq_sig   <- calculate.p_value(p_value_df$X3SEQ_num_distinct_recombinant_sequences, p_value_df$bootstrap_id)
     ts_df$x3seq_propRecomSeq_sig  <- calculate.p_value(p_value_df$X3SEQ_prop_recombinant_sequences, p_value_df$bootstrap_id)
-    ts_df$sd_untrimmed_sig        <- calculate.p_value(p_value_df$split_decomposition_untrimmed, p_value_df$bootstrap_id)
     ts_df$nn_untrimmed_sig        <- calculate.p_value(p_value_df$neighbour_net_untrimmed, p_value_df$bootstrap_id)
-    ts_df$sd_trimmed_sig          <- calculate.p_value(p_value_df$split_decomposition_trimmed, p_value_df$bootstrap_id)
     ts_df$nn_trimmed_sig          <- calculate.p_value(p_value_df$neighbour_net_trimmed, p_value_df$bootstrap_id)
     ts_df$sCF_mean_sig            <- calculate.p_value(p_value_df$sCF_mean, p_value_df$bootstrap_id)
     ts_df$sCF_median_sig          <- calculate.p_value(p_value_df$sCF_median, p_value_df$bootstrap_id)
