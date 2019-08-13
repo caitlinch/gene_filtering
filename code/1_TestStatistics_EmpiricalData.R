@@ -123,5 +123,7 @@ test_mldist <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_Benchma
 scf_file <- '/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_03_sCFAndMore/ENSG00000000419dna.nex.treefile.cf.stat'
 
 # testing bootstrap etc
-lapply(test_als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 5, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
+#lapply(test_als,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = 5, iqtree.num_threads = 1, iqtree.num_quartets = 1000) 
+#empirical.runTS(alignment_path = test_al, program_paths = exec_paths, bootstrap_id = "alignment", iqtree.num_threads = 1, iqtree.num_quartets = 1000)
+empirical.bootstraps.wrapper(empirical_alignment_path = test_al, program_paths = exec_paths, number_of_replicates = 10, iqtree.num_threads = 1, iqtree.num_quartets = 1000)
 
