@@ -492,8 +492,7 @@ fix.gammaCategory.siteNums <- function(df,num){
 
 
 
-# Function to open a phylogenetic network
-# Calculate the split decomposition
+# Quick function to estimate a phylogenetic network in SplitsTree and open it using splits format in phangorn
 estimateNetwork <- function(alignment_path, splitstree_path, network_algorithm = "neighbournet"){
   call.SplitsTree(splitstree_path,alignment_path,network_algorithm)
   # Retrieve the file name for the splits output file
