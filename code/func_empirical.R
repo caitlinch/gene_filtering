@@ -153,6 +153,8 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   seq_sig <- seq_log[ind]
   seq_sig <- strsplit(seq_sig,"=")[[1]][2] # extract the p value
   seq_sig <- trimws(seq_sig) # trim the whitespace from the number of distinct recombinant sequences
+  # record proportion of recombinant sequences
+  prop_recomb_seq <- num_dis/n_taxa
   
   # Change back to directory containing alignments and iqtree files
   setwd(alignment_folder)
@@ -179,12 +181,12 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   results_file <- paste0(alignment_folder,output_id,"_testStatistics.csv")
   # Make somewhere to store the results
   df_names <- c("dataset","loci","bootstrap_replicate_id","n_taxa","n_sites","alignment_file",
-                "3SEQ_num_recombinant_triplets","3SEQ_num_distinct_recombinant_sequences","3SEQ_p_value",
+                "3SEQ_num_recombinant_triplets","3SEQ_num_distinct_recombinant_sequences","3SEQ_prop_recombinant_sequences","3SEQ_p_value",
                 "split_decomposition_untrimmed", "neighbour_net_untrimmed", "split_decomposition_trimmed","neighbour_net_trimmed",
                 "sCF_mean", "sCF_median")
   df <- data.frame(matrix(nrow=0,ncol=length(df_names))) # create an empty dataframe of the correct size
   op_row <- c(dataset,loci_name,rep_id,n_taxa,n_char,alignment_path,
-              num_trips,num_dis,seq_sig,
+              num_trips,num_dis,prop_recomb_seq,seq_sig,
               sd_untrimmed,nn_untrimmed,sd_trimmed,nn_trimmed,
               sCF$mean_scf, sCF$median_scf) # collect all the information
   df <- rbind(df,op_row,stringsAsFactors = FALSE) # place row in dataframe
@@ -348,7 +350,8 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
   print("in empirical.bootstraps.wrapper")
   print(empirical_alignment_path)
   # Create output file names, the name of the loci and the file path of the loci location
-  collated_ts_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_collatedBSReplicates.csv")
+  collated_ts_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_testStatistics_collatedBSReplicates.csv")
+  collated_sCF_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"branchSCF_collatedBSReplicates.csv")
   p_value_file  <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_pValues.csv")
   parameters_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_parameterValues.csv")
   gamma_categories_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_gammaCategories.csv")
@@ -431,8 +434,12 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
              program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets)
     }
     
-    # collate the bootstrap info into 1 file
-    print("collate bootstraps")
+    # collate the sCF by branch distributions bootstrap info into 1 file and write it to disk
+    print("collate sCF from bootstraps")
+    collated_scf_branch_df <- collate.bootstraps(directory = alignment_folder, file.name = "sCF_branch", id = loci_name, output.file.name = collated_sCF_file)
+    
+    # collate the test statistics bootstrap info into 1 file
+    print("collate test statistics from bootstraps")
     p_value_df <- collate.bootstraps(directory = alignment_folder, file.name = "testStatistics", id = loci_name, output.file.name = collated_ts_file)
     # add the column with the bootstrap replicates and "alignment"
     new_bootstrap_ids <- p_value_df$bootstrap_replicate_id # copy col
@@ -446,11 +453,14 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
     ts_df <- read.csv(ts_file)
     # Calculate the p_values of the variables of interest
     # Calculate the p-values for each test statistic
-    ts_df$x3seq_sig <- calculate.p_value(p_value_df$X3SEQ_num_distinct_recombinant_sequences, p_value_df$bootstrap_id)
-    ts_df$sd_untrimmed_sig <- calculate.p_value(p_value_df$split_decomposition_untrimmed, p_value_df$bootstrap_id)
-    ts_df$nn_untrimmed_sig <- calculate.p_value(p_value_df$neighbour_net_untrimmed, p_value_df$bootstrap_id)
-    ts_df$sd_trimmed_sig <- calculate.p_value(p_value_df$split_decomposition_trimmed, p_value_df$bootstrap_id)
-    ts_df$nn_trimmed_sig <- calculate.p_value(p_value_df$neighbour_net_trimmed, p_value_df$bootstrap_id)
+    ts_df$x3seq_numRecomSeq_sig   <- calculate.p_value(p_value_df$X3SEQ_num_distinct_recombinant_sequences, p_value_df$bootstrap_id)
+    ts_df$x3seq_propRecomSeq_sig  <- calculate.p_value(p_value_df$X3SEQ_prop_recombinant_sequences, p_value_df$bootstrap_id)
+    ts_df$sd_untrimmed_sig        <- calculate.p_value(p_value_df$split_decomposition_untrimmed, p_value_df$bootstrap_id)
+    ts_df$nn_untrimmed_sig        <- calculate.p_value(p_value_df$neighbour_net_untrimmed, p_value_df$bootstrap_id)
+    ts_df$sd_trimmed_sig          <- calculate.p_value(p_value_df$split_decomposition_trimmed, p_value_df$bootstrap_id)
+    ts_df$nn_trimmed_sig          <- calculate.p_value(p_value_df$neighbour_net_trimmed, p_value_df$bootstrap_id)
+    ts_df$sCF_mean_sig            <- calculate.p_value(p_value_df$sCF_mean, p_value_df$bootstrap_id)
+    ts_df$sCF_median_sig          <- calculate.p_value(p_value_df$sCF_median, p_value_df$bootstrap_id)
     # Output the p-values file
     write.csv(ts_df,file = p_value_file, row.names = FALSE)
     
