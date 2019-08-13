@@ -362,13 +362,13 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
   # Only run this section if the p-value csv has not been created yet (skip reruns)
   if (file.exists(p_value_file) == FALSE){
     # Check that the original alignment ran ok
-    if (file.exists(paste0(empirical_alignment_path,".iqtree")) == FALSE || file.exists(paste0(empirical_alignment_path,".treefile")) == FALSE || file.exists(paste0(empirical_alignment_path,".lmap.eps")) == FALSE){
+    if (file.exists(paste0(empirical_alignment_path,".treefile.cf.stat")) == FALSE){
       print("need to rerun IQ-Tree")
       n <- read.nexus.data(empirical_alignment_path)
       n_taxa <- length(n)
-      # Run IQ-tree on the alignment (if it hasn't already been run), and get the likelihood mapping results
-      print("run IQTree")
-      call.IQTREE.quartet(program_paths[["IQTree"]],empirical_alignment_path,n_taxa)
+      # Run IQ-tree on the alignment (if it hasn't already been run), and get the sCF results
+      print("run IQTree and estimate sCFs")
+      calculate.sCF(iqtree_path = program_paths[["IQTree"]], alignment_path = empirical_alignment_path, num_threads = iqtree.num_threads, num_quartets = iqtree.num_quartets)
     }
     
     # Calculate the test statistics if it hasn't already been done
@@ -422,10 +422,10 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
     missing_als <- bs_als[!file.exists(bs_als)]
     missing_iqtree <- bs_als[!file.exists(paste0(bs_als,".iqtree"))]
     missing_tree <- bs_als[!file.exists(paste0(bs_als,".treefile"))]
-    missing_lmap <- bs_als[!file.exists(paste0(bs_als,".lmap.eps"))]
+    missing_scf <- bs_als[!file.exists(paste0(bs_als,".treefile.cf.stat"))]
     missing_testStatistics <- bs_als[!file.exists(ts_csvs)]
     # Collate the missing files and identify the alignments to rerun
-    all_missing <- unique(c(missing_als,missing_iqtree,missing_tree,missing_lmap,missing_testStatistics))
+    all_missing <- unique(c(missing_als,missing_iqtree,missing_tree,missing_scf,missing_testStatistics))
     als_to_rerun <- bootstrap_ids[which((bs_als %in% all_missing))]
     print(paste0("Number of missing alignments to rerun = ",length(als_to_rerun)))
     # Rerun the missing als
