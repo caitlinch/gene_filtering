@@ -7,6 +7,7 @@
 library(phytools)
 library(ape)
 library(phangorn)
+library(parallel)
 
 # Given a nexus file, this function removes all species except those specified and outputs a nexus file of the new (smaller) alignment
 cutSpecies <- function(alignment_path, keep, output_path_provided = "FALSE", output_path){
@@ -154,9 +155,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   seq_sig <- strsplit(seq_sig,"=")[[1]][2] # extract the p value
   seq_sig <- trimws(seq_sig) # trim the whitespace from the number of distinct recombinant sequences
   # record proportion of recombinant sequences
-  print(paste0("num_dis = ",num_dis))
-  print(paste0("n_taxa = ",n_taxa))
-  prop_recomb_seq <- num_dis/n_taxa
+  prop_recomb_seq <- as.numeric(num_dis)/as.numeric(n_taxa)
   
   # Change back to directory containing alignments and iqtree files
   setwd(alignment_folder)
@@ -348,7 +347,7 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
 
 
 # Function to act as outer shell for all the layers in performing test statistics and parametric bootstraps
-empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths, number_of_replicates, iqtree.num_threads, iqtree.num_quartets){
+empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths, number_of_replicates, iqtree.num_threads, iqtree.num_quartets, num_of_cores){
   print("in empirical.bootstraps.wrapper")
   print(empirical_alignment_path)
   # Create output file names, the name of the loci and the file path of the loci location
@@ -411,8 +410,8 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
     print(paste0("Number of alignments to run = ",length(ids_to_run)))
     print("run all previously-unrun bootstraps")
     if(length(ids_to_run)>0){
-      lapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, alignment_params = params, 
-             program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets)
+      mclapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, alignment_params = params, 
+             program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets, mc.cores = num_of_cores)
     }
     
     # Before you can collate all the bootstrap files, you need to check every bootstrap ran and rerun the failed ones
@@ -432,8 +431,8 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
     print(paste0("Number of missing alignments to rerun = ",length(als_to_rerun)))
     # Rerun the missing als
     if (length(als_to_rerun)>0){
-      lapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, alignment_params = params, 
-             program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets)
+      mclapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, alignment_params = params, 
+             program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets, mc.cores = num_of_cores)
     }
     
     # collate the sCF by branch distributions bootstrap info into 1 file and write it to disk
