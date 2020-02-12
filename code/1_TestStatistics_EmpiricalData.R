@@ -44,8 +44,8 @@ if (run_location == "mac"){
   reps_to_do = 9
   
 } else if (run_location=="soma"){
-  input_dir <- "/data/caitlin/empirical_treelikeness/Wu_2018_dna/"
-  output_dir <- "/data/caitlin/empirical_treelikeness/Wu_2018_dna_results/"
+  input_dir <- "/data/caitlin/empirical_treelikeness/Wu_2018_dnaLoci_Primates/"
+  output_dir <- "/data/caitlin/empirical_treelikeness/Wu_2018_dnaLoci_Primates_results/"
   treedir <- "/data/caitlin/treelikeness/" # where the treelikeness code is
   maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness code is
   
