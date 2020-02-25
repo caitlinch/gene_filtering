@@ -522,8 +522,55 @@ estimateNetwork <- function(alignment_path, splitstree_path, network_algorithm =
 
 
 
+# Function to open an iqtree file and extract the tree depth
+extract.total.tree.length <- function(alignment_path){
+  # Open .iqtree file associated with that alignment
+  iqtree_filepath <- paste0(alignment_path,".iqtree")
+  if (file.exists(iqtree_filepath) == FALSE){
+    return("MISSING_FILE")
+  } else if (file.exists(iqtree_filepath) == TRUE){
+    iq_file <- readLines(iqtree_filepath)
+    ind <- grep("Total tree length",iq_file)
+    str <- iq_file[ind]
+    vec <- strsplit(str," ")[[1]]
+    tree_length <- vec[str_detect(vec,"([0-9])")]
+    return(tree_length)
+  }
+}
 
 
+
+
+
+# Function to open an iqtree file and extract the number of parsimony informative sites
+extract.num.informative.sites <- function(alignment_path){
+  # Open .iqtree file associated with that alignment
+  iqtree_filepath <- paste0(alignment_path,".iqtree")
+  if (file.exists(iqtree_filepath) == FALSE){
+    return("MISSING_FILE")
+  } else if (file.exists(iqtree_filepath) == TRUE){
+    iq_file <- readLines(iqtree_filepath)
+    ind <- grep("Number of parsimony informative sites",iq_file)
+    str <- iq_file[ind]
+    vec <- strsplit(str," ")[[1]]
+    num_sites <- vec[str_detect(vec,"([0-9])")]
+    return(num_sites)
+  }
+}
+
+
+
+
+
+# Function to extract the mean and variance of the GC content of an alignment
+calculate.GC.content <- function(alignment_file){
+  al <- read.nexus.data(alignment_file)
+  al <- as.DNAbin(al)
+  vals <- unlist(lapply(names(al), function(x){GC.content(al[x])}))
+  mean <- round(mean(vals),digits = 3)
+  var <- signif(var(vals), digits = 3)
+  return(c(mean,var))
+}
 
 
 
