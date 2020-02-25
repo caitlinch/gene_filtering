@@ -122,12 +122,6 @@ print("collate results")
 results_file <- paste0(output_dir,basename(input_dir),"_testStatisticResults.csv")
 results_df <- collate.bootstraps(directory = input_dir, file.name = "pValues", id = "", output.file.name = results_file)
 
-# fake names for testing new code additions
-input_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_04_finalTest/"
-output_dir <- input_dir
-results_file <- paste0(output_dir,basename(input_dir),"_completeResults.csv")
-results_df <- read.csv(results_file, stringsAsFactors = FALSE)
-
 # Extracting more information for statistical tests and plots
 # Extract total tree depth from each alignment's iqtree file
 total_tree_depth <- unlist(lapply(results_df$alignment_file, extract.total.tree.length))
