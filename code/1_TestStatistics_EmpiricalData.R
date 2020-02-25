@@ -119,6 +119,31 @@ lapply(loci,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_
 
 print("collate results")
 # Collate all the dataframes together
-results_file <- paste0(output_dir,basename(input_dir),"_completeResults.csv")
+results_file <- paste0(output_dir,basename(input_dir),"_testStatisticResults.csv")
 results_df <- collate.bootstraps(directory = input_dir, file.name = "pValues", id = "", output.file.name = results_file)
+
+# fake names for testing new code additions
+input_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/tests/test_04_finalTest/"
+output_dir <- input_dir
+results_file <- paste0(output_dir,basename(input_dir),"_completeResults.csv")
+results_df <- read.csv(results_file, stringsAsFactors = FALSE)
+
+# Extracting more information for statistical tests and plots
+# Extract total tree depth from each alignment's iqtree file
+total_tree_depth <- unlist(lapply(results_df$alignment_file, extract.total.tree.length))
+# Extract the number of parsimony informative sites from each alignment's iqtree file
+num_parsimony_informative_sites <- unlist(lapply(results_df$alignment_file, extract.num.informative.sites))
+# Extract the GC content for each species in the alignment
+GC_vector <- unlist(lapply(results_df$alignment_file,calculate.GC.content))
+GC_content_mean <- GC_vector[c(TRUE,FALSE)]
+GC_content_variance <- GC_vector[c(FALSE,TRUE)]
+
+# Append the newly extracted information as columns in the results dataframe and save it
+results_df$total_tree_depth <- total_tree_depth
+results_df$num_parsimony_informative_sites <- num_parsimony_informative_sites
+results_df$GC_content_mean <- GC_content_mean
+results_df$GC_content_variance <- GC_content_variance
+results_file <- paste0(output_dir,basename(input_dir),"_completeResults.csv")
+write.csv(results_df, file = results_file, row.names = FALSE)
+
 
