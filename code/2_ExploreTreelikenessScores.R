@@ -89,25 +89,29 @@ p <- ggplot(ts_df, aes(x = X3SEQ_p_value, y = x3seq_numRecomSeq_sig)) + geom_poi
 ggsave(filename = paste0(results_dir,e$dataset[1],"_3seq_pvalues_examination.png"), plot = p, units = "cm")
 
 # Plot the number of sites against the treelikeness test statistics
-rep <- ggplot(ts_df, aes(x = nn_trimmed_sig, y = X3SEQ_p_value)) + geom_point()
-p
+e = melt_df[melt_df$variable %in% c("neighbour_net_trimmed","X3SEQ_prop_recombinant_sequences","sCF_mean","sCF_median"),]
+e$group = factor(e$variable,levels = c("neighbour_net_trimmed","X3SEQ_prop_recombinant_sequences","sCF_mean","sCF_median"))
+# Set up the labeller so that the facet names will be formatted nicely (rather than using variable names in the plots)
+facet_names <- list("neighbour_net_trimmed" = "NeighborNet (trimmed)", "X3SEQ_prop_recombinant_sequences" = "Proportion of  \n recombinant sequences",
+                    "sCF_mean" = "Mean sCF", "sCF_median" = "Median sCF")
+facet_labeller <- function(variable){
+  variable <- facet_names[variable]
+}
 
-p <- ggplot(ts_df, aes(x = nn_trimmed_sig, y = X3SEQ_p_value)) + geom_point()
-p
+p <- ggplot(e, aes(x = n_sites, y = value)) +
+  geom_point() +
+  facet_wrap(~group,scales = "free_y", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 2) +
+  scale_x_continuous(name = "\n Number of sites \n") +
+  ylab("\n Test statistic value \n")
+ggsave(filename = paste0(results_dir,e$dataset[1],"_numSites_points.png"), plot = p, units = "cm")
 
-p <- ggplot(ts_df, aes(x = neighbour_net_trimmed, y = X3SEQ_prop_recombinant_sequences)) + geom_point()
-p                  
+p <- ggplot(e, aes(x = n_taxa, y = value)) +
+  geom_point() +
+  facet_wrap(~group,scales = "free_y", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 2) +
+  scale_x_continuous(name = "\n Number of taxa \n") +
+  ylab("\n Test statistic value \n")
+ggsave(filename = paste0(results_dir,e$dataset[1],"_numTaxa_points.png"), plot = p, units = "cm")
 
-p <- ggplot(ts_df, aes(x = n_sites, y = neighbour_net_trimmed)) + geom_point()
-p
 
-p <- ggplot(ts_df, aes(x = n_sites, y = X3SEQ_p_value)) + geom_point()
-p
-
-p <- ggplot(ts_df, aes(x = n_taxa, y = neighbour_net_trimmed)) + geom_point()
-p
-
-p <- ggplot(ts_df, aes(x = n_taxa, y = X3SEQ_p_value)) + geom_point()
-p
 
 
