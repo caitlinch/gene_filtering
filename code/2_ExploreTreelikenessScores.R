@@ -29,27 +29,67 @@ melt_df <- melt(ts_df, id = id_vars, measure.vars = measure_vars)
 output_name <- gsub(".csv","_melted.csv",results_path)
 write.csv(melt_df, file = output_name, row.names = FALSE)
 
+##### Plot Histograms #####
 # Create a facetted histogram to compare the distributions of different test statistics
 # Plot the neighborNet test statistic and p-value distributions
-# Extract the relevant columns of interest and structure properly
+# Extract the relevant columns of interest (for tree proportion) and structure properly
 e = melt_df[melt_df$variable %in% c("neighbour_net_trimmed","nn_trimmed_sig","neighbour_net_untrimmed","nn_untrimmed_sig"),]
 e$group = factor(e$variable,levels = c("neighbour_net_untrimmed","neighbour_net_trimmed","nn_untrimmed_sig","nn_trimmed_sig"))
 # Set up the labeller so that the facet names will be formatted nicely (rather than using variable names in the plots)
-facet_names <- list("neighbour_net_trimmed" = "NeighborNet (trimmed)","nn_trimmed_sig" = "NeighborNet (trimmed)",
-                    "neighbour_net_untrimmed" = "NeighborNet (untrimmed)","nn_untrimmed_sig" = "NeighborNet (trimmed) p value")
+facet_names <- list("neighbour_net_trimmed" = "NeighborNet (trimmed)","nn_trimmed_sig" = "NeighborNet (trimmed) p value",
+                    "neighbour_net_untrimmed" = "NeighborNet (untrimmed)","nn_untrimmed_sig" = "NeighborNet (untrimmed) p value")
 facet_labeller <- function(variable){
   variable <- facet_names[variable]
 }
 # Form the plot
 p <- ggplot(e, aes(x = value)) +
-  geom_histogram() +
-  facet_wrap(~group, scales = "free_y", ncol = 2, labeller = labeller(group = facet_labeller)) +
-  scale_x_continuous(name = "\n Proportion of DNA introgressed \n") +
-  ylab("\n Tree Proportion Values \n")
-ggsave(filename = paste0(results_dir,e$dataset[1],"_treeProportion_histograms.png"), plot = p, units = "in")
+  geom_histogram(bins=20) +
+  facet_wrap(~group, scale = "free_y", ncol = 2, labeller = labeller(group = facet_labeller)) +
+  scale_x_continuous(name = "\n Value \n") +
+  ylab("\n Count \n")
+ggsave(filename = paste0(results_dir,e$dataset[1],"_treeProportion_freey_histograms.png"), plot = p, units = "in")
 
-#####
-rep <- ggplot(ts_df, aes(x = neighbour_net_trimmed, y = X3SEQ_p_value)) + geom_point()
+p <- ggplot(e, aes(x = value)) +
+  geom_histogram(bins=20) +
+  facet_wrap(~group, ncol = 2, labeller = labeller(group = facet_labeller)) +
+  scale_x_continuous(name = "\n Value \n") +
+  ylab("\n Count \n")
+ggsave(filename = paste0(results_dir,e$dataset[1],"_treeProportion_samey_histograms.png"), plot = p, units = "in")
+
+# Repeat the plots using the existing test statistics (sCF and 3seq)
+e = melt_df[melt_df$variable %in% c("X3SEQ_prop_recombinant_sequences","X3SEQ_p_value","sCF_mean","sCF_mean_sig","sCF_median","sCF_median_sig"),]
+e$group = factor(e$variable,levels = c("X3SEQ_prop_recombinant_sequences","sCF_mean","sCF_median","X3SEQ_p_value","sCF_mean_sig","sCF_median_sig"))
+# Set up the labeller so that the facet names will be formatted nicely (rather than using variable names in the plots)
+facet_names <- list("X3SEQ_prop_recombinant_sequences" = "Proportion of  \n recombinant sequences","X3SEQ_p_value" = "3SEQ (inbuilt) p value",
+                    "sCF_mean" = "Mean sCF","sCF_mean_sig" = "Mean sCF p value", "sCF_median" = "Median sCF","sCF_median_sig" = "Median sCF p value")
+facet_labeller <- function(variable){
+  variable <- facet_names[variable]
+}
+# Form the plots
+# Plot histograms of existing test statistics
+p <- ggplot(e, aes(x = value)) +
+  geom_histogram(bins=20) +
+  facet_wrap(~group, scale = "free", ncol = 3, labeller = labeller(group = facet_labeller)) +
+  scale_x_continuous(name = "\n Value \n") +
+  ylab("\n Count \n")
+ggsave(filename = paste0(results_dir,e$dataset[1],"_existingStats_freey_histograms.png"), plot = p, units = "cm")
+
+p <- ggplot(e, aes(x = value)) +
+  geom_histogram(bins=20) +
+  facet_wrap(~group, scale = "free_x", ncol = 3, labeller = labeller(group = facet_labeller)) +
+  scale_x_continuous(name = "\n Value \n") +
+  ylab("\n Count \n")
+ggsave(filename = paste0(results_dir,e$dataset[1],"_existingStats_samey_histograms.png"), plot = p, units = "cm")
+
+##### Plot potential predictors of treelikeness #####
+# Plot the 3SEQ inbuilt test statistic p values against those calculated using a parametric bootstrap on the proportion of recombinant sequences
+p <- ggplot(ts_df, aes(x = X3SEQ_p_value, y = x3seq_numRecomSeq_sig)) + geom_point() +  
+  scale_x_continuous(minor_breaks = seq(0, 1, 0.05), name = "3SEQ (inbuilt) p value") + 
+  scale_y_continuous(minor_breaks = seq(0, 1, 0.05), name = "\n Number of recombinant sequences p value (parametric bootstrap) \n")
+ggsave(filename = paste0(results_dir,e$dataset[1],"_3seq_pvalues_examination.png"), plot = p, units = "cm")
+
+# Plot the number of sites against the treelikeness test statistics
+rep <- ggplot(ts_df, aes(x = nn_trimmed_sig, y = X3SEQ_p_value)) + geom_point()
 p
 
 p <- ggplot(ts_df, aes(x = nn_trimmed_sig, y = X3SEQ_p_value)) + geom_point()
@@ -70,24 +110,4 @@ p
 p <- ggplot(ts_df, aes(x = n_taxa, y = X3SEQ_p_value)) + geom_point()
 p
 
-# histograms <- want to look at the distribution of scores and pick one that has a useable variation in treelikeness
-p <- ggplot(ts_df, aes(x = X3SEQ_prop_recombinant_sequences)) + geom_histogram()
-p
-p <- ggplot(ts_df, aes(x = X3SEQ_p_value)) + geom_histogram()
-p
-p <- ggplot(ts_df, aes(x = neighbour_net_untrimmed)) + geom_histogram()
-p
-p <- ggplot(ts_df, aes(x = nn_untrimmed_sig)) + geom_histogram()
-p
-p <- ggplot(ts_df, aes(x = neighbour_net_trimmed)) + geom_histogram()
-p
-p <- ggplot(ts_df, aes(x = nn_trimmed_sig)) + geom_histogram()
-p
-p <- ggplot(ts_df, aes(x = sCF_mean)) + geom_histogram()
-p
-p <- ggplot(ts_df, aes(x = sCF_mean_sig)) + geom_histogram()
-p
-p <- ggplot(ts_df, aes(x = sCF_median)) + geom_histogram()
-p
-p <- ggplot(ts_df, aes(x = sCF_median_sig)) + geom_histogram()
-p
+
