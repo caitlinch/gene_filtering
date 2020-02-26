@@ -569,7 +569,8 @@ calculate.GC.content <- function(alignment_file){
   vals <- unlist(lapply(names(al), function(x){GC.content(al[x])}))
   mean <- round(mean(vals),digits = 3)
   var <- signif(var(vals), digits = 3)
-  return(c(mean,var))
+  sd <- signif(sd(vals), digits = 3)
+  return(c(mean,var,sd))
 }
 
 

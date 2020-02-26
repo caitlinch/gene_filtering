@@ -144,14 +144,16 @@ total_tree_depth <- unlist(lapply(results_df$alignment_file, extract.total.tree.
 num_parsimony_informative_sites <- unlist(lapply(results_df$alignment_file, extract.num.informative.sites))
 # Extract the GC content for each species in the alignment
 GC_vector <- unlist(lapply(results_df$alignment_file,calculate.GC.content))
-GC_content_mean <- GC_vector[c(TRUE,FALSE)]
-GC_content_variance <- GC_vector[c(FALSE,TRUE)]
+GC_content_mean <- GC_vector[c(TRUE,FALSE,FALSE)]
+GC_content_variance <- GC_vector[c(FALSE,TRUE,FALSE)]
+GC_content_sd <-  GC_vector[c(FALSE,FALSE,TRUE)]
 
 # Append the newly extracted information as columns in the results dataframe and save it
 results_df$total_tree_depth <- total_tree_depth
 results_df$num_parsimony_informative_sites <- num_parsimony_informative_sites
 results_df$GC_content_mean <- GC_content_mean
 results_df$GC_content_variance <- GC_content_variance
+results_df$GC_content_sd <- GC_content_sd
 results_file <- paste0(output_dir,basename(input_dir),"_completeResults.csv")
 write.csv(results_df, file = results_file, row.names = FALSE)
 
