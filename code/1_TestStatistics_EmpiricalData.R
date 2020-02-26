@@ -91,6 +91,8 @@ loci <- loci[grep("3rd",loci,invert=TRUE)]
 # Create path for whole alignment file
 whole_alignment <- paste0(input_dir, "alignment.nex")
 
+
+
 ##### Step 5: Trim unwanted species (optional) #####
 # Initialise list of species of interest 
 mammals <- c("CALLI_JAC", "MACAC_FAS", "MACAC_MUL", "PAPIO_ANU", "CHLOR_SAB", "DAUBE_MAD", "GORIL_GOR", "HOMO_SAP", "PAN_PAN", "PAN_TRO", "PONGO_ABE",
