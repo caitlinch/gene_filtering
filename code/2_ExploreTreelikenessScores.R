@@ -127,7 +127,7 @@ for (i in 1:length(x_axis)){
   p <- ggplot(e, aes(x = e[x_axis[i]], y = e["value"])) + geom_point(size=0.5) +  
     facet_wrap(~group,scales = "free_y", labeller = labeller(group = facet_labeller), nrow = 3, ncol = 2) +
     scale_x_continuous(name = x_axis_names[i]) + 
-    scale_y_continuous("\n Test statistic value \n")
+    scale_y_continuous("\n p value \n")
   ggsave(filename = paste0(plots_dir,dataset,"_predictor_",name_additions[[i]],"_pValue_points.png"), plot = p, units = "cm")
 }
 
@@ -158,8 +158,8 @@ facet_labeller <- function(variable){
 }
 
 # Set up the variables to plot and the labels for axes
-plot_vars <- c("X3SEQ_p_value", "X3SEQ_num_distinct_recombinant_sequences","X3SEQ_prop_recombinant_sequences","neighbour_net_untrimmed","neighbour_net_trimmed","nn_untrimmed_sig",
-           "nn_trimmed_sig","sCF_mean","sCF_median","sCF_mean_sig","sCF_median_sig")
+plot_vars <- c("X3SEQ_p_value", "X3SEQ_num_distinct_recombinant_sequences","X3SEQ_prop_recombinant_sequences","neighbour_net_untrimmed",
+               "neighbour_net_trimmed","nn_untrimmed_sig","nn_trimmed_sig","sCF_mean","sCF_median","sCF_mean_sig","sCF_median_sig")
 label_vars <- list("X3SEQ_p_value" = "3SEQ (inbuilt) p value", "X3SEQ_num_distinct_recombinant_sequences" = "Number of  \n recombinant sequences",
                    "X3SEQ_prop_recombinant_sequences" = "Proportion of  \n recombinant sequences", "neighbour_net_untrimmed" = "NeighborNet (untrimmed)",
                    "neighbour_net_trimmed" = "NeighborNet (trimmed)", "nn_untrimmed_sig" = "NeighborNet (untrimmed) p value", 
@@ -169,15 +169,25 @@ dataset = ts_df$dataset[1]
 
 # Plot all of the test statistics/p values for a single dataset againt the predictors at once
 for (var_to_plot in plot_vars){
-  p <- ggplot(e, aes(x = e[[var_to_plot]], y = value)) +
+  p <- ggplot(e, aes(x = value, y = e[[var_to_plot]])) +
     geom_point() +
-    facet_wrap(~group,scales = "free_y", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 4) +
-    scale_x_continuous(name = paste0("\n ",label_vars[var_to_plot][[1]]," \n")) +
-    ylab("\n Predictor value \n")
+    facet_wrap(~group,scales = "free", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 4) +
+    scale_x_continuous("\n Predictor value \n") +
+    scale_y_continuous(name = paste0("\n ",label_vars[var_to_plot][[1]]," \n"))
   plot_filename <- paste0(plots_dir,dataset,"_testStatistic_",var_to_plot,"_points.png")
   ggsave(filename = plot_filename, plot = p, units = "cm")
 }
-
+# Add an exploratory locally weighted regression line
+for (var_to_plot in plot_vars){
+  p <- ggplot(e, aes(x = value, y = e[[var_to_plot]])) +
+    geom_point() +
+    geom_smooth(method = "loess", se = TRUE) +
+    facet_wrap(~group,scales = "free", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 4) +
+    scale_x_continuous("\n Predictor value \n") +
+    scale_y_continuous(name = paste0("\n ",label_vars[var_to_plot][[1]]," \n"))
+  plot_filename <- paste0(plots_dir,dataset,"_testStatistic_",var_to_plot,"_loess_points.png")
+  ggsave(filename = plot_filename, plot = p, units = "cm")
+}
 
 
 ##### Step 7: Explore relationships between test statistics #####
