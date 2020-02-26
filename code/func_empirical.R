@@ -562,6 +562,22 @@ extract.num.informative.sites <- function(alignment_path){
 
 
 
+# Function to open an iqtree file and extract the number of parsimony informative sites
+extract.iqtree.tree <- function(alignment_path){
+  # Open .iqtree file associated with that alignment
+  iqtree_filepath <- paste0(alignment_path,".bionj")
+  if (file.exists(iqtree_filepath) == FALSE){
+    return("MISSING_FILE")
+  } else if (file.exists(iqtree_filepath) == TRUE){
+    tree <- readLines(iqtree_filepath)
+    return(tree)
+  }
+}
+
+
+
+
+
 # Function to extract the mean and variance of the GC content of an alignment
 calculate.GC.content <- function(alignment_file){
   al <- read.nexus.data(alignment_file)
