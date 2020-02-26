@@ -136,14 +136,26 @@ p <- ggplot(e, aes(x = prop_parsimony_informative_sites, y = value)) +
   ylab("\n Test statistic value \n")
 ggsave(filename = paste0(results_dir,e$dataset[1],"_propParsimonyInformativeSites_points.png"), plot = p, units = "cm")
 
-p <- ggplot(e, aes(x = prop_parsimony_informative_sites, y = value)) +
+p <- ggplot(e, aes(x = num_parsimony_informative_sites, y = value)) +
   geom_point() +
   facet_wrap(~group,scales = "free_y", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 2) +
-  scale_x_continuous(name = "\n Proportion of parsimony informative sites \n") +
+  scale_x_continuous(name = "\n Number of parsimony informative sites \n") +
   ylab("\n Test statistic value \n")
 ggsave(filename = paste0(results_dir,e$dataset[1],"_numParsimonyInformativeSites_points.png"), plot = p, units = "cm")
 
+p <- ggplot(e, aes(x = GC_content_mean, y = value)) +
+  geom_point() +
+  facet_wrap(~group,scales = "free_y", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 2) +
+  scale_x_continuous(name = "\n Mean GC content \n") +
+  ylab("\n Test statistic value \n")
+ggsave(filename = paste0(results_dir,e$dataset[1],"_gcContentMean_points.png"), plot = p, units = "cm")
 
+p <- ggplot(e, aes(x = GC_content_mean, y = value)) +
+  geom_point() +
+  facet_wrap(~group,scales = "free_y", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 2) +
+  scale_x_continuous(name = "\n Mean GC content \n") +
+  ylab("\n Test statistic value \n")
+ggsave(filename = paste0(results_dir,e$dataset[1],"_gcContentVar_points.png"), plot = p, units = "cm")
 
 ##### Step 6: Plot 3SEQ inbuilt p value against potential predictors #####
 # Plot the 3SEQ inbuilt test statistic p values against those calculated using a parametric bootstrap on the proportion of recombinant sequences
