@@ -138,22 +138,19 @@ results_df <- collate.bootstraps(directory = input_dir, file.name = "pValues", i
 
 ##### Step 8: Extract additional information about the alignments and trees #####
 # Extracting more information for statistical tests and plots
-# Extract total tree depth from each alignment's iqtree file
-total_tree_depth <- unlist(lapply(results_df$alignment_file, extract.total.tree.length))
-# Extract the number of parsimony informative sites from each alignment's iqtree file
-num_parsimony_informative_sites <- unlist(lapply(results_df$alignment_file, extract.num.informative.sites))
-# Extract the GC content for each species in the alignment
+# Extract total tree depth from each alignment's iqtree file and add to dataframe
+results_df$total_tree_depth <- unlist(lapply(results_df$alignment_file, extract.total.tree.length))
+# Extract the number of parsimony informative sites from each alignment's iqtree file and add to dataframe
+results_df$num_parsimony_informative_sites <- unlist(lapply(results_df$alignment_file, extract.num.informative.sites))
+# Extract the GC content for each species in the alignment and add summary statistics to dataframe
 GC_vector <- unlist(lapply(results_df$alignment_file,calculate.GC.content))
-GC_content_mean <- GC_vector[c(TRUE,FALSE,FALSE)]
-GC_content_variance <- GC_vector[c(FALSE,TRUE,FALSE)]
-GC_content_sd <-  GC_vector[c(FALSE,FALSE,TRUE)]
+results_df$GC_content_mean <- GC_vector[c(TRUE,FALSE,FALSE)]
+results_df$GC_content_variance <- GC_vector[c(FALSE,TRUE,FALSE)]
+results_df$GC_content_sd <-  GC_vector[c(FALSE,FALSE,TRUE)]
+# Extract the bionj trees from each alignment's IQ-Tree run and add them to the dataframe
+results_df$newick_tree <- unlist(lapply(results_df$alignment_file, extract.iqtree.tree))
 
-# Append the newly extracted information as columns in the results dataframe and save it
-results_df$total_tree_depth <- total_tree_depth
-results_df$num_parsimony_informative_sites <- num_parsimony_informative_sites
-results_df$GC_content_mean <- GC_content_mean
-results_df$GC_content_variance <- GC_content_variance
-results_df$GC_content_sd <- GC_content_sd
+# Save the newly extended dataframe
 results_file <- paste0(output_dir,basename(input_dir),"_completeResults.csv")
 write.csv(results_df, file = results_file, row.names = FALSE)
 
