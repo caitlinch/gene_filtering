@@ -177,17 +177,7 @@ for (var_to_plot in plot_vars){
   plot_filename <- paste0(plots_dir,dataset,"_testStatistic_",var_to_plot,"_points.png")
   ggsave(filename = plot_filename, plot = p, units = "cm")
 }
-# Add an exploratory locally weighted regression line
-for (var_to_plot in plot_vars){
-  p <- ggplot(e, aes(x = value, y = e[[var_to_plot]])) +
-    geom_point() +
-    geom_smooth(method = "loess", se = TRUE) +
-    facet_wrap(~group,scales = "free", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 4) +
-    scale_x_continuous("\n Predictor value \n") +
-    scale_y_continuous(name = paste0("\n ",label_vars[var_to_plot][[1]]," \n"))
-  plot_filename <- paste0(plots_dir,dataset,"_testStatistic_",var_to_plot,"_loess_points.png")
-  ggsave(filename = plot_filename, plot = p, units = "cm")
-}
+
 
 
 ##### Step 7: Explore relationships between test statistics #####
@@ -209,6 +199,12 @@ for (i in 1:length(x_axis)){
     scale_y_continuous(minor_breaks = seq(0, 1, 0.05), name = y_axis_name[i])
   ggsave(filename = paste0(plots_dir,dataset,"_comparison_",filepath_addition[[i]],"_points.png"), plot = p, units = "cm")
 }
+
+
+
+##### Step 8: Exploring treespace #####
+
+
 
 
 
