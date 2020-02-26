@@ -9,8 +9,9 @@
 ##     - Splitstree (Huson and Bryant 2006) (http://www.splitstree.org/)
 # Caitlin Cherryh 2019
 
-# Script to apply test statistics and parametric bootstrap to empirical data sets in the BenchmarkAlignments database
 
+
+##### Step 1: Open packages #####
 print("opening packages")
 library(ape)
 library(parallel)
@@ -20,11 +21,13 @@ library(seqinr)
 library(stringr)
 library(TreeSim)
 
+
+
+##### Step 2: Set file paths and run variables #####
 print("initialising namespace")
 
 # run_location = "mac"
 run_location = "soma"
-
 
 if (run_location == "mac"){
   input_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/empiricalData/Wu_2018_dna_loci/"
@@ -59,27 +62,18 @@ if (run_location == "mac"){
   reps_to_do= 199
 }
 
-# Source files for functions
+
+
+##### Step 3: Source files for functions #####
+# Open functions using filepaths from Step 2
 source(paste0(treedir,"code/func_test_statistic.R"))
 source(paste0(treedir,"code/func_process_data.R"))
 source(paste0(treedir,"code/func_parametric_bootstrap.R"))
 source(paste0(maindir,"code/func_empirical.R"))
 
-# Begin main body of code
-# Initialise list of species of interest
-mammals <- c("CALLI_JAC", "MACAC_FAS", "MACAC_MUL", "PAPIO_ANU", "CHLOR_SAB", "DAUBE_MAD", "GORIL_GOR", "HOMO_SAP", "PAN_PAN", "PAN_TRO", "PONGO_ABE",
-             "MICRO_MUR", "NOMAS_LEU", "OTOLE_GAR", "SAIMI_BOL", "TARSI_SYR")
-mammals_commonNames <- c("Marmoset", "Crab-eating macaque", "Rhesus macaque", "Olive Baboon", "Green monkey", "Aye-aye", "Gorilla"," Human", "Bonobo",
-                         "Chimpanzee", "Orangutan", "Mouse Lemur", "Gibbon", "Galago (Bushbaby)"," Squirrel monkey", "Tarsier")
-mammals_speciesNames <- c("Callithrix jacchus", "Macaca fascicularis", "Macaca mulatta", "Papio anubis", "Chlorocebus sabaeus", "Daubentonia madagascariensis",
-                          "Gorilla gorilla", "Homo sapiens", "Pan paniscus", "Pan troglodytes", "Pongo abelii", "Microcebus murinus", "Nomascus leucogenys",
-                          "Otolemur garnettiiz", "Saimiri boliviensis", "Tarsius syrichta"  )
-# Initialise list of outgroups in case rooting is needed later on
-outgroups <- c("GALLU_GAL", "MELEA_GAL", "ANOLI_CAR", "PELOD_SIN", "XENOP_TRO", "LATIM_CHA", "DANIO_RER", "GASTE_ACU")
-outgroups_commonName <- c("Chicken", "Turkey", "Anole lizard", "Chinese softshell turtle", "Frog", "Coelacanth", "Zebrafish", "Stickleback fish")
-outgroups_speciesName <- c("Gallus gallus", "Meleagris gallopavo", "Anolis carolinensis", "Pelodiscus sinensis", "Xenopus tropicalis", "Latimeria chalumnae",
-                           "Danio rerio", "Gasterosteus aculeatus")
 
+
+##### Step 4: Extract desired loci #####
 # Extract the loci from the folder of interest
 full_loci <- list.files(input_dir)
 full_loci <- paste0(input_dir, full_loci)
@@ -94,18 +88,32 @@ loci <- full_loci[grep("1st",full_loci,invert=TRUE)]
 loci <- loci[grep("2nd",loci,invert=TRUE)]
 loci <- loci[grep("3rd",loci,invert=TRUE)]
 
-
 # Create path for whole alignment file
 whole_alignment <- paste0(input_dir, "alignment.nex")
 
-# Optional: Trim the unecessary species from the alignments
+##### Step 5: Trim unwanted species (optional) #####
+# Initialise list of species of interest 
+mammals <- c("CALLI_JAC", "MACAC_FAS", "MACAC_MUL", "PAPIO_ANU", "CHLOR_SAB", "DAUBE_MAD", "GORIL_GOR", "HOMO_SAP", "PAN_PAN", "PAN_TRO", "PONGO_ABE",
+             "MICRO_MUR", "NOMAS_LEU", "OTOLE_GAR", "SAIMI_BOL", "TARSI_SYR")
+mammals_commonNames <- c("Marmoset", "Crab-eating macaque", "Rhesus macaque", "Olive Baboon", "Green monkey", "Aye-aye", "Gorilla"," Human", "Bonobo",
+                         "Chimpanzee", "Orangutan", "Mouse Lemur", "Gibbon", "Galago (Bushbaby)"," Squirrel monkey", "Tarsier")
+mammals_speciesNames <- c("Callithrix jacchus", "Macaca fascicularis", "Macaca mulatta", "Papio anubis", "Chlorocebus sabaeus", "Daubentonia madagascariensis",
+                          "Gorilla gorilla", "Homo sapiens", "Pan paniscus", "Pan troglodytes", "Pongo abelii", "Microcebus murinus", "Nomascus leucogenys",
+                          "Otolemur garnettiiz", "Saimiri boliviensis", "Tarsius syrichta"  )
+# Initialise list of outgroups in case rooting is needed later on
+outgroups <- c("GALLU_GAL", "MELEA_GAL", "ANOLI_CAR", "PELOD_SIN", "XENOP_TRO", "LATIM_CHA", "DANIO_RER", "GASTE_ACU")
+outgroups_commonName <- c("Chicken", "Turkey", "Anole lizard", "Chinese softshell turtle", "Frog", "Coelacanth", "Zebrafish", "Stickleback fish")
+outgroups_speciesName <- c("Gallus gallus", "Meleagris gallopavo", "Anolis carolinensis", "Pelodiscus sinensis", "Xenopus tropicalis", "Latimeria chalumnae",
+                           "Danio rerio", "Gasterosteus aculeatus")
+
 # Call the trim function to remove all the species you want to remove from the alignment (unless you want to keep ALL the species in the alignment): 
 print("trimming alignments")
 #lapply(loci, cutSpecies, keep = mammals, output_path_provided = FALSE) # trim all the unwanted species from the collected loci
 #cutSpecies(alignment_path = whole_alignment, keep = mammals, output_path_provided = FALSE) # trim all the unwanted species from the whole alignment file
 
 
-# Calculate the test statistics and run the bootstraps
+
+##### Step 6: Calculate the test statistics and run the parametric bootstraps  #####
 print("starting analysis")
 print("apply treelikeness test statistics")
 # To run locally for one alignment: empirical.bootstraps.wrapper(empirical_alignment_path = empirical_alignment_path, program_paths = program_paths,
@@ -117,11 +125,16 @@ print("apply treelikeness test statistics")
 lapply(loci,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = 1, iqtree.num_quartets = 1000, num_of_cores = cores_to_use) 
 
 
+
+##### Step 7: Collate test statistic results #####
 print("collate results")
 # Collate all the dataframes together
 results_file <- paste0(output_dir,basename(input_dir),"_testStatisticResults.csv")
 results_df <- collate.bootstraps(directory = input_dir, file.name = "pValues", id = "", output.file.name = results_file)
 
+
+
+##### Step 8: Extract additional information about the alignments and trees #####
 # Extracting more information for statistical tests and plots
 # Extract total tree depth from each alignment's iqtree file
 total_tree_depth <- unlist(lapply(results_df$alignment_file, extract.total.tree.length))
