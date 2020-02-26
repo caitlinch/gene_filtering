@@ -203,6 +203,23 @@ for (i in 1:length(x_axis)){
 
 
 ##### Step 8: Exploring treespace #####
+# to open a tree: read.tree(text=t) if t is a newick tree or read.tree(file=f) if f is a filepath to a newick tree
+t <- read.tree(text="((PONGO_ABE:0.00678774,((PAN_TRO:0.00097927,PAN_PAN:-0.00097827):0.00498971,HOMO_SAP:-0.00024584):0.00721851):0.00341861,
+               ((SAIMI_BOL:0.00017936,CALLI_JAC:0.03474404):0.02185356,(CHLOR_SAB:0.05385828,(PAPIO_ANU:0.01147204,
+               (MACAC_MUL:0.00000050,MACAC_FAS:0.00000050):0.00231226):0.00574556):0.01722714):0.01398251,((TARSI_SYR:0.12918976,
+               (OTOLE_GAR:0.08554176,(MICRO_MUR:0.06490312,DAUBE_MAD:-0.03564042):0.02627855):0.00424960):0.04311964,
+               (NOMAS_LEU:0.06105755,GORIL_GOR:0.05080475):0.00548585):0.04554407);")
+# to make t a multiphylo (as joining a class phylo object and class multiphylo object doesn't work: you need this to join one tree to an existing multiphylo object):
+t2<-list(t)
+class(t2)<-"multiPhylo"
+t2
+# to read in all trees at once (from the newick tree column in the df):
+m <- read.tree(text=ts_df$newick_tree)
+
+
+
+
+
 
 
 
