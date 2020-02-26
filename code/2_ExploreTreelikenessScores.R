@@ -100,7 +100,7 @@ for (i in 1:length(x_axis)){
     facet_wrap(~group,scales = "free_y", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 2) +
     scale_x_continuous(name = x_axis_names[i]) + 
     scale_y_continuous("\n Test statistic value \n")
-  ggsave(filename = paste0(plots_dir,dataset,"_predictor_",name_additions[[i]],"testStatistic_points.png"), plot = p, units = "cm")
+  ggsave(filename = paste0(plots_dir,dataset,"_predictor_",name_additions[[i]],"_testStatistic_points.png"), plot = p, units = "cm")
 }
 
 # Repeat this process for p values
@@ -128,7 +128,7 @@ for (i in 1:length(x_axis)){
     facet_wrap(~group,scales = "free_y", labeller = labeller(group = facet_labeller), nrow = 3, ncol = 2) +
     scale_x_continuous(name = x_axis_names[i]) + 
     scale_y_continuous("\n Test statistic value \n")
-  ggsave(filename = paste0(plots_dir,dataset,"_predictor_",name_additions[[i]],"pValue_points.png"), plot = p, units = "cm")
+  ggsave(filename = paste0(plots_dir,dataset,"_predictor_",name_additions[[i]],"_pValue_points.png"), plot = p, units = "cm")
 }
 
 ##### Step 6: Plot test statistics against potential predictors #####
