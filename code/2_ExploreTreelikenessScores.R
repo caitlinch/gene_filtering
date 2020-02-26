@@ -100,7 +100,6 @@ for (i in 1:length(x_axis)){
     facet_wrap(~group,scales = "free_y", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 2) +
     scale_x_continuous(name = x_axis_names[i]) + 
     scale_y_continuous("\n Test statistic value \n")
-  print(p)
   ggsave(filename = paste0(plots_dir,dataset,"_predictor_",name_additions[[i]],"testStatistic_points.png"), plot = p, units = "cm")
 }
 
@@ -175,9 +174,7 @@ for (var_to_plot in plot_vars){
     facet_wrap(~group,scales = "free_y", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 4) +
     scale_x_continuous(name = paste0("\n ",label_vars[var_to_plot][[1]]," \n")) +
     ylab("\n Predictor value \n")
-  print(p)
   plot_filename <- paste0(plots_dir,dataset,"_testStatistic_",var_to_plot,"_points.png")
-  print(plot_filename)
   ggsave(filename = plot_filename, plot = p, units = "cm")
 }
 
@@ -200,7 +197,6 @@ for (i in 1:length(x_axis)){
   p <- ggplot(ts_df, aes(x = ts_df[x_axis[i]], y = ts_df[y_axis[i]])) + geom_point() +  
     scale_x_continuous(minor_breaks = seq(0, 1, 0.05), name = x_axis_name[i]) + 
     scale_y_continuous(minor_breaks = seq(0, 1, 0.05), name = y_axis_name[i])
-  print(p)
   ggsave(filename = paste0(plots_dir,dataset,"_comparison_",filepath_addition[[i]],"_points.png"), plot = p, units = "cm")
 }
 
