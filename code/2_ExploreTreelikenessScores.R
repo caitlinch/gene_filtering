@@ -216,7 +216,59 @@ t2
 # to read in all trees at once (from the newick tree column in the df):
 m <- read.tree(text=ts_df$newick_tree)
 
+# Try a treespace using just the trees with all 16 species
+library("treespace")
+library("adegenet")
+library("adegraphics")
+library("rgl")
+library("phangorn") # Using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors <- these all assume an unrooted tree
 
+# get the trees with all 16 species of primate from the dataset
+e = ts_df[(ts_df$n_taxa == 16),]
+# Problem trees are 79, 120 
+# These trees claim to have 16 taxa but only have 14 when you plot them out
+e_trees <- e$newick_tree[c(1:78,80:120,122:128,130:157,159:194,196:305)] # pick 300 trees you know work 
+m <- read.tree(text = e_trees)
+m100 <- read.tree(text = e_trees)[1:100]
+
+# Error in treespace(m, nf = 3) : Tree 79 has different tip labels from the first tree.
+t1 <- read.tree(text = e$newick_tree[1])
+t79 <- read.tree(text = e$newick_tree[79]) # lists 16 taxa but only has 14...
+t121 <- read.tree(text = e$newick_tree[121]) # lists 16 taxa but only has 14...
+t129 <- read.tree(text = e$newick_tree[129]) # lists 16 taxa but only has 15...
+t158 <- read.tree(text = e$newick_tree[158]) # lists 16 taxa but only has 15...
+t195 <- read.tree(text = e$newick_tree[195]) # lists 16 taxa but only has 15...
+
+
+# use treespace <- have to pick a method that works on unrooted trees. Do this by picking one that assumes trees are unrooted (sneaky!)
+# "Warning message: In is.euclid(distmat) : Zero distance(s)" may appear when doing "RF" method <- this means you have duplicate rows in your distance matrix
+# Basically means two trees have the exact same values so the function thinks that you have a duplicate row
+
+res <- treespace(m, nf=3, method = "patristic")
+res100 <- treespace(m100, nf=3, method = "wRF")
+names(res100)
+str(res100)
+table.image(res100$D, nclass=30) # make a table of the 100 trees. Black = more different. 
+# table.value with some customization
+table.value(res100$D, nclass=10, method="color", col=funky(10))
+# plot trees using first 2 PCs
+plotGroves(res100$pco, lab.show=TRUE, lab.cex=1.5)
+plotGrovesD3(res100$pco, treeNames=1:100)
+groves <- findGroves(res100, nclust=7)
+# basic plot
+plotGrovesD3(groves)
+# alternative with improved legend and tooltip text, giving the tree numbers:
+plotGrovesD3(groves, tooltip_text=paste0("Tree ",1:100), legend_width=50, col_lab="Cluster")
+# plot axes 2 and 3. This helps to show why, for example, clusters 2 and 4 have been identified as separate, despite them appearing to overlap when viewing axes 1 and 2.
+plotGrovesD3(groves, xax=2, yax=3, tooltip_text=paste0("Tree ",1:100), legend_width=50, col_lab="Cluster")
+# we can also plot in 3D
+# prepare a colour palette:
+colours <- fac2col(groves$groups, col.pal=funky)
+plot3d(groves$treespace$pco$li[,1],
+       groves$treespace$pco$li[,2],
+       groves$treespace$pco$li[,3],
+       col=colours, type="s", size=1.5,
+       xlab="", ylab="", zlab="")
 
 
 
