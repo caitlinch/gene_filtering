@@ -228,8 +228,13 @@ e = ts_df[(ts_df$n_taxa == 16),]
 # Problem trees are 79, 120 
 # These trees claim to have 16 taxa but only have 14 when you plot them out
 e_trees <- e$newick_tree[c(1:78,80:120,122:128,130:157,159:194,196:305)] # pick 300 trees you know work 
+e_tl <- e$neighbour_net_trimmed[c(1:78,80:120,122:128,130:157,159:194,196:305)] # get tree proportion values for those scores
 m <- read.tree(text = e_trees)
 m100 <- read.tree(text = e_trees)[1:100]
+tl100 <- e$neighbour_net_trimmed[c(1:78,80:120,122:128,130:157,159:194,196:305)][1:100] # get tree proportion values for those scores
+seqp100 <- e$X3SEQ_p_value[c(1:78,80:120,122:128,130:157,159:194,196:305)][1:100] # get 3seq p values for those scores
+seqts100 <- e$X3SEQ_prop_recombinant_sequences[c(1:78,80:120,122:128,130:157,159:194,196:305)][1:100] # get 3seq test statistic values for those scores
+scf100 <- e$sCF_mean[c(1:78,80:120,122:128,130:157,159:194,196:305)][1:100] # get sCF values for those scores
 
 # Error in treespace(m, nf = 3) : Tree 79 has different tip labels from the first tree.
 t1 <- read.tree(text = e$newick_tree[1])
@@ -270,10 +275,58 @@ plot3d(groves$treespace$pco$li[,1],
        col=colours, type="s", size=1.5,
        xlab="", ylab="", zlab="")
 
+# to incorporate treelikeness value into the 3D 
+# Trying to attach the tree proportion scores to the spheres
+groups100 <- tl100
+names(groups100) <- 1:100
+groves100 <- list("groups" = groups100, "treespace" = res100)
+# results in colouring by the treelikeness values
+plotGrovesD3(groves100, tooltip_text=paste0("Tree ",1:100), legend_width=50, col_lab="TL value") 
 
 
+# Ways to get your numbers into colours for the plots
+library(rgl)
+# Define colours (there may be a better way to do this ...)
+# Step 1: use colourRamp to make a spectrum from 2 colours using your number vector
+# Step 2: divide by 255 so each colour is on scale from 0 to 1
+# Step 3: convert matrix of rgb values to matrix of hex colours row by row
+cvec <- apply((colorRamp(c("red","yellow","blue"))(tl100))/255,1, function(x) {rgb(x[1],x[2],x[3])})
+# OR Step 1: use viridis to generate colours from treelikeness vector
+library(viridis)
+vir_col <- viridis(7)
+vir_vec <- apply((colorRamp(c(vir_col))(tl100))/255,1, function(x) {rgb(x[1],x[2],x[3])})
+# OR Step 1: or using any2col to convert numbers to colours
+any2col_op <- any2col(tl100)
+any2col_col <- any2col_op$col #extract the colours from the any2col output
+# Plot in 3d using the colours that were just scaled and applied
+plot3d(groves100$treespace$pco$li[,1],
+       groves100$treespace$pco$li[,2],
+       groves100$treespace$pco$li[,3],
+       col=vir_vec, type="s", size=1.5,
+       xlab="", ylab="", zlab="")
 
+# 3 seq p value
+vir_vec <- apply((colorRamp(c(vir_col))(seqp100))/255,1, function(x) {rgb(x[1],x[2],x[3])})
+plot3d(groves100$treespace$pco$li[,1],
+       groves100$treespace$pco$li[,2],
+       groves100$treespace$pco$li[,3],
+       col=vir_vec, type="s", size=1.5,
+       xlab="", ylab="", zlab="")
 
+# 3 seq prop recombinant seq
+vir_vec <- apply((colorRamp(c(vir_col))(seqts100))/255,1, function(x) {rgb(x[1],x[2],x[3])})
+plot3d(groves100$treespace$pco$li[,1],
+       groves100$treespace$pco$li[,2],
+       groves100$treespace$pco$li[,3],
+       col=vir_vec, type="s", size=1.5,
+       xlab="", ylab="", zlab="")
 
+# scf values
+vir_vec <- apply((colorRamp(c(vir_col))(scf100/100))/255,1, function(x) {rgb(x[1],x[2],x[3])})
+plot3d(groves100$treespace$pco$li[,1],
+       groves100$treespace$pco$li[,2],
+       groves100$treespace$pco$li[,3],
+       col=vir_vec, type="s", size=1.5,
+       xlab="", ylab="", zlab="")
 
 
