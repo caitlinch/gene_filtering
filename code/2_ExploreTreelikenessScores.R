@@ -79,7 +79,7 @@ ggsave(filename = paste0(plots_dir,e$dataset[1],"_histogram_all_samey.png"), plo
 # Plot the number of sites against the treelikeness test statistics
 # Prepare the dataframe
 e = melt_df[melt_df$variable %in% c("X3SEQ_prop_recombinant_sequences","neighbour_net_trimmed","sCF_mean","sCF_median"),]
-e$group = factor(e$variable,levels = levels(e$variable)[c(3,5,9,10)])
+e$group = factor(e$variable,levels = levels(e$variable)[c(3,6,9,10)])
 # Set up the labeller so that the facet names will be formatted nicely (rather than using variable names in the plots)
 facet_names <- list("X3SEQ_prop_recombinant_sequences" = "Proportion of  \n recombinant sequences", "neighbour_net_trimmed" = "NeighborNet (trimmed)", 
                     "sCF_mean" = "Mean sCF", "sCF_median" = "Median sCF")
