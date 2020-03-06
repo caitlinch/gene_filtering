@@ -14,9 +14,9 @@ library(reshape2)
 
 
 ##### Step 2: Set the file paths for input and output files, and necessary functions/directories #####
-results_path <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/results/treelikeness_scores/Wu_2018_dnaLoci_Primates_completeResults.csv"
-results_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/results/treelikeness_scores/"
-plots_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/results/treelikeness_scores/plots/"
+results_path <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/06_results/treelikeness_scores/Wu_2018_dnaLoci_Primates_completeResults.csv"
+results_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/06_results/treelikeness_scores/"
+plots_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/06_results/treelikeness_scores/plots/"
 treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
 maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
 
