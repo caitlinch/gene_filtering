@@ -78,10 +78,10 @@ ggsave(filename = paste0(plots_dir,e$dataset[1],"_histogram_all_samey.png"), plo
 ##### Step 5: Plot potential predictors of treelikeness against test statistic values #####
 # Plot the number of sites against the treelikeness test statistics
 # Prepare the dataframe
-e = melt_df[melt_df$variable %in% c("neighbour_net_trimmed","X3SEQ_prop_recombinant_sequences","sCF_mean","sCF_median"),]
-e$group = factor(e$variable,levels = c("neighbour_net_trimmed","X3SEQ_prop_recombinant_sequences","sCF_mean","sCF_median"))
+e = melt_df[melt_df$variable %in% c("X3SEQ_prop_recombinant_sequences","neighbour_net_trimmed","sCF_mean","sCF_median"),]
+e$group = factor(e$variable,levels = levels(e$variable)[c(3,5,9,10)])
 # Set up the labeller so that the facet names will be formatted nicely (rather than using variable names in the plots)
-facet_names <- list("neighbour_net_trimmed" = "NeighborNet (trimmed)", "X3SEQ_prop_recombinant_sequences" = "Proportion of  \n recombinant sequences",
+facet_names <- list("X3SEQ_prop_recombinant_sequences" = "Proportion of  \n recombinant sequences", "neighbour_net_trimmed" = "NeighborNet (trimmed)", 
                     "sCF_mean" = "Mean sCF", "sCF_median" = "Median sCF")
 facet_labeller <- function(variable){
   variable <- facet_names[variable]
@@ -106,7 +106,7 @@ for (i in 1:length(x_axis)){
 # Repeat this process for p values
 # Prepare the dataframe
 e = melt_df[melt_df$variable %in% c("X3SEQ_p_value","x3seq_propRecomSeq_sig","nn_untrimmed_sig","nn_trimmed_sig","sCF_mean_sig","sCF_median_sig"),]
-e$group = factor(e$variable,levels = c("X3SEQ_p_value","x3seq_propRecomSeq_sig","nn_untrimmed_sig","nn_trimmed_sig","sCF_mean_sig","sCF_median_sig"))
+e$group = factor(e$variable, levels(e$variable)[c(4,12,7,8,13,14)])
 # Set up the labeller so that the facet names will be formatted nicely (rather than using variable names in the plots)
 facet_names <- list("X3SEQ_p_value" = "3SEQ (inbuilt) p value","x3seq_propRecomSeq_sig" = "Proportion of recombinant sequences \n p value (parametric bootstrap)",
                     "nn_untrimmed_sig" = "NeighborNet (untrimmed) p value","nn_trimmed_sig" = "NeighborNet (trimmed) p value",
@@ -170,7 +170,7 @@ dataset = ts_df$dataset[1]
 
 # Plot all of the test statistics/p values for a single dataset againt the predictors at once
 for (var_to_plot in plot_vars){
-  p <- ggplot(e, aes(x = e[[var_to_plot]], y = value)) +
+  p <- ggplot(e, aes(x = value, y = e[[var_to_plot]])) +
     geom_point() +
     facet_wrap(~group,scales = "free", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 4) +
     scale_x_continuous("\n Predictor value \n") +
