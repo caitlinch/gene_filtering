@@ -154,7 +154,8 @@ facet_names <- list("n_taxa" = "Number of taxa","n_sites" = "Number of sites","n
                       "prop_parsimony_informative_sites" = "Prop. parsimony \n informative sites","total_tree_depth" = "Tree depth",
                       "GC_content_mean" = "GC content (mean)","GC_content_variance" = "GC content (variance)","GC_content_sd" = "GC content (st dev)")
 facet_labeller <- function(variable){
-  variable <- facet_names[variable]
+  var_name <- facet_names[variable]
+  return(var_name)
 }
 
 # Set up the variables to plot and the labels for axes
@@ -169,7 +170,7 @@ dataset = ts_df$dataset[1]
 
 # Plot all of the test statistics/p values for a single dataset againt the predictors at once
 for (var_to_plot in plot_vars){
-  p <- ggplot(e, aes(x = value, y = e[[var_to_plot]])) +
+  p <- ggplot(e, aes(x = e[[var_to_plot]], y = value)) +
     geom_point() +
     facet_wrap(~group,scales = "free", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 4) +
     scale_x_continuous("\n Predictor value \n") +
