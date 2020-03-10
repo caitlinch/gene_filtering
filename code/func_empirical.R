@@ -334,7 +334,7 @@ empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths
       n_taxa <- length(n)
       # Run IQ-tree on the alignment (if it hasn't already been run), and get the sCF results
       print("run IQTree and estimate sCFs")
-      calculate.sCF(iqtree_path = program_paths[["IQTree"]], alignment_path = empirical_alignment_path, num_threads = iqtree.num_threads, num_quartets = iqtree.num_quartets)
+      calculate.sCF(iqtree_path = program_paths[["IQTree"]], alignment_path = empirical_alignment_path, nsequences = n_taxa, num_threads = iqtree.num_threads, num_scf_quartets = iqtree.num_quartets)
     }
     
     # Calculate the test statistics if it hasn't already been done
