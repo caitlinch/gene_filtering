@@ -229,7 +229,7 @@ m <- read.tree(text=ts_df$newick_tree)
 e = ts_df[(ts_df$n_taxa == 16),]
 # Problem trees are 79, 120 
 # These trees claim to have 16 taxa but only have 14 when you plot them out
-e_trees <- e$newick_tree[c(1:78,80:120,122:128,130:157,159:194,196:305)] # pick 300 trees you know work 
+e_trees <- e$newick_tree[c(1:78,80:120,122:128,130:157,159:194,196:305)] # pick 300 trees you know work
 e_tl <- e$neighbour_net_trimmed[c(1:78,80:120,122:128,130:157,159:194,196:305)] # get tree proportion values for those scores
 m <- read.tree(text = e_trees)
 m100 <- read.tree(text = e_trees)[1:100]
