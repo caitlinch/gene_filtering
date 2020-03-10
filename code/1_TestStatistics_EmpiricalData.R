@@ -25,6 +25,35 @@ library(TreeSim) # simulating phylogenetic trees
 
 ##### Step 2: Set file paths and run variables #####
 print("initialising namespace")
+# input_dir    <- the folder containing the empirical data
+#              <- where simulated alignments and output from analysis (e.g. IQ-Tree output files, 3seq output files) will be placed
+# output_dir   <- for collated output and results
+# treedir      <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
+# maindir      <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+# cores_to_use <- the number of cores to use for parametric bootstrap. 1 for a single core (wholly sequential), or higher if using parallelisation.
+# reps_to_do   <- the number of of bootstrap replicates to perform
+# exec_paths   <- location to each executable within the folder. Attach the names of the executables so the paths can be accessed by name
+
+# The SplitsTree executable path can be tricky to find: 
+#       - in MacOS, the path is "SplitsTree.app/Contents/MacOS/JavaApplicationStub" (assuming you are in the same directory as the application)
+#       - in Linux, after installing and navigating into the folder it's simply "SplitsTree"
+
+# input_dir <- ""
+# output_dir <- ""
+# treedir <- ""
+# maindir <- ""
+# cores_to_use <- 1
+# reps_to_do <- 199
+# sCF_replicates <- 1000
+
+# Create a vector with all of the executable file paths
+# To access a path: exec_paths[["name"]]
+# exec_folder <- "/path/to/executables/folder/"
+# exec_paths <- c("3seq_executable","IQ-Tree_executable","PHIpack_executable","SplitsTree_executable")
+# exec_paths <- paste0(exec_folder,exec_paths)
+# names(exec_paths) <- c("3seq","IQTree","Phi","SplitsTree")
+
+###
 
 # run_location = "mac"
 run_location = "soma"
@@ -46,6 +75,7 @@ if (run_location == "mac"){
   # set number of cores and reps for bootstraps
   cores_to_use = 1
   reps_to_do = 9
+  sCF_replicates = 1000
   
 } else if (run_location=="soma"){
   input_dir <- "/data/caitlin/empirical_treelikeness/Wu_2018_dnaLoci_Primates/"
@@ -61,6 +91,7 @@ if (run_location == "mac"){
   # set number of cores and reps for bootstraps
   cores_to_use = 30
   reps_to_do= 199
+  sCF_replicates = 1000
 }
 
 
@@ -122,10 +153,12 @@ print("apply treelikeness test statistics")
 # To run locally for one alignment: empirical.bootstraps.wrapper(empirical_alignment_path = empirical_alignment_path, program_paths = program_paths,
 #                                                        number_of_replicates = 9, iqtree.num_threads = AUTO, iqtree.num_quartets = 100,
 #                                                        num_of_cores = 1)
-# Parameter choice:
-#       ~ iqtree.num_thread = 1: allows parallelisation higher up in the workflow
+# Parameter choice explanation:
+#       ~ iqtree.num_thread = 1: allows parallelisation higher up in the workflow 
+#                              - i.e. program will run parametric bootstrap for test statistics with multiple threads
+#                              - (number of simulatenous bootstraps set by choice of cores_to_use value)
 #       ~ iqtree.num_quartets = 1000: greater than 100 quartets necessary for stable sCF values
-#lapply(loci,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = 1, iqtree.num_quartets = 1000, num_of_cores = cores_to_use) 
+# lapply(loci,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = 1, iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use) 
 
 
 
