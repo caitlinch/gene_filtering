@@ -55,7 +55,7 @@ if (run_location == "mac"){
   
   # Create a vector with all of the executable file paths
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("/data/caitlin/linux_executables/3seq/3seq","/data/caitlin/linux_executables/iqtree-1.7-beta13-Linux/bin/iqtree","/data/caitlin/splitstree4/SplitsTree")
+  exec_paths <- c("/data/caitlin/linux_executables/3seq/3seq","/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree","/data/caitlin/splitstree4/SplitsTree")
   names(exec_paths) <- c("3seq","IQTree","SplitsTree")
   
   # set number of cores and reps for bootstraps
