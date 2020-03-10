@@ -3,10 +3,9 @@
 ## Specifically designed to work with Rob Lanfear's "BenchmarkAlignments"
 ## BenchmarkAlignments and metadata have CC0 or CCBY licenses and are available here: https://github.com/roblanf/BenchmarkAlignments
 ## A number of additional software packages are required, specifically:
-##     - IQTREE (Nguyen et al 2015) (http://www.iqtree.org/)
+##     - IQTREE (Nguyen et al 2015) (http://www.iqtree.org/) (need version 2.0 or later)
 ##     - 3SEQ (Lam et al 2018) (http://mol.ax/software/3seq/)
-##     - PHI test (Bruen et al 2006) (https://www.maths.otago.ac.nz/~dbryant/software.html)
-##     - Splitstree (Huson and Bryant 2006) (http://www.splitstree.org/)
+##     - Splitstree (Huson and Bryant 2006) (http://www.splitstree.org/) (need SplitsTree 4)
 # Caitlin Cherryh 2019
 
 
@@ -32,6 +31,7 @@ print("initialising namespace")
 # maindir      <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # cores_to_use <- the number of cores to use for parametric bootstrap. 1 for a single core (wholly sequential), or higher if using parallelisation.
 # reps_to_do   <- the number of of bootstrap replicates to perform
+# exec_folder  <- the folder containing the software executables needed for analysis (3SEQ, IQ-Tree and SplitsTree4)
 # exec_paths   <- location to each executable within the folder. Attach the names of the executables so the paths can be accessed by name
 
 # The SplitsTree executable path can be tricky to find: 
@@ -49,9 +49,8 @@ print("initialising namespace")
 # Create a vector with all of the executable file paths
 # To access a path: exec_paths[["name"]]
 # exec_folder <- "/path/to/executables/folder/"
-# exec_paths <- c("3seq_executable","IQ-Tree_executable","PHIpack_executable","SplitsTree_executable")
+# exec_paths <- c("3seq_executable","IQ-Tree_executable","SplitsTree_executable")
 # exec_paths <- paste0(exec_folder,exec_paths)
-# names(exec_paths) <- c("3seq","IQTree","Phi","SplitsTree")
 
 ###
 
@@ -97,6 +96,10 @@ if (run_location == "mac"){
 
 
 ##### Step 3: Source files for functions #####
+# Attach the names used throughout the code and functions to the exec_paths object
+# Do not edit these names - it will cause internal functions and thus calculations to fail
+names(exec_paths) <- c("3seq","IQTree","SplitsTree")
+
 # Open functions using filepaths from Step 2
 source(paste0(treedir,"code/func_test_statistic.R"))
 source(paste0(treedir,"code/func_process_data.R"))
