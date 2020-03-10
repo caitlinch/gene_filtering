@@ -8,8 +8,15 @@
 
 
 ##### Step 1: Open packages #####
-library(ggplot2)
-library(reshape2)
+library(ggplot2) # data visualisation and better plotting
+library(reshape2) # restructure data between long and wide formats
+library(treespace) # phylogenetic tree exploration
+library(adegenet) # toolkit for exploring genomic and genertic data
+library(adegraphics) # improved graphical functionalities from ade4 (multivariate data analysis)
+library(rgl) # for interactive 3D plots
+library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
+                    # these methods all assume an unrooted tree so trees can be used as is for this analysis
+
 
 
 
@@ -218,12 +225,6 @@ t2
 m <- read.tree(text=ts_df$newick_tree)
 
 # Try a treespace using just the trees with all 16 species
-library("treespace")
-library("adegenet")
-library("adegraphics")
-library("rgl")
-library("phangorn") # Using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors <- these all assume an unrooted tree
-
 # get the trees with all 16 species of primate from the dataset
 e = ts_df[(ts_df$n_taxa == 16),]
 # Problem trees are 79, 120 

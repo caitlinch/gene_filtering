@@ -13,13 +13,13 @@
 
 ##### Step 1: Open packages #####
 print("opening packages")
-library(ape)
-library(parallel)
-library(phangorn)
-library(phytools)
-library(seqinr)
-library(stringr)
-library(TreeSim)
+library(ape) # analyses of phylogenetics and evolution
+library(parallel) # support for parallel computation
+library(phangorn) # phylogenetic reconstruction and analysis
+library(phytools) # tools for comparative biology and phylogenetics
+library(seqinr) # data analysis and visualisation for biological sequence data
+library(stringr) # wrappers for string operations
+library(TreeSim) # simulating phylogenetic trees
 
 
 
