@@ -38,7 +38,8 @@ if (run_location == "mac"){
   exec_folder <- "/Users/caitlincherryh/Documents/Honours/Executables/"
   # Create a vector with all of the executable file paths
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("3seq","iqtree-1.7-beta13_sCF/bin/iqtree","SplitsTree.app/Contents/MacOS/JavaApplicationStub")
+  exec_paths <- c("3seq","/Users/caitlincherryh/Documents/Honours/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree",
+                  "SplitsTree.app/Contents/MacOS/JavaApplicationStub")
   exec_paths <- paste0(exec_folder,exec_paths)
   names(exec_paths) <- c("3seq","IQTree","SplitsTree")
   
