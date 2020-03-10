@@ -26,8 +26,8 @@ library(TreeSim) # simulating phylogenetic trees
 ##### Step 2: Set file paths and run variables #####
 print("initialising namespace")
 
-run_location = "mac"
-# run_location = "soma"
+# run_location = "mac"
+run_location = "soma"
 
 if (run_location == "mac"){
   input_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/empiricalData/Wu_2018_dna_loci/"
@@ -125,7 +125,7 @@ print("apply treelikeness test statistics")
 # Parameter choice:
 #       ~ iqtree.num_thread = 1: allows parallelisation higher up in the workflow
 #       ~ iqtree.num_quartets = 1000: greater than 100 quartets necessary for stable sCF values
-lapply(loci,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = 1, iqtree.num_quartets = 1000, num_of_cores = cores_to_use) 
+#lapply(loci,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = 1, iqtree.num_quartets = 1000, num_of_cores = cores_to_use) 
 
 
 
@@ -148,8 +148,8 @@ GC_vector <- unlist(lapply(results_df$alignment_file,calculate.GC.content))
 results_df$GC_content_mean <- GC_vector[c(TRUE,FALSE,FALSE)]
 results_df$GC_content_variance <- GC_vector[c(FALSE,TRUE,FALSE)]
 results_df$GC_content_sd <-  GC_vector[c(FALSE,FALSE,TRUE)]
-# Extract the bionj trees from each alignment's IQ-Tree run and add them to the dataframe
-results_df$newick_tree <- unlist(lapply(results_df$alignment_file, extract.iqtree.tree))
+# Extract the gene trees (.treefile for each locus) from each alignment's IQ-Tree run and add them to the dataframe
+results_df$newick_tree <- unlist(lapply(results_df$alignment_file, extract.treefile.tree))
 
 # Save the newly extended dataframe
 results_file <- paste0(output_dir,basename(input_dir),"_completeResults.csv")

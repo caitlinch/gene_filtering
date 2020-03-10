@@ -530,7 +530,7 @@ extract.num.informative.sites <- function(alignment_path){
 
 
 # Function to open an iqtree file and extract the number of parsimony informative sites
-extract.iqtree.tree <- function(alignment_path){
+extract.treefile.tree <- function(alignment_path){
   # Open .iqtree file associated with that alignment
   iqtree_filepath <- paste0(alignment_path,".treefile")
   if (file.exists(iqtree_filepath) == FALSE){
