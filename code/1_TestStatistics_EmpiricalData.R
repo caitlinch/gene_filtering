@@ -26,8 +26,8 @@ library(TreeSim) # simulating phylogenetic trees
 ##### Step 2: Set file paths and run variables #####
 print("initialising namespace")
 
-# run_location = "mac"
-run_location = "soma"
+run_location = "mac"
+# run_location = "soma"
 
 if (run_location == "mac"){
   input_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/empiricalData/Wu_2018_dna_loci/"
