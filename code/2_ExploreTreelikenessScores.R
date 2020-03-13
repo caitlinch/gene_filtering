@@ -226,7 +226,8 @@ m <- read.tree(text=ts_df$newick_tree)
 
 # Try a treespace using just the trees with all 16 species
 # get the trees with all 16 species of primate from the dataset
-e = ts_df[(ts_df$n_taxa == 16),]
+fix_t <- read.tree(text="(CALLI_JAC:0.0065233742,(((((MACAC_FAS:0.0000000000,PAPIO_ANU:0.0000000000):0.0000010000,MACAC_MUL:0.0000010000):0.0000010000,CHLOR_SAB:0.0019809135):0.0023666495,(((DAUBE_MAD:0.0138786379,OTOLE_GAR:0.0569027955):0.0036858890,MICRO_MUR:0.0317212325):0.0051580189,TARSI_SYR:0.0424257344):0.0092468455):0.0025774679,((((GORIL_GOR:0.0000000000,PAN_TRO:0.0000000000):0.0000010000,PAN_PAN:0.0000010000):0.0000010000,HOMO_SAP:0.0019784034):0.0000010000,(PONGO_ABE:0.0020025832,NOMAS_LEU:0.0029886553):0.0009827560):0.0047242305):0.0046963272,SAIMI_BOL:0.0047735036);
+
 # Problem trees are 79, 120 
 # These trees claim to have 16 taxa but only have 14 when you plot them out
 e_trees <- e$newick_tree[c(1:78,80:120,122:128,130:157,159:194,196:305)] # pick 300 trees you know work
