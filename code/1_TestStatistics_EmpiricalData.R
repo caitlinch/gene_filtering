@@ -18,14 +18,14 @@ library(phangorn) # phylogenetic reconstruction and analysis
 library(phytools) # tools for comparative biology and phylogenetics
 library(seqinr) # data analysis and visualisation for biological sequence data
 library(stringr) # wrappers for string operations
-library(TreeSim) # simulating phylogenetic trees
 
 
 
 ##### Step 2: Set file paths and run variables #####
 print("initialising namespace")
-# input_dir    <- the folder containing the empirical data
+# input_dir    <- the folder(s) containing the empirical data
 #              <- where simulated alignments and output from analysis (e.g. IQ-Tree output files, 3seq output files) will be placed
+# input_names  <- set name(s) for the dataset(s)
 # output_dir   <- for collated output and results
 # treedir      <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
 # maindir      <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
@@ -39,6 +39,7 @@ print("initialising namespace")
 #       - in Linux, after installing and navigating into the folder it's simply "SplitsTree"
 
 # input_dir <- ""
+# input_names <- ""
 # output_dir <- ""
 # treedir <- ""
 # maindir <- ""
@@ -54,19 +55,22 @@ print("initialising namespace")
 
 ###
 
-# run_location = "mac"
-run_location = "soma"
+run_location = "local"
+# run_location = "server"
 
-if (run_location == "mac"){
-  input_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/empiricalData/Wu_2018_dna_loci/"
-  output_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/output/output_20190806/"
+if (run_location == "local"){
+  input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
+                 "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Misof2014/loci/",
+                 "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/")
+  input_names <- c("1KP", "Misof2014","Vanderpool2020")
+  output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
   treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
   exec_folder <- "/Users/caitlincherryh/Documents/Honours/Executables/"
-  # Create a vector with all of the executable file paths
+  # Create a vector with all of the executable file paths  in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("3seq","/Users/caitlincherryh/Documents/Honours/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree",
+  exec_paths <- c("3seq","iqtree-2.0-rc1-MacOSX/bin/iqtree",
                   "SplitsTree.app/Contents/MacOS/JavaApplicationStub")
   exec_paths <- paste0(exec_folder,exec_paths)
   names(exec_paths) <- c("3seq","IQTree","SplitsTree")
@@ -76,13 +80,14 @@ if (run_location == "mac"){
   reps_to_do = 9
   sCF_replicates = 1000
   
-} else if (run_location=="soma"){
+} else if (run_location=="server"){
   input_dir <- "/data/caitlin/empirical_treelikeness/Wu_2018_dnaLoci_Primates/"
+  input_names <- "Wu2018"
   output_dir <- "/data/caitlin/empirical_treelikeness/Wu_2018_dnaLoci_Primates_results/"
   treedir <- "/data/caitlin/treelikeness/" # where the treelikeness code is
   maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness code is
   
-  # Create a vector with all of the executable file paths
+  # Create a vector with all of the executable file paths in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("/data/caitlin/linux_executables/3seq/3seq","/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree","/data/caitlin/splitstree4/SplitsTree")
   names(exec_paths) <- c("3seq","IQTree","SplitsTree")
@@ -99,8 +104,13 @@ if (run_location == "mac"){
 # Attach the names used throughout the code and functions to the exec_paths object
 # Do not edit these names - it will cause internal functions and thus calculations to fail
 names(exec_paths) <- c("3seq","IQTree","SplitsTree")
+# Attach the input_names to the input_files 
+names(input_dir) <- input_names
+# Create a set of output folders
+output_dirs <- paste0(output_dir,input_names,"/")
+names(output_dirs) <- input_names
 
-# Open functions using filepaths from Step 2
+# Source the functions using the filepaths from Step 2
 source(paste0(treedir,"code/func_test_statistic.R"))
 source(paste0(treedir,"code/func_process_data.R"))
 source(paste0(treedir,"code/func_parametric_bootstrap.R"))
@@ -109,48 +119,16 @@ source(paste0(maindir,"code/func_empirical.R"))
 
 
 ##### Step 4: Extract desired loci #####
-# Extract the loci from the folder of interest
-full_loci <- list.files(input_dir)
-full_loci <- paste0(input_dir, full_loci)
-# Remove the three alignment files from the folder
-full_loci <- full_loci[grep("alignment",full_loci,invert=TRUE)]
-full_loci <- full_loci[grep("README",full_loci,invert=TRUE)]
-# Exclude unwanted files (from previous output) from analysis
-full_loci <- full_loci[grep(".nex",full_loci)]
-full_loci <- full_loci[grep(".nex.",full_loci,invert=TRUE)]
-# Remove first, second and third codon positions from the folder (run only whole transcriptomes)
-loci <- full_loci[grep("1st",full_loci,invert=TRUE)]
-loci <- loci[grep("2nd",loci,invert=TRUE)]
-loci <- loci[grep("3rd",loci,invert=TRUE)]
+# Obtaining the list of file paths from 1KP is the trickiest as each alignment in it a separate folder, where the folder's name is the gene number
+OKP_paths <- paste0(input_dir[["1KP"]], list.files(input_dir[["1KP"]], recursive = TRUE, full.names = FALSE))
+# Obtaining the list of loci file paths from Misof 2014 is easy -- all the loci are in the same folder
+Misof2014_paths <- paste0(input_dir[["Misof2014"]], list.files(input_dir[["Misof2014"]], full.names = FALSE))
+# Obtaining the list of loci file paths from Vanderpool 2020 is easy -- all the loci are in the same folder
+Vanderpool2020_paths <- paste0(input_dir[["Vanderpool2020"]], list.files(input_dir[["Vanderpool2020"]], full.names = FALSE))
+loci_paths <- list(OKP_paths, Misof2014_paths, Vanderpool2020_paths)
+names(loci_paths) <- input_names
 
-# Create path for whole alignment file
-whole_alignment <- paste0(input_dir, "alignment.nex")
-
-
-
-##### Step 5: Trim unwanted species (optional) #####
-# Initialise list of species of interest 
-mammals <- c("CALLI_JAC", "MACAC_FAS", "MACAC_MUL", "PAPIO_ANU", "CHLOR_SAB", "DAUBE_MAD", "GORIL_GOR", "HOMO_SAP", "PAN_PAN", "PAN_TRO", "PONGO_ABE",
-             "MICRO_MUR", "NOMAS_LEU", "OTOLE_GAR", "SAIMI_BOL", "TARSI_SYR")
-mammals_commonNames <- c("Marmoset", "Crab-eating macaque", "Rhesus macaque", "Olive Baboon", "Green monkey", "Aye-aye", "Gorilla"," Human", "Bonobo",
-                         "Chimpanzee", "Orangutan", "Mouse Lemur", "Gibbon", "Galago (Bushbaby)"," Squirrel monkey", "Tarsier")
-mammals_speciesNames <- c("Callithrix jacchus", "Macaca fascicularis", "Macaca mulatta", "Papio anubis", "Chlorocebus sabaeus", "Daubentonia madagascariensis",
-                          "Gorilla gorilla", "Homo sapiens", "Pan paniscus", "Pan troglodytes", "Pongo abelii", "Microcebus murinus", "Nomascus leucogenys",
-                          "Otolemur garnettiiz", "Saimiri boliviensis", "Tarsius syrichta"  )
-# Initialise list of outgroups in case rooting is needed later on
-outgroups <- c("GALLU_GAL", "MELEA_GAL", "ANOLI_CAR", "PELOD_SIN", "XENOP_TRO", "LATIM_CHA", "DANIO_RER", "GASTE_ACU")
-outgroups_commonName <- c("Chicken", "Turkey", "Anole lizard", "Chinese softshell turtle", "Frog", "Coelacanth", "Zebrafish", "Stickleback fish")
-outgroups_speciesName <- c("Gallus gallus", "Meleagris gallopavo", "Anolis carolinensis", "Pelodiscus sinensis", "Xenopus tropicalis", "Latimeria chalumnae",
-                           "Danio rerio", "Gasterosteus aculeatus")
-
-# Call the trim function to remove all the species you want to remove from the alignment (unless you want to keep ALL the species in the alignment): 
-print("trimming alignments")
-#lapply(loci, cutSpecies, keep = mammals, output_path_provided = FALSE) # trim all the unwanted species from the collected loci
-#cutSpecies(alignment_path = whole_alignment, keep = mammals, output_path_provided = FALSE) # trim all the unwanted species from the whole alignment file
-
-
-
-##### Step 6: Calculate the test statistics and run the parametric bootstraps  #####
+##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
 print("starting analysis")
 print("apply treelikeness test statistics")
 # To run locally for one alignment: empirical.bootstraps.wrapper(empirical_alignment_path = empirical_alignment_path, program_paths = program_paths,
@@ -165,7 +143,7 @@ print("apply treelikeness test statistics")
 
 
 
-##### Step 7: Collate test statistic results #####
+##### Step 6: Collate test statistic results #####
 print("collate results")
 # Collate all the dataframes together
 results_file <- paste0(output_dir,basename(input_dir),"_testStatisticResults.csv")
