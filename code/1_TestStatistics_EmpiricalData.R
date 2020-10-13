@@ -118,15 +118,27 @@ source(paste0(maindir,"code/func_empirical.R"))
 
 
 
-##### Step 4: Extract desired loci #####
-# Obtaining the list of file paths from 1KP is the trickiest as each alignment in it a separate folder, where the folder's name is the gene number
+##### Step 4: Extract names and locations of loci #####
+# Obtaining the list of file paths from 1KP is the messiest as each alignment in it a separate folder, where the folder's name is the gene number
 OKP_paths <- paste0(input_dir[["1KP"]], list.files(input_dir[["1KP"]], recursive = TRUE, full.names = FALSE))
+OKP_names <- list.files(input_dir[["1KP"]], full.names = FALSE)
 # Obtaining the list of loci file paths from Misof 2014 is easy -- all the loci are in the same folder
 Misof2014_paths <- paste0(input_dir[["Misof2014"]], list.files(input_dir[["Misof2014"]], full.names = FALSE))
+Misof2014_names <- gsub(".nex","",grep(".nex",unlist(strsplit((Misof2014_paths), "/")), value = TRUE))
 # Obtaining the list of loci file paths from Vanderpool 2020 is easy -- all the loci are in the same folder
 Vanderpool2020_paths <- paste0(input_dir[["Vanderpool2020"]], list.files(input_dir[["Vanderpool2020"]], full.names = FALSE))
-loci_paths <- list(OKP_paths, Misof2014_paths, Vanderpool2020_paths)
-names(loci_paths) <- input_names
+Vanderpool2020_names <- gsub("_NoNcol.Noambig.fa","",grep(".fa",unlist(strsplit((Vanderpool2020_paths), "/")), value = TRUE))
+# Combine names of loci, loci locations, and output folders into a dataframe (for easy access - each loci name will be stored near the other information you need)
+loci_df <- data.frame(loci_names = c(OKP_names, Misof2014_names, Vanderpool2020_names), 
+                      loci_paths = c(OKP_paths, Misof2014_paths, Vanderpool2020_paths), 
+                      output_folder = c(rep(output_dirs[["1KP"]],length(OKP_paths)), 
+                                        rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), 
+                                        rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths))),
+                      alphabet = c(rep("AA",length(OKP_paths)), 
+                                   rep("AA", length(Misof2014_paths)), 
+                                   rep("DNA", length(Vanderpool2020_paths))),
+                      stringsAsFactors = FALSE
+                      )
 
 ##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
 print("starting analysis")
@@ -139,7 +151,10 @@ print("apply treelikeness test statistics")
 #                              - i.e. program will run parametric bootstrap for test statistics with multiple threads
 #                              - (number of simulatenous bootstraps set by choice of cores_to_use value)
 #       ~ iqtree.num_quartets = 1000: greater than 100 quartets necessary for stable sCF values
-# lapply(loci,empirical.bootstraps.wrapper, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = 1, iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use) 
+
+
+lapply(1:nrow(loci_df), empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = 1,
+         iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use) 
 
 
 
