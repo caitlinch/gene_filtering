@@ -134,9 +134,9 @@ loci_df <- data.frame(loci_names = c(OKP_names, Misof2014_names, Vanderpool2020_
                       output_folder = c(rep(output_dirs[["1KP"]],length(OKP_paths)), 
                                         rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), 
                                         rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths))),
-                      alphabet = c(rep("AA",length(OKP_paths)), 
-                                   rep("AA", length(Misof2014_paths)), 
-                                   rep("DNA", length(Vanderpool2020_paths))),
+                      alphabet = c(rep("protein",length(OKP_paths)), 
+                                   rep("protein", length(Misof2014_paths)), 
+                                   rep("dna", length(Vanderpool2020_paths))),
                       stringsAsFactors = FALSE
                       )
 
