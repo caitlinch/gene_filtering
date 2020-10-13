@@ -312,26 +312,51 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
 
 
 # Function to act as outer shell for all the layers in performing test statistics and parametric bootstraps
-empirical.bootstraps.wrapper <- function(empirical_alignment_path, program_paths, number_of_replicates, iqtree.num_threads, iqtree.num_quartets, num_of_cores){
+empirical.bootstraps.wrapper <- function(row_number, loci_df, program_paths, number_of_replicates, iqtree.num_threads, iqtree.num_quartets, num_of_cores){
   print("in empirical.bootstraps.wrapper")
+  # Extract loci name and path from loci_df using the row number
+  loci_row <- loci_df[row_number,]
+  loci_name <- loci_row$loci_names
+  empirical_alignment_path <- loci_row$loci_paths
   print(empirical_alignment_path)
+  # Create a folder to store the files for this loci in
+  alignment_folder <- paste0(loci_row$output_folder,loci_name,"/")
+  # Check if this folder exists - and if it doesn't, create it!
+  if (dir.exists(alignment_folder) == FALSE){
+    dir.create(alignment_folder)
+  }
   # Create output file names, the name of the loci and the file path of the loci location
-  collated_ts_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_testStatistics_collatedBSReplicates.csv")
-  collated_sCF_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_branchSCF_collatedBSReplicates.csv")
-  p_value_file  <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_pValues.csv")
-  parameters_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_parameterValues.csv")
-  gamma_categories_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_gammaCategories.csv")
-  rate_matrix_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_QRateMatrix.csv")
-  loci_name <- gsub(".nex","",basename(empirical_alignment_path))
-  alignment_folder <- dirname(empirical_alignment_path)
+  collated_ts_file <- paste0(loci_dir,loci_name,"_testStatistics_collatedBSReplicates.csv")
+  collated_sCF_file <- paste0(loci_dir,loci_name,"_branchSCF_collatedBSReplicates.csv")
+  p_value_file  <- paste0(loci_dir,loci_name,"_pValues.csv")
+  parameters_file <- paste0(loci_dir,loci_name,"_parameterValues.csv")
+  gamma_categories_file <- paste0(loci_dir,loci_name,"_gammaCategories.csv")
+  rate_matrix_file <- paste0(loci_dir,loci_name,"_QRateMatrix.csv")
+  
+  # If alignment is a nexus, copy it into the alignment folder
+  # If it's not, rewrite it into a nexus and copy to the alignment folder
+  file_type <- tail(strsplit(empirical_alignment_path,"\\.")[[1]],1)
+  if (file_type == "nex" || file_type == "nexus" || file_type == "nxs"){
+    new_path <- paste0(alignment_folder,loci_name,".nex")
+    if (file.exists(new_path) == FALSE){
+      file.copy(from = empirical_alignment_path, to = new_path)
+    }
+    empirical_alignment_path <- new_path
+  } else if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
+             file_type == "fa" || file_type == "ffn" || file_type == "frn") {
+    new_path <- paste0(alignment_folder,loci_name,".nex")
+    if (file.exists(new_path) == FALSE){
+      file.copy(from = empirical_alignment_path, to = new_path)
+    }
+  }
   
   # Only run this section if the p-value csv has not been created yet (skip reruns)
   if (file.exists(p_value_file) == FALSE){
     # Check that the original alignment ran ok
     if (file.exists(paste0(empirical_alignment_path,".treefile.cf.stat")) == FALSE){
       print("need to rerun IQ-Tree")
-      n <- read.nexus.data(empirical_alignment_path)
-      n_taxa <- length(n)
+      nex <- read.nexus.data(empirical_alignment_path)
+      n_taxa <- length(nex)
       # Run IQ-tree on the alignment (if it hasn't already been run), and get the sCF results
       print("run IQTree and estimate sCFs")
       calculate.sCF(iqtree_path = program_paths[["IQTree"]], alignment_path = empirical_alignment_path, nsequences = n_taxa, num_threads = iqtree.num_threads, num_scf_quartets = iqtree.num_quartets)
