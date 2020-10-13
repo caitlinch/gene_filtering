@@ -312,10 +312,10 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
 
 
 # Function to act as outer shell for all the layers in performing test statistics and parametric bootstraps
-empirical.bootstraps.wrapper <- function(row_number, loci_df, program_paths, number_of_replicates, iqtree.num_threads, iqtree.num_quartets, num_of_cores){
+empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, number_of_replicates, iqtree.num_threads, iqtree.num_quartets, num_of_cores){
   print("in empirical.bootstraps.wrapper")
   # Extract loci name and path from loci_df using the row number
-  loci_row <- loci_df[row_number,]
+  loci_row <- loci_df[loci_number,]
   loci_name <- loci_row$loci_names
   empirical_alignment_path <- loci_row$loci_paths
   print(empirical_alignment_path)
@@ -335,20 +335,11 @@ empirical.bootstraps.wrapper <- function(row_number, loci_df, program_paths, num
   
   # If alignment is a nexus, copy it into the alignment folder
   # If it's not, rewrite it into a nexus and copy to the alignment folder
-  file_type <- tail(strsplit(empirical_alignment_path,"\\.")[[1]],1)
-  if (file_type == "nex" || file_type == "nexus" || file_type == "nxs"){
-    new_path <- paste0(alignment_folder,loci_name,".nex")
-    if (file.exists(new_path) == FALSE){
-      file.copy(from = empirical_alignment_path, to = new_path)
-    }
-    empirical_alignment_path <- new_path
-  } else if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
-             file_type == "fa" || file_type == "ffn" || file_type == "frn") {
-    new_path <- paste0(alignment_folder,loci_name,".nex")
-    if (file.exists(new_path) == FALSE){
-      file.copy(from = empirical_alignment_path, to = new_path)
-    }
-  }
+  # From now on, use the copy for analysis (leaving the original untouched)
+  empirical_alignment_path <- copy.alignment.as.nexus(loci_row$loci_paths, alignment_folder, loci_name, loci_row)
+  
+  # Remove empty taxa from the alignment
+  remove.empty.taxa(empirical_alignment_path, loci_row$alphabet)
   
   # Only run this section if the p-value csv has not been created yet (skip reruns)
   if (file.exists(p_value_file) == FALSE){
@@ -453,6 +444,82 @@ empirical.bootstraps.wrapper <- function(row_number, loci_df, program_paths, num
     # Output the p-values file
     write.csv(ts_df,file = p_value_file, row.names = FALSE)
   }
+}
+
+
+
+
+
+copy.alignment.as.nexus <- function(alignment_path, alignment_folder, loci_name, loci_row){
+  file_type <- tail(strsplit(alignment_path,"\\.")[[1]],1)
+  if (file_type == "nex" || file_type == "nexus" || file_type == "nxs"){
+    new_path <- paste0(alignment_folder,loci_name,".nex")
+    if (file.exists(new_path) == FALSE){
+      file.copy(from = alignment_path, to = new_path)
+    }
+    alignment_path <- new_path
+  } else if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
+             file_type == "fa" || file_type == "ffn" || file_type == "frn") {
+    new_path <- paste0(alignment_folder,loci_name,".nex")
+    if (file.exists(new_path) == FALSE){
+      # Set details for fasta data
+      if (loci_row$alphabet == "dna") {
+        seq_type = "DNA" 
+      } else if (loci_row$alphabet == "protein") {
+        seq_type = "AA"
+      }
+      # read in the fasta data
+      f_data <- read.fasta(alignment_path, seqtype = seq_type)
+      # write the output as a nexus file to the output folder for this alignment
+      write.nexus.data(f_data, file = new_path, format = loci_row$alphabet, interleaved = TRUE, datablock = FALSE)
+      # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
+      nexus <- readLines(new_path) # open the new nexus file
+      ind <- grep("BEGIN CHARACTERS",nexus)+2 # find which line
+      if (loci_row$alphabet == "dna"){
+        nexus[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
+      } else if (loci_row$alphabet == "protein"){
+        nexus[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN INTERLEAVE;" # replace the line
+      }
+      writeLines(nexus,new_path) # output the edited nexus file
+      alignment_path <- new_path
+    }
+  }
+  return(alignment_path)
+}
+
+
+
+
+
+# Function to remove empty sequences from a nexus file (either AA or DNA)
+remove.empty.taxa <- function(alignment_path, seq_type){
+  n <- read.nexus.data(alignment_path)
+  # Initialise a new sequence
+  copy_names <- c()
+  seq_names <- names(n)
+  # Iterate through the names and add non-missing sequences to the new sequence
+  for (seq_name in seq_names){
+    seq <- n[[seq_name]] # get the original empirical sequence
+    chars <- unique(seq)
+    if (setequal(chars,c("?")) || setequal(chars,c("-")) || setequal(chars,c("-","?"))){
+      # If the only characters are the empty character or the question mark character, ignore this sequence
+      next
+    } else {
+      # If the sequence contains genetic information, include it in the new sequence
+      copy_names <- c(copy_names,seq_name)
+    }
+  }
+  n_new <- n[copy_names]
+  write.nexus.data(n_new,file = alignment_path, format = seq_type, interleaved = TRUE)
+  # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
+  nexus_edit <- readLines(alignment_path) # open the new nexus file
+  ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
+  if (seq_type == "dna"){
+    nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
+  } else if (seq_type == "protein"){
+    nexus_edit[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN INTERLEAVE;" # replace the line
+  }
+  writeLines(nexus_edit,alignment_path) # output the edited nexus file
 }
 
 
