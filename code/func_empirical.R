@@ -316,8 +316,8 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   print("in empirical.bootstraps.wrapper")
   # Extract loci name and path from loci_df using the row number
   loci_row <- loci_df[loci_number,]
-  loci_name <- loci_row$loci_names
-  empirical_alignment_path <- loci_row$loci_paths
+  loci_name <- loci_row$loci_name
+  empirical_alignment_path <- loci_row$loci_path
   print(empirical_alignment_path)
   # Create a folder to store the files for this loci in
   alignment_folder <- paste0(loci_row$output_folder,loci_name,"/")
@@ -325,6 +325,8 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   if (dir.exists(alignment_folder) == FALSE){
     dir.create(alignment_folder)
   }
+  # Set this as the working directory
+  setwd(alignment_folder)
   # Create output file names, the name of the loci and the file path of the loci location
   collated_ts_file <- paste0(loci_dir,loci_name,"_testStatistics_collatedBSReplicates.csv")
   collated_sCF_file <- paste0(loci_dir,loci_name,"_branchSCF_collatedBSReplicates.csv")
@@ -336,7 +338,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   # If alignment is a nexus, copy it into the alignment folder
   # If it's not, rewrite it into a nexus and copy to the alignment folder
   # From now on, use the copy for analysis (leaving the original untouched)
-  empirical_alignment_path <- copy.alignment.as.nexus(loci_row$loci_paths, alignment_folder, loci_name, loci_row)
+  empirical_alignment_path <- copy.alignment.as.nexus(loci_row$loci_path, alignment_folder, loci_name, loci_row)
   
   # Remove empty taxa from the alignment
   remove.empty.taxa(empirical_alignment_path, loci_row$alphabet)
@@ -450,6 +452,36 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
 
 
 
+# Function to call IQ-tree, and estimate a maximum likelihood tree and corresponding the site concordance factors
+# Site concordance factors (sCF) are the fraction of decisive alignmen sites supporting that branch
+# sCF Citation: Minh B.Q., Hahn M., Lanfear R. (2018) New methods to calculate concordance factors for phylogenomic datasets. https://doi.org/10.1101/487801
+calculate.empirical.sCF <- function(iqtree_path, alignment_path, nsequences, num_threads = "AUTO", num_scf_quartets = 100){
+  # Check if the tree file already exists and if it doesn't, run IQ-tree and create it
+  if (file.exists(paste0(alignment_path,".treefile")) == FALSE){
+    # Given an alignment, estimate the maximum likelihood tree
+    # to estimate: iqtree -s ALN_FILE -p PARTITION_FILE --prefix concat -bb 1000 -nt AUTO
+    # Specify -lmap with 25 times the number of sequences, so that each sequence is covered ~100 times in the quartet sampling
+    n_quartet_sampling <- 25*as.numeric(nsequences)
+    call <- paste0(iqtree_path," -s ",alignment_path," -nt ", num_threads, " -lmap ", n_quartet_sampling, " -redo -safe")
+    system(call)
+  }
+  if (file.exists(paste0(alignment_path,".treefile.cf.stat")) == FALSE){
+    # Create the command and call it in the system
+    # for sCF: iqtree -t concat.treefile -s ALN_FILE --scf 100 --prefix concord -nt 10
+    treefile <- paste0(alignment_path,".treefile")
+    call <- paste0(iqtree_path," -t ",treefile," -s ",alignment_path," --scf ",num_scf_quartets," -nt ","1"," -redo -safe")
+    system(call) # call IQ-tree!
+  }
+  # retrieve the sCF from the output
+  scf_results <- extract.sCF.results(alignment_path)
+  return(scf_results)
+}
+
+
+
+
+
+# Function to copy alignment to new folder in output folder and convert to nexus if necessary
 copy.alignment.as.nexus <- function(alignment_path, alignment_folder, loci_name, loci_row){
   file_type <- tail(strsplit(alignment_path,"\\.")[[1]],1)
   if (file_type == "nex" || file_type == "nexus" || file_type == "nxs"){
