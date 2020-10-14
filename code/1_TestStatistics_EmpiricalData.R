@@ -62,8 +62,9 @@ if (run_location == "local"){
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Misof2014/loci/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/")
+  best_model_paths <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/OKP_loci_bestmodel.txt")
   input_names <- c("1KP", "Misof2014","Vanderpool2020")
-  output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
+  output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/")
   treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
@@ -106,6 +107,8 @@ if (run_location == "local"){
 names(exec_paths) <- c("3seq","IQTree","SplitsTree")
 # Attach the input_names to the input_files 
 names(input_dir) <- input_names
+# Attach the names to the best model files
+names(best_model_paths) <- c("1KP")
 # Create a set of output folders
 output_dirs <- paste0(output_dir,input_names,"/")
 names(output_dirs) <- input_names
@@ -120,8 +123,11 @@ source(paste0(maindir,"code/func_empirical.R"))
 
 ##### Step 4: Extract names and locations of loci #####
 # Obtaining the list of file paths from 1KP is the messiest as each alignment in it a separate folder, where the folder's name is the gene number
+# Then, extract the best model for each loci (to feed into IQ-Tree - because we want to use as many of the original paramaters as we can!)
 OKP_paths <- paste0(input_dir[["1KP"]], list.files(input_dir[["1KP"]], recursive = TRUE, full.names = FALSE))
 OKP_names <- list.files(input_dir[["1KP"]], full.names = FALSE)
+OKP_model <- readLines(best_model_paths[["1KP"]])
+OKP_model <- unlist(strsplit(OKP_model,":"))[c(FALSE,FALSE,TRUE)]
 # Obtaining the list of loci file paths from Misof 2014 is easy -- all the loci are in the same folder
 Misof2014_paths <- paste0(input_dir[["Misof2014"]], list.files(input_dir[["Misof2014"]], full.names = FALSE))
 Misof2014_names <- gsub(".nex","",grep(".nex",unlist(strsplit((Misof2014_paths), "/")), value = TRUE))
@@ -129,14 +135,15 @@ Misof2014_names <- gsub(".nex","",grep(".nex",unlist(strsplit((Misof2014_paths),
 Vanderpool2020_paths <- paste0(input_dir[["Vanderpool2020"]], list.files(input_dir[["Vanderpool2020"]], full.names = FALSE))
 Vanderpool2020_names <- gsub("_NoNcol.Noambig.fa","",grep(".fa",unlist(strsplit((Vanderpool2020_paths), "/")), value = TRUE))
 # Combine names of loci, loci locations, and output folders into a dataframe (for easy access - each loci name will be stored near the other information you need)
-loci_df <- data.frame(loci_names = c(OKP_names, Misof2014_names, Vanderpool2020_names), 
-                      loci_paths = c(OKP_paths, Misof2014_paths, Vanderpool2020_paths), 
-                      output_folder = c(rep(output_dirs[["1KP"]],length(OKP_paths)), 
-                                        rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), 
-                                        rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths))),
+loci_df <- data.frame(loci_name = c(OKP_names, Misof2014_names, Vanderpool2020_names), 
                       alphabet = c(rep("protein",length(OKP_paths)), 
                                    rep("protein", length(Misof2014_paths)), 
                                    rep("dna", length(Vanderpool2020_paths))),
+                      best_model = c(OKP_model, rep(NA, length(Misof2014_paths)), rep("MFP", length(Vanderpool2020_paths))),
+                      loci_path = c(OKP_paths, Misof2014_paths, Vanderpool2020_paths), 
+                      output_folder = c(rep(output_dirs[["1KP"]],length(OKP_paths)), 
+                                        rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), 
+                                        rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths))),
                       stringsAsFactors = FALSE
                       )
 
