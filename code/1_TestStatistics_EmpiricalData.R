@@ -143,7 +143,7 @@ loci_df <- data.frame(loci_name = c(OKP_names, Misof2014_names, Vanderpool2020_n
                       alphabet = c(rep("protein",length(OKP_paths)), 
                                    rep("protein", length(Misof2014_paths)), 
                                    rep("dna", length(Vanderpool2020_paths))),
-                      best_model = c(OKP_model, rep(NA, length(Misof2014_paths)), Vanderpool2020_model),
+                      best_model = c(OKP_model, Misof2014_model, Vanderpool2020_model),
                       dataset = c(rep("1KP",length(OKP_paths)), rep("Misof2014",length(Misof2014_paths)), rep("Vanderpool2020", length(Vanderpool2020_paths))),
                       loci_path = c(OKP_paths, Misof2014_paths, Vanderpool2020_paths), 
                       output_folder = c(rep(output_dirs[["1KP"]],length(OKP_paths)), 
@@ -151,6 +151,9 @@ loci_df <- data.frame(loci_name = c(OKP_names, Misof2014_names, Vanderpool2020_n
                                         rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths))),
                       stringsAsFactors = FALSE
                       )
+# Remove rows with best_model == NA <- these are the Misof2014 clans, protein domains and voids (whereas above, we extracted the models only for the orthologous genes)
+# "!is.na()" means "is not NA" <- we want to keep only the rows where best_model is not NA
+loci_df <- loci_df[!is.na(loci_df$best_model),]
 
 ##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
 print("starting analysis")
