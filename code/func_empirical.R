@@ -481,6 +481,45 @@ calculate.empirical.sCF <- function(iqtree_path, alignment_path, nsequences, num
 
 
 
+# This function takes a list of names and a file to a partitioning scheme and returns a vector of models
+# (one per name, in the same order as the input name vector)
+# This small function calls get.one.model below
+model.from.partition.scheme <- function(names,model_path){
+  # Open the file
+  model_file <- readLines(model_path)
+  # Use lapply to get the model of evolution for each loci
+  all_m <- unlist(lapply(model_names, get.one.model, char_lines = model_file))
+  # Return the list of models of evolution
+  return(all_m)
+}
+
+# This function looks up a single loci name in a partition file and returns the associated model of evolution
+# This small function is called by model.from.partition.scheme above (using lapply)
+get.one.model <- function(name,char_lines){
+  # name is a loci name
+  # char_lines is a .txt file opened using readLines
+  name_ind <- grep(name,char_lines)
+  if (identical(name_ind,integer(0))){
+    # If there's no matches in the file for this name, return NA
+    m = NA
+  } else {
+    # If there is a match for this name in the file, find the match
+    line <- char_lines[name_ind]
+    # Break the line into columns using the dividers ("|")
+    split_line <- strsplit(line,"\\|")[[1]]
+    # Take the second element - this will be the model
+    m <- split_line[2]
+    # Trim the whitespace
+    m <- gsub(" ","",m)
+  }
+  # Return the model
+  return(m)
+}
+
+
+
+
+
 # Function to copy alignment to new folder in output folder and convert to nexus if necessary
 copy.alignment.as.nexus <- function(alignment_path, alignment_folder, loci_name, loci_row){
   file_type <- tail(strsplit(alignment_path,"\\.")[[1]],1)
