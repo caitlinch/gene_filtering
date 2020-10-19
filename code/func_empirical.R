@@ -318,7 +318,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   loci_row <- loci_df[loci_number,]
   loci_name <- loci_row$loci_name
   empirical_alignment_path <- loci_row$loci_path
-  print(empirical_alignment_path)
+  print(paste0("Number = ",loci_number," (of ",nrow(loci_df),"), Dataset = ",loci_row$dataset,", loci = ",loci_name))
   # Create a folder to store the files for this loci in
   alignment_folder <- paste0(loci_row$output_folder,loci_name,"/")
   # Check if this folder exists - and if it doesn't, create it!
@@ -488,7 +488,7 @@ model.from.partition.scheme <- function(names,model_path){
   # Open the file
   model_file <- readLines(model_path)
   # Use lapply to get the model of evolution for each loci
-  all_m <- unlist(lapply(model_names, get.one.model, char_lines = model_file))
+  all_m <- unlist(lapply(names, get.one.model, char_lines = model_file))
   # Return the list of models of evolution
   return(all_m)
 }

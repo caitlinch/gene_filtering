@@ -128,16 +128,29 @@ source(paste0(maindir,"code/func_empirical.R"))
 # Then, extract the best model for each loci (to feed into IQ-Tree - because we want to use as many of the original paramaters as we can!)
 OKP_paths <- paste0(input_dir[["1KP"]], list.files(input_dir[["1KP"]], recursive = TRUE, full.names = FALSE))
 OKP_names <- list.files(input_dir[["1KP"]], full.names = FALSE)
-OKP_model <- readLines(best_model_paths[["1KP"]])
-OKP_model <- unlist(strsplit(OKP_model,":"))[c(FALSE,FALSE,TRUE)]
+if (is.na(best_model_paths[["1KP"]])){
+  OKP_model <- rep("MFP", length(OKP_paths))
+} else {
+  OKP_model <- readLines(best_model_paths[["1KP"]])
+  OKP_model <- unlist(strsplit(OKP_model,":"))[c(FALSE,FALSE,TRUE)]
+  OKP_model <- gsub(" ", "", OKP_model)
+}
 # Obtaining the list of loci file paths from Misof 2014 is easy -- all the loci are in the same folder
 Misof2014_paths <- paste0(input_dir[["Misof2014"]], list.files(input_dir[["Misof2014"]], full.names = FALSE))
 Misof2014_names <- gsub(".nex","",grep(".nex",unlist(strsplit((Misof2014_paths), "/")), value = TRUE))
-Misof2014_model <- model.from.partition.scheme(Misof2014_names,best_model_paths[["Misof2014"]])
+if (is.na(best_model_paths[["Misof2014"]])){
+  Misof2014_model <- rep("MFP", length(Misof2014_paths))
+} else {
+  Misof2014_model <- model.from.partition.scheme(Misof2014_names,best_model_paths[["Misof2014"]])
+}
 # Obtaining the list of loci file paths from Vanderpool 2020 is easy -- all the loci are in the same folder
 Vanderpool2020_paths <- paste0(input_dir[["Vanderpool2020"]], list.files(input_dir[["Vanderpool2020"]], full.names = FALSE))
 Vanderpool2020_names <- gsub("_NoNcol.Noambig.fa","",grep(".fa",unlist(strsplit((Vanderpool2020_paths), "/")), value = TRUE))
-Vanderpool2020_model <- rep("MFP", length(Vanderpool2020_paths)) #no set of models for these loci. Use "-m MFP" in IQ-Tree to automatically set best model - see Vanderpool et al (2020)
+if (is.na(best_model_paths[["Vanderpool2020"]])){
+  # no set of models for these loci. 
+  # Use "-m MFP" in IQ-Tree to automatically set best model - see Vanderpool et al (2020)
+  Vanderpool2020_model <- rep("MFP", length(Vanderpool2020_paths))
+}
 # Combine names of loci, loci locations, and output folders into a dataframe (for easy access - each loci name will be stored near the other information you need)
 loci_df <- data.frame(loci_name = c(OKP_names, Misof2014_names, Vanderpool2020_names), 
                       alphabet = c(rep("protein",length(OKP_paths)), 
@@ -154,6 +167,9 @@ loci_df <- data.frame(loci_name = c(OKP_names, Misof2014_names, Vanderpool2020_n
 # Remove rows with best_model == NA <- these are the Misof2014 clans, protein domains and voids (whereas above, we extracted the models only for the orthologous genes)
 # "!is.na()" means "is not NA" <- we want to keep only the rows where best_model is not NA
 loci_df <- loci_df[!is.na(loci_df$best_model),]
+# output loci_df <- save a record of the input parameters you used!
+loci_df_name <- paste0(output_dir,"input_loci_parameters.csv")
+write.csv(loci_df, file = loci_df_name)
 
 ##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
 print("starting analysis")
