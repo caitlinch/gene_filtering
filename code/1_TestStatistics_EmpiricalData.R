@@ -171,6 +171,12 @@ loci_df <- loci_df[!is.na(loci_df$best_model),]
 loci_df_name <- paste0(output_dir,"input_loci_parameters.csv")
 write.csv(loci_df, file = loci_df_name)
 
+# To test things, you many need these parameters
+iqtree.num_threads = 1
+iqtree.num_quartets = sCF_replicates
+program_paths = exec_paths
+loci_number = 1
+
 ##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
 print("starting analysis")
 print("apply treelikeness test statistics")
@@ -182,7 +188,6 @@ print("apply treelikeness test statistics")
 #                              - i.e. program will run parametric bootstrap for test statistics with multiple threads
 #                              - (number of simulatenous bootstraps set by choice of cores_to_use value)
 #       ~ iqtree.num_quartets = 1000: greater than 100 quartets necessary for stable sCF values
-
 
 lapply(1:nrow(loci_df), empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = 1,
          iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use) 

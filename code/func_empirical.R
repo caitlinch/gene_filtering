@@ -86,7 +86,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   n_char <- length(unlist(n[1]))
   
   # Run IQ-tree on the alignment (if it hasn't already been run), and get the site concordance factor results
-  sCF <- calculate.sCF(iqtree_path = program_paths["IQTree"], alignment_path, num_threads = iqtree.num_threads, num_quartets = iqtree.num_quartets)
+  sCF <- calculate.empirical.sCF(iqtree_path = program_paths["IQTree"], alignment_path, num_threads = iqtree.num_threads, num_quartets = iqtree.num_quartets)
   initial_iqtree_tree <- paste0(alignment_path,".treefile")
   
   # Change to the log (storage for log files) folder for this alignment - means that 3seq and Phi files will be saved into a unique folder
@@ -126,7 +126,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   
   # Change back to directory containing alignments and iqtree files
   setwd(alignment_folder)
-
+  
   # Run trimmed and untrimmed versions of the NeighborNet tree proportion
   # Splitstree needs a specific file format - so create a new nexus file with a taxa block
   new_nexus_file <- paste0(alignment_folder,output_id,"_withTaxaBlock.nexus")
@@ -328,12 +328,12 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   # Set this as the working directory
   setwd(alignment_folder)
   # Create output file names, the name of the loci and the file path of the loci location
-  collated_ts_file <- paste0(loci_dir,loci_name,"_testStatistics_collatedBSReplicates.csv")
-  collated_sCF_file <- paste0(loci_dir,loci_name,"_branchSCF_collatedBSReplicates.csv")
-  p_value_file  <- paste0(loci_dir,loci_name,"_pValues.csv")
-  parameters_file <- paste0(loci_dir,loci_name,"_parameterValues.csv")
-  gamma_categories_file <- paste0(loci_dir,loci_name,"_gammaCategories.csv")
-  rate_matrix_file <- paste0(loci_dir,loci_name,"_QRateMatrix.csv")
+  collated_ts_file <- paste0(alignment_folder,loci_name,"_testStatistics_collatedBSReplicates.csv")
+  collated_sCF_file <- paste0(alignment_folder,loci_name,"_branchSCF_collatedBSReplicates.csv")
+  p_value_file  <- paste0(alignment_folder,loci_name,"_pValues.csv")
+  parameters_file <- paste0(alignment_folder,loci_name,"_parameterValues.csv")
+  gamma_categories_file <- paste0(alignment_folder,loci_name,"_gammaCategories.csv")
+  rate_matrix_file <- paste0(alignment_folder,loci_name,"_QRateMatrix.csv")
   
   # If alignment is a nexus, copy it into the alignment folder
   # If it's not, rewrite it into a nexus and copy to the alignment folder
@@ -348,11 +348,11 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     # Check that the original alignment ran ok
     if (file.exists(paste0(empirical_alignment_path,".treefile.cf.stat")) == FALSE){
       print("need to rerun IQ-Tree")
-      nex <- read.nexus.data(empirical_alignment_path)
-      n_taxa <- length(nex)
       # Run IQ-tree on the alignment (if it hasn't already been run), and get the sCF results
       print("run IQTree and estimate sCFs")
-      calculate.sCF(iqtree_path = program_paths[["IQTree"]], alignment_path = empirical_alignment_path, nsequences = n_taxa, num_threads = iqtree.num_threads, num_scf_quartets = iqtree.num_quartets)
+      calculate.empirical.sCF(alignment_path = empirical_alignment_path, iqtree_path = program_paths[["IQTree"]], 
+                              alignment_model = loci_row$best_model, num_threads = iqtree.num_threads, 
+                              num_scf_quartets = iqtree.num_quartets)
     }
     
     # Calculate the test statistics if it hasn't already been done
@@ -394,7 +394,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     print("run all previously-unrun bootstraps")
     if(length(ids_to_run)>0){
       mclapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, alignment_params = params, 
-             program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets, mc.cores = num_of_cores)
+               program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets, mc.cores = num_of_cores)
     }
     
     # Before you can collate all the bootstrap files, you need to check every bootstrap ran and rerun the failed ones
@@ -415,7 +415,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     # Rerun the missing als
     if (length(als_to_rerun)>0){
       mclapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, alignment_params = params, 
-             program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets, mc.cores = num_of_cores)
+               program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets, mc.cores = num_of_cores)
     }
     
     # collate the sCF by branch distributions bootstrap info into 1 file and write it to disk
@@ -455,14 +455,12 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
 # Function to call IQ-tree, and estimate a maximum likelihood tree and corresponding the site concordance factors
 # Site concordance factors (sCF) are the fraction of decisive alignmen sites supporting that branch
 # sCF Citation: Minh B.Q., Hahn M., Lanfear R. (2018) New methods to calculate concordance factors for phylogenomic datasets. https://doi.org/10.1101/487801
-calculate.empirical.sCF <- function(iqtree_path, alignment_path, nsequences, num_threads = "AUTO", num_scf_quartets = 100){
+calculate.empirical.sCF <- function(alignment_path, iqtree_path, alignment_model, num_threads = "AUTO", num_scf_quartets = 100){
   # Check if the tree file already exists and if it doesn't, run IQ-tree and create it
   if (file.exists(paste0(alignment_path,".treefile")) == FALSE){
     # Given an alignment, estimate the maximum likelihood tree
     # to estimate: iqtree -s ALN_FILE -p PARTITION_FILE --prefix concat -bb 1000 -nt AUTO
-    # Specify -lmap with 25 times the number of sequences, so that each sequence is covered ~100 times in the quartet sampling
-    n_quartet_sampling <- 25*as.numeric(nsequences)
-    call <- paste0(iqtree_path," -s ",alignment_path," -nt ", num_threads, " -lmap ", n_quartet_sampling, " -redo -safe")
+    call <- paste0(iqtree_path," -s ",alignment_path," -m ",alignment_model," -nt ", num_threads," -redo -safe")
     system(call)
   }
   if (file.exists(paste0(alignment_path,".treefile.cf.stat")) == FALSE){
@@ -523,15 +521,14 @@ get.one.model <- function(name,char_lines){
 # Function to copy alignment to new folder in output folder and convert to nexus if necessary
 copy.alignment.as.nexus <- function(alignment_path, alignment_folder, loci_name, loci_row){
   file_type <- tail(strsplit(alignment_path,"\\.")[[1]],1)
+  new_path <- paste0(alignment_folder,loci_name,".nex")
   if (file_type == "nex" || file_type == "nexus" || file_type == "nxs"){
-    new_path <- paste0(alignment_folder,loci_name,".nex")
     if (file.exists(new_path) == FALSE){
       file.copy(from = alignment_path, to = new_path)
     }
     alignment_path <- new_path
   } else if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
              file_type == "fa" || file_type == "ffn" || file_type == "frn") {
-    new_path <- paste0(alignment_folder,loci_name,".nex")
     if (file.exists(new_path) == FALSE){
       # Set details for fasta data
       if (loci_row$alphabet == "dna") {
@@ -555,7 +552,7 @@ copy.alignment.as.nexus <- function(alignment_path, alignment_folder, loci_name,
       alignment_path <- new_path
     }
   }
-  return(alignment_path)
+  return(new_path)
 }
 
 
@@ -640,11 +637,11 @@ estimateNetwork <- function(alignment_path, splitstree_path, network_algorithm =
   
   # Check whether there are valid splits in the splits block
   # If there are, open the splits
- if (as.numeric(nsplits) > 0){
+  if (as.numeric(nsplits) > 0){
     # Otherwise, if the network does contain more than 0 splits:
     # Extract the splits 
     splits <- read.nexus.splits(splits.filepath) # Open the splits from SplitsTree
- }
+  }
   return(splits)
 }
 
