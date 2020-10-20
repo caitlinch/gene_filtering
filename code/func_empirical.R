@@ -38,7 +38,7 @@ cutSpecies <- function(alignment_path, keep, output_path_provided = "FALSE", out
 
 
 # Functions to run test statistics on empirical datasets
-empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.num_threads, iqtree.num_quartets){
+empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.num_threads, iqtree.num_quartets, iqtree.model = "MFP", alphabet){
   # Want to only do the tree proportion, 3SEQ and sCF
   print("in empirical.runTS")
   print(alignment_path)
@@ -87,7 +87,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   n_char <- length(unlist(n[1]))
   
   # Run IQ-tree on the alignment (if it hasn't already been run), and get the site concordance factor results
-  sCF <- calculate.empirical.sCF(iqtree_path = program_paths["IQTree"], alignment_path, num_threads = iqtree.num_threads, num_quartets = iqtree.num_quartets)
+  sCF <- calculate.empirical.sCF(alignment_path, iqtree_path = program_paths["IQTree"], iqtree.model, num_threads = iqtree.num_threads, num_scf_quartets = iqtree.num_quartets)
   initial_iqtree_tree <- paste0(alignment_path,".treefile")
   
   # Change to the log (storage for log files) folder for this alignment - means that 3seq and Phi files will be saved into a unique folder
@@ -98,7 +98,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   # 3SEQ only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
   # Check if the fasta file already exists
   fasta.name <- gsub(".nex",".fasta",alignment_path)
-  if (file.exists(fasta.name) == false){
+  if (file.exists(fasta.name) == FALSE){
     write.fasta(sequences = n,names = names(n), file.out = fasta.name) # output alignment as a fasta format
     # # Old way of making the fasta name:
     # fasta.name <- paste0(log_folder,output_id,".fasta") # make a name for the fasta alignment by adding .fasta (super original ;) )
@@ -136,12 +136,24 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   # Run trimmed version of the NeighborNet tree proportion
   # Splitstree needs a specific file format - so create a new nexus file with a taxa block
   new_nexus_file <- paste0(alignment_folder,output_id,"_withTaxaBlock.nexus")
-  write.nexus.data(n, file = new_nexus_file,datablock = FALSE, interleaved = FALSE)
+  # Set details nexus output
+  if (alphabet == "dna") {
+    seq_type = "DNA" 
+  } else if (alphabet == "protein") {
+    seq_type = "AA"
+  }
+  # write the output as a nexus file to the output folder for this alignment
+  write.nexus.data(n, file = new_nexus_file, format = alphabet, interleaved = TRUE, datablock = FALSE)
   # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
   nexus_edit <- readLines(new_nexus_file) # open the new nexus file
-  ind <- grep("BEGIN CHARACTERS",nexus_edit)+2 # find which line
-  nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
+  ind <- grep("BEGIN CHARACTERS",nexus)+2 # find which line
+  if (alphabet == "dna"){
+    nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
+  } else if (alphabet == "protein"){
+    nexus_edit[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN INTERLEAVE;" # replace the line
+  }
   writeLines(nexus_edit,new_nexus_file) # output the edited nexus file
+  
   # Call the test statistic functions
   initial_iqtree_tree <- paste0(alignment_path,".treefile")
   nn_trimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]], 
@@ -362,7 +374,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     ts_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_testStatistics.csv")
     if (file.exists(ts_file) == FALSE){
       print("run test statistics")
-      empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment", iqtree.num_threads, iqtree.num_quartets)
+      empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment", iqtree.num_threads, iqtree.num_quartets, loci_row$best_model)
     }
     
     #Check that the test statistic file ran ok 
