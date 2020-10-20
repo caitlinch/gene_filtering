@@ -146,7 +146,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   write.nexus.data(n, file = new_nexus_file, format = alphabet, interleaved = TRUE, datablock = FALSE)
   # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
   nexus_edit <- readLines(new_nexus_file) # open the new nexus file
-  ind <- grep("BEGIN CHARACTERS",nexus)+2 # find which line
+  ind <- grep("BEGIN CHARACTERS",nexus_edit)+2 # find which line
   if (alphabet == "dna"){
     nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
   } else if (alphabet == "protein"){
