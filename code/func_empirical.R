@@ -96,8 +96,13 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   # Get path to 3SEQ
   seq_path <- program_paths[["3seq"]] # get path to 3seq executable
   # 3SEQ only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
-  fasta.name <- paste0(log_folder,output_id,".fasta") # make a name for the fasta alignment by adding .fasta (super original ;) )
-  write.fasta(sequences = n,names = names(n), file.out = fasta.name) # output alignment as a fasta format
+  # Check if the fasta file already exists
+  fasta.name <- gsub(".nex",".fasta",alignment_path)
+  if (file.exists(fasta.name) == false){
+    write.fasta(sequences = n,names = names(n), file.out = fasta.name) # output alignment as a fasta format
+    # # Old way of making the fasta name:
+    # fasta.name <- paste0(log_folder,output_id,".fasta") # make a name for the fasta alignment by adding .fasta (super original ;) )
+  }
   # run 3seq 
   # Note that 3Seq will only be run if they haven't already been run (checks for log files)
   if (file.exists(paste0(log_folder,"3s.log")) == FALSE){
@@ -128,7 +133,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   # Change back to directory containing alignments and iqtree files
   setwd(alignment_folder)
   
-  # Run trimmed and untrimmed versions of the NeighborNet tree proportion
+  # Run trimmed version of the NeighborNet tree proportion
   # Splitstree needs a specific file format - so create a new nexus file with a taxa block
   new_nexus_file <- paste0(alignment_folder,output_id,"_withTaxaBlock.nexus")
   write.nexus.data(n, file = new_nexus_file,datablock = FALSE, interleaved = FALSE)
@@ -139,23 +144,21 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   writeLines(nexus_edit,new_nexus_file) # output the edited nexus file
   # Call the test statistic functions
   initial_iqtree_tree <- paste0(alignment_path,".treefile")
-  nn_untrimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]], path = new_nexus_file, network_algorithm = "neighbournet", trimmed = FALSE, tree_path = initial_iqtree_tree, run_IQTREE = FALSE)
-  nn_trimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]], path = new_nexus_file, network_algorithm = "neighbournet", trimmed = TRUE, tree_path = initial_iqtree_tree, run_IQTREE = FALSE)
-  
+  nn_trimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]], 
+                                path = new_nexus_file, network_algorithm = "neighbournet", trimmed = TRUE, 
+                                tree_path = initial_iqtree_tree, run_IQTREE = FALSE)
   
   # Name the test statistics file using the output id (this way if it's a  bootstrap replicate, it adds the replicate number!)
   print(paste0("output results for ",output_id))
   results_file <- paste0(alignment_folder,output_id,"_testStatistics.csv")
   # Make somewhere to store the results
-  df_names <- c("dataset","loci","bootstrap_replicate_id","n_taxa","n_sites","alignment_file",
-                "3SEQ_num_recombinant_triplets","3SEQ_num_distinct_recombinant_sequences","3SEQ_prop_recombinant_sequences","3SEQ_p_value",
-                "neighbour_net_untrimmed","neighbour_net_trimmed",
-                "sCF_mean", "sCF_median")
+  df_names <- c("dataset", "loci", "bootstrap_replicate_id", "n_taxa", "n_sites", "alignment_file",
+                "3SEQ_num_recombinant_triplets", "3SEQ_num_distinct_recombinant_sequences", "3SEQ_prop_recombinant_sequences", "3SEQ_p_value",
+                "neighbour_net_trimmed","sCF_mean", "sCF_median")
   df <- data.frame(matrix(nrow=0,ncol=length(df_names))) # create an empty dataframe of the correct size
-  op_row <- c(dataset,loci_name,rep_id,n_taxa,n_char,alignment_path,
-              num_trips,num_dis,prop_recomb_seq,seq_sig,
-              nn_untrimmed,nn_trimmed,
-              sCF$mean_scf, sCF$median_scf) # collect all the information
+  op_row <- c(dataset, loci_name, rep_id, n_taxa, n_char, alignment_path,
+              num_trips, num_dis, prop_recomb_seq, seq_sig,
+              nn_trimmed, sCF$mean_scf, sCF$median_scf) # collect all the information
   df <- rbind(df,op_row,stringsAsFactors = FALSE) # place row in dataframe
   names(df) <- df_names # add names to the df so you know what's what
   write.csv(df,file = results_file, row.names = FALSE)
@@ -170,7 +173,6 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   df <- rbind(df,op_row,stringsAsFactors = FALSE) # place row in dataframe
   names(df) <- df_names # add names to the df so you know what's what
   write.csv(df,file = results_file, row.names = FALSE)
-  
 }
 
 
