@@ -176,6 +176,8 @@ iqtree.num_threads = 1
 iqtree.num_quartets = sCF_replicates
 program_paths = exec_paths
 loci_number = 1
+iqtree_f <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/1KP/4471/4471.nex.iqtree" # for checking get.simulation.parameters function
+iqtree_f <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/practice_AA_sequence/practice_AA_sequence.nexus.iqtree" # another test for the sim parameters, that includes a frequency table
 
 ##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
 print("starting analysis")
