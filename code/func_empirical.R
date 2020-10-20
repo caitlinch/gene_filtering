@@ -39,6 +39,7 @@ cutSpecies <- function(alignment_path, keep, output_path_provided = "FALSE", out
 
 # Functions to run test statistics on empirical datasets
 empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.num_threads, iqtree.num_quartets){
+  # Want to only do the tree proportion, 3SEQ and sCF
   print("in empirical.runTS")
   print(alignment_path)
   # extract the alignment folder from the alignment path
@@ -529,6 +530,12 @@ copy.alignment.as.nexus <- function(alignment_path, alignment_folder, loci_name,
     alignment_path <- new_path
   } else if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
              file_type == "fa" || file_type == "ffn" || file_type == "frn") {
+    new_fasta_path <- paste0(alignment_folder,loci_name,".fasta")
+    # Move and save fasta file
+    if (file.exists(new_fasta_path) == FALSE){
+      file.copy(from = alignment_path, to = new_fasta_path)
+    }
+    # Convert fasta to nexus and save nexus in new folder
     if (file.exists(new_path) == FALSE){
       # Set details for fasta data
       if (loci_row$alphabet == "dna") {
