@@ -374,13 +374,15 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     ts_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_testStatistics.csv")
     if (file.exists(ts_file) == FALSE){
       print("run test statistics")
-      empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment", iqtree.num_threads, iqtree.num_quartets, loci_row$best_model)
+      empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment", iqtree.num_threads, iqtree.num_quartets, 
+                      iqtree.model = loci_row$best_model, alphabet = loci_row$alphabet)
     }
     
     #Check that the test statistic file ran ok 
     if (file.exists(ts_file) == FALSE){
       print("need to rerun test statistics")
-      empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment", iqtree.num_threads, iqtree.num_quartets)
+      empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment", iqtree.num_threads, iqtree.num_quartets, 
+                      iqtree.model = loci_row$best_model, alphabet = loci_row$alphabet)
     }
     
     #Extract the parameters from the .iqtree log file.
