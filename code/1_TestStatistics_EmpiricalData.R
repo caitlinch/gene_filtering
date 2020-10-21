@@ -182,6 +182,8 @@ number_of_replicates = 5
 params <- get.simulation.parameters("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/1KP/4471/4471.nex.iqtree")
 alignment_params = params
 num_of_cores = cores_to_use
+ids_to_run <- c("bootstrapReplicate0001", "bootstrapReplicate0002", "bootstrapReplicate0003", "bootstrapReplicate0004", "bootstrapReplicate0005")
+rep_number <- "bootstrapReplicate0001"
 
 ##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
 print("starting analysis")
