@@ -407,15 +407,15 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     # These bootstrap replicates will thus be calculates
     # This should save A BUNCH of time because it means if the test statistic file exists, you don't have to run Splitstree four times
     print(paste0("run ",number_of_replicates," bootstrap replicates"))
-    bs_als <- paste0(alignment_folder,"/",loci_name,"_",bootstrap_ids,"/",loci_name,"_",bootstrap_ids,".nex")
-    ts_csvs <- paste0(alignment_folder,"/",loci_name,"_",bootstrap_ids,"/",loci_name,"_",bootstrap_ids,"_testStatistics.csv")
+    bs_als <- paste0(alignment_folder,loci_name,"_",bootstrap_ids,"/",loci_name,"_",bootstrap_ids,".nex")
+    ts_csvs <- paste0(alignment_folder,loci_name,"_",bootstrap_ids,"/",loci_name,"_",bootstrap_ids,"_testStatistics.csv")
     missing_als <- bs_als[!file.exists(bs_als)]
     missing_testStatistics <- bs_als[!file.exists(ts_csvs)]
     # Collate the missing files and identify the alignments to rerun
     all_to_run <- unique(c(missing_als,missing_testStatistics))
     ids_to_run <- bootstrap_ids[which((bs_als %in% all_to_run))]
-    print(paste0("Number of alignments to run = ",length(ids_to_run)))
-    print("run all previously-unrun bootstraps")
+    print(paste0("Number of bootstrap alignments to run = ",length(ids_to_run)))
+    print("Run bootstrap alignments")
     if(length(ids_to_run)>0){
       mclapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, alignment_params = params, 
                program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets, mc.cores = num_of_cores)

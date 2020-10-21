@@ -178,6 +178,10 @@ program_paths = exec_paths
 loci_number = 1
 iqtree_f <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/1KP/4471/4471.nex.iqtree" # for checking get.simulation.parameters function
 iqtree_f <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/practice_AA_sequence/practice_AA_sequence.nexus.iqtree" # another test for the sim parameters, that includes a frequency table
+number_of_replicates = 5
+params <- get.simulation.parameters("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/1KP/4471/4471.nex.iqtree")
+alignment_params = params
+num_of_cores = cores_to_use
 
 ##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
 print("starting analysis")
