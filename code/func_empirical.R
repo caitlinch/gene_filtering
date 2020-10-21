@@ -299,7 +299,8 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
   # Run all the test statistics
   # bootstrap_id will be "bootstrapReplicateXXXX" where XXXX is a number
   print("run test statistics")
-  empirical.runTS(alignment_path = bootstrap_alignment_path, program_paths = program_paths, bootstrap_id = bootstrap_id, iqtree.num_threads, iqtree.num_quartets)
+  empirical.runTS(alignment_path = bootstrap_alignment_path, program_paths = program_paths, bootstrap_id = bootstrap_id, 
+                  iqtree.num_threads, iqtree.num_quartets, iqtree.model = empirical_alignment_row$best_model, alphabet = empirical_alignment_row$alphabet)
 }
 
 
