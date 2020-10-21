@@ -195,6 +195,8 @@ empirical_alignment_row <- loci_row
 wag_aa <- c("A","R","N","D","C","Q","E","G","H","I","L","K","M","F","P","S","T","W","Y","V") # order of aa in wag model (wag.dat from www.ebi.ac.uk/goldman-srv/WAG)
 iq_order <- params2$frequency$amino_acid # order of aa when extracted from IQ-Tree
 
+do1.empirical.parametric.bootstrap(bootstrap_id,empirical_alignment_path, empirical_alignment_row, alignment_params, program_paths, iqtree.num_threads, iqtree.num_quartets)
+
 
 ##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
 print("starting analysis")
