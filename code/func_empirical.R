@@ -197,7 +197,7 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
   print(empirical_alignment_path)
   print(bootstrap_id)
   # Create the folder for this replicate, gather and create filenames
-  loci_name <- gsub(".nex","",basename(empirical_alignment_path))
+  loci_name <- empirical_alignment_row$loci_name
   bootstrap_name <- paste0(loci_name,"_",bootstrap_id) # this will be the name of the alignment
   bootstrap_folder <- paste0(dirname(empirical_alignment_path),"/",bootstrap_name,"/") # folder to store results from this bootstrap in
   # If the bootstrap folder doesn't exist, create it
@@ -218,52 +218,10 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
   # First generate completely new DNA using the params
   # Create an alignment for this replicate using the alignment params - name will be loci_bootstrapReplicateXXXX
   if (file.exists(bootstrap_alignment_path) == FALSE) {
-    print("creating alignment")
-    # Sample code for generating a parametric DNA sequence if you have a tree
-    # s1 = simSeq(t1, l = 500, type="DNA", bf=c(.25,.25,.25,.25), Q=c(1,1,1,1,1,1), rate=1)
-    # s2 = simSeq(t2, l = 500, type="DNA", bf=c(.25,.25,.25,.25), Q=c(1,1,1,1,1,1), rate=1)
-    # aln = c(s1, s2) # concatenate the alignments
-    
-    # Extract the parameters you need to enter into simSeq
-    n_bp = as.numeric(alignment_params$parameters[4,2])  # sequence length should be the same as in the original sequence
-    # Extract the vector form of the rate matrix 
-    m <- alignment_params$Q_rate_matrix[,2:5] # extract the square block with the rates and not the header column
-    Q_vec <- c(m[2,1],m[3,1],m[3,2],m[4,1],m[4,2],m[4,3]) # extract the rates 
-    # Extract the base frequencies in the following order: A, C, G, T
-    base_freqs <- c(as.numeric(alignment_params$parameters[[12,2]]), as.numeric(alignment_params$parameters[[13,2]]),
-                    as.numeric(alignment_params$parameters[[14,2]]), as.numeric(alignment_params$parameters[[15,2]]))
-    seq_type <- "DNA" # generate DNA sequence
-    
-    # need to generate the number of sites for each gamma category:
-    g_cat <- alignment_params$gamma_categories
-    # If uniform gamma categories, can just simulate a sequence straight off
-    if (class(g_cat) == "character"){
-      new_aln <- simSeq(x = empirical_alignment_tree, l = n_bp, type = seq_type, bf = base_freqs, Q = Q_vec)
-    } else if (class(g_cat) == "data.frame") {
-      # If there are gamma categories, create multiple alignments and concatenate them: one for each gamma category
-      cat_sites <- round(n_bp*g_cat$proportion,digits = 0)
-      g_cat$cat_sites <- cat_sites
-      g_cat <- fix.gammaCategory.siteNums(g_cat,n_bp) # make sure the sum of the gamma sites category is correct
-      # Get the number of gamma rate categories
-      num_g_cat <- length(g_cat$category)
-      # Initialise an empty sequence
-      aln_exists <- FALSE
-      
-      # Iterate through the gamma categories and create an alignment with each of the relative rates
-      for (i in 1:num_g_cat){
-        row <- g_cat[i,]
-        # Generate the DNA sequence using the informtion from the parameter list and the rate and number of sites for THIS GAMMA CATEGORY
-        dna_sim <- simSeq(x = empirical_alignment_tree, l = row$cat_sites, type = seq_type, bf = base_freqs, Q = Q_vec, rate = row$relative_rate)
-        #concatenate the sequence with the new alignment
-        if (aln_exists == FALSE){
-          # If the alignment doesn't exist, create it
-          new_aln <- dna_sim
-          aln_exists <- TRUE
-        } else if (aln_exists == TRUE){
-          # If the alignment does exist, concatenate it
-          new_aln <- c(new_aln,dna_sim)
-        }
-      }
+    if (empirical_alignment_row$alphabet == "dna"){
+      new_aln <- generate.DNA.alignment()
+    } else if (empirical_alignment_row$alphabet == "protein"){
+      new_aln <- generate.AA.alignment()
     }
     
     # Second, randomise sites in new_aln (otherwise masking will mean the gamma categories disproportionately get affected)
@@ -747,6 +705,132 @@ calculate.GC.content <- function(alignment_file){
   var <- signif(var(vals), digits = 3)
   sd <- signif(sd(vals), digits = 3)
   return(c(mean,var,sd))
+}
+
+
+
+
+# Given a tree and a set of parameters extracted from IQTree, this function generates a DNA multiple sequence alignment
+generate.DNA.alignment <- function(alignment_params, empirical_alignment_tree){
+  print("creating alignment")
+  # Sample code for generating a parametric DNA sequence if you have a tree
+  # s1 = simSeq(t1, l = 500, type="DNA", bf=c(.25,.25,.25,.25), Q=c(1,1,1,1,1,1), rate=1)
+  # s2 = simSeq(t2, l = 500, type="DNA", bf=c(.25,.25,.25,.25), Q=c(1,1,1,1,1,1), rate=1)
+  # aln = c(s1, s2) # concatenate the alignments
+  
+  # Extract the parameters you need to enter into simSeq
+  n_bp = as.numeric(alignment_params$parameters[4,2])  # sequence length should be the same as in the original sequence
+  # Extract the vector form of the rate matrix 
+  m <- alignment_params$Q_rate_matrix[,2:5] # extract the square block with the rates and not the header column
+  Q_vec <- c(m[2,1],m[3,1],m[3,2],m[4,1],m[4,2],m[4,3]) # extract the rates 
+  # Extract the base frequencies in the following order: A, C, G, T
+  base_freqs <- c(as.numeric(alignment_params$parameters[[16,2]]), as.numeric(alignment_params$parameters[[17,2]]),
+                  as.numeric(alignment_params$parameters[[18,2]]), as.numeric(alignment_params$parameters[[19,2]]))
+  seq_type <- "DNA" # generate DNA sequence
+  
+  # need to generate the number of sites for each gamma category:
+  g_cat <- alignment_params$gamma_categories
+  # If uniform gamma categories, can just simulate a sequence straight off
+  if (class(g_cat) == "character"){
+    new_aln <- simSeq(x = empirical_alignment_tree, l = n_bp, type = seq_type, bf = base_freqs, Q = Q_vec)
+  } else if (class(g_cat) == "data.frame") {
+    # If there are gamma categories, create multiple alignments and concatenate them: one for each gamma category
+    cat_sites <- round(n_bp*g_cat$proportion,digits = 0)
+    g_cat$cat_sites <- cat_sites
+    g_cat <- fix.gammaCategory.siteNums(g_cat,n_bp) # make sure the sum of the gamma sites category is correct
+    # Get the number of gamma rate categories
+    num_g_cat <- length(g_cat$category)
+    # Initialise an empty sequence
+    aln_exists <- FALSE
+    
+    # Iterate through the gamma categories and create an alignment with each of the relative rates
+    for (i in 1:num_g_cat){
+      row <- g_cat[i,]
+      # Generate the DNA sequence using the informtion from the parameter list and the rate and number of sites for THIS GAMMA CATEGORY
+      dna_sim <- simSeq(x = empirical_alignment_tree, l = row$cat_sites, type = seq_type, bf = base_freqs, Q = Q_vec, rate = row$relative_rate)
+      #concatenate the sequence with the new alignment
+      if (aln_exists == FALSE){
+        # If the alignment doesn't exist, create it
+        new_aln <- dna_sim
+        aln_exists <- TRUE
+      } else if (aln_exists == TRUE){
+        # If the alignment does exist, concatenate it
+        new_aln <- c(new_aln,dna_sim)
+      }
+    }
+  }
+  return(new_aln)
+}
+
+# Given a tree and a set of parameters extracted from IQTree, this function generates an amino acid multiple sequence alignment
+generate.AA.alignment <- function(alignment_params, empirical_alignment_tree){
+  print("creating alignment")
+  # Extract the parameters you need to enter into simSeq
+  n_bp = as.numeric(alignment_params$parameters[4,2])  # sequence length should be the same as in the original sequence
+  # extract explanation of state frequencies:
+  freqs_info <- gsub(" ","",alignment_params$parameters[13,2])
+  # extract the amino acid frequencies
+  if (freqs_info == "(empiricalcountsfromalignment)"){
+    aa_order <- alignment_params$frequency$amino_acid
+    aa_freq <- alignment_params$frequency$frequency
+  } else if (freqs_info == "(model)") {
+    aa_freq <- rep(1/20, 20)
+  }
+  seq_type <- "AA" # generate DNA sequence
+  # Extract the AA model of sequence evolution
+  model <- alignment_params$parameters[9,2]
+  # check if the model contains +G, +I, or +F
+  if (grepl("\\+",model) == TRUE){
+    # if the model contains these additions, remove them and get the base model
+    # split the string at the "+" characters
+    model_split <- strsplit(model,"\\+")
+    # the base model will be the first element (as the structure is Model+FreqType+RateType e.g. JTT+F+I+G)
+    model <- model_split[[1]][1]
+  }
+  # some model names are different in IQTree and simSeq function in R - change those model names to be accepted in simSeq
+  if (model == "JTTDCMut"){
+    model = "JTT_DCMut"
+  } else if (model == "DCMut") {
+    model = "Dayhoff_DCMut"
+  }
+  # if there are multiple gamma categories, we will generate multiple alignments (one for each category)
+  # and concatenate them together to create one alignment
+  g_cat <- alignment_params$gamma_categories
+  # If there are multiple gamma categories, format them nicely so they can be used to generate sequences
+  if (class(g_cat) == "data.frame") {
+    # need to generate the number of sites for each gamma category:
+    cat_sites <- round(n_bp*g_cat$proportion,digits = 0)
+    g_cat$cat_sites <- cat_sites
+    g_cat <- fix.gammaCategory.siteNums(g_cat,n_bp) # make sure the sum of the gamma sites category is correct
+    # Get the number of gamma rate categories
+    num_g_cat <- length(g_cat$category)
+  }
+  # Only certain models can be fed into the simSeq function - if the model is one of these, feed it in
+  # Only models needed for the Misof 2014, 1Kp and Vanderpool 2020 datasets have been added as of 21/10/2020
+  if (class(g_cat) == "character"){
+    # If uniform gamma categories, can just simulate a sequence straight off
+    new_aln <- simSeq(x = empirical_alignment_tree, l = n_bp, type = seq_type, bf = aa_freq, model = model)
+  } else if (class(g_cat) == "data.frame"){
+    # If there are gamma categories, create multiple alignments and concatenate them: one for each gamma category
+    # Initialise an empty sequence
+    aln_exists <- FALSE
+    
+    # Iterate through the gamma categories and create an alignment with each of the relative rates
+    for (i in 1:num_g_cat){
+      row <- g_cat[i,]
+      # Generate the DNA sequence using the information from the parameter list and the rate and number of sites for THIS GAMMA CATEGORY
+      aa_sim <- simSeq(x = empirical_alignment_tree, l = row$cat_sites, type = seq_type, bf = aa_freq, model = model, rate = row$relative_rate)
+      #concatenate the sequence with the new alignment
+      if (aln_exists == FALSE){
+        # If the alignment doesn't exist, create it
+        new_aln <- aa_sim
+        aln_exists <- TRUE
+      } else if (aln_exists == TRUE){
+        # If the alignment does exist, concatenate it
+        new_aln <- c(new_aln,aa_sim)
+      }
+    }
+  }
 }
 
 
