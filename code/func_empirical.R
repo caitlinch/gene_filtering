@@ -346,8 +346,10 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   collated_ts_file <- paste0(alignment_folder,loci_name,"_testStatistics_collatedBSReplicates.csv")
   collated_sCF_file <- paste0(alignment_folder,loci_name,"_branchSCF_collatedBSReplicates.csv")
   p_value_file  <- paste0(alignment_folder,loci_name,"_pValues.csv")
+  # Create file names for saving the IQTree parameters (e.g. rate matrix, model of sequence evolution, gamma categories)
   parameters_file <- paste0(alignment_folder,loci_name,"_parameterValues.csv")
   gamma_categories_file <- paste0(alignment_folder,loci_name,"_gammaCategories.csv")
+  aa_frequency_file <- paste0(alignment_folder,loci_name,"_amino_acid_frequencies.csv")
   rate_matrix_file <- paste0(alignment_folder,loci_name,"_QRateMatrix.csv")
   
   # If alignment is a nexus, copy it into the alignment folder
@@ -390,7 +392,12 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     params <- get.simulation.parameters(paste0(empirical_alignment_path,".iqtree"))
     write.csv(params$parameters,file = parameters_file, row.names = TRUE)
     write.csv(params$gamma_categories,file = gamma_categories_file, row.names = TRUE)
-    write.csv(params$Q_rate_matrix,file = rate_matrix_file, row.names = TRUE)
+    if (loci_row$alphabet == "dna") {
+      write.csv(params$Q_rate_matrix,file = rate_matrix_file, row.names = TRUE)
+    } else if (loci_row$alphabet == "protein"){
+      write.csv(params$frequency,file = aa_frequency_file, row.names = TRUE)
+    }
+    
     
     # Create the bootstrap ids (pad out to 4 digits) - should be "bootstrapReplicateXXXX" where XXXX is a number
     bootstrap_ids <- paste0("bootstrapReplicate",sprintf("%04d",1:number_of_replicates))
