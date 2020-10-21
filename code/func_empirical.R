@@ -192,7 +192,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
 
 
 # Function to calculate one empirical bootstrap for an empirical alignment
-do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment_path, alignment_params, program_paths, iqtree.num_threads, iqtree.num_quartets){
+do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment_path, empirical_alignment_row, alignment_params, program_paths, iqtree.num_threads, iqtree.num_quartets){
   print("in do1.empirical.parametric.bootstrap")
   print(empirical_alignment_path)
   print(bootstrap_id)
@@ -417,8 +417,9 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     print(paste0("Number of bootstrap alignments to run = ",length(ids_to_run)))
     print("Run bootstrap alignments")
     if(length(ids_to_run)>0){
-      mclapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, alignment_params = params, 
-               program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets, mc.cores = num_of_cores)
+      mclapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, empirical_alignment_row = loci_row,
+               alignment_params = params, program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets, 
+               mc.cores = num_of_cores)
     }
     
     # Before you can collate all the bootstrap files, you need to check every bootstrap ran and rerun the failed ones
@@ -438,8 +439,9 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     print(paste0("Number of missing alignments to rerun = ",length(als_to_rerun)))
     # Rerun the missing als
     if (length(als_to_rerun)>0){
-      mclapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, alignment_params = params, 
-               program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets, mc.cores = num_of_cores)
+      mclapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, empirical_alignment_row = loci_row,
+               alignment_params = params, program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets, 
+               mc.cores = num_of_cores)
     }
     
     # collate the sCF by branch distributions bootstrap info into 1 file and write it to disk
