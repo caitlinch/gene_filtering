@@ -180,10 +180,21 @@ iqtree_f <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/
 iqtree_f <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/practice_AA_sequence/practice_AA_sequence.nexus.iqtree" # another test for the sim parameters, that includes a frequency table
 number_of_replicates = 5
 params <- get.simulation.parameters("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/1KP/4471/4471.nex.iqtree")
+params2<- get.simulation.parameters("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/practice_AA_sequence/practice_AA_sequence.nexus.iqtree")
+params$parameters$value <- as.character(params$parameters$value)
+params$parameters$parameter <- as.character(params$parameters$parameter)
 alignment_params = params
+alignment_params$parameters$parameter <- as.character(alignment_params$parameters$parameter)
+alignment_params$parameters$value <- as.character(alignment_params$parameters$value)
 num_of_cores = cores_to_use
 ids_to_run <- c("bootstrapReplicate0001", "bootstrapReplicate0002", "bootstrapReplicate0003", "bootstrapReplicate0004", "bootstrapReplicate0005")
 rep_number <- "bootstrapReplicate0001"
+bootstrap_id = rep_number
+loci_row <- loci_df[1,]
+empirical_alignment_row <- loci_row
+wag_aa <- c("A","R","N","D","C","Q","E","G","H","I","L","K","M","F","P","S","T","W","Y","V") # order of aa in wag model (wag.dat from www.ebi.ac.uk/goldman-srv/WAG)
+iq_order <- params2$frequency$amino_acid # order of aa when extracted from IQ-Tree
+
 
 ##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
 print("starting analysis")
