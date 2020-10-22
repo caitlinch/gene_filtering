@@ -428,6 +428,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     # collate the sCF by branch distributions bootstrap info into 1 file and write it to disk
     print("collate sCF from bootstraps")
     collated_scf_branch_df <- collate.bootstraps(directory = alignment_folder, file.name = "sCF_branch", id = loci_name, output.file.name = collated_sCF_file)
+    write.csv(collated_scf_branch_df, file = collated_sCF_file, row.names = FALSE)
     
     # collate the test statistics bootstrap info into 1 file
     print("collate test statistics from bootstraps")
@@ -436,7 +437,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     new_bootstrap_ids <- p_value_df$bootstrap_replicate_id # copy col
     aln_id <- grep(new_bootstrap_ids[!grepl("bootstrapReplicate",new_bootstrap_ids)],new_bootstrap_ids) # get which element of col is the alignment
     new_bootstrap_ids[aln_id] <- "alignment"
-    p_value_df$bootstrap_id <- new_bootstrap_ids
+    p_value_df$bootstrap_replicate_id <- new_bootstrap_ids
     
     # Calculate the p-values and add them to the original test statistic dataframe
     print("calculate p values")
