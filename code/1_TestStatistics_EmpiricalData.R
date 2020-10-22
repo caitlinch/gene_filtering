@@ -152,18 +152,32 @@ if (is.na(best_model_paths[["Vanderpool2020"]])){
   Vanderpool2020_model <- rep("MFP", length(Vanderpool2020_paths))
 }
 # Combine names of loci, loci locations, and output folders into a dataframe (for easy access - each loci name will be stored near the other information you need)
-loci_df <- data.frame(loci_name = c(OKP_names, Misof2014_names, Vanderpool2020_names), 
-                      alphabet = c(rep("protein",length(OKP_paths)), 
-                                   rep("protein", length(Misof2014_paths)), 
+# loci_df <- data.frame(loci_name = c(OKP_names, Misof2014_names, Vanderpool2020_names), 
+#                       alphabet = c(rep("protein",length(OKP_paths)), 
+#                                    rep("protein", length(Misof2014_paths)), 
+#                                    rep("dna", length(Vanderpool2020_paths))),
+#                       best_model = c(OKP_model, Misof2014_model, Vanderpool2020_model),
+#                       dataset = c(rep("1KP",length(OKP_paths)), rep("Misof2014",length(Misof2014_paths)), rep("Vanderpool2020", length(Vanderpool2020_paths))),
+#                       loci_path = c(OKP_paths, Misof2014_paths, Vanderpool2020_paths), 
+#                       output_folder = c(rep(output_dirs[["1KP"]],length(OKP_paths)), 
+#                                         rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), 
+#                                         rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths))),
+#                       stringsAsFactors = FALSE
+#                       )
+
+# Remove 1KP data for now (until I work out which species to include, or how to deal with the huge amount of species)
+loci_df <- data.frame(loci_name = c(Misof2014_names, Vanderpool2020_names), 
+                      alphabet = c(rep("protein", length(Misof2014_paths)), 
                                    rep("dna", length(Vanderpool2020_paths))),
-                      best_model = c(OKP_model, Misof2014_model, Vanderpool2020_model),
-                      dataset = c(rep("1KP",length(OKP_paths)), rep("Misof2014",length(Misof2014_paths)), rep("Vanderpool2020", length(Vanderpool2020_paths))),
-                      loci_path = c(OKP_paths, Misof2014_paths, Vanderpool2020_paths), 
-                      output_folder = c(rep(output_dirs[["1KP"]],length(OKP_paths)), 
-                                        rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), 
+                      best_model = c(Misof2014_model, Vanderpool2020_model),
+                      dataset = c(rep("Misof2014",length(Misof2014_paths)), rep("Vanderpool2020", length(Vanderpool2020_paths))),
+                      loci_path = c(Misof2014_paths, Vanderpool2020_paths), 
+                      output_folder = c(rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), 
                                         rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths))),
                       stringsAsFactors = FALSE
-                      )
+)
+
+
 # Remove rows with best_model == NA <- these are the Misof2014 clans, protein domains and voids (whereas above, we extracted the models only for the orthologous genes)
 # "!is.na()" means "is not NA" <- we want to keep only the rows where best_model is not NA
 loci_df <- loci_df[!is.na(loci_df$best_model),]
@@ -192,11 +206,18 @@ rep_number <- "bootstrapReplicate0001"
 bootstrap_id = rep_number
 loci_row <- loci_df[1,]
 empirical_alignment_row <- loci_row
+empirical_alignment_path <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/1KP/4471/4471.nex"
 wag_aa <- c("A","R","N","D","C","Q","E","G","H","I","L","K","M","F","P","S","T","W","Y","V") # order of aa in wag model (wag.dat from www.ebi.ac.uk/goldman-srv/WAG)
 iq_order <- params2$frequency$amino_acid # order of aa when extracted from IQ-Tree
 
 do1.empirical.parametric.bootstrap(bootstrap_id,empirical_alignment_path, empirical_alignment_row, alignment_params, program_paths, iqtree.num_threads, iqtree.num_quartets)
 
+# open 1KP sample list and trim down to the core eudicots/rosids (roughly 1/4 of species included in 1KP dataset)
+okp_sample_df <- read.csv("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/1kP-Sample-List.csv", stringsAsFactors = FALSE)
+clade <- unique(okp_sample_df$Clade)
+potential_euc_indices <- grep("Core Eudicots/Rosids",okp_sample_df$Clade)
+rosid_df <- okp_sample_df[potential_euc_indices,]
+rosid_names <- rosid_df$X1kP_Sample
 
 ##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
 print("starting analysis")
