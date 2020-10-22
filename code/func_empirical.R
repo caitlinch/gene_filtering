@@ -38,7 +38,7 @@ cutSpecies <- function(alignment_path, keep, output_path_provided = "FALSE", out
 
 
 # Functions to run test statistics on empirical datasets
-empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.num_threads, iqtree.num_quartets, iqtree.model = "MFP", alphabet){
+empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.num_threads, iqtree.num_quartets, iqtree.model = "MFP", alphabet, dataset_name){
   # Want to only do the tree proportion, 3SEQ and sCF
   print("in empirical.runTS")
   print(alignment_path)
@@ -50,7 +50,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
     # Get the alignment name and remove the extension to get the loci name
     loci_name <- gsub(".nex","",basename(alignment_path))
     # Extract the dataset name (basename of alignment folder: element after last "/" in alignment_folder)
-    dataset <- basename(alignment_folder)
+    dataset <- dataset_name
   } else {
     # If the alignment is a bootstrap replicate, need to remove the bootstrap rep number to get the loci name
     loci_name <- gsub(".nex","",basename(alignment_path)) # get the basis of the loci name
@@ -59,7 +59,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
     loci_list <- loci_list[1:max_ind] # get only parts of alignment name
     loci_name <- paste(loci_list,collapse="_") # squash the alignment name together
     # Extract the dataset name (basename of alignment folder: element after second-last "/" in alignment_folder)
-    dataset <- basename(dirname(alignment_folder))
+    dataset <- dataset_name
   }
   
   if (bootstrap_id == "alignment"){
@@ -300,7 +300,8 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
   # bootstrap_id will be "bootstrapReplicateXXXX" where XXXX is a number
   print("run test statistics")
   empirical.runTS(alignment_path = bootstrap_alignment_path, program_paths = program_paths, bootstrap_id = bootstrap_id, 
-                  iqtree.num_threads, iqtree.num_quartets, iqtree.model = empirical_alignment_row$best_model, alphabet = empirical_alignment_row$alphabet)
+                  iqtree.num_threads, iqtree.num_quartets, iqtree.model = empirical_alignment_row$best_model, 
+                  alphabet = empirical_alignment_row$alphabet, dataset_name = empirical_alignment_row$dataset)
 }
 
 
@@ -358,14 +359,14 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     if (file.exists(ts_file) == FALSE){
       print("run test statistics")
       empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment", iqtree.num_threads, iqtree.num_quartets, 
-                      iqtree.model = loci_row$best_model, alphabet = loci_row$alphabet)
+                      iqtree.model = loci_row$best_model, alphabet = loci_row$alphabet, dataset_name = loci_row$dataset)
     }
     
     #Check that the test statistic file ran ok 
     if (file.exists(ts_file) == FALSE){
       print("need to rerun test statistics")
       empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment", iqtree.num_threads, iqtree.num_quartets, 
-                      iqtree.model = loci_row$best_model, alphabet = loci_row$alphabet)
+                      iqtree.model = loci_row$best_model, alphabet = loci_row$alphabet, dataset_name = loci_row$dataset)
     }
     
     #Extract the parameters from the .iqtree log file.
@@ -441,18 +442,15 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     
     # Calculate the p-values and add them to the original test statistic dataframe
     print("calculate p values")
-    # Open the original test statistic file
-    ts_df <- read.csv(ts_file)
     # Calculate the p_values of the variables of interest
     # Calculate the p-values for each test statistic
-    ts_df$x3seq_numRecomSeq_sig   <- calculate.p_value(p_value_df$X3SEQ_num_distinct_recombinant_sequences, p_value_df$bootstrap_id)
-    ts_df$x3seq_propRecomSeq_sig  <- calculate.p_value(p_value_df$X3SEQ_prop_recombinant_sequences, p_value_df$bootstrap_id)
-    ts_df$nn_untrimmed_sig        <- calculate.p_value(p_value_df$neighbour_net_untrimmed, p_value_df$bootstrap_id)
-    ts_df$nn_trimmed_sig          <- calculate.p_value(p_value_df$neighbour_net_trimmed, p_value_df$bootstrap_id)
-    ts_df$sCF_mean_sig            <- calculate.p_value(p_value_df$sCF_mean, p_value_df$bootstrap_id)
-    ts_df$sCF_median_sig          <- calculate.p_value(p_value_df$sCF_median, p_value_df$bootstrap_id)
+    p_value_df$x3seq_numRecomSeq_sig   <- calculate.p_value(p_value_df$X3SEQ_num_distinct_recombinant_sequences, p_value_df$bootstrap_replicate_id)
+    p_value_df$x3seq_propRecomSeq_sig  <- calculate.p_value(p_value_df$X3SEQ_prop_recombinant_sequences, p_value_df$bootstrap_replicate_id)
+    p_value_df$nn_trimmed_sig          <- calculate.p_value(p_value_df$neighbour_net_trimmed, p_value_df$bootstrap_replicate_id)
+    p_value_df$sCF_mean_sig            <- calculate.p_value(p_value_df$sCF_mean, p_value_df$bootstrap_replicate_id)
+    p_value_df$sCF_median_sig          <- calculate.p_value(p_value_df$sCF_median, p_value_df$bootstrap_replicate_id)
     # Output the p-values file
-    write.csv(ts_df,file = p_value_file, row.names = FALSE)
+    write.csv(p_value_df,file = p_value_file, row.names = FALSE)
   }
 }
 
