@@ -794,9 +794,9 @@ generate.AA.alignment <- function(alignment_params, empirical_alignment_tree){
   # extract the amino acid frequencies
   if (freqs_info == "(empiricalcountsfromalignment)"){
     aa_order <- alignment_params$frequency$amino_acid
-    aa_freq <- alignment_params$frequency$frequency
+    aa_freq <- as.numeric(alignment_params$frequency$frequency)
   } else if (freqs_info == "(model)") {
-    aa_freq <- rep(1/20, 20)
+    aa_freq <- NULL
   }
   seq_type <- "AA" # generate DNA sequence
   # Extract the AA model of sequence evolution
