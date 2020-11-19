@@ -26,7 +26,7 @@ print("initialising namespace")
 # input_dir    <- the folder(s) containing the empirical data
 #              <- where simulated alignments and output from analysis (e.g. IQ-Tree output files, 3seq output files) will be placed
 # input_names  <- set name(s) for the dataset(s)
-# output_dir   <- for collated output and results
+# output_dir   <- for collated output and results. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
 # treedir      <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
 # maindir      <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # cores_to_use <- the number of cores to use for parametric bootstrap. 1 for a single core (wholly sequential), or higher if using parallelisation.
@@ -47,11 +47,12 @@ print("initialising namespace")
 # reps_to_do <- 199
 # sCF_replicates <- 1000
 
-# Create a vector with all of the executable file paths
-# To access a path: exec_paths[["name"]]
+# # Create a vector with all of the executable file paths
+# # To access a path: exec_paths[["name"]]
 # exec_folder <- "/path/to/executables/folder/"
 # exec_paths <- c("3seq_executable","IQ-Tree_executable","SplitsTree_executable")
 # exec_paths <- paste0(exec_folder,exec_paths)
+# names(exec_paths) <- c("3seq","IQTree","SplitsTree")
 
 ###
 
@@ -84,11 +85,16 @@ if (run_location == "local"){
   sCF_replicates = 1000
   
 } else if (run_location=="server"){
-  input_dir <- "/data/caitlin/empirical_treelikeness/Wu_2018_dnaLoci_Primates/"
-  input_names <- "Wu2018"
-  output_dir <- "/data/caitlin/empirical_treelikeness/Wu_2018_dnaLoci_Primates_results/"
-  treedir <- "/data/caitlin/treelikeness/" # where the treelikeness code is
-  maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness code is
+  input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
+                 "/data/caitlin/empirical_treelikeness/Data_Misof2014/",
+                 "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/")
+  best_model_paths <- c("/data/caitlin/empirical_treelikeness/Data_inputFiles/OKP_loci_bestmodel.txt",
+                        "/data/caitlin/empirical_treelikeness/Data_inputFiles/Misof2014_orthologousGenes_bestmodel.txt",
+                        NA)
+  input_names <- c("1KP", "Misof2014","Vanderpool2020")
+  output_dir <- "/data/caitlin/empirical_treelikeness/Output/"
+  treedir <- "/data/caitlin/treelikeness/" # where the treelikeness repository/folder is
+  maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness repository/folder is 
   
   # Create a vector with all of the executable file paths in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
@@ -97,7 +103,7 @@ if (run_location == "local"){
   
   # set number of cores and reps for bootstraps
   cores_to_use = 30
-  reps_to_do= 199
+  reps_to_do= 99
   sCF_replicates = 1000
 }
 
