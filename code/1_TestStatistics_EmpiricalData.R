@@ -131,9 +131,7 @@ OKP_names <- list.files(input_dir[["1KP"]], full.names = FALSE)
 if (is.na(best_model_paths[["1KP"]])){
   OKP_model <- rep("MFP", length(OKP_paths))
 } else {
-  OKP_model <- readLines(best_model_paths[["1KP"]])
-  OKP_model <- unlist(strsplit(OKP_model,":"))[c(FALSE,FALSE,TRUE)]
-  OKP_model <- gsub(" ", "", OKP_model)
+  OKP_model <- model.from.partition.scheme(OKP_names,best_model_paths[["1KP"]],"1KP")
 }
 # Obtaining the list of loci file paths from Misof 2014 is easy -- all the loci are in the same folder
 Misof2014_paths <- paste0(input_dir[["Misof2014"]], list.files(input_dir[["Misof2014"]], full.names = FALSE))
@@ -141,7 +139,7 @@ Misof2014_names <- gsub(".nex","",grep(".nex",unlist(strsplit((Misof2014_paths),
 if (is.na(best_model_paths[["Misof2014"]])){
   Misof2014_model <- rep("MFP", length(Misof2014_paths))
 } else {
-  Misof2014_model <- model.from.partition.scheme(Misof2014_names,best_model_paths[["Misof2014"]])
+  Misof2014_model <- model.from.partition.scheme(Misof2014_names,best_model_paths[["Misof2014"]],"Misof2014")
 }
 # Obtaining the list of loci file paths from Vanderpool 2020 is easy -- all the loci are in the same folder
 Vanderpool2020_paths <- paste0(input_dir[["Vanderpool2020"]], list.files(input_dir[["Vanderpool2020"]], full.names = FALSE))
@@ -151,31 +149,23 @@ if (is.na(best_model_paths[["Vanderpool2020"]])){
   # Use "-m MFP" in IQ-Tree to automatically set best model - see Vanderpool et al (2020)
   Vanderpool2020_model <- rep("MFP", length(Vanderpool2020_paths))
 }
-# Combine names of loci, loci locations, and output folders into a dataframe (for easy access - each loci name will be stored near the other information you need)
-# loci_df <- data.frame(loci_name = c(OKP_names, Misof2014_names, Vanderpool2020_names), 
-#                       alphabet = c(rep("protein",length(OKP_paths)), 
-#                                    rep("protein", length(Misof2014_paths)), 
-#                                    rep("dna", length(Vanderpool2020_paths))),
-#                       best_model = c(OKP_model, Misof2014_model, Vanderpool2020_model),
-#                       dataset = c(rep("1KP",length(OKP_paths)), rep("Misof2014",length(Misof2014_paths)), rep("Vanderpool2020", length(Vanderpool2020_paths))),
-#                       loci_path = c(OKP_paths, Misof2014_paths, Vanderpool2020_paths), 
-#                       output_folder = c(rep(output_dirs[["1KP"]],length(OKP_paths)), 
-#                                         rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), 
-#                                         rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths))),
-#                       stringsAsFactors = FALSE
-#                       )
+# Create a dataframe of loci information for all three datasets: loci name, alphabet type, model, dataset, path, output path
+# loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names, OKP_names), 
+#                       alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Misof2014_paths)), rep("protein",length(OKP_paths))),
+#                       best_model = c(Vanderpool2020_model, Misof2014_model, OKP_model),
+#                       dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Misof2014",length(Misof2014_paths)), rep("1KP",length(OKP_paths))),
+#                       loci_path = c(Vanderpool2020_paths, Misof2014_paths, OKP_paths), 
+#                       output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), rep(output_dirs[["1KP"]],length(OKP_paths))),
+#                       stringsAsFactors = FALSE)
 
 # Remove 1KP data for now (until I work out which species to include, or how to deal with the huge amount of species)
-loci_df <- data.frame(loci_name = c(Misof2014_names, Vanderpool2020_names), 
-                      alphabet = c(rep("protein", length(Misof2014_paths)), 
-                                   rep("dna", length(Vanderpool2020_paths))),
-                      best_model = c(Misof2014_model, Vanderpool2020_model),
-                      dataset = c(rep("Misof2014",length(Misof2014_paths)), rep("Vanderpool2020", length(Vanderpool2020_paths))),
-                      loci_path = c(Misof2014_paths, Vanderpool2020_paths), 
-                      output_folder = c(rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), 
-                                        rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths))),
-                      stringsAsFactors = FALSE
-)
+loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names), 
+                      alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Misof2014_paths))),
+                      best_model = c(Vanderpool2020_model, Misof2014_model),
+                      dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Misof2014",length(Misof2014_paths))),
+                      loci_path = c(Vanderpool2020_paths, Misof2014_paths), 
+                      output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Misof2014"]], length(Misof2014_paths))),
+                      stringsAsFactors = FALSE)
 
 
 # Remove rows with best_model == NA <- these are the Misof2014 clans, protein domains and voids (whereas above, we extracted the models only for the orthologous genes)
@@ -185,39 +175,39 @@ loci_df <- loci_df[!is.na(loci_df$best_model),]
 loci_df_name <- paste0(output_dir,"input_loci_parameters.csv")
 write.csv(loci_df, file = loci_df_name)
 
-# To test things, you many need these parameters
-iqtree.num_threads = 1
-iqtree.num_quartets = sCF_replicates
-program_paths = exec_paths
-loci_number = 1
-iqtree_f <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/1KP/4471/4471.nex.iqtree" # for checking get.simulation.parameters function
-iqtree_f <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/practice_AA_sequence/practice_AA_sequence.nexus.iqtree" # another test for the sim parameters, that includes a frequency table
-number_of_replicates = 5
-params <- get.simulation.parameters("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/1KP/4471/4471.nex.iqtree")
-params2<- get.simulation.parameters("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/practice_AA_sequence/practice_AA_sequence.nexus.iqtree")
-params$parameters$value <- as.character(params$parameters$value)
-params$parameters$parameter <- as.character(params$parameters$parameter)
-alignment_params = params
-alignment_params$parameters$parameter <- as.character(alignment_params$parameters$parameter)
-alignment_params$parameters$value <- as.character(alignment_params$parameters$value)
-num_of_cores = cores_to_use
-ids_to_run <- c("bootstrapReplicate0001", "bootstrapReplicate0002", "bootstrapReplicate0003", "bootstrapReplicate0004", "bootstrapReplicate0005")
-rep_number <- "bootstrapReplicate0001"
-bootstrap_id = rep_number
-loci_row <- loci_df[1,]
-empirical_alignment_row <- loci_row
-empirical_alignment_path <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/1KP/4471/4471.nex"
-wag_aa <- c("A","R","N","D","C","Q","E","G","H","I","L","K","M","F","P","S","T","W","Y","V") # order of aa in wag model (wag.dat from www.ebi.ac.uk/goldman-srv/WAG)
-iq_order <- params2$frequency$amino_acid # order of aa when extracted from IQ-Tree
+# # To test things, you many need these parameters
+# iqtree.num_threads = 1
+# iqtree.num_quartets = sCF_replicates
+# program_paths = exec_paths
+# loci_number = 1
+# iqtree_f <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/1KP/4471/4471.nex.iqtree" # for checking get.simulation.parameters function
+# iqtree_f <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/practice_AA_sequence/practice_AA_sequence.nexus.iqtree" # another test for the sim parameters, that includes a frequency table
+# number_of_replicates = 5
+# params <- get.simulation.parameters("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/1KP/4471/4471.nex.iqtree")
+# params2<- get.simulation.parameters("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/practice_AA_sequence/practice_AA_sequence.nexus.iqtree")
+# params$parameters$value <- as.character(params$parameters$value)
+# params$parameters$parameter <- as.character(params$parameters$parameter)
+# alignment_params = params
+# alignment_params$parameters$parameter <- as.character(alignment_params$parameters$parameter)
+# alignment_params$parameters$value <- as.character(alignment_params$parameters$value)
+# num_of_cores = cores_to_use
+# ids_to_run <- c("bootstrapReplicate0001", "bootstrapReplicate0002", "bootstrapReplicate0003", "bootstrapReplicate0004", "bootstrapReplicate0005")
+# rep_number <- "bootstrapReplicate0001"
+# bootstrap_id = rep_number
+# loci_row <- loci_df[1,]
+# empirical_alignment_row <- loci_row
+# empirical_alignment_path <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/1KP/4471/4471.nex"
+# wag_aa <- c("A","R","N","D","C","Q","E","G","H","I","L","K","M","F","P","S","T","W","Y","V") # order of aa in wag model (wag.dat from www.ebi.ac.uk/goldman-srv/WAG)
+# iq_order <- params2$frequency$amino_acid # order of aa when extracted from IQ-Tree
 
-do1.empirical.parametric.bootstrap(bootstrap_id,empirical_alignment_path, empirical_alignment_row, alignment_params, program_paths, iqtree.num_threads, iqtree.num_quartets)
+# do1.empirical.parametric.bootstrap(bootstrap_id,empirical_alignment_path, empirical_alignment_row, alignment_params, program_paths, iqtree.num_threads, iqtree.num_quartets)
 
-# open 1KP sample list and trim down to the core eudicots/rosids (roughly 1/4 of species included in 1KP dataset)
-okp_sample_df <- read.csv("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/1kP-Sample-List.csv", stringsAsFactors = FALSE)
-clade <- unique(okp_sample_df$Clade)
-potential_euc_indices <- grep("Core Eudicots/Rosids",okp_sample_df$Clade)
-rosid_df <- okp_sample_df[potential_euc_indices,]
-rosid_names <- rosid_df$X1kP_Sample
+# # open 1KP sample list and trim down to the core eudicots/rosids (roughly 1/4 of species included in 1KP dataset)
+# okp_sample_df <- read.csv("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/1kP-Sample-List.csv", stringsAsFactors = FALSE)
+# clade <- unique(okp_sample_df$Clade)
+# potential_euc_indices <- grep("Core Eudicots/Rosids",okp_sample_df$Clade)
+# rosid_df <- okp_sample_df[potential_euc_indices,]
+# rosid_names <- rosid_df$X1kP_Sample
 
 ##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
 print("starting analysis")
@@ -236,30 +226,30 @@ lapply(1:nrow(loci_df), empirical.bootstraps.wrapper, loci_df, program_paths = e
 
 
 
-##### Step 6: Collate test statistic results #####
-print("collate results")
-# Collate all the dataframes together
-results_file <- paste0(output_dir,basename(input_dir),"_testStatisticResults.csv")
-results_df <- collate.bootstraps(directory = input_dir, file.name = "pValues", id = "", output.file.name = results_file)
+# ##### Step 6: Collate test statistic results #####
+# print("collate results")
+# # Collate all the dataframes together
+# results_file <- paste0(output_dir,basename(input_dir),"_testStatisticResults.csv")
+# results_df <- collate.bootstraps(directory = input_dir, file.name = "pValues", id = "", output.file.name = results_file)
+ 
+ 
 
-
-
-##### Step 8: Extract additional information about the alignments and trees #####
-# Extracting more information for statistical tests and plots
-# Extract total tree depth from each alignment's iqtree file and add to dataframe
-results_df$total_tree_depth <- unlist(lapply(results_df$alignment_file, extract.total.tree.length))
-# Extract the number of parsimony informative sites from each alignment's iqtree file and add to dataframe
-results_df$num_parsimony_informative_sites <- unlist(lapply(results_df$alignment_file, extract.num.informative.sites))
-# Extract the GC content for each species in the alignment and add summary statistics to dataframe
-GC_vector <- unlist(lapply(results_df$alignment_file,calculate.GC.content))
-results_df$GC_content_mean <- GC_vector[c(TRUE,FALSE,FALSE)]
-results_df$GC_content_variance <- GC_vector[c(FALSE,TRUE,FALSE)]
-results_df$GC_content_sd <-  GC_vector[c(FALSE,FALSE,TRUE)]
-# Extract the gene trees (.treefile for each locus) from each alignment's IQ-Tree run and add them to the dataframe
-results_df$newick_tree <- unlist(lapply(results_df$alignment_file, extract.treefile.tree))
-
-# Save the newly extended dataframe
-results_file <- paste0(output_dir,basename(input_dir),"_completeResults.csv")
-write.csv(results_df, file = results_file, row.names = FALSE)
+# ##### Step 8: Extract additional information about the alignments and trees #####
+# # Extracting more information for statistical tests and plots
+# # Extract total tree depth from each alignment's iqtree file and add to dataframe
+# results_df$total_tree_depth <- unlist(lapply(results_df$alignment_file, extract.total.tree.length))
+# # Extract the number of parsimony informative sites from each alignment's iqtree file and add to dataframe
+# results_df$num_parsimony_informative_sites <- unlist(lapply(results_df$alignment_file, extract.num.informative.sites))
+# # Extract the GC content for each species in the alignment and add summary statistics to dataframe
+# GC_vector <- unlist(lapply(results_df$alignment_file,calculate.GC.content))
+# results_df$GC_content_mean <- GC_vector[c(TRUE,FALSE,FALSE)]
+# results_df$GC_content_variance <- GC_vector[c(FALSE,TRUE,FALSE)]
+# results_df$GC_content_sd <-  GC_vector[c(FALSE,FALSE,TRUE)]
+# # Extract the gene trees (.treefile for each locus) from each alignment's IQ-Tree run and add them to the dataframe
+# results_df$newick_tree <- unlist(lapply(results_df$alignment_file, extract.treefile.tree))
+# 
+# # Save the newly extended dataframe
+# results_file <- paste0(output_dir,basename(input_dir),"_completeResults.csv")
+# write.csv(results_df, file = results_file, row.names = FALSE)
 
 

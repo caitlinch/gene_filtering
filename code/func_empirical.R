@@ -488,18 +488,23 @@ calculate.empirical.sCF <- function(alignment_path, iqtree_path, alignment_model
 # This function takes a list of names and a file to a partitioning scheme and returns a vector of models
 # (one per name, in the same order as the input name vector)
 # This small function calls get.one.model below
-model.from.partition.scheme <- function(names,model_path){
+model.from.partition.scheme <- function(names,model_path,dataset){
   # Open the file
   model_file <- readLines(model_path)
   # Use lapply to get the model of evolution for each loci
-  all_m <- unlist(lapply(names, get.one.model, char_lines = model_file))
+  if (dataset == "Misof2014"){
+    all_m <- unlist(lapply(names, get.Misof.model, char_lines = model_file))
+  } else if (dataset == "1KP"){
+    all_m <- unlist(lapply(names, get.OKP.model, char_lines = model_file))
+  }
+  
   # Return the list of models of evolution
   return(all_m)
 }
 
 # This function looks up a single loci name in a partition file and returns the associated model of evolution
 # This small function is called by model.from.partition.scheme above (using lapply)
-get.one.model <- function(name,char_lines){
+get.Misof.model <- function(name,char_lines){
   # name is a loci name
   # char_lines is a .txt file opened using readLines
   name_ind <- grep(name,char_lines)
@@ -513,13 +518,35 @@ get.one.model <- function(name,char_lines){
     split_line <- strsplit(line,"\\|")[[1]]
     # Take the second element - this will be the model
     m <- split_line[2]
-    # Trim the whitespace
+    # Trim the white space
     m <- gsub(" ","",m)
   }
   # Return the model
   return(m)
 }
 
+# This function looks up a single loci name in a partition file and returns the associated model of evolution
+# This small function is called by model.from.partition.scheme above (using lapply)
+get.OKP.model <- function(name,char_lines){
+  # name is a loci name
+  # char_lines is a .txt file opened using readLines
+  name_ind <- grep(name,char_lines)
+  if (identical(name_ind,integer(0))){
+    # If there's no matches in the file for this name, return NA
+    m = NA
+  } else {
+    # If there is a match for this name in the file, find the match
+    line <- char_lines[name_ind]
+    # Break the line into columns using the dividers ("|")
+    split_line <- strsplit(line,":")[[1]]
+    # Take the second element - this will be the model
+    m <- split_line[3]
+    # Trim the white space
+    m <- gsub(" ","",m)
+  }
+  # Return the model
+  return(m)
+}
 
 
 
