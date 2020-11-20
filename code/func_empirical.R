@@ -91,12 +91,12 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   initial_iqtree_tree <- paste0(alignment_path,".treefile")
 
   # Change to the log (storage for log files) folder for this alignment - means that 3seq and Phi files will be saved into a unique folder
-  print("run 3SEQ")
   setwd(log_folder)
   # Get path to 3SEQ
   
   # Only run 3SEQ if the path is an alignment (don't need bootstrap replicates of 3SEQ)
   if (bootstrap_id == "alignment"){
+    print("run 3SEQ")
     seq_path <- program_paths[["3seq"]] # get path to 3seq executable
     # 3SEQ only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
     # Check if the fasta file already exists
