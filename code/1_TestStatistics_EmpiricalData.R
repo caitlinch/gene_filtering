@@ -199,7 +199,7 @@ print("apply treelikeness test statistics")
 # lapply(1:nrow(loci_df), empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = 1,
 #          iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use) 
 
-lapply(1:nrow(loci_df), empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
+lapply(1:3, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
        iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use) 
 
 
