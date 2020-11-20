@@ -86,49 +86,68 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   n_taxa <- length(n)
   n_char <- length(unlist(n[1]))
   
-  # Run IQ-tree on the alignment (if it hasn't already been run), and get the site concordance factor results
-  sCF <- calculate.empirical.sCF(alignment_path, iqtree_path = program_paths["IQTree"], iqtree.model, num_threads = iqtree.num_threads, num_scf_quartets = iqtree.num_quartets)
+  # Run IQ-tree on the alignment (if it hasn't already been run)
+  call.IQTREE.empirical(alignment_path, iqtree_path = program_paths["IQTree"], iqtree.model, num_threads = iqtree.num_threads)
   initial_iqtree_tree <- paste0(alignment_path,".treefile")
-  
+
   # Change to the log (storage for log files) folder for this alignment - means that 3seq and Phi files will be saved into a unique folder
   print("run 3SEQ")
   setwd(log_folder)
   # Get path to 3SEQ
-  seq_path <- program_paths[["3seq"]] # get path to 3seq executable
-  # 3SEQ only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
-  # Check if the fasta file already exists
-  fasta.name <- gsub(".nex",".fasta",alignment_path)
-  if (file.exists(fasta.name) == FALSE){
-    write.fasta(sequences = n,names = names(n), file.out = fasta.name) # output alignment as a fasta format
-    # # Old way of making the fasta name:
-    # fasta.name <- paste0(log_folder,output_id,".fasta") # make a name for the fasta alignment by adding .fasta (super original ;) )
-  }
-  # run 3seq 
-  # Note that 3Seq will only be run if they haven't already been run (checks for log files)
-  if (file.exists(paste0(log_folder,"3s.log")) == FALSE){
-    seq_command <- paste0(seq_path," -f ", fasta.name)
-    system(seq_command) #call 3SEQ
-  }
   
-  # 3SEQ will have created a file with the information about the statistics in
-  # Extract results output from 3Seq output
-  seq_file <- paste0(log_folder,"3s.log")
-  seq_log <- readLines(seq_file) # open file
-  ind      <- grep("Number of recombinant triplets",seq_log) # find the number of recombinant triplets line index
-  num_trips <- seq_log[ind]
-  num_trips <- strsplit(num_trips,":")[[1]][2] # extract the number of recombinant triplets
-  num_trips <- trimws(num_trips) # trim the whitespace from the number of triplets
-  ind      <- grep("Number of distinct recombinant sequences",seq_log) # find the number of distinct recombinant sequences line index
-  num_dis <- seq_log[ind]
-  num_dis <- strsplit(num_dis,":")[[1]][2] # extract the number of distinct recombinant sequences
-  num_dis <- trimws(num_dis) # trim the whitespace from the number of distinct recombinant sequences
-  # null hypothesis is of clonal evolution - need significant p-value to accept the alternative hypothesis
-  ind      <- grep("Rejection of the null hypothesis of clonal evolution",seq_log) # find the p value line index
-  seq_sig <- seq_log[ind]
-  seq_sig <- strsplit(seq_sig,"=")[[1]][2] # extract the p value
-  seq_sig <- trimws(seq_sig) # trim the whitespace from the number of distinct recombinant sequences
-  # record proportion of recombinant sequences
-  prop_recomb_seq <- as.numeric(num_dis)/as.numeric(n_taxa)
+  # Only run 3SEQ if the path is an alignment (don't need bootstrap replicates of 3SEQ)
+  if (bootstrap_id == "alignment"){
+    seq_path <- program_paths[["3seq"]] # get path to 3seq executable
+    # 3SEQ only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
+    # Check if the fasta file already exists
+    fasta.name <- gsub(".nex",".fasta",alignment_path)
+    if (file.exists(fasta.name) == FALSE){
+      write.fasta(sequences = n,names = names(n), file.out = fasta.name) # output alignment as a fasta format
+      # # Old way of making the fasta name:
+      # fasta.name <- paste0(log_folder,output_id,".fasta") # make a name for the fasta alignment by adding .fasta (super original ;) )
+    }
+    # run 3seq 
+    # Note that 3Seq will only be run if they haven't already been run (checks for log files)
+    if (file.exists(paste0(log_folder,"3s.log")) == FALSE){
+      seq_command <- paste0(seq_path," -f ", fasta.name)
+      system(seq_command) #call 3SEQ
+    }
+    
+    # 3SEQ will have created a file with the information about the statistics in
+    # Extract results output from 3Seq output
+    seq_file <- paste0(log_folder,"3s.log")
+    seq_log <- readLines(seq_file) # open file
+    ind      <- grep("Number of recombinant triplets",seq_log) # find the number of recombinant triplets line index
+    num_trips <- seq_log[ind]
+    num_trips <- strsplit(num_trips,":")[[1]][2] # extract the number of recombinant triplets
+    num_trips <- trimws(num_trips) # trim the whitespace from the number of triplets
+    ind      <- grep("Number of distinct recombinant sequences",seq_log) # find the number of distinct recombinant sequences line index
+    num_dis <- seq_log[ind]
+    num_dis <- strsplit(num_dis,":")[[1]][2] # extract the number of distinct recombinant sequences
+    num_dis <- trimws(num_dis) # trim the whitespace from the number of distinct recombinant sequences
+    # null hypothesis is of clonal evolution - need significant p-value to accept the alternative hypothesis
+    ind      <- grep("Rejection of the null hypothesis of clonal evolution",seq_log) # find the p value line index
+    seq_sig <- seq_log[ind]
+    seq_sig <- strsplit(seq_sig,"=")[[1]][2] # extract the p value
+    seq_sig <- trimws(seq_sig) # trim the whitespace from the number of distinct recombinant sequences
+    # record proportion of recombinant sequences
+    prop_recomb_seq <- as.numeric(num_dis)/as.numeric(n_taxa)
+    
+    # Calculate the site concordance factor results
+    # Run IQ-tree on the alignment (if it hasn't already been run), and get the site concordance factor results
+    sCF <- calculate.empirical.sCF(alignment_path, iqtree_path = program_paths["IQTree"], iqtree.model, num_threads = iqtree.num_threads, num_scf_quartets = iqtree.num_quartets)
+    scf_mean_value <- sCF$mean_scf
+    scf_median_value <- sCF$median_scf
+  } else {
+    # If this is a bootstrap replicate, don't need either the sCF or the 3SEQ values
+    # These are recorded from the original alignment
+    num_trips <- "NA"
+    num_dis <- "NA"
+    seq_sig <- "NA"
+    prop_recomb_seq <- "NA"
+    scf_mean_value <- "NA"
+    scf_median_value <- "NA"
+  }
   
   # Change back to directory containing alignments and iqtree files
   setwd(alignment_folder)
@@ -170,7 +189,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   df <- data.frame(matrix(nrow=0,ncol=length(df_names))) # create an empty dataframe of the correct size
   op_row <- c(dataset, loci_name, rep_id, n_taxa, n_char, alignment_path,
               num_trips, num_dis, prop_recomb_seq, seq_sig,
-              nn_trimmed, sCF$mean_scf, sCF$median_scf) # collect all the information
+              nn_trimmed, scf_mean_value, scf_median_value) # collect all the information
   df <- rbind(df,op_row,stringsAsFactors = FALSE) # place row in dataframe
   names(df) <- df_names # add names to the df so you know what's what
   write.csv(df,file = results_file, row.names = FALSE)
@@ -464,16 +483,28 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
 
 
 
-# Function to call IQ-tree, and estimate a maximum likelihood tree and corresponding the site concordance factors
-# Site concordance factors (sCF) are the fraction of decisive alignmen sites supporting that branch
-# sCF Citation: Minh B.Q., Hahn M., Lanfear R. (2018) New methods to calculate concordance factors for phylogenomic datasets. https://doi.org/10.1101/487801
-calculate.empirical.sCF <- function(alignment_path, iqtree_path, alignment_model, num_threads = "AUTO", num_scf_quartets = 100){
+# Function to call IQ-tree and estimate a maximum likelihood tree 
+call.IQTREE.empirical <- function(alignment_path, iqtree_path, alignment_model, num_threads = "AUTO"){
   # Check if the tree file already exists and if it doesn't, run IQ-tree and create it
   if (file.exists(paste0(alignment_path,".treefile")) == FALSE){
     # Given an alignment, estimate the maximum likelihood tree
     # to estimate: iqtree -s ALN_FILE -p PARTITION_FILE --prefix concat -bb 1000 -nt AUTO
     call <- paste0(iqtree_path," -s ",alignment_path," -m ",alignment_model," -nt ", num_threads," -redo -safe")
     system(call)
+  }
+}
+
+
+
+
+
+# Function to call IQ-tree, and estimate a maximum likelihood tree and corresponding the site concordance factors
+# Site concordance factors (sCF) are the fraction of decisive alignmen sites supporting that branch
+# sCF Citation: Minh B.Q., Hahn M., Lanfear R. (2018) New methods to calculate concordance factors for phylogenomic datasets. https://doi.org/10.1101/487801
+calculate.empirical.sCF <- function(alignment_path, iqtree_path, alignment_model, num_threads = "AUTO", num_scf_quartets = 100){
+  # Check if the tree file already exists and if it doesn't, run IQ-tree and create it
+  if (file.exists(paste0(alignment_path,".treefile")) == FALSE){
+    call.IQTREE.empirical(alignment_path, iqtree_path, alignment_model, num_threads)
   }
   if (file.exists(paste0(alignment_path,".treefile.cf.stat")) == FALSE){
     # Create the command and call it in the system
