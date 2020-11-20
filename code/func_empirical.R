@@ -194,16 +194,18 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   names(df) <- df_names # add names to the df so you know what's what
   write.csv(df,file = results_file, row.names = FALSE)
   
-  # Repeat the above to create an output folder for the sCF values
-  print(paste0("output sCF values for ",output_id))
-  results_file <- paste0(alignment_folder,output_id,"_sCF_branch.csv")
-  # Make somewhere to store the results
-  op_row <- c(dataset,loci_name,rep_id,n_taxa,n_char,alignment_path,sCF$all_scfs) # collect all the information
-  df <- data.frame(matrix(nrow=0,ncol=length(op_row))) # create an empty dataframe of the correct size
-  df_names <- c("dataset","loci","bootstrap_replicate_id","n_taxa","n_sites","alignment_file", sCF$branch_ids)
-  df <- rbind(df,op_row,stringsAsFactors = FALSE) # place row in dataframe
-  names(df) <- df_names # add names to the df so you know what's what
-  write.csv(df,file = results_file, row.names = FALSE)
+  if (bootstrap_id == "alignment"){
+    # Repeat the above to create an output folder for the sCF values
+    print(paste0("output sCF values for ",output_id))
+    results_file <- paste0(alignment_folder,output_id,"_sCF_branch.csv")
+    # Make somewhere to store the results
+    op_row <- c(dataset,loci_name,rep_id,n_taxa,n_char,alignment_path,sCF$all_scfs) # collect all the information
+    df <- data.frame(matrix(nrow=0,ncol=length(op_row))) # create an empty dataframe of the correct size
+    df_names <- c("dataset","loci","bootstrap_replicate_id","n_taxa","n_sites","alignment_file", sCF$branch_ids)
+    df <- rbind(df,op_row,stringsAsFactors = FALSE) # place row in dataframe
+    names(df) <- df_names # add names to the df so you know what's what
+    write.csv(df,file = results_file, row.names = FALSE)
+  }
 }
 
 
