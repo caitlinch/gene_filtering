@@ -209,12 +209,6 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
   empirical_alignment_tree_path <- paste0(empirical_alignment_path,".treefile")
   empirical_alignment_tree <- read.tree(empirical_alignment_tree_path)
   
-  # open the empirical alignment to get information about the sequence
-  #print("open nexus files")
-  #n <- read.nexus.data(empirical_alignment_path)
-  #p <- phyDat(n)
-  #new_aln <- p
-  
   # First generate completely new DNA using the params
   # Create an alignment for this replicate using the alignment params - name will be loci_bootstrapReplicateXXXX
   if (file.exists(bootstrap_alignment_path) == FALSE) {
@@ -299,9 +293,21 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
   # Run all the test statistics
   # bootstrap_id will be "bootstrapReplicateXXXX" where XXXX is a number
   print("run test statistics")
-  empirical.runTS(alignment_path = bootstrap_alignment_path, program_paths = program_paths, bootstrap_id = bootstrap_id, 
-                  iqtree.num_threads, iqtree.num_quartets, iqtree.model = empirical_alignment_row$best_model, 
-                  alphabet = empirical_alignment_row$alphabet, dataset_name = empirical_alignment_row$dataset)
+  
+  # If the alignment comes from Vanderpool 2020, there is no specified best model (the original best model was determined using MFP in IQ-Tree)
+  # Need to pass the model from the empirical alignment into the bootstrap replicates (this will be from the .iqtree file)
+  # Alternatively, if the alignment comes from Misof 2014 or 1KP, we know the best model and we should use that model for both the original 
+  #   alignment and the parametric bootstrap
+  if (empirical_alignment_row$best_model == "MFP"){
+    MFP_model <- alignment_params$parameters[9,2]
+    empirical.runTS(alignment_path = bootstrap_alignment_path, program_paths = program_paths, bootstrap_id = bootstrap_id, 
+                    iqtree.num_threads, iqtree.num_quartets, iqtree.model = MFP_model, 
+                    alphabet = empirical_alignment_row$alphabet, dataset_name = empirical_alignment_row$dataset)
+  } else {
+    empirical.runTS(alignment_path = bootstrap_alignment_path, program_paths = program_paths, bootstrap_id = bootstrap_id, 
+                    iqtree.num_threads, iqtree.num_quartets, iqtree.model = empirical_alignment_row$best_model, 
+                    alphabet = empirical_alignment_row$alphabet, dataset_name = empirical_alignment_row$dataset)
+  }
 }
 
 
