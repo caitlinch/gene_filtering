@@ -157,22 +157,22 @@ if (is.na(best_model_paths[["Vanderpool2020"]])){
   Vanderpool2020_model <- rep("MFP", length(Vanderpool2020_paths))
 }
 # Create a dataframe of loci information for all three datasets: loci name, alphabet type, model, dataset, path, output path
-# loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names, OKP_names), 
-#                       alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Misof2014_paths)), rep("protein",length(OKP_paths))),
-#                       best_model = c(Vanderpool2020_model, Misof2014_model, OKP_model),
-#                       dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Misof2014",length(Misof2014_paths)), rep("1KP",length(OKP_paths))),
-#                       loci_path = c(Vanderpool2020_paths, Misof2014_paths, OKP_paths), 
-#                       output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), rep(output_dirs[["1KP"]],length(OKP_paths))),
-#                       stringsAsFactors = FALSE)
-
-# Remove 1KP data for now (until I work out which species to include, or how to deal with the huge amount of species)
-loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names), 
-                      alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Misof2014_paths))),
-                      best_model = c(Vanderpool2020_model, Misof2014_model),
-                      dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Misof2014",length(Misof2014_paths))),
-                      loci_path = c(Vanderpool2020_paths, Misof2014_paths), 
-                      output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Misof2014"]], length(Misof2014_paths))),
+loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names, OKP_names),
+                      alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Misof2014_paths)), rep("protein",length(OKP_paths))),
+                      best_model = c(Vanderpool2020_model, Misof2014_model, OKP_model),
+                      dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Misof2014",length(Misof2014_paths)), rep("1KP",length(OKP_paths))),
+                      loci_path = c(Vanderpool2020_paths, Misof2014_paths, OKP_paths),
+                      output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), rep(output_dirs[["1KP"]],length(OKP_paths))),
                       stringsAsFactors = FALSE)
+
+# # Remove 1KP data for now (until I work out which species to include, or how to deal with the huge amount of species)
+# loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names), 
+#                       alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Misof2014_paths))),
+#                       best_model = c(Vanderpool2020_model, Misof2014_model),
+#                       dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Misof2014",length(Misof2014_paths))),
+#                       loci_path = c(Vanderpool2020_paths, Misof2014_paths), 
+#                       output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Misof2014"]], length(Misof2014_paths))),
+#                       stringsAsFactors = FALSE)
 
 
 # Remove rows with best_model == NA <- these are the Misof2014 clans, protein domains and voids (whereas above, we extracted the models only for the orthologous genes)
