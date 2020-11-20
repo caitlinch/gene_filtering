@@ -23,30 +23,31 @@ library(stringr) # wrappers for string operations
 
 ##### Step 2: Set file paths and run variables #####
 print("initialising namespace")
-# input_dir    <- the folder(s) containing the empirical data
-#              <- where simulated alignments and output from analysis (e.g. IQ-Tree output files, 3seq output files) will be placed
-# input_names  <- set name(s) for the dataset(s)
-# output_dir   <- for collated output and results. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
-# treedir      <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
-# maindir      <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
-# cores_to_use <- the number of cores to use for parametric bootstrap. 1 for a single core (wholly sequential), or higher if using parallelisation.
-# reps_to_do   <- the number of of bootstrap replicates to perform
-# exec_folder  <- the folder containing the software executables needed for analysis (3SEQ, IQ-Tree and SplitsTree4)
-# exec_paths   <- location to each executable within the folder. Attach the names of the executables so the paths can be accessed by name
+# input_dir         <- the folder(s) containing the empirical data
+# input_names       <- set name(s) for the dataset(s)
+# output_dir        <- for collated output and results. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
+# treedir           <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
+# maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+# cores_to_use      <- the number of cores to use for parametric bootstrap. 1 for a single core (wholly sequential), or higher if using parallelisation.
+# cores_for_iqtree  <- specify the number of threads for IQ-Tree to use. If using parallelisation for parametric bootstrap, use 1. Otherwise, can use 1 or set to "AUTO" and let IQ-Tree select the best number
+# reps_to_do        <- the number of of bootstrap replicates to perform
+# exec_folder       <- the folder containing the software executables needed for analysis (3SEQ, IQ-Tree and SplitsTree4)
+# exec_paths        <- location to each executable within the folder. Attach the names of the executables so the paths can be accessed by name
 
 # The SplitsTree executable path can be tricky to find: 
 #       - in MacOS, the path is "SplitsTree.app/Contents/MacOS/JavaApplicationStub" (assuming you are in the same directory as the application)
 #       - in Linux, after installing and navigating into the folder it's simply "SplitsTree"
 
+# # UNCOMMENT THE FOLLOWING LINES AND ENTER YOUR FILE PATHS/VARIABLES
 # input_dir <- ""
 # input_names <- ""
 # output_dir <- ""
 # treedir <- ""
 # maindir <- ""
 # cores_to_use <- 1
+# cores_for_iqtree <- 1
 # reps_to_do <- 199
 # sCF_replicates <- 1000
-
 # # Create a vector with all of the executable file paths
 # # To access a path: exec_paths[["name"]]
 # exec_folder <- "/path/to/executables/folder/"
@@ -54,8 +55,7 @@ print("initialising namespace")
 # exec_paths <- paste0(exec_folder,exec_paths)
 # names(exec_paths) <- c("3seq","IQTree","SplitsTree")
 
-###
-
+### Caitlin's paths ###
 run_location = "local"
 # run_location = "server"
 
@@ -81,9 +81,9 @@ if (run_location == "local"){
   
   # set number of cores and reps for bootstraps
   cores_to_use = 1
+  cores_for_iqtree = 1
   reps_to_do = 9
   sCF_replicates = 1000
-  
 } else if (run_location=="server"){
   input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
                  "/data/caitlin/empirical_treelikeness/Data_Misof2014/",
@@ -103,6 +103,7 @@ if (run_location == "local"){
   
   # set number of cores and reps for bootstraps
   cores_to_use = 30
+  cores_for_iqtree = 1
   reps_to_do= 99
   sCF_replicates = 1000
 }
@@ -195,8 +196,11 @@ print("apply treelikeness test statistics")
 #                              - (number of simulatenous bootstraps set by choice of cores_to_use value)
 #       ~ iqtree.num_quartets = 1000: greater than 100 quartets necessary for stable sCF values
 
-lapply(1:nrow(loci_df), empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = 1,
-         iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use) 
+# lapply(1:nrow(loci_df), empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = 1,
+#          iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use) 
+
+lapply(1:nrow(loci_df), empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
+       iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use) 
 
 
 
@@ -208,7 +212,7 @@ lapply(1:nrow(loci_df), empirical.bootstraps.wrapper, loci_df, program_paths = e
  
  
 
-# ##### Step 8: Extract additional information about the alignments and trees #####
+# ##### Step 7: Extract additional information about the alignments and trees #####
 # # Extracting more information for statistical tests and plots
 # # Extract total tree depth from each alignment's iqtree file and add to dataframe
 # results_df$total_tree_depth <- unlist(lapply(results_df$alignment_file, extract.total.tree.length))
