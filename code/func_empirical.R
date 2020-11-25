@@ -385,7 +385,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     
     # Calculate the test statistics if it hasn't already been done
     ts_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_testStatistics.csv")
-    if (paste0(empirical_alignment_path,".treefile.cf.stat") == FALSE){
+    if (file.exists(ts_file) == FALSE){
       print("run test statistics")
       empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment", iqtree.num_threads, iqtree.num_quartets, 
                       iqtree.model = loci_row$best_model, alphabet = loci_row$alphabet, dataset_name = loci_row$dataset)
