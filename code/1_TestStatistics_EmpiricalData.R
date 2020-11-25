@@ -56,8 +56,8 @@ print("initialising namespace")
 # names(exec_paths) <- c("3seq","IQTree","SplitsTree")
 
 ### Caitlin's paths ###
-run_location = "local"
-# run_location = "server"
+# run_location = "local"
+run_location = "server"
 
 if (run_location == "local"){
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
