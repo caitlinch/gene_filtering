@@ -328,7 +328,9 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
     empirical.runTS(alignment_path = bootstrap_alignment_path, program_paths = program_paths, bootstrap_id = bootstrap_id, 
                     iqtree.num_threads, iqtree.num_quartets, iqtree.model = empirical_alignment_row$best_model, 
                     alphabet = empirical_alignment_row$alphabet, dataset_name = empirical_alignment_row$dataset)
-  }
+  
+    
+    }
 }
 
 
@@ -373,17 +375,17 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   if (file.exists(p_value_file) == FALSE){
     # Check that the original alignment ran ok
     if (file.exists(paste0(empirical_alignment_path,".treefile.cf.stat")) == FALSE){
-      print("need to rerun IQ-Tree")
+      print("need to run IQ-Tree")
       # Run IQ-tree on the alignment (if it hasn't already been run), and get the sCF results
       print("run IQTree and estimate sCFs")
-      calculate.empirical.sCF(alignment_path = empirical_alignment_path, iqtree_path = program_paths[["IQTree"]], 
+      scfs <- calculate.empirical.sCF(alignment_path = empirical_alignment_path, iqtree_path = program_paths[["IQTree"]], 
                               alignment_model = loci_row$best_model, num_threads = iqtree.num_threads, 
                               num_scf_quartets = iqtree.num_quartets)
     }
     
     # Calculate the test statistics if it hasn't already been done
     ts_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_testStatistics.csv")
-    if (file.exists(ts_file) == FALSE){
+    if (paste0(empirical_alignment_path,".treefile.cf.stat") == FALSE){
       print("run test statistics")
       empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment", iqtree.num_threads, iqtree.num_quartets, 
                       iqtree.model = loci_row$best_model, alphabet = loci_row$alphabet, dataset_name = loci_row$dataset)
@@ -414,8 +416,8 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     # Run all the bootstrap ids that HAVEN'T already been run (e.g. in previous attempts) using lapply (feed info into do1.empirical.parametric.bootstrap)
     # If the alignment doesn't exist OR the test statistic csv doesnt exist, this indicates a complete run has not previously been done 
     # These bootstrap replicates will thus be calculates
-    # This should save A BUNCH of time because it means if the test statistic file exists, you don't have to run Splitstree four times
-    print(paste0("run ",number_of_replicates," bootstrap replicates"))
+    # This should save A BUNCH of time because it means if the test statistic file exists, you don't have to run any calculations
+    print(paste0("Prepare ",number_of_replicates," bootstrap replicates"))
     bs_als <- paste0(alignment_folder,loci_name,"_",bootstrap_ids,"/",loci_name,"_",bootstrap_ids,".nex")
     ts_csvs <- paste0(alignment_folder,loci_name,"_",bootstrap_ids,"/",loci_name,"_",bootstrap_ids,"_testStatistics.csv")
     missing_als <- bs_als[!file.exists(bs_als)]
@@ -423,8 +425,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     # Collate the missing files and identify the alignments to rerun
     all_to_run <- unique(c(missing_als,missing_testStatistics))
     ids_to_run <- bootstrap_ids[which((bs_als %in% all_to_run))]
-    print(paste0("Number of bootstrap alignments to run = ",length(ids_to_run)))
-    print("Run bootstrap alignments")
+    print(paste0("Run ",length(ids_to_run)," (of ", number_of_replicates, ") bootstrap replicates"))
     if(length(ids_to_run)>0){
       mclapply(ids_to_run, do1.empirical.parametric.bootstrap, empirical_alignment_path = empirical_alignment_path, empirical_alignment_row = loci_row,
                alignment_params = params, program_paths = program_paths, iqtree.num_threads = iqtree.num_threads, iqtree.num_quartets = iqtree.num_quartets, 
@@ -919,6 +920,7 @@ generate.AA.alignment <- function(alignment_params, empirical_alignment_tree){
       }
     }
   }
+  return(new_aln)
 }
 
 
