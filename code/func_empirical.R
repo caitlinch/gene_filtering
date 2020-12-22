@@ -482,7 +482,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
                                       'X3SEQ_num_distinct_recombinant_sequences','X3SEQ_prop_recombinant_sequences','X3SEQ_p_value','tree_proportion',
                                       'tree_proportion_p_value','sCF_mean','sCF_median')]
     # Output the p-values file
-    write.csv(p_value_df,file = p_value_file, row.names = FALSE)
+    write.csv(op_p_value_df,file = p_value_file, row.names = FALSE)
   }
 }
 
