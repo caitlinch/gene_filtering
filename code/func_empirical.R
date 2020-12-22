@@ -185,7 +185,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   # Make somewhere to store the results
   df_names <- c("dataset", "loci", "bootstrap_replicate_id", "n_taxa", "n_sites", "alignment_file",
                 "3SEQ_num_recombinant_triplets", "3SEQ_num_distinct_recombinant_sequences", "3SEQ_prop_recombinant_sequences", "3SEQ_p_value",
-                "neighbour_net_trimmed","sCF_mean", "sCF_median")
+                "tree_proportion","sCF_mean", "sCF_median")
   df <- data.frame(matrix(nrow=0,ncol=length(df_names))) # create an empty dataframe of the correct size
   op_row <- c(dataset, loci_name, rep_id, n_taxa, n_char, alignment_path,
               num_trips, num_dis, prop_recomb_seq, seq_sig,
@@ -470,16 +470,17 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     aln_id <- grep(new_bootstrap_ids[!grepl("bootstrapReplicate",new_bootstrap_ids)],new_bootstrap_ids) # get which element of col is the alignment
     new_bootstrap_ids[aln_id] <- "alignment"
     p_value_df$bootstrap_replicate_id <- new_bootstrap_ids
+    # Get the single row that's just the alignment
+    op_p_value_df <- p_value_df[p_value_df$bootstrap_replicate_id == "alignment",]
     
     # Calculate the p-values and add them to the original test statistic dataframe
     print("calculate p values")
     # Calculate the p_values of the variables of interest
     # Calculate the p-values for each test statistic
-    p_value_df$x3seq_numRecomSeq_sig   <- calculate.p_value(p_value_df$X3SEQ_num_distinct_recombinant_sequences, p_value_df$bootstrap_replicate_id)
-    p_value_df$x3seq_propRecomSeq_sig  <- calculate.p_value(p_value_df$X3SEQ_prop_recombinant_sequences, p_value_df$bootstrap_replicate_id)
-    p_value_df$nn_trimmed_sig          <- calculate.p_value(p_value_df$neighbour_net_trimmed, p_value_df$bootstrap_replicate_id)
-    p_value_df$sCF_mean_sig            <- calculate.p_value(p_value_df$sCF_mean, p_value_df$bootstrap_replicate_id)
-    p_value_df$sCF_median_sig          <- calculate.p_value(p_value_df$sCF_median, p_value_df$bootstrap_replicate_id)
+    op_p_value_df$tree_proportion_p_value         <- calculate.p_value(p_value_df$tree_proportion, p_value_df$bootstrap_replicate_id)
+    op_p_value_df <- op_p_value_df[,c('dataset','loci','bootstrap_replicate_id','n_taxa','n_sites','alignment_file','X3SEQ_num_recombinant_triplets',
+                                      'X3SEQ_num_distinct_recombinant_sequences','X3SEQ_prop_recombinant_sequences','X3SEQ_p_value','tree_proportion',
+                                      'tree_proportion_p_value','sCF_mean','sCF_median')]
     # Output the p-values file
     write.csv(p_value_df,file = p_value_file, row.names = FALSE)
   }
