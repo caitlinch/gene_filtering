@@ -213,7 +213,7 @@ lapply(O_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths,
 print("collate results")
 # Collate all the dataframes together
 results_file <- paste0(output_dir,"empiricalAlignments_collated_testStatisticResults.csv")
-# results_df <- collate.bootstraps(directory = input_dir, file.name = "pValues", id = "", output.file.name = results_file)
+results_df <- collate.bootstraps(directory = output_dir, file.name = "pValues", id = "", output.file.name = results_file)
  
  
 
