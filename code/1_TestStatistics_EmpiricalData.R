@@ -56,8 +56,8 @@ print("initialising namespace")
 # names(exec_paths) <- c("3seq","IQTree","SplitsTree")
 
 ### Caitlin's paths ###
-# run_location = "local"
-run_location = "server"
+run_location = "local"
+# run_location = "server"
 
 if (run_location == "local"){
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
@@ -71,7 +71,7 @@ if (run_location == "local"){
   treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
-  exec_folder <- "/Users/caitlincherryh/Documents/Honours/SimulationsCodeAndResults"
+  exec_folder <- "/Users/caitlincherryh/Documents/Honours/SimulationsCodeAndResults/Executables/"
   # Create a vector with all of the executable file paths  in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("3seq","iqtree-2.0-rc1-MacOSX/bin/iqtree",
@@ -209,10 +209,10 @@ lapply(O_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths,
 
 
 
-# ##### Step 6: Collate test statistic results #####
-# print("collate results")
-# # Collate all the dataframes together
-# results_file <- paste0(output_dir,basename(input_dir),"_testStatisticResults.csv")
+##### Step 6: Collate test statistic results #####
+print("collate results")
+# Collate all the dataframes together
+results_file <- paste0(output_dir,"empiricalAlignments_collated_testStatisticResults.csv")
 # results_df <- collate.bootstraps(directory = input_dir, file.name = "pValues", id = "", output.file.name = results_file)
  
  
