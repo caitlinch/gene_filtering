@@ -370,6 +370,9 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   
   # Remove empty taxa from the alignment
   remove.empty.taxa(empirical_alignment_path, loci_row$alphabet)
+  # Remove characters that IQ-Tree won't accept from the alignment
+  # Leave only A,C,G,N,T,-
+  remove.invalid.characters(empirical_alignment_path, loci_row$alphabet)
   
   # Only run this section if the p-value csv has not been created yet (skip reruns)
   if (file.exists(p_value_file) == FALSE){
@@ -658,6 +661,47 @@ remove.empty.taxa <- function(alignment_path, seq_type){
   }
   n_new <- n[copy_names]
   write.nexus.data(n_new,file = alignment_path, format = seq_type, interleaved = TRUE)
+  # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
+  nexus_edit <- readLines(alignment_path) # open the new nexus file
+  ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
+  if (seq_type == "dna"){
+    nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
+  } else if (seq_type == "protein"){
+    nexus_edit[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN INTERLEAVE;" # replace the line
+  }
+  writeLines(nexus_edit,alignment_path) # output the edited nexus file
+}
+
+
+
+
+# Function to remove empty sequences from a nexus file (either AA or DNA)
+remove.invalid.characters <- function(alignment_path, seq_type){
+  n <- read.nexus.data(alignment_path)
+  n_copy <- n
+  # Initialise a new sequence
+  seq_names <- names(n)
+  # Find which sequences need editing
+  to_edit_inds <- grep("W|w|S|s|M|m|K|k|R|r|Y|y|B|b|D|d|H|h|V|v|Z|z|n",n)
+  to_edit_seqs <- seq_names[to_edit_inds]
+  # Iterate through the names and add non-missing sequences to the new sequence
+  for (seq_name in to_edit_seqs){
+    seq <- n[[seq_name]] # get the original empirical sequence
+    seq_copy <- seq
+    seq_copy <- gsub("n","N",seq_copy) # change lower case n to upper case
+    seq_copy <- gsub("z","N",seq_copy) # change z to N
+    seq_copy <- gsub("N","N",seq_copy) # change Z to N
+    chars_upper <- c("W","S","M","K","R","Y","B","D","H","V")
+    chars_lower <- c("w","s","m","k","r","y","b","d","h","v")
+    for (i in 1:length(chars_upper)){
+      # replace other characters with 
+      c_upper <- chars_upper[i]
+      c_lower <- chars_lower[i]
+      seq_copy <- gsub(c_lower,c_upper,seq_copy)
+    }
+    n_copy[[seq_name]] <- seq_copy
+  }
+  write.nexus.data(n_copy,file = alignment_path, format = seq_type, interleaved = TRUE)
   # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
   nexus_edit <- readLines(alignment_path) # open the new nexus file
   ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
