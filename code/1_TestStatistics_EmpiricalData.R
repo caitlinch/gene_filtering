@@ -71,7 +71,7 @@ if (run_location == "local"){
   treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
-  exec_folder <- "/Users/caitlincherryh/Documents/Honours/Executables/"
+  exec_folder <- "/Users/caitlincherryh/Documents/Honours/SimulationsCodeAndResults"
   # Create a vector with all of the executable file paths  in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("3seq","iqtree-2.0-rc1-MacOSX/bin/iqtree",
