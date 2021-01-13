@@ -370,6 +370,13 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   
   # Remove empty taxa from the alignment
   remove.empty.taxa(empirical_alignment_path, loci_row$alphabet)
+  # Remove any sequences from the alignment that have more than the allowable proportion of ambiguous/missing sites or gaps
+  if (!is.na(loci_row$allowable_proportion_missing_sites)){
+    # If the allowable proportion of missing sites is NOT NA, run the pruning function
+    # The pruning function will remove any sequences where the proportion of missing sites is GREATER than the allowable proportion of missing sites
+    prune.taxa.by.length(empirical_alignment_path, loci_row$allowable_proportion_missing_sites, loci_row$alphabet, write_output_text = TRUE, alignment_folder)
+  }
+  
   # Remove characters that IQ-Tree won't accept from the alignment
   # Leave only A,C,G,N,T,-
   remove.invalid.characters(empirical_alignment_path, loci_row$alphabet)
@@ -622,14 +629,14 @@ copy.alignment.as.nexus <- function(alignment_path, alignment_folder, loci_name,
       # read in the fasta data
       f_data <- read.fasta(alignment_path, seqtype = seq_type)
       # write the output as a nexus file to the output folder for this alignment
-      write.nexus.data(f_data, file = new_path, format = loci_row$alphabet, interleaved = TRUE, datablock = FALSE)
+      write.nexus.data(f_data, file = new_path, format = loci_row$alphabet, interleaved = FALSE, datablock = FALSE)
       # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
       nexus <- readLines(new_path) # open the new nexus file
       ind <- grep("BEGIN CHARACTERS",nexus)+2 # find which line
       if (loci_row$alphabet == "dna"){
-        nexus[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
+        nexus[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=-;" # replace the line
       } else if (loci_row$alphabet == "protein"){
-        nexus[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN INTERLEAVE;" # replace the line
+        nexus[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN;" # replace the line
       }
       writeLines(nexus,new_path) # output the edited nexus file
       alignment_path <- new_path
@@ -651,8 +658,9 @@ remove.empty.taxa <- function(alignment_path, seq_type){
   # Iterate through the names and add non-missing sequences to the new sequence
   for (seq_name in seq_names){
     seq <- n[[seq_name]] # get the original empirical sequence
-    chars <- unique(seq)
-    if (setequal(chars,c("?")) || setequal(chars,c("-")) || setequal(chars,c("-","?"))){
+    chars <- toupper(unique(seq))
+    if (setequal(chars,c("?")) || setequal(chars,c("-")) || setequal(chars,c("-","?")) || setequal(chars,c("X")) ||
+        setequal(chars,c("-", "X")) || setequal(chars,c("-", "N")) || setequal(chars,c("N"))){
       # If the only characters are the empty character or the question mark character, ignore this sequence
       next
     } else {
@@ -661,14 +669,14 @@ remove.empty.taxa <- function(alignment_path, seq_type){
     }
   }
   n_new <- n[copy_names]
-  write.nexus.data(n_new,file = alignment_path, format = seq_type, interleaved = TRUE)
+  write.nexus.data(n_new,file = alignment_path, format = seq_type, interleaved = FALSE)
   # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
   nexus_edit <- readLines(alignment_path) # open the new nexus file
   ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
   if (seq_type == "dna"){
-    nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
+    nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=-;" # replace the line
   } else if (seq_type == "protein"){
-    nexus_edit[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN INTERLEAVE;" # replace the line
+    nexus_edit[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN;" # replace the line
   }
   writeLines(nexus_edit,alignment_path) # output the edited nexus file
 }
@@ -677,32 +685,94 @@ remove.empty.taxa <- function(alignment_path, seq_type){
 
 
 # Function to remove empty sequences from a nexus file (either AA or DNA)
-remove.invalid.characters <- function(alignment_path, seq_type){
-  n <- read.nexus.data(alignment_path)
-  n_copy <- n
-  # Initialise a new sequence
-  seq_names <- names(n)
-  # Find which sequences need editing
-  to_edit_inds <- grep("W|w|S|s|M|m|K|k|R|r|Y|y|B|b|D|d|H|h|V|v|Z|z|n",n)
-  to_edit_seqs <- seq_names[to_edit_inds]
-  # Iterate through the names and add non-missing sequences to the new sequence
-  for (seq_name in to_edit_seqs){
-    seq <- n[[seq_name]] # get the original empirical sequence
-    seq_copy <- seq
-    seq_copy <- gsub("n","N",seq_copy) # change lower case n to upper case
-    seq_copy <- gsub("z","N",seq_copy) # change z to N
-    seq_copy <- gsub("N","N",seq_copy) # change Z to N
-    chars_upper <- c("W","S","M","K","R","Y","B","D","H","V")
-    chars_lower <- c("w","s","m","k","r","y","b","d","h","v")
-    for (i in 1:length(chars_upper)){
-      # replace other characters with 
-      c_upper <- chars_upper[i]
-      c_lower <- chars_lower[i]
-      seq_copy <- gsub(c_lower,c_upper,seq_copy)
-    }
-    n_copy[[seq_name]] <- seq_copy
+prune.taxa.by.length <- function(alignment_path, proportion_allowed_missing, seq_type, write_output_text = FALSE, output_folder){
+  # Set which characters you don't want in your sequences based on sequence type
+  if (seq_type == "dna"){
+    missing_chars <- "Z|N|-|\\?"
+  } else if (seq_type == "protein"){
+    missing_chars <- "X|-|\\?"
   }
-  write.nexus.data(n_copy,file = alignment_path, format = seq_type, interleaved = TRUE)
+  # Read in nexus file
+  n <- read.nexus.data(alignment_path)
+  # Initialise a new sequence
+  copy_names <- c()
+  seq_names <- names(n)
+  output_text <- c("Taxa, proportion_missing")
+  # Iterate through the names. If a sequence has more missing/ambiguous characters than the allowed proportion, do not include it
+  for (seq_name in seq_names){
+    seq <- toupper(n[[seq_name]]) # get the original empirical sequence
+    proportion_missing <- sum(lengths(regmatches(seq, gregexpr(missing_chars, seq))))/length(seq)
+    output_text <- c(output_text,paste0(seq_name," , ",proportion_missing))
+    if (proportion_missing<=proportion_allowed_missing){
+      copy_names <- c(copy_names,seq_name)
+    }
+  }
+  n_new <- n[copy_names]
+  write.nexus.data(n_new,file = alignment_path, format = seq_type, interleaved = FALSE)
+  # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
+  nexus_edit <- readLines(alignment_path) # open the new nexus file
+  ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
+  if (seq_type == "dna"){
+    nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=-;" # replace the line
+  } else if (seq_type == "protein"){
+    nexus_edit[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN;" # replace the line
+  }
+  writeLines(nexus_edit,alignment_path) # output the edited nexus file
+  
+  # If required, output all the proportions
+  if (write_output_text == TRUE){
+    write(output_text, file = paste0(output_folder,"proportion_of_ambiguous_sequence.txt"))
+  }
+}
+
+
+
+
+# Function to remove invalid characters from a nexus file (either AA or DNA)
+remove.invalid.characters <- function(alignment_path, seq_type){
+  if (seq_type == "dna"){
+    n <- read.nexus.data(alignment_path)
+    n_copy <- n
+    # Initialise a new sequence
+    seq_names <- names(n)
+    # Find which sequences need editing
+    to_edit_inds <- grep("W|w|S|s|M|m|K|k|R|r|Y|y|B|b|D|d|H|h|V|v|Z|z|n",n)
+    to_edit_seqs <- seq_names[to_edit_inds]
+    # Iterate through the names and add non-missing sequences to the new sequence
+    for (seq_name in to_edit_seqs){
+      seq <- n[[seq_name]] # get the original empirical sequence
+      seq_copy <- seq
+      seq_copy <- gsub("n","N",seq_copy) # change lower case n to upper case
+      seq_copy <- gsub("z","N",seq_copy) # change z to N
+      seq_copy <- gsub("Z","N",seq_copy) # change Z to N
+      chars_upper <- c("W","S","M","K","R","Y","B","D","H","V")
+      chars_lower <- c("w","s","m","k","r","y","b","d","h","v")
+      for (i in 1:length(chars_upper)){
+        # replace other characters with 
+        c_upper <- chars_upper[i]
+        c_lower <- chars_lower[i]
+        seq_copy <- gsub(c_lower,c_upper,seq_copy)
+      }
+      n_copy[[seq_name]] <- seq_copy
+    }
+    write.nexus.data(n_copy,file = alignment_path, format = seq_type, interleaved = TRUE)
+  } else if (seq_type == "protein"){
+    n <- read.nexus.data(alignment_path)
+    n_copy <- n
+    # Initialise a new sequence
+    seq_names <- names(n)
+    # Find which sequences need editing
+    to_edit_inds <- grep("X|x",n)
+    to_edit_seqs <- seq_names[to_edit_inds]
+    # Iterate through the names and add non-missing sequences to the new sequence
+    for (seq_name in to_edit_seqs){
+      seq <- n[[seq_name]] # get the original empirical sequence
+      seq_copy <- seq
+      seq_copy <- gsub("x","X",seq_copy) # change x to X
+      n_copy[[seq_name]] <- seq_copy
+    }
+    write.nexus.data(n_copy,file = alignment_path, format = seq_type, interleaved = TRUE)
+  }
   # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
   nexus_edit <- readLines(alignment_path) # open the new nexus file
   ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
