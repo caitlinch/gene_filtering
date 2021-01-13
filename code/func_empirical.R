@@ -379,7 +379,9 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   
   # Remove characters that IQ-Tree won't accept from the alignment
   # Leave only A,C,G,N,T,-
-  invalid_character_check <- check.invalid.nexus.characters(alignment_path, seq_type)
+  if (loci_row$alphabet == "dna"){
+    invalid_character_check <- check.invalid.nexus.characters(alignment_path, seq_type)
+  }
 
   
   # Only run this section if the p-value csv has not been created yet (skip reruns)
