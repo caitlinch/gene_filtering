@@ -379,18 +379,28 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   
   # Remove characters that IQ-Tree won't accept from the alignment
   # Leave only A,C,G,N,T,-
-  remove.invalid.characters(empirical_alignment_path, loci_row$alphabet)
+  invalid_character_check <- check.invalid.nexus.characters(alignment_path, seq_type)
+
   
   # Only run this section if the p-value csv has not been created yet (skip reruns)
   if (file.exists(p_value_file) == FALSE){
-    # Check that the original alignment ran ok
+    # Check whether IQ-Tree has been run
     if (file.exists(paste0(empirical_alignment_path,".treefile.cf.stat")) == FALSE){
       print("need to run IQ-Tree")
       # Run IQ-tree on the alignment (if it hasn't already been run), and get the sCF results
       print("run IQTree and estimate sCFs")
-      scfs <- calculate.empirical.sCF(alignment_path = empirical_alignment_path, iqtree_path = program_paths[["IQTree"]], 
-                              alignment_model = loci_row$best_model, num_threads = iqtree.num_threads, 
-                              num_scf_quartets = iqtree.num_quartets)
+      if (invalid_character_check == "contains_ambiguous_characters-use_FASTA"){
+        # If the nexus file contains ambiguous characters that aren't permitted by the format, run IQ-Tree using the FASTA file
+        empirical_alignment_path <- gsub(".nex",".fasta",empirical_alignment_path)
+        scfs <- calculate.empirical.sCF(alignment_path = empirical_alignment_path, iqtree_path = program_paths[["IQTree"]], 
+                                        alignment_model = loci_row$best_model, num_threads = iqtree.num_threads, 
+                                        num_scf_quartets = iqtree.num_quartets)
+      } else {
+        # If the nexus file doesn't contain any ambiguous characters, use the nexus file to run IQ-Tree
+        scfs <- calculate.empirical.sCF(alignment_path = empirical_alignment_path, iqtree_path = program_paths[["IQTree"]], 
+                                        alignment_model = loci_row$best_model, num_threads = iqtree.num_threads, 
+                                        num_scf_quartets = iqtree.num_quartets)
+      }
     }
     
     # Calculate the test statistics if it hasn't already been done
