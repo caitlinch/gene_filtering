@@ -363,31 +363,30 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   aa_frequency_file <- paste0(alignment_folder,loci_name,"_amino_acid_frequencies.csv")
   rate_matrix_file <- paste0(alignment_folder,loci_name,"_QRateMatrix.csv")
   
-  # If alignment is a nexus, copy it into the alignment folder
-  # If it's not, rewrite it into a nexus and copy to the alignment folder
-  # From now on, use the copy for analysis (leaving the original untouched)
-  empirical_alignment_path <- copy.alignment.as.nexus(loci_row$loci_path, alignment_folder, loci_name, loci_row)
-  
-  # Remove empty taxa from the alignment
-  remove.empty.taxa(empirical_alignment_path, loci_row$alphabet)
-  # Remove any sequences from the alignment that have more than the allowable proportion of ambiguous/missing sites or gaps
-  if (!is.na(loci_row$allowable_proportion_missing_sites)){
-    # If the allowable proportion of missing sites is NOT NA, run the pruning function
-    # The pruning function will remove any sequences where the proportion of missing sites is GREATER than the allowable proportion of missing sites
-    prune.taxa.by.length(empirical_alignment_path, loci_row$allowable_proportion_missing_sites, loci_row$alphabet, write_output_text = TRUE, alignment_folder)
-  }
-  
-  # Remove characters that IQ-Tree won't accept from the alignment
-  # Leave only A,C,G,N,T,-
-  if (loci_row$alphabet == "dna"){
-    invalid_character_check <- check.invalid.nexus.characters(alignment_path, seq_type)
-  } else if (loci_row$alphabet == "protein"){
-    invalid_character_check <- "no_ambiguous_characters"
-  }
-
-  
   # Only run this section if the p-value csv has not been created yet (skip reruns)
   if (file.exists(p_value_file) == FALSE){
+    # If alignment is a nexus, copy it into the alignment folder
+    # If it's not, rewrite it into a nexus and copy to the alignment folder
+    # From now on, use the copy for analysis (leaving the original untouched)
+    empirical_alignment_path <- copy.alignment.as.nexus(loci_row$loci_path, alignment_folder, loci_name, loci_row)
+    
+    # Remove empty taxa from the alignment
+    remove.empty.taxa(empirical_alignment_path, loci_row$alphabet)
+    # Remove any sequences from the alignment that have more than the allowable proportion of ambiguous/missing sites or gaps
+    if (!is.na(loci_row$allowable_proportion_missing_sites)){
+      # If the allowable proportion of missing sites is NOT NA, run the pruning function
+      # The pruning function will remove any sequences where the proportion of missing sites is GREATER than the allowable proportion of missing sites
+      prune.taxa.by.length(empirical_alignment_path, loci_row$allowable_proportion_missing_sites, loci_row$alphabet, write_output_text = TRUE, alignment_folder)
+    }
+    
+    # Remove characters that IQ-Tree won't accept from the alignment
+    # Leave only A,C,G,N,T,-
+    if (loci_row$alphabet == "dna"){
+      invalid_character_check <- check.invalid.nexus.characters(empirical_alignment_path, loci_row$alphabet)
+    } else if (loci_row$alphabet == "protein"){
+      invalid_character_check <- "no_ambiguous_characters"
+    }
+    
     # Check whether IQ-Tree has been run
     if (file.exists(paste0(empirical_alignment_path,".treefile.cf.stat")) == FALSE){
       print("need to run IQ-Tree")
@@ -759,7 +758,7 @@ check.invalid.nexus.characters <- function(alignment_path, seq_type){
           write.dna(n, file = fasta.name, format = "fasta")
       }
       output_indicator = "contains_ambiguous_characters-use_FASTA"
-    } else if (length(to_edit_seqs) > 0){
+    } else if (length(to_edit_seqs) = 0){
       output_indicator = "no_ambiguous_characters"
     }
   }
