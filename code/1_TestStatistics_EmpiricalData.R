@@ -140,6 +140,8 @@ if (is.na(best_model_paths[["1KP"]])){
 } else {
   OKP_model <- model.from.partition.scheme(OKP_names,best_model_paths[["1KP"]],"1KP")
 }
+#OKP_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
+OKP_allowed_missing_sites <- NA 
 # Obtaining the list of loci file paths from Misof 2014 is easy -- all the loci are in the same folder
 Misof2014_paths <- paste0(input_dir[["Misof2014"]], list.files(input_dir[["Misof2014"]], full.names = FALSE))
 Misof2014_names <- gsub(".nex","",grep(".nex",unlist(strsplit((Misof2014_paths), "/")), value = TRUE))
@@ -148,6 +150,8 @@ if (is.na(best_model_paths[["Misof2014"]])){
 } else {
   Misof2014_model <- model.from.partition.scheme(Misof2014_names,best_model_paths[["Misof2014"]],"Misof2014")
 }
+#Misof2014_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
+Misof2014_allowed_missing_sites <- NA
 # Obtaining the list of loci file paths from Vanderpool 2020 is easy -- all the loci are in the same folder
 Vanderpool2020_paths <- paste0(input_dir[["Vanderpool2020"]], list.files(input_dir[["Vanderpool2020"]], full.names = FALSE))
 Vanderpool2020_names <- gsub("_NoNcol.Noambig.fa","",grep(".fa",unlist(strsplit((Vanderpool2020_paths), "/")), value = TRUE))
@@ -156,6 +160,7 @@ if (is.na(best_model_paths[["Vanderpool2020"]])){
   # Use "-m MFP" in IQ-Tree to automatically set best model - see Vanderpool et al (2020)
   Vanderpool2020_model <- rep("MFP", length(Vanderpool2020_paths))
 }
+Vanderpool2020_allowed_missing_sites <- NA # Allow the Vanderpool dataset to run as it it
 # Create a dataframe of loci information for all three datasets: loci name, alphabet type, model, dataset, path, output path
 loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names, OKP_names),
                       alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Misof2014_paths)), rep("protein",length(OKP_paths))),
@@ -163,6 +168,9 @@ loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names, OKP_n
                       dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Misof2014",length(Misof2014_paths)), rep("1KP",length(OKP_paths))),
                       loci_path = c(Vanderpool2020_paths, Misof2014_paths, OKP_paths),
                       output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), rep(output_dirs[["1KP"]],length(OKP_paths))),
+                      allowable_proportion_missing_sites = c(rep(Vanderpool2020_allowed_missing_sites, length(Vanderpool2020_paths)),
+                                                             rep(Misof2014_allowed_missing_sites, length(Misof2014_paths)),
+                                                             rep(OKP_allowed_missing_sites,length(OKP_paths))),
                       stringsAsFactors = FALSE)
 
 # # Remove 1KP data for now (until I work out which species to include, or how to deal with the huge amount of species)
