@@ -381,6 +381,8 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   # Leave only A,C,G,N,T,-
   if (loci_row$alphabet == "dna"){
     invalid_character_check <- check.invalid.nexus.characters(alignment_path, seq_type)
+  } else if (loci_row$alphabet == "protein"){
+    invalid_character_check <- "no_ambiguous_characters"
   }
 
   
