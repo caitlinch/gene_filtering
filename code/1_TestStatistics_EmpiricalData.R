@@ -102,7 +102,7 @@ if (run_location == "local"){
   names(exec_paths) <- c("3seq","IQTree","SplitsTree")
   
   # set number of cores and reps for bootstraps
-  cores_to_use = 30
+  cores_to_use = 25
   cores_for_iqtree = 1
   reps_to_do= 99
   sCF_replicates = 1000

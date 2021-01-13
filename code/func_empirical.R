@@ -758,7 +758,7 @@ check.invalid.nexus.characters <- function(alignment_path, seq_type){
           write.dna(n, file = fasta.name, format = "fasta")
       }
       output_indicator = "contains_ambiguous_characters-use_FASTA"
-    } else if (length(to_edit_seqs) = 0){
+    } else if (length(to_edit_seqs) == 0){
       output_indicator = "no_ambiguous_characters"
     }
   }
