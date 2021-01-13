@@ -173,6 +173,13 @@ loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names, OKP_n
                                                              rep(OKP_allowed_missing_sites,length(OKP_paths))),
                       stringsAsFactors = FALSE)
 
+# Remove rows with best_model == NA <- these are the Misof2014 clans, protein domains and voids (whereas above, we extracted the models only for the orthologous genes)
+# "!is.na()" means "is not NA" <- we want to keep only the rows where best_model is not NA
+loci_df <- loci_df[!is.na(loci_df$best_model),]
+# output loci_df <- save a record of the input parameters you used!
+loci_df_name <- paste0(output_dir,"input_loci_parameters.csv")
+write.csv(loci_df, file = loci_df_name)
+
 # # Remove 1KP data for now (until I work out which species to include, or how to deal with the huge amount of species)
 # loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names), 
 #                       alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Misof2014_paths))),
@@ -181,14 +188,6 @@ loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names, OKP_n
 #                       loci_path = c(Vanderpool2020_paths, Misof2014_paths), 
 #                       output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Misof2014"]], length(Misof2014_paths))),
 #                       stringsAsFactors = FALSE)
-
-
-# Remove rows with best_model == NA <- these are the Misof2014 clans, protein domains and voids (whereas above, we extracted the models only for the orthologous genes)
-# "!is.na()" means "is not NA" <- we want to keep only the rows where best_model is not NA
-loci_df <- loci_df[!is.na(loci_df$best_model),]
-# output loci_df <- save a record of the input parameters you used!
-loci_df_name <- paste0(output_dir,"input_loci_parameters.csv")
-write.csv(loci_df, file = loci_df_name)
 
 
 
