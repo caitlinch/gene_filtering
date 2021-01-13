@@ -140,8 +140,7 @@ if (is.na(best_model_paths[["1KP"]])){
 } else {
   OKP_model <- model.from.partition.scheme(OKP_names,best_model_paths[["1KP"]],"1KP")
 }
-#OKP_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
-OKP_allowed_missing_sites <- NA 
+OKP_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
 # Obtaining the list of loci file paths from Misof 2014 is easy -- all the loci are in the same folder
 Misof2014_paths <- paste0(input_dir[["Misof2014"]], list.files(input_dir[["Misof2014"]], full.names = FALSE))
 Misof2014_names <- gsub(".nex","",grep(".nex",unlist(strsplit((Misof2014_paths), "/")), value = TRUE))
@@ -150,8 +149,7 @@ if (is.na(best_model_paths[["Misof2014"]])){
 } else {
   Misof2014_model <- model.from.partition.scheme(Misof2014_names,best_model_paths[["Misof2014"]],"Misof2014")
 }
-#Misof2014_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
-Misof2014_allowed_missing_sites <- NA
+Misof2014_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
 # Obtaining the list of loci file paths from Vanderpool 2020 is easy -- all the loci are in the same folder
 Vanderpool2020_paths <- paste0(input_dir[["Vanderpool2020"]], list.files(input_dir[["Vanderpool2020"]], full.names = FALSE))
 Vanderpool2020_names <- gsub("_NoNcol.Noambig.fa","",grep(".fa",unlist(strsplit((Vanderpool2020_paths), "/")), value = TRUE))
