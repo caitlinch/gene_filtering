@@ -688,9 +688,9 @@ remove.empty.taxa <- function(alignment_path, seq_type){
 prune.taxa.by.length <- function(alignment_path, proportion_allowed_missing, seq_type, write_output_text = FALSE, output_folder){
   # Set which characters you don't want in your sequences based on sequence type
   if (seq_type == "dna"){
-    missing_chars <- "Z|N|-|\\?"
+    missing_chars <- "Z|O|N|X|-|\\.|\\~|\\*|\\?"
   } else if (seq_type == "protein"){
-    missing_chars <- "X|-|\\?"
+    missing_chars <- "X|-|\\.|\\~|\\*|\\?"
   }
   # Read in nexus file
   n <- read.nexus.data(alignment_path)
