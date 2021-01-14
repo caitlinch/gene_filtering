@@ -153,31 +153,12 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   setwd(alignment_folder)
   
   # Run trimmed version of the NeighborNet tree proportion
-  # Splitstree needs a specific file format - so create a new nexus file with a taxa block
-  new_nexus_file <- paste0(alignment_folder,output_id,"_withTaxaBlock.nexus")
-  # Set details nexus output
-  if (alphabet == "dna") {
-    seq_type = "DNA" 
-  } else if (alphabet == "protein") {
-    seq_type = "AA"
-  }
-  # write the output as a nexus file to the output folder for this alignment
-  write.nexus.data(n, file = new_nexus_file, format = alphabet, interleaved = TRUE, datablock = FALSE)
-  # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
-  nexus_edit <- readLines(new_nexus_file) # open the new nexus file
-  ind <- grep("BEGIN CHARACTERS",nexus_edit)+2 # find which line
-  if (alphabet == "dna"){
-    nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
-  } else if (alphabet == "protein"){
-    nexus_edit[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN INTERLEAVE;" # replace the line
-  }
-  writeLines(nexus_edit,new_nexus_file) # output the edited nexus file
-  
   # Call the test statistic functions
   initial_iqtree_tree <- paste0(alignment_path,".treefile")
-  nn_trimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]], 
-                                path = new_nexus_file, network_algorithm = "neighbournet", trimmed = TRUE, 
+  nn_trimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]],
+                                path = alignment_path, network_algorithm = "neighbournet", trimmed = TRUE,
                                 tree_path = initial_iqtree_tree, run_IQTREE = FALSE, seq_type = alphabet)
+  
   
   # Name the test statistics file using the output id (this way if it's a  bootstrap replicate, it adds the replicate number!)
   print(paste0("output results for ",output_id))
