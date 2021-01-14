@@ -177,7 +177,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   initial_iqtree_tree <- paste0(alignment_path,".treefile")
   nn_trimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]], 
                                 path = new_nexus_file, network_algorithm = "neighbournet", trimmed = TRUE, 
-                                tree_path = initial_iqtree_tree, run_IQTREE = FALSE)
+                                tree_path = initial_iqtree_tree, run_IQTREE = FALSE, seq_type = alphabet)
   
   # Name the test statistics file using the output id (this way if it's a  bootstrap replicate, it adds the replicate number!)
   print(paste0("output results for ",output_id))
@@ -800,8 +800,8 @@ fix.gammaCategory.siteNums <- function(df,num){
 
 
 # Quick function to estimate a phylogenetic network in SplitsTree and open it using splits format in phangorn
-estimateNetwork <- function(alignment_path, splitstree_path, network_algorithm = "neighbournet"){
-  call.SplitsTree(splitstree_path,alignment_path,network_algorithm)
+estimateNetwork <- function(alignment_path, splitstree_path, network_algorithm = "neighbournet",seq_type){
+  call.SplitsTree(splitstree_path,alignment_path,network_algorithm,seq_type)
   # Retrieve the file name for the splits output file
   splits.filepath <- splits.filename(alignment_path)
   
