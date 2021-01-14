@@ -159,7 +159,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
                                 path = alignment_path, network_algorithm = "neighbournet", trimmed = TRUE,
                                 tree_path = initial_iqtree_tree, run_IQTREE = FALSE, seq_type = alphabet)
   
-  
+
   # Name the test statistics file using the output id (this way if it's a  bootstrap replicate, it adds the replicate number!)
   print(paste0("output results for ",output_id))
   results_file <- paste0(alignment_folder,output_id,"_testStatistics.csv")
