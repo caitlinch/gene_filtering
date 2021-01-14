@@ -200,9 +200,9 @@ print("apply treelikeness test statistics")
 #                              - i.e. program will run parametric bootstrap for test statistics with multiple threads
 #                              - (number of simulatenous bootstraps set by choice of cores_to_use value)
 #       ~ iqtree.num_quartets = 1000: greater than 100 quartets necessary for stable sCF values
-V_ids <- which(loci_df$dataset == "Vanderpool2020")
-lapply(V_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
-       iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
+# V_ids <- which(loci_df$dataset == "Vanderpool2020")
+# lapply(V_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
+#        iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
 
 M_ids <- which(loci_df$dataset == "Misof2014")
 lapply(M_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
