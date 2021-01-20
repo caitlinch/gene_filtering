@@ -86,8 +86,8 @@ if (run_location == "local"){
   sCF_replicates = 1000
   
   # Select datasets to run analysis and collect results
-  datasets_to_run <- c("Vanderpool2020","OKP")
-  datasets_to_collate <- c("Vanderpool2020","Misof2014")
+  datasets_to_run <- c()
+  datasets_to_collate <- c("Vanderpool2020")
   
 } else if (run_location=="server"){
   input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
@@ -224,7 +224,7 @@ print("collate results")
 # Check if there are any datasets to collate
 if (length(datasets_to_collate) > 0){
   # Iterate through each dataset
-  for (dataset in dataset_to_collate){
+  for (dataset in datasets_to_collate){
     # Want to go through each loci and add info from parameter values into p-value folder
     # Start by getting each loci folder
     all_ds_folder <- paste0(output_dirs[[dataset]], list.dirs(output_dirs[[dataset]], recursive = FALSE, full.names = FALSE))
