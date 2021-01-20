@@ -837,7 +837,7 @@ extract.sum.internal.branch.length <- function(alignment_path){
     sibl <- vec[str_detect(vec,"([0-9])")]
     sibl <- gsub("\\(","",sibl)
     sibl <- gsub("%","",sibl)
-    return(tree_length)
+    return(sibl)
   }
 }
 
@@ -1053,9 +1053,9 @@ add.alignment.information <- function(loci_folder){
   p_value_df$C_freq <- params$value[which(params$parameter == "C_freq")]
   p_value_df$G_freq <- params$value[which(params$parameter == "G_freq")]
   p_value_df$T_freq <- params$value[which(params$parameter == "T_freq")]
-  p-value_df$GC_content_mean <- calculate.GC.content(alignment_file)[1]
-  p-value_df$GC_content_variance <- calculate.GC.content(alignment_file)[2]
-  p-value_df$GC_content_sd <- calculate.GC.content(alignment_file)[3]
+  p_value_df$GC_content_mean <- calculate.GC.content(alignment_file)[1]
+  p_value_df$GC_content_variance <- calculate.GC.content(alignment_file)[2]
+  p_value_df$GC_content_sd <- calculate.GC.content(alignment_file)[3]
   p_value_df$model_of_rate_heterogeneity <- params$value[which(params$parameter == "model_of_rate_heterogeneity")]
   p_value_df$model_of_rate_heterogeneity_line2_name <- params$value[which(params$parameter == "model_of_rate_heterogeneity_line2_name")]
   p_value_df$model_of_rate_heterogeneity_line2_value <- params$value[which(params$parameter == "model_of_rate_heterogeneity_line2_value")]
