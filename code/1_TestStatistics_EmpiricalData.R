@@ -230,31 +230,10 @@ if (length(datasets_to_collate) > 0){
     all_ds_folder <- paste0(output_dirs[[dataset]], list.dirs(output_dirs[[dataset]], recursive = FALSE, full.names = FALSE))
     # Extract information about the alignment/model for each loci
     lapply(all_ds_folder,add.alignment.information)
+    # collate all the data from this dataset together
+    results_file <- paste0(output_dir,"empiricalTreelikeness_",dataset,"_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
+    results_df <- collate.bootstraps(directory = output_dirs[[dataset]], file.name = "_results", id = "", output.file.name = results_file)
   }
 }
-
-# Collate all the dataframes together
-results_file <- paste0(output_dir,"empiricalAlignments_collated_testStatisticResults.csv")
-results_df <- collate.bootstraps(directory = output_dir, file.name = "pValues", id = "", output.file.name = results_file)
- 
- 
-
-# ##### Step 7: Extract additional information about the alignments and trees #####
-# # Extracting more information for statistical tests and plots
-# # Extract total tree depth from each alignment's iqtree file and add to dataframe
-# results_df$total_tree_depth <- unlist(lapply(results_df$alignment_file, extract.total.tree.length))
-# # Extract the number of parsimony informative sites from each alignment's iqtree file and add to dataframe
-# results_df$num_parsimony_informative_sites <- unlist(lapply(results_df$alignment_file, extract.num.informative.sites))
-# # Extract the GC content for each species in the alignment and add summary statistics to dataframe
-# GC_vector <- unlist(lapply(results_df$alignment_file,calculate.GC.content))
-# results_df$GC_content_mean <- GC_vector[c(TRUE,FALSE,FALSE)]
-# results_df$GC_content_variance <- GC_vector[c(FALSE,TRUE,FALSE)]
-# results_df$GC_content_sd <-  GC_vector[c(FALSE,FALSE,TRUE)]
-# # Extract the gene trees (.treefile for each locus) from each alignment's IQ-Tree run and add them to the dataframe
-# results_df$newick_tree <- unlist(lapply(results_df$alignment_file, extract.treefile.tree))
-# 
-# # Save the newly extended dataframe
-# results_file <- paste0(output_dir,basename(input_dir),"_completeResults.csv")
-# write.csv(results_df, file = results_file, row.names = FALSE)
 
 
