@@ -804,7 +804,6 @@ estimateNetwork <- function(alignment_path, splitstree_path, network_algorithm =
 
 
 
-
 # Function to open an iqtree file and extract the tree depth
 extract.total.tree.length <- function(alignment_path){
   # Open .iqtree file associated with that alignment
@@ -821,6 +820,26 @@ extract.total.tree.length <- function(alignment_path){
   }
 }
 
+
+
+
+# Function to open an iqtree file and extract the sum of internal branches
+extract.sum.internal.branch.length <- function(alignment_path){
+  # Open .iqtree file associated with that alignment
+  iqtree_filepath <- paste0(alignment_path,".iqtree")
+  if (file.exists(iqtree_filepath) == FALSE){
+    return("MISSING_FILE")
+  } else if (file.exists(iqtree_filepath) == TRUE){
+    iq_file <- readLines(iqtree_filepath)
+    ind <- grep("Sum of internal branch lengths",iq_file)
+    str <- iq_file[ind]
+    vec <- strsplit(str," ")[[1]]
+    sibl <- vec[str_detect(vec,"([0-9])")]
+    sibl <- gsub("\\(","",sibl)
+    sibl <- gsub("%","",sibl)
+    return(tree_length)
+  }
+}
 
 
 
@@ -1013,10 +1032,12 @@ add.alignment.information <- function(loci_folder){
   params <- read.csv(params_file)
   all_treefiles <- grep("treefile",loci_files, value = TRUE)
   newick_treefile <- grep(".treefile.", all_treefiles, invert = TRUE, value = TRUE)[1] # Extract the only ".treefile" file that isn't ".treefile."
+  alignment_file <- gsub(".treefile","",newick_treefile)
   
   # Extract the relevant variables
   p_value_df$sequence_type <- params$value[which(params$parameter == "sequence_type")]
   p_value_df$num_constant_sites <- params$value[which(params$parameter == "Number of constant sites")]
+  p_value_df$proportion_constant_sites <- round((as.numeric(p_value_df$num_constant_sites) / as.numeric(p_value_df$n_sites)), 3)
   p_value_df$num_invariant_sites <- params$value[which(params$parameter == "Number of invariant (constant or ambiguous constant) sites")]
   p_value_df$num_parsimony_informative_sites <- params$value[which(params$parameter == "Number of parsimony informative sites")]
   p_value_df$proportion_informative_sites <- round((as.numeric(p_value_df$num_parsimony_informative_sites) / as.numeric(p_value_df$n_sites)), 3)
@@ -1032,9 +1053,15 @@ add.alignment.information <- function(loci_folder){
   p_value_df$C_freq <- params$value[which(params$parameter == "C_freq")]
   p_value_df$G_freq <- params$value[which(params$parameter == "G_freq")]
   p_value_df$T_freq <- params$value[which(params$parameter == "T_freq")]
+  p-value_df$GC_content_mean <- calculate.GC.content(alignment_file)[1]
+  p-value_df$GC_content_variance <- calculate.GC.content(alignment_file)[2]
+  p-value_df$GC_content_sd <- calculate.GC.content(alignment_file)[3]
   p_value_df$model_of_rate_heterogeneity <- params$value[which(params$parameter == "model_of_rate_heterogeneity")]
   p_value_df$model_of_rate_heterogeneity_line2_name <- params$value[which(params$parameter == "model_of_rate_heterogeneity_line2_name")]
   p_value_df$model_of_rate_heterogeneity_line2_value <- params$value[which(params$parameter == "model_of_rate_heterogeneity_line2_value")]
+  p_value_df$total_tree_length <- extract.total.tree.length(alignment_file)
+  p_value_df$sum_of_internal_branch_lengths <- extract.sum.internal.branch.length(alignment_file)[1]
+  p_value_df$proportion_internal_branches <- extract.sum.internal.branch.length(alignment_file)[2]
   
   # Open the tree file
   newick_tree <- readLines(newick_treefile)
