@@ -84,6 +84,11 @@ if (run_location == "local"){
   cores_for_iqtree = 1
   reps_to_do = 6
   sCF_replicates = 1000
+  
+  # Select datasets to run analysis and collect results
+  datasets_to_run <- c("Vanderpool2020","OKP")
+  datasets_to_collate <- c("Vanderpool2020","Misof2014")
+  
 } else if (run_location=="server"){
   input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
                  "/data/caitlin/empirical_treelikeness/Data_Misof2014/",
@@ -106,6 +111,10 @@ if (run_location == "local"){
   cores_for_iqtree = 1
   reps_to_do= 99
   sCF_replicates = 1000
+  
+  # Select datasets to run analysis and collect results
+  datasets_to_run <- c()
+  datasets_to_collate <- c("Vanderpool2020")
 }
 
 
@@ -178,15 +187,6 @@ loci_df <- loci_df[!is.na(loci_df$best_model),]
 loci_df_name <- paste0(output_dir,"input_loci_parameters.csv")
 write.csv(loci_df, file = loci_df_name)
 
-# # Remove 1KP data for now (until I work out which species to include, or how to deal with the huge amount of species)
-# loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names), 
-#                       alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Misof2014_paths))),
-#                       best_model = c(Vanderpool2020_model, Misof2014_model),
-#                       dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Misof2014",length(Misof2014_paths))),
-#                       loci_path = c(Vanderpool2020_paths, Misof2014_paths), 
-#                       output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Misof2014"]], length(Misof2014_paths))),
-#                       stringsAsFactors = FALSE)
-
 
 
 ##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
@@ -200,22 +200,39 @@ print("apply treelikeness test statistics")
 #                              - i.e. program will run parametric bootstrap for test statistics with multiple threads
 #                              - (number of simulatenous bootstraps set by choice of cores_to_use value)
 #       ~ iqtree.num_quartets = 1000: greater than 100 quartets necessary for stable sCF values
-# V_ids <- which(loci_df$dataset == "Vanderpool2020")
-# lapply(V_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
-#        iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
 
-M_ids <- which(loci_df$dataset == "Misof2014")
-lapply(M_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
-       iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
-
-O_ids <- which(loci_df$dataset == "1KP")
-lapply(O_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
-       iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
+if ("Vanderpool2020" %in% datasets_to_run){
+  V_ids <- which(loci_df$dataset == "Vanderpool2020")
+  lapply(V_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
+         iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
+}
+if ("Misof2014" %in% datasets_to_run){
+  M_ids <- which(loci_df$dataset == "Misof2014")
+  lapply(M_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
+         iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
+}
+if ("1KP" %in% datasets_to_run){
+  O_ids <- which(loci_df$dataset == "1KP")
+  lapply(O_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
+         iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
+}
 
 
 
 ##### Step 6: Collate test statistic results #####
 print("collate results")
+# Check if there are any datasets to collate
+if (length(datasets_to_collate) > 0){
+  # Iterate through each dataset
+  for (dataset in dataset_to_collate){
+    # Want to go through each loci and add info from parameter values into p-value folder
+    # Start by getting each loci folder
+    all_ds_folder <- paste0(output_dirs[[dataset]], list.dirs(output_dirs[[dataset]], recursive = FALSE, full.names = FALSE))
+    # Extract information about the alignment/model for each loci
+    lapply(all_ds_folder,add.alignment.information)
+  }
+}
+
 # Collate all the dataframes together
 results_file <- paste0(output_dir,"empiricalAlignments_collated_testStatisticResults.csv")
 results_df <- collate.bootstraps(directory = output_dir, file.name = "pValues", id = "", output.file.name = results_file)
