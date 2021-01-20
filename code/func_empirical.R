@@ -1003,3 +1003,44 @@ generate.AA.alignment <- function(alignment_params, empirical_alignment_tree){
 
 
 
+# Function to add information about the alignment from the parameter file to the p-value file
+add.alignment.information <- function(loci_folder){
+  # Find and open the p-value, parameter, and tree files
+  loci_files <- list.files(loci_folder, full.name = TRUE)
+  p_value_file <- grep("_pValues.csv", loci_files, value = TRUE)
+  p_value_df <- read.csv(p_value_file)
+  params_file <- grep("_parameterValues.csv", loci_files, value = TRUE)
+  params <- read.csv(params_file)
+  all_treefiles <- grep("treefile",loci_files, value = TRUE)
+  newick_treefile <- grep(".treefile.", all_treefiles, invert = TRUE, value = TRUE)[1] # Extract the only ".treefile" file that isn't ".treefile."
+  
+  # Extract the relevant variables
+  p_value_df$sequence_type <- params$value[which(params$parameter == "sequence_type")]
+  p_value_df$num_constant_sites <- params$value[which(params$parameter == "Number of constant sites")]
+  p_value_df$num_invariant_sites <- params$value[which(params$parameter == "Number of invariant (constant or ambiguous constant) sites")]
+  p_value_df$num_parsimony_informative_sites <- params$value[which(params$parameter == "Number of parsimony informative sites")]
+  p_value_df$proportion_informative_sites <- round((as.numeric(p_value_df$num_parsimony_informative_sites) / as.numeric(p_value_df$n_sites)), 3)
+  p_value_df$num_site_patterns <- params$value[which(params$parameter == "Number of distinct site patterns")]
+  p_value_df$substitution_model <- params$value[which(params$parameter == "substitution_model")]
+  p_value_df$AC_rate <- params$value[which(params$parameter == "A-C_rate")]
+  p_value_df$AG_rate <- params$value[which(params$parameter == "A-G_rate")]
+  p_value_df$AT_rate <- params$value[which(params$parameter == "A-T_rate")]
+  p_value_df$CG_rate <- params$value[which(params$parameter == "C-G_rate")]
+  p_value_df$CT_rate <- params$value[which(params$parameter == "C-T_rate")]
+  p_value_df$GT_rate <- params$value[which(params$parameter == "G-T_rate")]
+  p_value_df$A_freq <- params$value[which(params$parameter == "A_freq")]
+  p_value_df$C_freq <- params$value[which(params$parameter == "C_freq")]
+  p_value_df$G_freq <- params$value[which(params$parameter == "G_freq")]
+  p_value_df$T_freq <- params$value[which(params$parameter == "T_freq")]
+  p_value_df$model_of_rate_heterogeneity <- params$value[which(params$parameter == "model_of_rate_heterogeneity")]
+  p_value_df$model_of_rate_heterogeneity_line2_name <- params$value[which(params$parameter == "model_of_rate_heterogeneity_line2_name")]
+  p_value_df$model_of_rate_heterogeneity_line2_value <- params$value[which(params$parameter == "model_of_rate_heterogeneity_line2_value")]
+  
+  # Open the tree file
+  newick_tree <- readLines(newick_treefile)
+  p_value_df$tree <- newick_tree
+  
+  # Save new, extended p-value file
+  out_file <- gsub("pValues","results",p_value_file)
+  write.csv(p_value_df, out_file, row.names = FALSE)
+}
