@@ -103,7 +103,20 @@ for (dataset in datasets){
    p <- ggplot(info_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free_x") + theme_bw()
    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_alignmentInfo_histogram_freeX.png") , plot = p)
 
-  
+  # plot some variables against each other to investigate relationships
+   # look for a correlation between the 3seq p-value and the proportion of recombinant sequences
+   p <- ggplot(data = op_df, aes(x = X3SEQ_prop_recombinant_sequences, y = X3SEQ_p_value)) + geom_point() + theme_bw() + 
+     scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05)) + scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_value_comparison.png") , plot = p)
+   # look for a correlation between the tree proportion and 3seq p-values
+   p <- ggplot(data = op_df, aes(x = tree_proportion_p_value, y = X3SEQ_p_value, colour = tree_proportion)) + geom_point() + theme_bw() + 
+     scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05)) + scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_pvalue_comparison.png") , plot = p)
+   # look for a correlation between the tree proportion test statistic and p-value
+   p <- ggplot(data = op_df, aes(x = tree_proportion, y = tree_proportion_p_value)) + geom_point() + theme_bw() + 
+     scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05)) + scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_value_comparison.png") , plot = p)
+   
   
 }
 
