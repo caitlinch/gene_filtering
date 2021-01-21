@@ -9,14 +9,14 @@
 
 ##### Step 1: Open packages #####
 library(ggplot2) # data visualisation and better plotting
+library(reshape2)
 library(treespace) # phylogenetic tree exploration
 library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
                   # these methods all assume an unrooted tree so trees can be used as is for this analysis
 
-library(reshape2) # restructure data between long and wide formats
-library(adegenet) # toolkit for exploring genomic and genertic data
-library(adegraphics) # improved graphical functionalities from ade4 (multivariate data analysis)
-library(rgl) # for interactive 3D plots
+# library(adegenet) # toolkit for exploring genomic and genetic data
+# library(adegraphics) # improved graphical functionalities from ade4 (multivariate data analysis)
+# library(rgl) # for interactive 3D plots
 
 
 
@@ -27,30 +27,56 @@ print("set filepaths")
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # output_dir        <- for collated output and results from treelikeness analysis. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
 # plots_dir         <- for saving plots and analyses. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
-# input_names       <- set name(s) for the dataset(s)
+# datasets          <- set name(s) for the dataset(s)
 
 treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
 maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code isresults_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
 output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
 plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_results/"
-input_names <- c("Vanderpool2020")
+datasets <- c("Vanderpool2020")
 
 
 
 #### Step 3: Open files
 # Create a set of output folders
-output_dirs <- paste0(output_dir,input_names,"/")
-names(output_dirs) <- input_names
-plot_dirs <- paste0(plot_dir,input_names,"/")
-names(plot_dirs) <- input_names
+output_dirs <- paste0(output_dir,datasets,"/")
+names(output_dirs) <- datasets
+plot_dirs <- paste0(plot_dir,datasets,"/")
+names(plot_dirs) <- datasets
 
 ##### Step 3: Data exploration ####
 # Open data
-for (dataset in input_names){
+for (dataset in datasets){
+  # Make sure folder for plots and results exists
+  if (!dir.exists(plot_dirs[[dataset]])){
+    dir.create(plot_dirs[[dataset]])
+  }
+  
+  # Open output from treelikeness analysis
   op_files <- list.files(output_dir)
   results_files <- grep("collated_results", op_files, value = TRUE)
   ds_result_file <- paste0(output_dir, grep(dataset, results_files, value = TRUE)[1])
   op_df <- read.csv(ds_result_file, stringsAsFactors = FALSE)
+  
+  # Calculate derived variables
+  op_df$proportion_constant_sites <- round(op_df$num_constant_sites / op_df$n_sites, 3)
+  op_df$proportion_invariant_sites <- round(op_df$num_invariant_sites / op_df$n_sites, 3)
+  op_df$proportion_informative_sites <- round(op_df$num_parsimony_informative_sites / op_df$n_sites, 3)
+  
+  # Put data in long format for ggplot
+  id_vars <- c("dataset", "loci", "sequence_type", "n_taxa", "n_sites", "num_constant_sites", "proportion_constant_sites", "num_invariant_sites", "proportion_invariant_sites",
+               "num_parsimony_informative_sites", "proportion_informative_sites", "num_site_patterns", "total_tree_length", "sum_of_internal_branch_lengths",
+               "proportion_internal_branches", "substitution_model", "AC_rate", "AG_rate", "AT_rate", "CG_rate", "CT_rate", "GT_rate", "A_freq",
+               "C_freq", "G_freq", "T_freq", "GC_content_mean", "GC_content_variance", "GC_content_sd")
+  measure_vars <- c("X3SEQ_num_recombinant_triplets", "X3SEQ_num_distinct_recombinant_sequences", "X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion",
+                    "tree_proportion_p_value", "sCF_mean","sCF_median")
+  long_df <- melt(op_df, id = id_vars, measure.vars = measure_vars)
+  output_name <- gsub(".csv","_melted.csv",csv)
+  write.csv(melt_df, file = output_name, row.names = FALSE)
+  
+  # Plot histograms
+  
+  
 }
 
 
