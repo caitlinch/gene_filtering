@@ -1,5 +1,5 @@
 ### empirical_treelikeness/2_ExploreTreelikenessScores.R
-## R program to plot and explore results of the treelikeness simulations on empirical data
+## R program to plot and explore results of the treelikeness test statistics on empirical data
 # Final result is a reformatted csv file and a number of graphs
 
 # Specifically designed to work with Rob Lanfear's "BenchmarkAlignments"
@@ -52,33 +52,7 @@ write.csv(melt_df, file = output_name, row.names = FALSE)
 ##### Step 4: Plot histograms #####
 # Create a facetted histogram to compare the distributions of different test statistics
 # Plot histogram with all test statistics and p_values
-e = melt_df[melt_df$variable %in% c("neighbour_net_trimmed","nn_trimmed_sig","neighbour_net_untrimmed","nn_untrimmed_sig",
-                                    "X3SEQ_prop_recombinant_sequences","X3SEQ_p_value","sCF_mean","sCF_mean_sig","sCF_median","sCF_median_sig"),]
-e$group = factor(e$variable,levels = c("neighbour_net_untrimmed","nn_untrimmed_sig","neighbour_net_trimmed","nn_trimmed_sig",
-                                       "X3SEQ_prop_recombinant_sequences","X3SEQ_p_value","sCF_mean","sCF_mean_sig","sCF_median","sCF_median_sig"))
-# Set up the labeller so that the facet names will be formatted nicely (rather than using variable names in the plots)
-facet_names <- list("neighbour_net_trimmed" = "NeighborNet (trimmed)","nn_trimmed_sig" = "NeighborNet (trimmed) \n p value",
-                    "neighbour_net_untrimmed" = "NeighborNet \n (untrimmed)","nn_untrimmed_sig" = "NeighborNet \n (untrimmed) p value",
-                    "X3SEQ_prop_recombinant_sequences" = "Proportion of  \n recombinant sequences","X3SEQ_p_value" = "3SEQ (inbuilt) p value",
-                    "sCF_mean" = "Mean sCF","sCF_mean_sig" = "Mean sCF p value", "sCF_median" = "Median sCF","sCF_median_sig" = "Median sCF p value")
-facet_labeller <- function(variable){
-  variable <- facet_names[variable]
-  return(variable)
-}
 
-p <- ggplot(e, aes(x = value)) +
-  geom_histogram(bins=20) +
-  facet_wrap(~group, scale = "free", ncol = 5, labeller = labeller(group = facet_labeller)) +
-  scale_x_continuous(name = "\n Value \n") +
-  ylab("\n Count \n")
-ggsave(filename = paste0(plots_dir,e$dataset[1],"_histogram_all_freey.png"), plot = p, units = "in")
-
-p <- ggplot(e, aes(x = value)) +
-  geom_histogram(bins=20) +
-  facet_wrap(~group, scale = "free_x", ncol = 5, nrow = 2, labeller = labeller(group = facet_labeller)) +
-  scale_x_continuous(name = "\n Value \n") +
-  ylab("\n Count \n")
-ggsave(filename = paste0(plots_dir,e$dataset[1],"_histogram_all_samey.png"), plot = p, units = "in")
 
 
 
@@ -99,115 +73,13 @@ x_axis <- c("n_sites","n_taxa","total_tree_depth","prop_parsimony_informative_si
             "GC_content_variance","GC_content_sd")
 x_axis_names <- c("Number of sites","Number of taxa","Total tree depth","Proportion of parsimony informative sites","Number of parsimony informative sites",
                   "Mean GC content","Variance in GC content","Standard deviation of GC content")
-name_additions <- c("numSites","numTaxa","treeDepth","propParsimonyInformativeSites","numParsimonyInformativeSites","gcContentMean","gcContentVar",
-                    "gcContentSD")
-# Automate the plotting of all the predictors
-for (i in 1:length(x_axis)){
-  p <- ggplot(e, aes(x = e[x_axis[i]], y = e["value"])) + geom_point() +  
-    facet_wrap(~group,scales = "free_y", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 2) +
-    scale_x_continuous(name = x_axis_names[i]) + 
-    scale_y_continuous("\n Test statistic value \n")
-  ggsave(filename = paste0(plots_dir,dataset,"_predictor_",name_additions[[i]],"_testStatistic_points.png"), plot = p, units = "cm")
-}
-
 # Repeat this process for p values
-# Prepare the dataframe
-e = melt_df[melt_df$variable %in% c("X3SEQ_p_value","x3seq_propRecomSeq_sig","nn_untrimmed_sig","nn_trimmed_sig","sCF_mean_sig","sCF_median_sig"),]
-e$group = factor(e$variable, levels(e$variable)[c(4,12,7,8,13,14)])
-# Set up the labeller so that the facet names will be formatted nicely (rather than using variable names in the plots)
-facet_names <- list("X3SEQ_p_value" = "3SEQ (inbuilt) p value","x3seq_propRecomSeq_sig" = "Proportion of recombinant sequences \n p value (parametric bootstrap)",
-                    "nn_untrimmed_sig" = "NeighborNet (untrimmed) p value","nn_trimmed_sig" = "NeighborNet (trimmed) p value",
-                    "sCF_mean_sig" = "Mean sCF p value","sCF_median_sig" = "Median sCF p value")
-facet_labeller <- function(variable){
-  variable <- facet_names[variable]
-  return(variable)
-}
-# Prepare the variables for each plot
-x_axis <- c("n_sites","n_taxa","total_tree_depth","prop_parsimony_informative_sites","num_parsimony_informative_sites","GC_content_mean",
-            "GC_content_variance","GC_content_sd")
-x_axis_names <- c("Number of sites","Number of taxa","Total tree depth","Proportion of parsimony informative sites","Number of parsimony informative sites",
-                  "Mean GC content","Variance in GC content","Standard deviation of GC content")
-name_additions <- c("numSites","numTaxa","treeDepth","propParsimonyInformativeSites","numParsimonyInformativeSites","gcContentMean","gcContentVar",
-                    "gcContentSD")
-# Automate the plotting of all the predictors
-for (i in 1:length(x_axis)){
-  p <- ggplot(e, aes(x = e[x_axis[i]], y = e["value"])) + geom_point(size=0.5) +  
-    facet_wrap(~group,scales = "free_y", labeller = labeller(group = facet_labeller), nrow = 3, ncol = 2) +
-    scale_x_continuous(name = x_axis_names[i]) + 
-    scale_y_continuous("\n p value \n")
-  ggsave(filename = paste0(plots_dir,dataset,"_predictor_",name_additions[[i]],"_pValue_points.png"), plot = p, units = "cm")
-}
+
 
 ##### Step 6: Plot test statistics against potential predictors #####
-# Melt the original df using ts values and p values as the id_var (so you can use it on the x axis!)
-# Therefore, make the potential predictors the measure_vars (so you can compare them all on the one figure)
-
-# Create a new melted dataframe, where the id variables are the test statistics and p values rather than the predictors
-seq_id_vars <- c("X3SEQ_num_recombinant_triplets","X3SEQ_num_distinct_recombinant_sequences","X3SEQ_prop_recombinant_sequences",
-                 "x3seq_numRecomSeq_sig","X3SEQ_p_value", "neighbour_net_untrimmed","neighbour_net_trimmed","nn_untrimmed_sig",
-                 "nn_trimmed_sig","sCF_mean","sCF_median","sCF_mean_sig","sCF_median_sig")
-seq_measure_vars <- c("n_taxa","n_sites","total_tree_depth","num_parsimony_informative_sites","prop_parsimony_informative_sites",
-                      "GC_content_mean","GC_content_variance", "GC_content_sd")
-seq_df <- melt(ts_df, id = seq_id_vars, measure.vars = seq_measure_vars)
-
-# Filter the new dataframe
-e = seq_df[seq_df$variable %in% c("n_taxa","n_sites","total_tree_depth","num_parsimony_informative_sites","prop_parsimony_informative_sites",
-                                  "GC_content_mean","GC_content_variance","GC_content_sd"),]
-e$group = factor(e$variable,levels = c("n_taxa","n_sites","num_parsimony_informative_sites","prop_parsimony_informative_sites",
-                                       "total_tree_depth","GC_content_mean","GC_content_variance","GC_content_sd"))
-
-# Set up the labeller so that the facet names will be formatted nicely (rather than using variable names in the plots)
-facet_names <- list("n_taxa" = "Number of taxa","n_sites" = "Number of sites","num_parsimony_informative_sites" = "Num. parsimony \n informative sites",
-                      "prop_parsimony_informative_sites" = "Prop. parsimony \n informative sites","total_tree_depth" = "Tree depth",
-                      "GC_content_mean" = "GC content (mean)","GC_content_variance" = "GC content (variance)","GC_content_sd" = "GC content (st dev)")
-facet_labeller <- function(variable){
-  var_name <- facet_names[variable]
-  return(var_name)
-}
-
-# Set up the variables to plot and the labels for axes
-plot_vars <- c("X3SEQ_p_value", "X3SEQ_num_distinct_recombinant_sequences","X3SEQ_prop_recombinant_sequences","neighbour_net_untrimmed",
-               "neighbour_net_trimmed","nn_untrimmed_sig","nn_trimmed_sig","sCF_mean","sCF_median","sCF_mean_sig","sCF_median_sig")
-label_vars <- list("X3SEQ_p_value" = "3SEQ (inbuilt) p value", "X3SEQ_num_distinct_recombinant_sequences" = "Number of  \n recombinant sequences",
-                   "X3SEQ_prop_recombinant_sequences" = "Proportion of  \n recombinant sequences", "neighbour_net_untrimmed" = "NeighborNet (untrimmed)",
-                   "neighbour_net_trimmed" = "NeighborNet (trimmed)", "nn_untrimmed_sig" = "NeighborNet (untrimmed) p value", 
-                   "nn_trimmed_sig" = "NeighborNet (trimmed) p value", "sCF_mean" = "Mean sCF","sCF_mean_sig" = "Mean sCF p value", "sCF_median" = "Median sCF",
-                   "sCF_median_sig" = "Median sCF p value")
-dataset = ts_df$dataset[1]
-
-# Plot all of the test statistics/p values for a single dataset againt the predictors at once
-for (var_to_plot in plot_vars){
-  p <- ggplot(e, aes(x = value, y = e[[var_to_plot]])) +
-    geom_point() +
-    facet_wrap(~group,scales = "free", labeller = labeller(group = facet_labeller), nrow = 2, ncol = 4) +
-    scale_x_continuous("\n Predictor value \n") +
-    scale_y_continuous(name = paste0("\n ",label_vars[var_to_plot][[1]]," \n"))
-  plot_filename <- paste0(plots_dir,dataset,"_testStatistic_",var_to_plot,"_points.png")
-  ggsave(filename = plot_filename, plot = p, units = "cm")
-}
-
 
 
 ##### Step 7: Explore relationships between test statistics #####
-# Plot a bunch of variables against each other to see if you encounter anything interesting
-# This is automated so you need to collect the x and y axis, the names for these axes and a suitable file name for each plot
-# filepath_addition is not the file name - it's a chunk of text added inside the file name
-x_axis <- c("X3SEQ_p_value","nn_trimmed_sig","neighbour_net_trimmed","neighbour_net_trimmed","X3SEQ_prop_recombinant_sequences","X3SEQ_prop_recombinant_sequences")
-y_axis <- c("x3seq_propRecomSeq_sig","X3SEQ_p_value","X3SEQ_p_value","X3SEQ_prop_recombinant_sequences","nn_trimmed_sig","X3SEQ_p_value")
-x_axis_name <- c("3SEQ (inbuilt) p value","NeighborNet (trimmed) p value","NeighborNet (trimmed)","NeighborNet (trimmed)","Proportion of recombinant sequences",
-                 "Proportion of recombinant sequences")
-y_axis_name <- c("Proportion of recombinant sequences p value (parametric bootstrap)","3SEQ (inbuilt) p value","3SEQ (inbuilt) p value",
-                 "Proportion of recombinant sequences","NeighborNet (trimmed) p value","3SEQ (inbuilt) p value")
-filepath_addition <- c("3seq_pvalues","NeighborNetTrimmedSig_3seq","NeighborNetTrimmed_3seq","NeighborNetTrimmed_ProportionRecombinantSequences",
-                       "NeighborNetTrimmedPValue_ProportionRecombinantSequences","3seq_pValue_ProportionRecombinantSequences")
-# Automate the plotting
-for (i in 1:length(x_axis)){
-  p <- ggplot(ts_df, aes(x = ts_df[x_axis[i]], y = ts_df[y_axis[i]])) + geom_point() +  
-    scale_x_continuous(minor_breaks = seq(0, 1, 0.05), name = x_axis_name[i]) + 
-    scale_y_continuous(minor_breaks = seq(0, 1, 0.05), name = y_axis_name[i])
-  ggsave(filename = paste0(plots_dir,dataset,"_comparison_",filepath_addition[[i]],"_points.png"), plot = p, units = "cm")
-}
-
 
 
 ##### Step 8: Exploring treespace #####
@@ -223,34 +95,6 @@ class(t2)<-"multiPhylo"
 t2
 # to read in all trees at once (from the newick tree column in the df):
 m <- read.tree(text=ts_df$newick_tree)
-
-# Try a treespace using just the trees with all 16 species
-# get the trees with all 16 species of primate from the dataset
-fix_t <- read.tree(text="(CALLI_JAC:0.0065233742,(((((MACAC_FAS:0.0000000000,PAPIO_ANU:0.0000000000):0.0000010000,MACAC_MUL:0.0000010000):0.0000010000,CHLOR_SAB:0.0019809135):0.0023666495,(((DAUBE_MAD:0.0138786379,OTOLE_GAR:0.0569027955):0.0036858890,MICRO_MUR:0.0317212325):0.0051580189,TARSI_SYR:0.0424257344):0.0092468455):0.0025774679,((((GORIL_GOR:0.0000000000,PAN_TRO:0.0000000000):0.0000010000,PAN_PAN:0.0000010000):0.0000010000,HOMO_SAP:0.0019784034):0.0000010000,(PONGO_ABE:0.0020025832,NOMAS_LEU:0.0029886553):0.0009827560):0.0047242305):0.0046963272,SAIMI_BOL:0.0047735036);
-
-# Problem trees are 79, 120 
-# These trees claim to have 16 taxa but only have 14 when you plot them out
-e_trees <- e$newick_tree[c(1:78,80:120,122:128,130:157,159:194,196:305)] # pick 300 trees you know work
-e_tl <- e$neighbour_net_trimmed[c(1:78,80:120,122:128,130:157,159:194,196:305)] # get tree proportion values for those scores
-m <- read.tree(text = e_trees)
-m100 <- read.tree(text = e_trees)[1:100]
-tl100 <- e$neighbour_net_trimmed[c(1:78,80:120,122:128,130:157,159:194,196:305)][1:100] # get tree proportion values for those scores
-seqp100 <- e$X3SEQ_p_value[c(1:78,80:120,122:128,130:157,159:194,196:305)][1:100] # get 3seq p values for those scores
-seqts100 <- e$X3SEQ_prop_recombinant_sequences[c(1:78,80:120,122:128,130:157,159:194,196:305)][1:100] # get 3seq test statistic values for those scores
-scf100 <- e$sCF_mean[c(1:78,80:120,122:128,130:157,159:194,196:305)][1:100] # get sCF values for those scores
-
-# Error in treespace(m, nf = 3) : Tree 79 has different tip labels from the first tree.
-t1 <- read.tree(text = e$newick_tree[1])
-t79 <- read.tree(text = e$newick_tree[79]) # lists 16 taxa but only has 14...
-t121 <- read.tree(text = e$newick_tree[121]) # lists 16 taxa but only has 14...
-t129 <- read.tree(text = e$newick_tree[129]) # lists 16 taxa but only has 15...
-t158 <- read.tree(text = e$newick_tree[158]) # lists 16 taxa but only has 15...
-t195 <- read.tree(text = e$newick_tree[195]) # lists 16 taxa but only has 15...
-
-# Identifying why some trees list 16 species but have only 14 tips...
-num_taxa <- ts_df$n_taxa
-
-
 # use treespace <- have to pick a method that works on unrooted trees. Do this by picking one that assumes trees are unrooted (sneaky!)
 # "Warning message: In is.euclid(distmat) : Zero distance(s)" may appear when doing "RF" method <- this means you have duplicate rows in your distance matrix
 # Basically means two trees have the exact same values so the function thinks that you have a duplicate row
