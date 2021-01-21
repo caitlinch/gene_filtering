@@ -9,25 +9,40 @@
 
 ##### Step 1: Open packages #####
 library(ggplot2) # data visualisation and better plotting
-library(reshape2) # restructure data between long and wide formats
 library(treespace) # phylogenetic tree exploration
+library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
+                  # these methods all assume an unrooted tree so trees can be used as is for this analysis
+
+library(reshape2) # restructure data between long and wide formats
 library(adegenet) # toolkit for exploring genomic and genertic data
 library(adegraphics) # improved graphical functionalities from ade4 (multivariate data analysis)
 library(rgl) # for interactive 3D plots
-library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
-                    # these methods all assume an unrooted tree so trees can be used as is for this analysis
 
 
 
 
 ##### Step 2: Set the file paths for input and output files, and necessary functions/directories #####
-results_path <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/06_results/treelikeness_scores/Wu_2018_dnaLoci_Primates_completeResults.csv"
-results_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/06_results/treelikeness_scores/"
-plots_dir <- "/Users/caitlincherryh/Documents/Chapter01_TestStatistics_BenchmarkAlignments/06_results/treelikeness_scores/plots/"
+print("set filepaths")
+# treedir           <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
+# maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+# output_dir        <- for collated output and results from treelikeness analysis. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
+# plots_dir         <- for saving plots and analyses. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
+# input_names       <- set name(s) for the dataset(s)
+
 treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
-maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
+maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code isresults_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
+output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
+plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_results/"
+input_names <- c("Vanderpool2020")
 
 
+
+#### Step 3: Open files
+# Create a set of output folders
+output_dirs <- paste0(output_dir,input_names,"/")
+names(output_dirs) <- input_names
+plot_dirs <- paste0(plot_dir,input_names,"/")
+names(plot_dirs) <- input_names
 
 ##### Step 3: Reformat dataframe #####
 # Open data
