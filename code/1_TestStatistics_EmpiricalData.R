@@ -21,7 +21,7 @@ library(stringr) # wrappers for string operations
 
 
 ##### Step 2: Set file paths and run variables #####
-print("initialising namespace")
+print("set filepaths")
 # input_dir         <- the folder(s) containing the empirical data
 # input_names       <- set name(s) for the dataset(s)
 # output_dir        <- for collated output and results. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
@@ -30,8 +30,12 @@ print("initialising namespace")
 # cores_to_use      <- the number of cores to use for parametric bootstrap. 1 for a single core (wholly sequential), or higher if using parallelisation.
 # cores_for_iqtree  <- specify the number of threads for IQ-Tree to use. If using parallelisation for parametric bootstrap, use 1. Otherwise, can use 1 or set to "AUTO" and let IQ-Tree select the best number
 # reps_to_do        <- the number of of bootstrap replicates to perform
+# sCF_replicates    <- number of quartets to use for computing the site concordance factors in IQ-Tree (see http://www.iqtree.org/doc/Concordance-Factor)
 # exec_folder       <- the folder containing the software executables needed for analysis (3SEQ, IQ-Tree and SplitsTree4)
 # exec_paths        <- location to each executable within the folder. Attach the names of the executables so the paths can be accessed by name
+# datasets_to_run   <- Out of the input names, select which datasets will have the treelikeness analysis run 
+# datasets_to_collate <- Out of the input names, select which datasets will have the treelikeness results collated
+# datasets_to_collect_trees <- Out of the input names, select which datasets will have the maximum likelihood trees from IQ-Tree collected and saved in a separate folder for easy downloading 
 
 # The SplitsTree executable path can be tricky to find: 
 #       - in MacOS, the path is "SplitsTree.app/Contents/MacOS/JavaApplicationStub" (assuming you are in the same directory as the application)
@@ -87,6 +91,7 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   datasets_to_run <- c()
   datasets_to_collate <- c("Vanderpool2020")
+  datasets_to_collect_trees <- c("Vanderpool2020")
   
 } else if (run_location=="server"){
   input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
@@ -113,7 +118,8 @@ if (run_location == "local"){
   
   # Select datasets to run analysis and collect results
   datasets_to_run <- c()
-  datasets_to_collate <- c("Vanderpool2020")
+  datasets_to_collate <- c()
+  datasets_to_collect_trees <- c("Vanderpool2020")
 }
 
 
@@ -234,5 +240,28 @@ if (length(datasets_to_collate) > 0){
     results_df <- collate.bootstraps(directory = output_dirs[[dataset]], file.name = "_results", id = "", output.file.name = results_file)
   }
 }
+
+
+
+##### Step 7: Collate trees #####
+print("collate trees")
+# Check if there are any trees to collate
+if (length(datasets_to_collect_trees) > 0){
+  # Iterate through each dataset
+  for (dataset in datasets_to_collect_trees){
+    # Create output folder path for trees and create folder if it doesn't exist
+    op_tree_folder <- paste0(output_dir,dataset,"_trees/")
+    if (!dir.exists(op_tree_folder)){
+      dir.create(op_tree_folder)
+    }
+    # Start by getting each loci folder
+    all_ds_folder <- paste0(output_dirs[[dataset]], list.dirs(output_dirs[[dataset]], recursive = FALSE, full.names = FALSE))
+    # Want to go through each loci folder and save tree into op_tree_folder
+    lapply(all_ds_folder, save.tree, trees_folder = op_tree_folder)
+  }
+}
+
+
+
 
 

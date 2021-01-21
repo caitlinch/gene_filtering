@@ -895,6 +895,25 @@ calculate.GC.content <- function(alignment_file){
 
 
 
+# Function to extract the mean and variance of the GC content of an alignment 
+# (by checking sequence by sequence then taking the mean, rather than whole alignment - allows you to get sd and var as well as mean)
+save.tree <- function(alignment_folder,trees_folder){
+  # Get all files in folder
+  alignment_files <- list.files(alignment_folder)
+  # Find treefiles
+  treefile_files <- grep(".treefile",alignment_files, value = TRUE)
+  # Extract the real tree - the only ".treefile" that isn't a ".treefile."
+  treefile <- grep(".treefile.", treefile_files, invert = TRUE, value = TRUE)
+  # Create variables for full name of file in current and new location
+  old_treefile <- paste0(alignment_folder,"/", treefile)
+  new_treefile <- paste0(trees_folder, treefile)
+  # Save the file into the trees_folder
+  file.copy(from = old_treefile, to = new_treefile, overwrite = TRUE, recursive = FALSE)
+}
+
+
+
+
 # Given a tree and a set of parameters extracted from IQTree, this function generates a DNA multiple sequence alignment
 generate.DNA.alignment <- function(alignment_params, empirical_alignment_tree){
   print("creating alignment")
