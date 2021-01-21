@@ -1,6 +1,5 @@
 ### empirical_treelikeness/code/1_TestStatistics_EmpiricalData.R
 ## R program to apply treelikeness statistics to transcriptomes from empirical data
-## Specifically designed to work with Rob Lanfear's "BenchmarkAlignments"
 ## BenchmarkAlignments and metadata have CC0 or CCBY licenses and are available here: https://github.com/roblanf/BenchmarkAlignments
 ## A number of additional software packages are required, specifically:
 ##     - IQTREE (Nguyen et al 2015) (http://www.iqtree.org/) (need version 2.0 or later)
