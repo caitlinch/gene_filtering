@@ -183,7 +183,7 @@ loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names, OKP_n
 # "!is.na()" means "is not NA" <- we want to keep only the rows where best_model is not NA
 loci_df <- loci_df[!is.na(loci_df$best_model),]
 # output loci_df <- save a record of the input parameters you used!
-loci_df_name <- paste0(output_dir,"input_loci_parameters.csv")
+loci_df_name <- paste0(output_dir,"empiricalTreelikeness_input_loci_parameters.csv")
 write.csv(loci_df, file = loci_df_name)
 
 
