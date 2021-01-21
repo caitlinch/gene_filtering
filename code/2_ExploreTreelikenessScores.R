@@ -62,19 +62,47 @@ for (dataset in datasets){
   op_df$proportion_constant_sites <- round(op_df$num_constant_sites / op_df$n_sites, 3)
   op_df$proportion_invariant_sites <- round(op_df$num_invariant_sites / op_df$n_sites, 3)
   op_df$proportion_informative_sites <- round(op_df$num_parsimony_informative_sites / op_df$n_sites, 3)
+  # Save op_df with derived variables
+  write.csv(op_df, file = ds_result_file, row.names = FALSE)
   
-  # Put data in long format for ggplot
-  id_vars <- c("dataset", "loci", "sequence_type", "n_taxa", "n_sites", "num_constant_sites", "proportion_constant_sites", "num_invariant_sites", "proportion_invariant_sites",
-               "num_parsimony_informative_sites", "proportion_informative_sites", "num_site_patterns", "total_tree_length", "sum_of_internal_branch_lengths",
-               "proportion_internal_branches", "substitution_model", "AC_rate", "AG_rate", "AT_rate", "CG_rate", "CT_rate", "GT_rate", "A_freq",
-               "C_freq", "G_freq", "T_freq", "GC_content_mean", "GC_content_variance", "GC_content_sd")
-  measure_vars <- c("X3SEQ_num_recombinant_triplets", "X3SEQ_num_distinct_recombinant_sequences", "X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion",
-                    "tree_proportion_p_value", "sCF_mean","sCF_median")
-  long_df <- melt(op_df, id = id_vars, measure.vars = measure_vars)
-  output_name <- gsub(".csv","_melted.csv",csv)
-  write.csv(melt_df, file = output_name, row.names = FALSE)
+  # Make name for melted dataset 
+  long_op_name <- gsub(".csv","_melted.csv", ds_result_file)
+  # Open long data if it already exists
+  if (file.exists(long_op_name)){
+    long_df <- read.csv(long_op_name)
+  } else {
+    # Put data in long format for ggplot
+    id_vars <- c("dataset", "loci", "sequence_type", "n_taxa", "n_sites", "num_constant_sites", "proportion_constant_sites", "num_invariant_sites", "proportion_invariant_sites",
+                 "num_parsimony_informative_sites", "proportion_informative_sites", "num_site_patterns", "total_tree_length", "sum_of_internal_branch_lengths",
+                 "proportion_internal_branches", "substitution_model", "AC_rate", "AG_rate", "AT_rate", "CG_rate", "CT_rate", "GT_rate", "A_freq",
+                 "C_freq", "G_freq", "T_freq", "GC_content_mean", "GC_content_variance", "GC_content_sd")
+    measure_vars <- c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion",
+                      "tree_proportion_p_value", "sCF_mean","sCF_median")
+    long_df <- melt(op_df, id = id_vars, measure.vars = measure_vars)
+    write.csv(long_df, file = long_op_name, row.names = FALSE)
+  }
+
+  # Select which variables to plot
+  plotting_vars <- c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion", "tree_proportion_p_value", "sCF_mean","sCF_median")
   
-  # Plot histograms
+  # Plot and save treelikeness histograms
+   p <- ggplot(long_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free") + theme_bw()
+   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treelikeness_histogram_freeScales.png") , plot = p)
+   p <- ggplot(long_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free_x") + theme_bw()
+   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treelikeness_histogram_freeX.png") , plot = p)
+   ggplot(long_df, aes(x = n_sites)) + geom_histogram() + theme_bw()
+   
+   # Plot and save information about the alignments
+   info_df <- melt(op_df, id = c("dataset","loci"), 
+                   measure.vars = c("n_taxa", "n_sites", "proportion_constant_sites", "proportion_informative_sites", "num_site_patterns", "total_tree_length",
+                                    "proportion_internal_branches", "GC_content_mean", "GC_content_sd")
+                   )
+   info_df[info_df$variable == "proportion_internal_branches",4] <- round(info_df[info_df$variable == "proportion_internal_branches",4]/100,3)
+   p <- ggplot(info_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free") + theme_bw()
+   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_alignmentInfo_histogram_freeScales.png") , plot = p)
+   p <- ggplot(info_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free_x") + theme_bw()
+   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_alignmentInfo_histogram_freeX.png") , plot = p)
+
   
   
 }
