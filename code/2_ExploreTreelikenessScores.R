@@ -44,23 +44,15 @@ names(output_dirs) <- input_names
 plot_dirs <- paste0(plot_dir,input_names,"/")
 names(plot_dirs) <- input_names
 
-##### Step 3: Reformat dataframe #####
+##### Step 3: Data exploration ####
 # Open data
-ts_df <- read.csv(results_path, stringsAsFactors = FALSE)
+for (dataset in input_names){
+  op_files <- list.files(output_dir)
+  results_files <- grep("collated_results", op_files, value = TRUE)
+  ds_result_file <- paste0(output_dir, grep(dataset, results_files, value = TRUE)[1])
+  op_df <- read.csv(ds_result_file, stringsAsFactors = FALSE)
+}
 
-# create a new column (% of parsimony informative sites)
-ts_df$prop_parsimony_informative_sites = ts_df$num_parsimony_informative_sites/ts_df$n_sites
-
-# Reformat data into long form
-id_vars <- c("dataset","loci","alignment_file","n_taxa","n_sites","total_tree_depth","num_parsimony_informative_sites",
-             "prop_parsimony_informative_sites","GC_content_mean","GC_content_variance", "GC_content_sd")
-measure_vars <- c("X3SEQ_num_recombinant_triplets","X3SEQ_num_distinct_recombinant_sequences","X3SEQ_prop_recombinant_sequences",
-                  "X3SEQ_p_value","neighbour_net_untrimmed","neighbour_net_trimmed","nn_untrimmed_sig","nn_trimmed_sig","sCF_mean","sCF_median",
-                  "x3seq_numRecomSeq_sig","x3seq_propRecomSeq_sig","sCF_mean_sig","sCF_median_sig")
-melt_df <- melt(ts_df, id = id_vars, measure.vars = measure_vars)
-# Output melted data as a csv file
-output_name <- gsub(".csv","_melted.csv",results_path)
-write.csv(melt_df, file = output_name, row.names = FALSE)
 
 
 
