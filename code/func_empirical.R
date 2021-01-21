@@ -1056,10 +1056,8 @@ add.alignment.information <- function(loci_folder){
   # Extract the relevant variables
   p_value_df$sequence_type <- params$value[which(params$parameter == "sequence_type")]
   p_value_df$num_constant_sites <- params$value[which(params$parameter == "Number of constant sites")]
-  p_value_df$proportion_constant_sites <- round((as.numeric(p_value_df$num_constant_sites) / as.numeric(p_value_df$n_sites)), 3)
   p_value_df$num_invariant_sites <- params$value[which(params$parameter == "Number of invariant (constant or ambiguous constant) sites")]
   p_value_df$num_parsimony_informative_sites <- params$value[which(params$parameter == "Number of parsimony informative sites")]
-  p_value_df$proportion_informative_sites <- round((as.numeric(p_value_df$num_parsimony_informative_sites) / as.numeric(p_value_df$n_sites)), 3)
   p_value_df$num_site_patterns <- params$value[which(params$parameter == "Number of distinct site patterns")]
   p_value_df$substitution_model <- params$value[which(params$parameter == "substitution_model")]
   p_value_df$AC_rate <- params$value[which(params$parameter == "A-C_rate")]
