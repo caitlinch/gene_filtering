@@ -55,7 +55,8 @@ for (dataset in datasets){
   # Open output from treelikeness analysis
   op_files <- list.files(output_dir)
   results_files <- grep("collated_results", op_files, value = TRUE)
-  ds_result_file <- paste0(output_dir, grep(dataset, results_files, value = TRUE)[1])
+  ds_files <- grep(dataset, results_files, value = TRUE)
+  ds_result_file <- paste0(output_dir, grep("melted",ds_files, invert = TRUE, value = TRUE))
   op_df <- read.csv(ds_result_file, stringsAsFactors = FALSE)
   
   # Calculate derived variables
@@ -119,14 +120,27 @@ for (dataset in datasets){
    # look for a correlation between the tree proportion test and the proportion of internal branches
    p <- ggplot(data = op_df, aes(x = tree_proportion, y = proportion_internal_branches, color = tree_proportion_p_value)) + geom_point() + theme_bw()
    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_proportionInternalBranches_comparison.png") , plot = p)
-   # look for a correlation between the 3seq and the proportion of internal branches
+   p <- ggplot(data = op_df, aes(x = tree_proportion_p_value, y = proportion_internal_branches)) + geom_point() + theme_bw() + 
+     scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_proportionInternalBranches_comparison.png") , plot = p)
+    # look for a correlation between the 3seq and the proportion of internal branches
    p <- ggplot(data = op_df, aes(x = X3SEQ_prop_recombinant_sequences, y = proportion_internal_branches, color = X3SEQ_p_value)) + geom_point() + theme_bw()
    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_proportionInternalBranches_comparison.png") , plot = p)
+   p <- ggplot(data = op_df, aes(x = X3SEQ_p_value, y = proportion_internal_branches)) + geom_point() + theme_bw() +
+     scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_proportionInternalBranches_comparison.png") , plot = p)
    # look for a correlation between the tree proportion test and the proportion of internal branches
    p <- ggplot(data = op_df, aes(x = tree_proportion, y = proportion_informative_sites, color = tree_proportion_p_value)) + geom_point() + theme_bw()
    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_proportionInformativeSites_comparison.png") , plot = p)
-   p <- ggplot(data = op_df, aes(x = X3SEQ_prop_recombinant_sequences, y = proportion_informative_sites, color = X3SEQ_p_value)) + geom_point() + theme_bw()
+   p <- ggplot(data = op_df, aes(x = tree_proportion_p_value, y = proportion_informative_sites)) + geom_point() + theme_bw() +
+     scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_proportionInformativeSites_comparison.png") , plot = p)
+   # look for a correlation between number of sites and tree proportion
+   p <- ggplot(data = op_df, aes(x = tree_proportion, y = n_sites, color = tree_proportion_p_value)) + geom_point() + theme_bw()
+   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_proportionInformativeSites_comparison.png") , plot = p)
+   p <- ggplot(data = op_df, aes(x = X3SEQ_prop_recombinant_sequences, y = n_sites, color = X3SEQ_p_value)) + geom_point() + theme_bw()
    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_proportionInformativeSites_comparison.png") , plot = p)
+   
 }
 
 
