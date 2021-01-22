@@ -47,6 +47,7 @@ names(plot_dirs) <- datasets
 ##### Step 3: Data exploration ####
 # Open data
 for (dataset in datasets){
+  ### Open files and get dataframes ready for plotting
   # Make sure folder for plots and results exists
   if (!dir.exists(plot_dirs[[dataset]])){
     dir.create(plot_dirs[[dataset]])
@@ -86,14 +87,14 @@ for (dataset in datasets){
   # Select which variables to plot
   plotting_vars <- c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion", "tree_proportion_p_value", "sCF_mean","sCF_median")
   
-  # Plot and save treelikeness histograms
+  ### Plot and save treelikeness histograms
   p <- ggplot(long_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free") + theme_bw()
   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treelikeness_histogram_freeScales.png") , plot = p)
   p <- ggplot(long_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free_x") + theme_bw()
   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treelikeness_histogram_freeX.png") , plot = p)
   ggplot(long_df, aes(x = n_sites)) + geom_histogram() + theme_bw()
   
-  # Plot and save information about the alignments
+  ## #Plot and save information about the alignments as histograms
   info_df <- melt(op_df, id = c("dataset","loci"), 
                   measure.vars = c("n_taxa", "n_sites", "proportion_constant_sites", "proportion_informative_sites", "num_site_patterns", "total_tree_length",
                                    "proportion_internal_branches", "GC_content_mean", "GC_content_sd")
@@ -104,7 +105,7 @@ for (dataset in datasets){
   p <- ggplot(info_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free_x") + theme_bw()
   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_alignmentInfo_histogram_freeX.png") , plot = p)
   
-  # plot some variables against each other to investigate relationships
+  ### Plot some variables against each other to investigate relationships
   # look for a correlation between the 3seq p-value and the proportion of recombinant sequences
   p <- ggplot(data = op_df, aes(x = X3SEQ_prop_recombinant_sequences, y = X3SEQ_p_value)) + geom_point() + theme_bw() + 
     scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05)) + scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
@@ -198,38 +199,16 @@ for (dataset in datasets){
   p <- ggplot(data = op_df, aes(x = GC_content_mean, y = X3SEQ_p_value)) + geom_point() + theme_bw()
   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_GC_content_comparison.png") , plot = p)
   
-  
-  
+  ### Examine treespace
+  # Break down trees to those with all species
+  all_taxa_df <- op_df[op_df$n_taxa == 29,]
+  # Read in all trees at once
+  mp <- read.tree(text = all_taxa_df$tree)
+  res <- treespace(mp, nf=3, method = "patristic")
+  plotGroves(res$pco, lab.show=TRUE, lab.cex=1.5)
 }
 
 
-
-
-##### Step 4: Plot histograms #####
-# Create a facetted histogram to compare the distributions of different test statistics
-# Plot histogram with all test statistics and p_values
-
-
-
-
-##### Step 5: Plot potential predictors of treelikeness against test statistic values #####
-# Plot the number of sites against the treelikeness test statistics
-# Prepare the dataframe
-e = melt_df[melt_df$variable %in% c("X3SEQ_prop_recombinant_sequences","neighbour_net_trimmed","sCF_mean","sCF_median"),]
-e$group = factor(e$variable,levels = levels(e$variable)[c(3,6,9,10)])
-# Set up the labeller so that the facet names will be formatted nicely (rather than using variable names in the plots)
-facet_names <- list("X3SEQ_prop_recombinant_sequences" = "Proportion of  \n recombinant sequences", "neighbour_net_trimmed" = "NeighborNet (trimmed)", 
-                    "sCF_mean" = "Mean sCF", "sCF_median" = "Median sCF")
-facet_labeller <- function(variable){
-  variable <- facet_names[variable]
-  return(variable)
-}
-# Prepare the variables for each plot
-x_axis <- c("n_sites","n_taxa","total_tree_depth","prop_parsimony_informative_sites","num_parsimony_informative_sites","GC_content_mean",
-            "GC_content_variance","GC_content_sd")
-x_axis_names <- c("Number of sites","Number of taxa","Total tree depth","Proportion of parsimony informative sites","Number of parsimony informative sites",
-                  "Mean GC content","Variance in GC content","Standard deviation of GC content")
-# Repeat this process for p values
 
 
 ##### Step 6: Plot test statistics against potential predictors #####
