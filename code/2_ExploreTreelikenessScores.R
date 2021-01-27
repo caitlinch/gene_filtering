@@ -9,14 +9,17 @@
 
 ##### Step 1: Open packages #####
 library(ggplot2) # data visualisation and better plotting
+library(adegraphics) # improved graphical functionalities from ade4 (multivariate data analysis)
+library(adegenet) # toolkit for exploring genomic and genetic data
+library(rgl) # for interactive 3D plots
 library(reshape2)
 library(treespace) # phylogenetic tree exploration
 library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
 # these methods all assume an unrooted tree so trees can be used as is for this analysis
 
-# library(adegenet) # toolkit for exploring genomic and genetic data
-# library(adegraphics) # improved graphical functionalities from ade4 (multivariate data analysis)
-# library(rgl) # for interactive 3D plots
+
+
+
 
 
 
@@ -28,12 +31,14 @@ print("set filepaths")
 # output_dir        <- for collated output and results from treelikeness analysis. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
 # plots_dir         <- for saving plots and analyses. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
 # datasets          <- set name(s) for the dataset(s)
+# plots             <- output plots - TRUE or FALSE
 
 treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
 maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code isresults_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
 output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
 plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_results/"
 datasets <- c("Vanderpool2020")
+plots <- FALSE
 
 
 
@@ -88,124 +93,138 @@ for (dataset in datasets){
   plotting_vars <- c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion", "tree_proportion_p_value", "sCF_mean","sCF_median")
   
   ### Plot and save treelikeness histograms
-  p <- ggplot(long_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free") + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treelikeness_histogram_freeScales.png") , plot = p)
-  p <- ggplot(long_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free_x") + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treelikeness_histogram_freeX.png") , plot = p)
-  ggplot(long_df, aes(x = n_sites)) + geom_histogram() + theme_bw()
-  
-  ## #Plot and save information about the alignments as histograms
-  info_df <- melt(op_df, id = c("dataset","loci"), 
-                  measure.vars = c("n_taxa", "n_sites", "proportion_constant_sites", "proportion_informative_sites", "num_site_patterns", "total_tree_length",
-                                   "proportion_internal_branches", "GC_content_mean", "GC_content_sd")
-  )
-  info_df[info_df$variable == "proportion_internal_branches",4] <- round(info_df[info_df$variable == "proportion_internal_branches",4]/100,3)
-  p <- ggplot(info_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free") + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_alignmentInfo_histogram_freeScales.png") , plot = p)
-  p <- ggplot(info_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free_x") + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_alignmentInfo_histogram_freeX.png") , plot = p)
-  
-  ### Plot some variables against each other to investigate relationships
-  # look for a correlation between the 3seq p-value and the proportion of recombinant sequences
-  p <- ggplot(data = op_df, aes(x = X3SEQ_prop_recombinant_sequences, y = X3SEQ_p_value)) + geom_point() + theme_bw() + 
-    scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05)) + scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_value_comparison.png") , plot = p)
-  
-  # look for a correlation between the tree proportion and 3seq p-values
-  p <- ggplot(data = op_df, aes(x = tree_proportion_p_value, y = X3SEQ_p_value, colour = tree_proportion)) + geom_point() + theme_bw() + 
-    scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05)) + scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_pvalue_comparison.png") , plot = p)
-  
-  # look for a correlation between the tree proportion test statistic and p-value
-  p <- ggplot(data = op_df, aes(x = tree_proportion, y = tree_proportion_p_value)) + geom_point() + theme_bw() + 
-    scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05)) + scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_value_comparison.png") , plot = p)
-  
-  # look for a correlation between the tree proportion test and the proportion of internal branches
-  p <- ggplot(data = op_df, aes(x = proportion_internal_branches, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_proportionInternalBranches_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = proportion_internal_branches, y = tree_proportion_p_value)) + geom_point() + theme_bw() + 
-    scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_proportionInternalBranches_comparison.png") , plot = p)
-  
-  # look for a correlation between the 3seq and the proportion of internal branches
-  p <- ggplot(data = op_df, aes(x = proportion_internal_branches, y = X3SEQ_prop_recombinant_sequences, color = X3SEQ_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_proportionInternalBranches_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = proportion_internal_branches, y = X3SEQ_p_value)) + geom_point() + theme_bw() +
-    scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_proportionInternalBranches_comparison.png") , plot = p)
-  
-  # look for a correlation between the tree proportion test and the proportion of informative sites branches
-  p <- ggplot(data = op_df, aes(x = proportion_informative_sites, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_proportionInformativeSites_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = proportion_informative_sites, y = tree_proportion_p_value)) + geom_point() + theme_bw() +
-    scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_proportionInformativeSites_comparison.png") , plot = p)
-  
-  # look for a correlation between the 3seq test and the proportion of informative sites branches
-  p <- ggplot(data = op_df, aes(x = proportion_informative_sites, y = X3SEQ_prop_recombinant_sequences, )) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_proportionInformativeSites_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = proportion_informative_sites, y = X3SEQ_p_value)) + geom_point() + theme_bw() +
-    scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_proportionInformativeSites_comparison.png") , plot = p)
-  
-  # look for a correlation between number of sites and tree proportion/3seq
-  p <- ggplot(data = op_df, aes(x = n_sites, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_nSites_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = n_sites, y = tree_proportion_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_nSites_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = n_sites, y = X3SEQ_prop_recombinant_sequences, color = X3SEQ_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_nSites_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = n_sites, y = X3SEQ_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_nSites_comparison.png") , plot = p)
-  
-  # look for a correlation between number of taxa and tree proportion/3seq
-  p <- ggplot(data = op_df, aes(x = n_taxa, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_nTaxa_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = n_taxa, y = tree_proportion_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_nTaxa_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = n_taxa, y = X3SEQ_prop_recombinant_sequences, color = X3SEQ_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_nTaxa_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = n_taxa, y = X3SEQ_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_nTaxa_comparison.png") , plot = p)
-  
-  # look for a correlation between tree length and tree proportion/3seq
-  p <- ggplot(data = op_df, aes(x = total_tree_length, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_treeLength_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = total_tree_length, y = tree_proportion_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_treeLength_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = total_tree_length, y = X3SEQ_prop_recombinant_sequences, color = X3SEQ_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_treeLength_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = total_tree_length, y = X3SEQ_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_treeLength_comparison.png") , plot = p)
-  
-  # look for a correlation between number of site patterns and tree proportion/3seq
-  p <- ggplot(data = op_df, aes(x = num_site_patterns, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_NumSitePatterns_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = num_site_patterns, y = tree_proportion_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_NumSitePatterns_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = num_site_patterns, y = X3SEQ_prop_recombinant_sequences, color = X3SEQ_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_NumSitePatterns_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = num_site_patterns, y = X3SEQ_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_NumSitePatterns_comparison.png") , plot = p)
-  
-  # look for a correlation between GC content and tree proportion/3seq
-  p <- ggplot(data = op_df, aes(x = GC_content_mean, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_GC_content_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = GC_content_mean, y = tree_proportion_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_GC_content_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = GC_content_mean, y = X3SEQ_prop_recombinant_sequences, color = X3SEQ_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_GC_content_comparison.png") , plot = p)
-  p <- ggplot(data = op_df, aes(x = GC_content_mean, y = X3SEQ_p_value)) + geom_point() + theme_bw()
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_GC_content_comparison.png") , plot = p)
+  if (plots == TRUE){
+    p <- ggplot(long_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free") + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treelikeness_histogram_freeScales.png") , plot = p)
+    p <- ggplot(long_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free_x") + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treelikeness_histogram_freeX.png") , plot = p)
+    ggplot(long_df, aes(x = n_sites)) + geom_histogram() + theme_bw()
+    
+    ## #Plot and save information about the alignments as histograms
+    info_df <- melt(op_df, id = c("dataset","loci"), 
+                    measure.vars = c("n_taxa", "n_sites", "proportion_constant_sites", "proportion_informative_sites", "num_site_patterns", "total_tree_length",
+                                     "proportion_internal_branches", "GC_content_mean", "GC_content_sd")
+    )
+    info_df[info_df$variable == "proportion_internal_branches",4] <- round(info_df[info_df$variable == "proportion_internal_branches",4]/100,3)
+    p <- ggplot(info_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free") + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_alignmentInfo_histogram_freeScales.png") , plot = p)
+    p <- ggplot(info_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free_x") + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_alignmentInfo_histogram_freeX.png") , plot = p)
+    
+    ### Plot some variables against each other to investigate relationships
+    # look for a correlation between the 3seq p-value and the proportion of recombinant sequences
+    p <- ggplot(data = op_df, aes(x = X3SEQ_prop_recombinant_sequences, y = X3SEQ_p_value)) + geom_point() + theme_bw() + 
+      scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05)) + scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_value_comparison.png") , plot = p)
+    
+    # look for a correlation between the tree proportion and 3seq p-values
+    p <- ggplot(data = op_df, aes(x = tree_proportion_p_value, y = X3SEQ_p_value, colour = tree_proportion)) + geom_point() + theme_bw() + 
+      scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05)) + scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_pvalue_comparison.png") , plot = p)
+    
+    # look for a correlation between the tree proportion test statistic and p-value
+    p <- ggplot(data = op_df, aes(x = tree_proportion, y = tree_proportion_p_value)) + geom_point() + theme_bw() + 
+      scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05)) + scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_value_comparison.png") , plot = p)
+    
+    # look for a correlation between the tree proportion test and the proportion of internal branches
+    p <- ggplot(data = op_df, aes(x = proportion_internal_branches, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_proportionInternalBranches_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = proportion_internal_branches, y = tree_proportion_p_value)) + geom_point() + theme_bw() + 
+      scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_proportionInternalBranches_comparison.png") , plot = p)
+    
+    # look for a correlation between the 3seq and the proportion of internal branches
+    p <- ggplot(data = op_df, aes(x = proportion_internal_branches, y = X3SEQ_prop_recombinant_sequences, color = X3SEQ_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_proportionInternalBranches_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = proportion_internal_branches, y = X3SEQ_p_value)) + geom_point() + theme_bw() +
+      scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_proportionInternalBranches_comparison.png") , plot = p)
+    
+    # look for a correlation between the tree proportion test and the proportion of informative sites branches
+    p <- ggplot(data = op_df, aes(x = proportion_informative_sites, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_proportionInformativeSites_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = proportion_informative_sites, y = tree_proportion_p_value)) + geom_point() + theme_bw() +
+      scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_proportionInformativeSites_comparison.png") , plot = p)
+    
+    # look for a correlation between the 3seq test and the proportion of informative sites branches
+    p <- ggplot(data = op_df, aes(x = proportion_informative_sites, y = X3SEQ_prop_recombinant_sequences, )) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_proportionInformativeSites_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = proportion_informative_sites, y = X3SEQ_p_value)) + geom_point() + theme_bw() +
+      scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_proportionInformativeSites_comparison.png") , plot = p)
+    
+    # look for a correlation between number of sites and tree proportion/3seq
+    p <- ggplot(data = op_df, aes(x = n_sites, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_nSites_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = n_sites, y = tree_proportion_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_nSites_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = n_sites, y = X3SEQ_prop_recombinant_sequences, color = X3SEQ_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_nSites_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = n_sites, y = X3SEQ_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_nSites_comparison.png") , plot = p)
+    
+    # look for a correlation between number of taxa and tree proportion/3seq
+    p <- ggplot(data = op_df, aes(x = n_taxa, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_nTaxa_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = n_taxa, y = tree_proportion_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_nTaxa_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = n_taxa, y = X3SEQ_prop_recombinant_sequences, color = X3SEQ_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_nTaxa_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = n_taxa, y = X3SEQ_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_nTaxa_comparison.png") , plot = p)
+    
+    # look for a correlation between tree length and tree proportion/3seq
+    p <- ggplot(data = op_df, aes(x = total_tree_length, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_treeLength_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = total_tree_length, y = tree_proportion_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_treeLength_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = total_tree_length, y = X3SEQ_prop_recombinant_sequences, color = X3SEQ_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_treeLength_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = total_tree_length, y = X3SEQ_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_treeLength_comparison.png") , plot = p)
+    
+    # look for a correlation between number of site patterns and tree proportion/3seq
+    p <- ggplot(data = op_df, aes(x = num_site_patterns, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_NumSitePatterns_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = num_site_patterns, y = tree_proportion_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_NumSitePatterns_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = num_site_patterns, y = X3SEQ_prop_recombinant_sequences, color = X3SEQ_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_NumSitePatterns_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = num_site_patterns, y = X3SEQ_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_NumSitePatterns_comparison.png") , plot = p)
+    
+    # look for a correlation between GC content and tree proportion/3seq
+    p <- ggplot(data = op_df, aes(x = GC_content_mean, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_GC_content_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = GC_content_mean, y = tree_proportion_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_pValue_GC_content_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = GC_content_mean, y = X3SEQ_prop_recombinant_sequences, color = X3SEQ_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_GC_content_comparison.png") , plot = p)
+    p <- ggplot(data = op_df, aes(x = GC_content_mean, y = X3SEQ_p_value)) + geom_point() + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_GC_content_comparison.png") , plot = p)
+  }
   
   ### Examine treespace
   # Break down trees to those with all species
   all_taxa_df <- op_df[op_df$n_taxa == 29,]
   # Read in all trees at once
   mp <- read.tree(text = all_taxa_df$tree)
-  res <- treespace(mp, nf=3, method = "patristic")
+  res <- treespace(mp, nf=3, method = "wRF")
   plotGroves(res$pco, lab.show=TRUE, lab.cex=1.5)
+  groves <- findGroves(res, nclust=5)
+  plotGrovesD3(groves)
+  colours <- fac2col(groves$groups, col.pal=funky)
+  plot3d(groves$treespace$pco$li[,1],
+         groves$treespace$pco$li[,2],
+         groves$treespace$pco$li[,3],
+         col=colours, type="s", size=1.5,
+         xlab="", ylab="", zlab="")
+  
+  # Classify trees into 4 groups: 3seq only, tp only, both, neither
+  # plot and compare treespace - do trees group together?
+  # plot and compare groves (change colour to be based on group!) - do trees group together?
 }
 
 
