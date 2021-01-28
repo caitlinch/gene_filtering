@@ -225,6 +225,35 @@ for (dataset in datasets){
   # Classify trees into 4 groups: 3seq only, tp only, both, neither
   # plot and compare treespace - do trees group together?
   # plot and compare groves (change colour to be based on group!) - do trees group together?
+  op_df$X3SEQ_treelike <- as.numeric(op_df$X3SEQ_p_value)
+  op_df$X3SEQ_treelike[op_df$X3SEQ_p_value <= 0.05] <- "TREELIKE"
+  op_df$X3SEQ_treelike[op_df$X3SEQ_p_value > 0.05] <- "NON-TREELIKE"
+  
+  op_df$tree_proportion_p_value_treelike <- as.numeric(op_df$tree_proportion_p_value)
+  op_df$tree_proportion_p_value_treelike[op_df$tree_proportion_p_value <= 0.05] <- "TREELIKE"
+  op_df$tree_proportion_p_value_treelike[op_df$tree_proportion_p_value > 0.05] <- "NON-TREELIKE"
+  
+  # For Vanderpool data:
+  # When cut-off is 0.7, 972/1730 are treelike
+  # When cut-off is 0.75, 580/1730 are treelike
+  # Median tree proportion is 0.7116612
+  op_df$tree_proportion_treelike <- as.numeric(op_df$tree_proportion)
+  op_df$tree_proportion_treelike[op_df$tree_proportion > 0.70] <- "TREELIKE"
+  op_df$tree_proportion_treelike[op_df$tree_proportion <= 0.70] <- "NON-TREELIKE"
+  
+  # Sort loci by p-values for both tree proportion and 3seq
+  op_df$sorted_p_value <- op_df$loci
+  op_df$sorted_p_value[op_df$tree_proportion_p_value_treelike == "TREELIKE" & op_df$X3SEQ_treelike == "TREELIKE"] <- "Both"
+  op_df$sorted_p_value[op_df$tree_proportion_p_value_treelike == "NON-TREELIKE" & op_df$X3SEQ_treelike == "TREELIKE"] <- "3SEQ only"
+  op_df$sorted_p_value[op_df$tree_proportion_p_value_treelike == "TREELIKE" & op_df$X3SEQ_treelike == "NON-TREELIKE"] <- "Tree proportion only"
+  op_df$sorted_p_value[op_df$tree_proportion_p_value_treelike == "NON-TREELIKE" & op_df$X3SEQ_treelike == "NON-TREELIKE"] <- "Neither"
+  
+  op_df$sorted <- op_df$loci
+  op_df$sorted[op_df$tree_proportion_treelike == "TREELIKE" & op_df$X3SEQ_treelike == "TREELIKE"] <- "Both"
+  op_df$sorted[op_df$tree_proportion_treelike == "NON-TREELIKE" & op_df$X3SEQ_treelike == "TREELIKE"] <- "3SEQ only"
+  op_df$sorted[op_df$tree_proportion_treelike == "TREELIKE" & op_df$X3SEQ_treelike == "NON-TREELIKE"] <- "Tree proportion only"
+  op_df$sorted[op_df$tree_proportion_treelike == "NON-TREELIKE" & op_df$X3SEQ_treelike == "NON-TREELIKE"] <- "Neither"
+  
 }
 
 
