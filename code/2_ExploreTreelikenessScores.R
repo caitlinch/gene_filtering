@@ -277,18 +277,32 @@ for (dataset in datasets){
   pc_df <- res$pco$tab
   pc_df$sorted <- all_taxa_df$sorted
   pc_df$sorted_p_value <- all_taxa_df$sorted_p_value
+  # sorted_p_value
+  p <- ggplot(pc_df,aes(x = A1, y = A2, color = sorted_p_value)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A2") + labs(title = "Vanderpool 2020 treespace: A2 ~ A1", subtitle = "Grouped by 3seq and tree proportion p-values") + 
+    scale_color_brewer(palette = "Dark2")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_pValue_PC_A1A2.png") , plot = p)
+  p <- ggplot(pc_df,aes(x = A2, y = A3, color = sorted_p_value)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
+    scale_x_continuous(name = "A2") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2", subtitle = "Grouped by 3seq and tree proportion p-values") + 
+    scale_color_brewer(palette = "Dark2")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_pValue_PC_A2A3.png") , plot = p)
+  p <- ggplot(pc_df,aes(x = A1, y = A3, color = sorted_p_value)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2", subtitle = "Grouped by 3seq and tree proportion p-values") + 
+    scale_color_brewer(palette = "Dark2")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_pValue_PC_A1A3.png") , plot = p)
+  # sorted
   p <- ggplot(pc_df,aes(x = A1, y = A2, color = sorted)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
-    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A2") + labs(title = "Vanderpool 2020 treespace: A2 ~ A1") + 
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A2") + labs(title = "Vanderpool 2020 treespace: A2 ~ A1", subtitle = "Grouped by 3seq p-value and tree proportion") + 
     scale_color_brewer(palette = "Dark2")
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_PC_A1A2.png") , plot = p)
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_PC_A1A2.png") , plot = p)
   p <- ggplot(pc_df,aes(x = A2, y = A3, color = sorted)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
-    scale_x_continuous(name = "A2") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2") + 
+    scale_x_continuous(name = "A2") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2", subtitle = "Grouped by 3seq p-value and tree proportion") + 
     scale_color_brewer(palette = "Dark2")
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_PC_A2A3.png") , plot = p)
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_PC_A2A3.png") , plot = p)
   p <- ggplot(pc_df,aes(x = A1, y = A3, color = sorted)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
-    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2") + 
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2", subtitle = "Grouped by 3seq p-value and tree proportion") + 
     scale_color_brewer(palette = "Dark2")
-  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_PC_A1A3.png") , plot = p)
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_PC_A1A3.png") , plot = p)
   
   # Now find the groves
   groves <- findGroves(res, nclust=5)
