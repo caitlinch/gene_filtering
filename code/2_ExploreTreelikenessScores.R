@@ -206,23 +206,7 @@ for (dataset in datasets){
     ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_GC_content_comparison.png") , plot = p)
   }
   
-  ### Examine treespace
-  # Break down trees to those with all species
-  all_taxa_df <- op_df[op_df$n_taxa == 29,]
-  # Read in all trees at once
-  mp <- read.tree(text = all_taxa_df$tree)
-  res <- treespace(mp, nf=3, method = "wRF")
-  plotGroves(res$pco, lab.show=TRUE, lab.cex=1.5)
-  groves <- findGroves(res, nclust=5)
-  plotGrovesD3(groves)
-  colours <- fac2col(groves$groups, col.pal=funky)
-  plot3d(groves$treespace$pco$li[,1],
-         groves$treespace$pco$li[,2],
-         groves$treespace$pco$li[,3],
-         col=colours, type="s", size=1.5,
-         xlab="", ylab="", zlab="")
-  
-  # Classify trees into 4 groups: 3seq only, tp only, both, neither
+  ### Classify trees into 4 groups: 3seq only, tp only, both, neither
   # plot and compare treespace - do trees group together?
   # plot and compare groves (change colour to be based on group!) - do trees group together?
   # Classify loci using p-values as cut off <- significant p-value = treelike
@@ -264,124 +248,78 @@ for (dataset in datasets){
   
   # Now plot the treelikeness test statistics against each other and colour by group
   pretty_colours <- RColorBrewer::brewer.pal(5,"YlGnBu")[2:5]
+  dark_colours <- RColorBrewer::brewer.pal(4,"Dark2")
   p <- ggplot(data = op_df, aes(x = tree_proportion_p_value, y = X3SEQ_p_value, color = sorted_p_value)) + geom_point() + theme_bw() + 
-    scale_color_manual(labels = c("Neither (n = 779)","3seq only  (n = 587)","Tree proportion only  (n = 121)","Both (n = 223)"), values = pretty_colours) + 
-    guides(color = guide_legend(title = "Loci treelikeness")) + labs(title = "Grouping loci by treelikeness test p-value results") +
+    scale_color_manual(labels = c("Neither (n = 779)","3seq only  (n = 587)","Tree proportion only  (n = 121)","Both (n = 223)"), values = dark_colours) + 
+    guides(color = guide_legend(title = "Loci treelikeness")) + labs(title = "Grouping loci by treelikeness test p-value results", subtitle = "Vanderpool 2020") +
     scale_x_continuous(name = "Tree proportion p-value") + scale_y_continuous(name = "3seq p-value")
   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_sortingLoci_p-values.png") , plot = p)
   # Now plot the tree proportion test statistics against the 3seq p-value and colour by group
   p <- ggplot(data = op_df, aes(x = tree_proportion, y = X3SEQ_p_value, color = sorted)) + geom_point() + theme_bw() + 
-    scale_color_manual(labels = c("Neither (n = 378)","3SEQ only  (n = 380)","Tree proportion only  (n = 542)","Both (n = 430)"), values = pretty_colours) + 
-    guides(color = guide_legend(title = "Loci treelikeness")) + labs(title = "Grouping loci by treelikeness test statistic results") +
+    scale_color_manual(labels = c("Neither (n = 378)","3seq only  (n = 380)","Tree proportion only  (n = 542)","Both (n = 430)"), values = dark_colours) + 
+    guides(color = guide_legend(title = "Loci treelikeness")) + labs(title = "Grouping loci by treelikeness test statistic results", subtitle = "Vanderpool 2020") +
     scale_x_continuous(name = "Tree proportion") + scale_y_continuous(name = "3seq p-value")
   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_sortingLoci.png") , plot = p)
   
+  ### Examine treespace
+  # Break down trees to those with all species
+  all_taxa_df <- op_df[op_df$n_taxa == 29,]
+  #all_taxa_df <- all_taxa_df[1:20,] # small dataframe for testing - comment/uncomment as needed
+  # Read in all trees at once
+  mp <- read.tree(text = all_taxa_df$tree)
+  # use treespace <- have to pick a method that works on unrooted trees. Do this by picking one that assumes trees are unrooted
+  # "Warning message: In is.euclid(distmat) : Zero distance(s)" may appear when doing "RF" method <- this means you have duplicate rows in your distance matrix
+  # Basically means two trees have the exact same values so the function thinks that you have a duplicate row
+  res <- treespace(mp, nf=3, method = "wRF")
+  # Use ggplot to plot the treespace using colours to sort loci as above
+  # plotGroves(res$pco, lab.show=FALSE) # plotting treespace using plotGroves function = simple but hard to add colours for factors
+  # Extract principal component vectors and add the sorted column so you know how to group the taxa
+  pc_df <- res$pco$tab
+  pc_df$sorted <- all_taxa_df$sorted
+  pc_df$sorted_p_value <- all_taxa_df$sorted_p_value
+  p <- ggplot(pc_df,aes(x = A1, y = A2, color = sorted)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A2") + labs(title = "Vanderpool 2020 treespace: A2 ~ A1") + 
+    scale_color_brewer(palette = "Dark2")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_PC_A1A2.png") , plot = p)
+  p <- ggplot(pc_df,aes(x = A2, y = A3, color = sorted)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
+    scale_x_continuous(name = "A2") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2") + 
+    scale_color_brewer(palette = "Dark2")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_PC_A2A3.png") , plot = p)
+  p <- ggplot(pc_df,aes(x = A1, y = A3, color = sorted)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2") + 
+    scale_color_brewer(palette = "Dark2")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_PC_A1A3.png") , plot = p)
+  
+  # Now find the groves
+  groves <- findGroves(res, nclust=5)
+  # Plot using plotGroves to see how the groves are organised
+  plotGroves(groves)
+  # Create a data frame to use for plotting
+  groves_pc_df <- groves$treespace$pco$li
+  groves_pc_df$groups <- groves$groups
+  # Make and save the plots
+  p <- ggplot(groves_pc_df,aes(x = A1, y = A2, color = groups)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Groves")) +
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A2") + labs(title = "Vanderpool 2020 treespace with groves: A2 ~ A1") + 
+    scale_color_brewer(palette = "Paired")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_groves_PC_A1A2.png") , plot = p)
+  p <- ggplot(groves_pc_df,aes(x = A2, y = A3, color = groups)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Groves")) +
+    scale_x_continuous(name = "A2") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace with groves: A3 ~ A2") + 
+    scale_color_brewer(palette = "Paired")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_groves_PC_A2A3.png") , plot = p)
+  p <- ggplot(groves_pc_df,aes(x = A1, y = A3, color = groups)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Groves")) +
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace with groves: A3 ~ A2") + 
+    scale_color_brewer(palette = "Paired")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_groves_PC_A1A3.png") , plot = p)
+  # Plot and save a 3D plot
+  colours <- fac2col(groves$groups, col.pal=colorRampPalette(RColorBrewer::brewer.pal(5,"Paired")))
+  plot3d(groves$treespace$pco$li[,1],
+         groves$treespace$pco$li[,2],
+         groves$treespace$pco$li[,3],
+         col=colours, type="s", size=1.5,
+         xlab="", ylab="", zlab="")
+  rgl.snapshot(paste0(plot_dirs[[dataset]],dataset,"_treespace_groves_3dplot_snapshot.png"), fmt = "png")
+  
+  
 }
-
-
-
-
-##### Step 6: Plot test statistics against potential predictors #####
-
-
-##### Step 7: Explore relationships between test statistics #####
-
-
-##### Step 8: Exploring treespace #####
-# to open a tree: read.tree(text=t) if t is a newick tree or read.tree(file=f) if f is a filepath to a newick tree
-t <- read.tree(text="((PONGO_ABE:0.00678774,((PAN_TRO:0.00097927,PAN_PAN:-0.00097827):0.00498971,HOMO_SAP:-0.00024584):0.00721851):0.00341861,
-               ((SAIMI_BOL:0.00017936,CALLI_JAC:0.03474404):0.02185356,(CHLOR_SAB:0.05385828,(PAPIO_ANU:0.01147204,
-               (MACAC_MUL:0.00000050,MACAC_FAS:0.00000050):0.00231226):0.00574556):0.01722714):0.01398251,((TARSI_SYR:0.12918976,
-               (OTOLE_GAR:0.08554176,(MICRO_MUR:0.06490312,DAUBE_MAD:-0.03564042):0.02627855):0.00424960):0.04311964,
-               (NOMAS_LEU:0.06105755,GORIL_GOR:0.05080475):0.00548585):0.04554407);")
-# to make t a multiphylo (as joining a class phylo object and class multiphylo object doesn't work: you need this to join one tree to an existing multiphylo object):
-t2<-list(t)
-class(t2)<-"multiPhylo"
-t2
-# to read in all trees at once (from the newick tree column in the df):
-m <- read.tree(text=ts_df$newick_tree)
-# use treespace <- have to pick a method that works on unrooted trees. Do this by picking one that assumes trees are unrooted (sneaky!)
-# "Warning message: In is.euclid(distmat) : Zero distance(s)" may appear when doing "RF" method <- this means you have duplicate rows in your distance matrix
-# Basically means two trees have the exact same values so the function thinks that you have a duplicate row
-
-res <- treespace(m, nf=3, method = "patristic")
-res100 <- treespace(m100, nf=3, method = "wRF")
-names(res100)
-str(res100)
-table.image(res100$D, nclass=30) # make a table of the 100 trees. Black = more different. 
-# table.value with some customization
-table.value(res100$D, nclass=10, method="color", col=funky(10))
-# plot trees using first 2 PCs
-plotGroves(res100$pco, lab.show=TRUE, lab.cex=1.5)
-plotGrovesD3(res100$pco, treeNames=1:100)
-groves <- findGroves(res100, nclust=7)
-# basic plot
-plotGrovesD3(groves)
-# alternative with improved legend and tooltip text, giving the tree numbers:
-plotGrovesD3(groves, tooltip_text=paste0("Tree ",1:100), legend_width=50, col_lab="Cluster")
-# plot axes 2 and 3. This helps to show why, for example, clusters 2 and 4 have been identified as separate, despite them appearing to overlap when viewing axes 1 and 2.
-plotGrovesD3(groves, xax=2, yax=3, tooltip_text=paste0("Tree ",1:100), legend_width=50, col_lab="Cluster")
-# we can also plot in 3D
-# prepare a colour palette:
-colours <- fac2col(groves$groups, col.pal=funky)
-plot3d(groves$treespace$pco$li[,1],
-       groves$treespace$pco$li[,2],
-       groves$treespace$pco$li[,3],
-       col=colours, type="s", size=1.5,
-       xlab="", ylab="", zlab="")
-
-# to incorporate treelikeness value into the 3D 
-# Trying to attach the tree proportion scores to the spheres
-groups100 <- tl100
-names(groups100) <- 1:100
-groves100 <- list("groups" = groups100, "treespace" = res100)
-# results in colouring by the treelikeness values
-plotGrovesD3(groves100, tooltip_text=paste0("Tree ",1:100), legend_width=50, col_lab="TL value") 
-
-
-# Ways to get your numbers into colours for the plots
-library(rgl)
-# Define colours (there may be a better way to do this ...)
-# Step 1: use colourRamp to make a spectrum from 2 colours using your number vector
-# Step 2: divide by 255 so each colour is on scale from 0 to 1
-# Step 3: convert matrix of rgb values to matrix of hex colours row by row
-cvec <- apply((colorRamp(c("red","yellow","blue"))(tl100))/255,1, function(x) {rgb(x[1],x[2],x[3])})
-# OR Step 1: use viridis to generate colours from treelikeness vector
-library(viridis)
-vir_col <- viridis(7)
-vir_vec <- apply((colorRamp(c(vir_col))(tl100))/255,1, function(x) {rgb(x[1],x[2],x[3])})
-# OR Step 1: or using any2col to convert numbers to colours
-any2col_op <- any2col(tl100)
-any2col_col <- any2col_op$col #extract the colours from the any2col output
-# Plot in 3d using the colours that were just scaled and applied
-plot3d(groves100$treespace$pco$li[,1],
-       groves100$treespace$pco$li[,2],
-       groves100$treespace$pco$li[,3],
-       col=vir_vec, type="s", size=1.5,
-       xlab="", ylab="", zlab="")
-
-# 3 seq p value
-vir_vec <- apply((colorRamp(c(vir_col))(seqp100))/255,1, function(x) {rgb(x[1],x[2],x[3])})
-plot3d(groves100$treespace$pco$li[,1],
-       groves100$treespace$pco$li[,2],
-       groves100$treespace$pco$li[,3],
-       col=vir_vec, type="s", size=1.5,
-       xlab="", ylab="", zlab="")
-
-# 3 seq prop recombinant seq
-vir_vec <- apply((colorRamp(c(vir_col))(seqts100))/255,1, function(x) {rgb(x[1],x[2],x[3])})
-plot3d(groves100$treespace$pco$li[,1],
-       groves100$treespace$pco$li[,2],
-       groves100$treespace$pco$li[,3],
-       col=vir_vec, type="s", size=1.5,
-       xlab="", ylab="", zlab="")
-
-# scf values
-vir_vec <- apply((colorRamp(c(vir_col))(scf100/100))/255,1, function(x) {rgb(x[1],x[2],x[3])})
-plot3d(groves100$treespace$pco$li[,1],
-       groves100$treespace$pco$li[,2],
-       groves100$treespace$pco$li[,3],
-       col=vir_vec, type="s", size=1.5,
-       xlab="", ylab="", zlab="")
 
 
