@@ -225,13 +225,15 @@ for (dataset in datasets){
   # Classify trees into 4 groups: 3seq only, tp only, both, neither
   # plot and compare treespace - do trees group together?
   # plot and compare groves (change colour to be based on group!) - do trees group together?
+  # Classify loci using p-values as cut off <- significant p-value = treelike
   op_df$X3SEQ_treelike <- as.numeric(op_df$X3SEQ_p_value)
   op_df$X3SEQ_treelike[op_df$X3SEQ_p_value <= 0.05] <- "TREELIKE"
   op_df$X3SEQ_treelike[op_df$X3SEQ_p_value > 0.05] <- "NON-TREELIKE"
-  
+  op_df$X3SEQ_treelike <- factor(op_df$X3SEQ_treelike, levels = c("NON-TREELIKE","TREELIKE"), ordered = TRUE)
   op_df$tree_proportion_p_value_treelike <- as.numeric(op_df$tree_proportion_p_value)
   op_df$tree_proportion_p_value_treelike[op_df$tree_proportion_p_value <= 0.05] <- "TREELIKE"
   op_df$tree_proportion_p_value_treelike[op_df$tree_proportion_p_value > 0.05] <- "NON-TREELIKE"
+  op_df$tree_proportion_p_value_treelike <- factor(op_df$tree_proportion_p_value_treelike, levels = c("NON-TREELIKE","TREELIKE"), ordered = TRUE)
   
   # For Vanderpool data:
   # When cut-off is 0.7, 972/1730 are treelike
@@ -240,19 +242,39 @@ for (dataset in datasets){
   op_df$tree_proportion_treelike <- as.numeric(op_df$tree_proportion)
   op_df$tree_proportion_treelike[op_df$tree_proportion > 0.70] <- "TREELIKE"
   op_df$tree_proportion_treelike[op_df$tree_proportion <= 0.70] <- "NON-TREELIKE"
+  op_df$tree_proportion_treelike <- factor(op_df$tree_proportion_treelike, levels = c("NON-TREELIKE","TREELIKE"), ordered = TRUE)
   
   # Sort loci by p-values for both tree proportion and 3seq
   op_df$sorted_p_value <- op_df$loci
   op_df$sorted_p_value[op_df$tree_proportion_p_value_treelike == "TREELIKE" & op_df$X3SEQ_treelike == "TREELIKE"] <- "Both"
-  op_df$sorted_p_value[op_df$tree_proportion_p_value_treelike == "NON-TREELIKE" & op_df$X3SEQ_treelike == "TREELIKE"] <- "3SEQ only"
+  op_df$sorted_p_value[op_df$tree_proportion_p_value_treelike == "NON-TREELIKE" & op_df$X3SEQ_treelike == "TREELIKE"] <- "3seq only"
   op_df$sorted_p_value[op_df$tree_proportion_p_value_treelike == "TREELIKE" & op_df$X3SEQ_treelike == "NON-TREELIKE"] <- "Tree proportion only"
   op_df$sorted_p_value[op_df$tree_proportion_p_value_treelike == "NON-TREELIKE" & op_df$X3SEQ_treelike == "NON-TREELIKE"] <- "Neither"
+  op_df$sorted_p_value <- factor(op_df$sorted_p_value, levels = c("Neither","3seq only","Tree proportion only","Both"), ordered = TRUE)
+  op_df$sorted_p_value_col <- fac2col(op_df$sorted_p_value, col.pal = grDevices::colorRampPalette(RColorBrewer::brewer.pal(10,"PRGn")))
   
+  # Sort loci by p-values for 3seq and test statistic value for tree proportion
   op_df$sorted <- op_df$loci
   op_df$sorted[op_df$tree_proportion_treelike == "TREELIKE" & op_df$X3SEQ_treelike == "TREELIKE"] <- "Both"
-  op_df$sorted[op_df$tree_proportion_treelike == "NON-TREELIKE" & op_df$X3SEQ_treelike == "TREELIKE"] <- "3SEQ only"
+  op_df$sorted[op_df$tree_proportion_treelike == "NON-TREELIKE" & op_df$X3SEQ_treelike == "TREELIKE"] <- "3seq only"
   op_df$sorted[op_df$tree_proportion_treelike == "TREELIKE" & op_df$X3SEQ_treelike == "NON-TREELIKE"] <- "Tree proportion only"
   op_df$sorted[op_df$tree_proportion_treelike == "NON-TREELIKE" & op_df$X3SEQ_treelike == "NON-TREELIKE"] <- "Neither"
+  op_df$sorted <- factor(op_df$sorted, levels = c("Neither","3seq only","Tree proportion only","Both"), ordered = TRUE)
+  op_df$sorted_col <- fac2col(op_df$sorted, col.pal = grDevices::colorRampPalette(RColorBrewer::brewer.pal(10,"PRGn")))
+  
+  # Now plot the treelikeness test statistics against each other and colour by group
+  pretty_colours <- RColorBrewer::brewer.pal(5,"YlGnBu")[2:5]
+  p <- ggplot(data = op_df, aes(x = tree_proportion_p_value, y = X3SEQ_p_value, color = sorted_p_value)) + geom_point() + theme_bw() + 
+    scale_color_manual(labels = c("Neither (n = 779)","3seq only  (n = 587)","Tree proportion only  (n = 121)","Both (n = 223)"), values = pretty_colours) + 
+    guides(color = guide_legend(title = "Loci treelikeness")) + labs(title = "Grouping loci by treelikeness test p-value results") +
+    scale_x_continuous(name = "Tree proportion p-value") + scale_y_continuous(name = "3seq p-value")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_sortingLoci_p-values.png") , plot = p)
+  # Now plot the tree proportion test statistics against the 3seq p-value and colour by group
+  p <- ggplot(data = op_df, aes(x = tree_proportion, y = X3SEQ_p_value, color = sorted)) + geom_point() + theme_bw() + 
+    scale_color_manual(labels = c("Neither (n = 378)","3SEQ only  (n = 380)","Tree proportion only  (n = 542)","Both (n = 430)"), values = pretty_colours) + 
+    guides(color = guide_legend(title = "Loci treelikeness")) + labs(title = "Grouping loci by treelikeness test statistic results") +
+    scale_x_continuous(name = "Tree proportion") + scale_y_continuous(name = "3seq p-value")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_sortingLoci.png") , plot = p)
   
 }
 
