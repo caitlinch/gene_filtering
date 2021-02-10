@@ -2,21 +2,20 @@
 ## R program to estimate trees from loci with varying treelikeness
 ## BenchmarkAlignments and metadata have CC0 or CCBY licenses and are available here: https://github.com/roblanf/BenchmarkAlignments
 ## A number of additional software packages are required, specifically:
+##     - ASTRAL (Zhang et al 2019) (https://github.com/smirarab/ASTRAL)
 ##     - IQTREE (Nguyen et al 2015) (http://www.iqtree.org/) (need version 2.0 or later)
-##     - 3SEQ (Lam et al 2018) (http://mol.ax/software/3seq/)
-##     - Splitstree (Huson and Bryant 2006) (http://www.splitstree.org/) (need SplitsTree 4)
-# Caitlin Cherryh 2019
+# Caitlin Cherryh 2021
 
 
 
 ##### Step 1: Open packages #####
 print("opening packages")
-library(ape) # analyses of phylogenetics and evolution
-library(parallel) # support for parallel computation
-library(phangorn) # phylogenetic reconstruction and analysis
-library(phytools) # tools for comparative biology and phylogenetics
-library(seqinr) # data analysis and visualisation for biological sequence data
-library(stringr) # wrappers for string operations
+#library(ape) # analyses of phylogenetics and evolution
+#library(parallel) # support for parallel computation
+#library(phangorn) # phylogenetic reconstruction and analysis
+#library(phytools) # tools for comparative biology and phylogenetics
+#library(seqinr) # data analysis and visualisation for biological sequence data
+
 
 
 
@@ -31,7 +30,8 @@ print("set filepaths")
 # cores_to_use      <- the number of cores to use for parametric bootstrap. 1 for a single core (wholly sequential), or higher if using parallelisation.
 # exec_folder       <- the folder containing the software executables needed for analysis (ASTRAL and IQTREE)
 # exec_paths        <- location to each executable within the folder
-# datasets_to_run   <- Out of the input names, select which datasets will have the treelikeness analysis run 
+# datasets_to_copy_loci   <- Out of the input names, select which datasets to copy loci trees for tree estimation
+# datasets_to_estimate_trees <- Out of the input names, select which datasets to estimate species trees based on treelikeness results
 
 # The SplitsTree executable path can be tricky to find: 
 #       - in MacOS, the path is "SplitsTree.app/Contents/MacOS/JavaApplicationStub" (assuming you are in the same directory as the application)
@@ -54,7 +54,8 @@ print("set filepaths")
 # exec_folder <- ""
 # exec_paths <- c()
 # exec_paths <- paste0(exec_folder, exec_paths)
-# datasets_to_run <- ""
+#   datasets_to_copy_loci <-  c()
+# datasets_to_estimate_trees <- c()
 
 ### Caitlin's paths ###
 run_location = "local"
@@ -63,7 +64,7 @@ run_location = "local"
 if (run_location == "local"){
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_trees")
   input_names <- "Vanderpool2020"
-  treelikeness_df <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/empiricalTreelikeness_Vanderpool2020_collated_results_20210120.csv"
+  treelikeness_df_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/empiricalTreelikeness_Vanderpool2020_collated_results_20210120.csv"
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/")
   treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
@@ -79,12 +80,13 @@ if (run_location == "local"){
   cores_to_use = 1
   
   # Select datasets to run analysis and collect results
-  datasets_to_run <- c("Vanderpool2020")
+  datasets_to_copy_loci <-  c("Vanderpool2020")
+  datasets_to_estimate_trees <- c("Vanderpool2020")
   
 } else if (run_location=="server"){
   input_dir <- c(NULL)
   input_names <- "Vanderpool2020"
-  treelikeness_df <- NULL
+  treelikeness_df_file <- NULL
   output_dir <- NULL
   treedir <- "/data/caitlin/treelikeness/" # where the treelikeness repository/folder is
   maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness repository/folder is 
@@ -98,25 +100,61 @@ if (run_location == "local"){
   cores_to_use = 25
   
   # Select datasets to run analysis and collect results
-  datasets_to_run <-  c("Vanderpool2020")
+  datasets_to_copy_loci <-  c("Vanderpool2020")
+  datasets_to_estimate_trees <- c("Vanderpool2020")
 }
 
 
 
 ##### Step 3: Source files for functions #####
-# Attach the names used throughout the code and functions to the exec_paths object
-# Do not edit these names - it will cause internal functions and thus calculations to fail
-names(exec_paths) <- c("3seq","IQTree","SplitsTree")
-# Attach the input_names to the input_files 
-names(input_dir) <- input_names
-# Attach the names to the best model files
-names(best_model_paths) <- input_names
-# Create a set of output folders
+# Create output forlders for each dataset if they don't exist
 output_dirs <- paste0(output_dir,input_names,"/")
 names(output_dirs) <- input_names
+for (d in output_dirs){
+  if (file.exists(d) == FALSE){
+    dir.create(d)
+  }
+}
+
+# Open the treelikeness results dataframe
+treelikeness_df <- read.csv(treelikeness_df_file)
 
 # Source the functions using the filepaths from Step 2
-source(paste0(treedir,"code/func_test_statistic.R"))
-source(paste0(treedir,"code/func_process_data.R"))
-source(paste0(treedir,"code/func_parametric_bootstrap.R"))
+#source(paste0(treedir,"code/func_test_statistic.R"))
+#source(paste0(treedir,"code/func_process_data.R"))
+#source(paste0(treedir,"code/func_parametric_bootstrap.R"))
 source(paste0(maindir,"code/func_empirical.R"))
+
+##### Step 4: Partition loci by treelikeness test p-values (3seq and tree proportion) #####
+# Iterate through each of the datasets
+# Sort loci into four categories based on treelikeness p-values
+#     * both 3seq and tree proportion significant
+#     * neither 3seq nor tree proportion significant
+#     * only 3seq significant
+#     * only tree proportion significant
+# Save the trees from a category into a separate folder and collect all trees from a category into a collated text file
+for (dataset in datasets_to_copy_loci){
+  # filter treelikeness_df by dataset
+  dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
+  # split loci into four groups (neither, 3seq, tp or both), then copy all loci from each group into a new folder and a new collated text file
+  # 3seq p-value and tree proportion p-value both >0.05 (not significant)
+  cat_none <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
+  copy.loci.trees(cat_none, dataset_df[dataset_df$loci %in% cat_none,]$tree, output_dirs[dataset], "p-value_categories_none", copy.all.individually = TRUE, copy.and.collate = TRUE)
+  # 3seq p-value and tree proportion p-value both <=0.05 (significant)
+  cat_both <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
+  copy.loci.trees(cat_both, dataset_df[dataset_df$loci %in% cat_both,]$tree, output_dirs[dataset], "p-value_categories_both", copy.all.individually = TRUE, copy.and.collate = TRUE)
+  # Only 3seq p-value <=0.05 and significant, tree proportion p-value not significant
+  cat_3seq <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
+  copy.loci.trees(cat_3seq, dataset_df[dataset_df$loci %in% cat_3seq,]$tree, output_dirs[dataset], "p-value_categories_3seq_only", copy.all.individually = TRUE, copy.and.collate = TRUE)
+  # Only tree proportion p-value <=0.05 and significant, 3seq p-value not significant
+  cat_tp   <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
+  copy.loci.trees(cat_tp, dataset_df[dataset_df$loci %in% cat_tp,]$tree, output_dirs[dataset], "p-value_categories_tree_proportion_only", copy.all.individually = TRUE, copy.and.collate = TRUE)
+}
+
+# Estimate a species tree for each of the four categories
+for (dataset in datasets_to_estimate_trees){
+  dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset]
+}
+
+##### Step 5: Partition loci by treelikeness (tree proportion test statistic value) #####
+
