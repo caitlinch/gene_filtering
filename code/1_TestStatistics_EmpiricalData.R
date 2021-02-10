@@ -53,12 +53,15 @@ print("set filepaths")
 # cores_for_iqtree <- 1
 # reps_to_do <- 199
 # sCF_replicates <- 1000
-# # Create a vector with all of the executable file paths
+# # Create a vector with all of the executable file paths using the following lines as a template:
+# # exec_folder <- "/path/to/executables/folder/"
+# # exec_paths <- c("ASTRAL_executable","IQ-Tree_executable")
+# # exec_paths <- paste0(exec_folder,exec_paths)
+# # names(exec_paths) <- c("ASTRAL","IQTree")
 # # To access a path: exec_paths[["name"]]
-# exec_folder <- "/path/to/executables/folder/"
-# exec_paths <- c("3seq_executable","IQ-Tree_executable","SplitsTree_executable")
-# exec_paths <- paste0(exec_folder,exec_paths)
-# names(exec_paths) <- c("3seq","IQTree","SplitsTree")
+# exec_folder <- ""
+# exec_paths <- c()
+# exec_paths <- paste0(exec_folder, exec_paths)
 # datasets_to_run <- ""
 # datasets_to_collate <- ""
 # datasets_to_collect_trees <- ""

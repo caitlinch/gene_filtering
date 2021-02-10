@@ -29,8 +29,8 @@ print("set filepaths")
 # treedir           <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # cores_to_use      <- the number of cores to use for parametric bootstrap. 1 for a single core (wholly sequential), or higher if using parallelisation.
-# exec_folder       <- the folder containing the software executables needed for analysis (3SEQ, IQ-Tree and SplitsTree4)
-# exec_paths        <- location to each executable within the folder. Attach the names of the executables so the paths can be accessed by name
+# exec_folder       <- the folder containing the software executables needed for analysis (ASTRAL and IQTREE)
+# exec_paths        <- location to each executable within the folder
 # datasets_to_run   <- Out of the input names, select which datasets will have the treelikeness analysis run 
 
 # The SplitsTree executable path can be tricky to find: 
@@ -45,17 +45,20 @@ print("set filepaths")
 # treedir <- ""
 # maindir <- ""
 # cores_to_use <- 1
-# # Create a vector with all of the executable file paths
+# # Create a vector with all of the executable file paths using the following lines as a template:
+# # exec_folder <- "/path/to/executables/folder/"
+# # exec_paths <- c("ASTRAL_executable","IQ-Tree_executable")
+# # exec_paths <- paste0(exec_folder,exec_paths)
+# # names(exec_paths) <- c("ASTRAL","IQTree")
 # # To access a path: exec_paths[["name"]]
-# exec_folder <- "/path/to/executables/folder/"
-# exec_paths <- c("3seq_executable","IQ-Tree_executable","SplitsTree_executable")
-# exec_paths <- paste0(exec_folder,exec_paths)
-# names(exec_paths) <- c("3seq","IQTree","SplitsTree")
+# exec_folder <- ""
+# exec_paths <- c()
+# exec_paths <- paste0(exec_folder, exec_paths)
 # datasets_to_run <- ""
 
 ### Caitlin's paths ###
-# run_location = "local"
-run_location = "server"
+run_location = "local"
+# run_location = "server"
 
 if (run_location == "local"){
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_trees")
@@ -64,47 +67,38 @@ if (run_location == "local"){
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/")
   treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
-  exec_folder <- "/Users/caitlincherryh/Documents/Honours/SimulationsCodeAndResults/Executables/"
+  
   # Create a vector with all of the executable file paths  in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("3seq","iqtree-2.0-rc1-MacOSX/bin/iqtree",
-                  "SplitsTree.app/Contents/MacOS/JavaApplicationStub")
+  exec_paths <- c("Astral/astral.5.7.5.jar","iqtree-2.0-rc1-MacOSX/bin/iqtree")
+  exec_folder <- "/Users/caitlincherryh/Documents/Executables/"
   exec_paths <- paste0(exec_folder,exec_paths)
-  names(exec_paths) <- c("3seq","IQTree","SplitsTree")
+  names(exec_paths) <- c("ASTRAL","IQTree")
   
-  # set number of cores and reps for bootstraps
+  # set number of cores
   cores_to_use = 1
   
   # Select datasets to run analysis and collect results
   datasets_to_run <- c("Vanderpool2020")
   
 } else if (run_location=="server"){
-  input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
-                 "/data/caitlin/empirical_treelikeness/Data_Misof2014/",
-                 "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/")
-  best_model_paths <- c("/data/caitlin/empirical_treelikeness/Data_inputFiles/OKP_loci_bestmodel.txt",
-                        "/data/caitlin/empirical_treelikeness/Data_inputFiles/Misof2014_orthologousGenes_bestmodel.txt",
-                        NA)
-  input_names <- c("1KP", "Misof2014","Vanderpool2020")
-  output_dir <- "/data/caitlin/empirical_treelikeness/Output/"
+  input_dir <- c(NULL)
+  input_names <- "Vanderpool2020"
+  treelikeness_df <- NULL
+  output_dir <- NULL
   treedir <- "/data/caitlin/treelikeness/" # where the treelikeness repository/folder is
   maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness repository/folder is 
   
   # Create a vector with all of the executable file paths in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("/data/caitlin/linux_executables/3seq/3seq","/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree","/data/caitlin/splitstree4/SplitsTree")
-  names(exec_paths) <- c("3seq","IQTree","SplitsTree")
+  exec_paths <- c(NULL,"/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
+  names(exec_paths) <- c("Astral","IQTree")
   
   # set number of cores and reps for bootstraps
   cores_to_use = 25
-  cores_for_iqtree = 1
-  reps_to_do= 99
-  sCF_replicates = 1000
   
   # Select datasets to run analysis and collect results
-  datasets_to_run <- c()
-  datasets_to_collate <- c()
-  datasets_to_collect_trees <- c("Vanderpool2020")
+  datasets_to_run <-  c("Vanderpool2020")
 }
 
 
