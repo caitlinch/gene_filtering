@@ -1136,6 +1136,15 @@ estimate.ASTRAL.species.tree <- function(gene_tree_file, species_tree_file, log_
 
 
 
+ASTRAL.wrapper <- function(text_file, ASTRAL_path){
+  species_tree_file <- gsub(".txt", "_ASTRAL_species.tre", text_file)
+  log_file <- gsub(".txt", "_ASTRAL_species.log", text_file)
+  estimate.ASTRAL.species.tree(text_file, species_tree_file, log_file, ASTRAL_path)
+}
+
+
+
+
 # Function to estimate species tree of a folder full of alignments using IQ-Tree
 estimate.IQTREE.species.tree <- function(gene_tree_folder, IQTREE_path){
   iqtree_command <- paste0(IQTREE_path, " -p ", gene_tree_folder, " -bb 1000 -m MFP+MERGE -nt AUTO")
