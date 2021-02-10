@@ -24,6 +24,7 @@ library(stringr) # wrappers for string operations
 print("set filepaths")
 # input_dir         <- the folder(s) containing the empirical data
 # input_names       <- set name(s) for the dataset(s)
+# best_model_paths  <- set path to file containing the best model of substitution for each loci
 # output_dir        <- for collated output and results. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
 # treedir           <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
@@ -44,6 +45,7 @@ print("set filepaths")
 # # UNCOMMENT THE FOLLOWING LINES AND ENTER YOUR FILE PATHS/VARIABLES
 # input_dir <- ""
 # input_names <- ""
+# best_model_paths <- ""
 # output_dir <- ""
 # treedir <- ""
 # maindir <- ""
@@ -57,6 +59,9 @@ print("set filepaths")
 # exec_paths <- c("3seq_executable","IQ-Tree_executable","SplitsTree_executable")
 # exec_paths <- paste0(exec_folder,exec_paths)
 # names(exec_paths) <- c("3seq","IQTree","SplitsTree")
+# datasets_to_run <- ""
+# datasets_to_collate <- ""
+# datasets_to_collect_trees <- ""
 
 ### Caitlin's paths ###
 # run_location = "local"
