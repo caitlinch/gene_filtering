@@ -34,6 +34,7 @@ print("set filepaths")
 # exec_paths        <- location to each executable within the folder
 # datasets_to_copy_loci   <- Out of the input names, select which datasets to copy loci trees for tree estimation
 # datasets_to_estimate_trees <- Out of the input names, select which datasets to estimate species trees based on treelikeness results
+# loci_windows     <- select how many loci to include in each species tree estimate when ranking loci by treelikeness
 
 # The SplitsTree executable path can be tricky to find: 
 #       - in MacOS, the path is "SplitsTree.app/Contents/MacOS/JavaApplicationStub" (assuming you are in the same directory as the application)
@@ -56,8 +57,9 @@ print("set filepaths")
 # exec_folder <- ""
 # exec_paths <- c()
 # exec_paths <- paste0(exec_folder, exec_paths)
-#   datasets_to_copy_loci <-  c()
+# datasets_to_copy_loci <-  c()
 # datasets_to_estimate_trees <- c()
+# loci_windows     <- c(50,100,150,200,250,300,350,400,450,500)
 
 ### Caitlin's paths ###
 run_location = "local"
@@ -85,6 +87,9 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("Vanderpool2020")
   datasets_to_estimate_trees <- c("Vanderpool2020")
+  
+  # Select how many loci to include in each species tree estimate
+  loci_windows     <- c(50,100,150,200,250,300,350,400,450,500)
   
 } else if (run_location=="server"){
   input_dir <- c(NULL)
@@ -168,16 +173,65 @@ for (dataset in datasets_to_estimate_trees){
   astral_inputs <- paste0(output_dirs[dataset], c("p-value_categories_none","p-value_categories_both","p-value_categories_3seq_only","p-value_categories_tree_proportion_only"), ".txt")
   iqtree_inputs <- paste0(output_dirs[dataset], c("p-value_categories_none","p-value_categories_both","p-value_categories_3seq_only","p-value_categories_tree_proportion_only"))
   # Calculate the species tree using ASTRAL for each of the four categories
-  estimate.ASTRAL.species.tree(astral_inputs[1], gsub(".txt","_ASTRAL_species.tre",astral_inputs[1]), gsub(".txt","_ASTRAL_species.log",astral_inputs[1]), exec_paths["ASTRAL"])
-  estimate.ASTRAL.species.tree(astral_inputs[2], gsub(".txt","_ASTRAL_species.tre",astral_inputs[2]), gsub(".txt","_ASTRAL_species.log",astral_inputs[2]), exec_paths["ASTRAL"])
-  estimate.ASTRAL.species.tree(astral_inputs[3], gsub(".txt","_ASTRAL_species.tre",astral_inputs[3]), gsub(".txt","_ASTRAL_species.log",astral_inputs[3]), exec_paths["ASTRAL"])
-  estimate.ASTRAL.species.tree(astral_inputs[4], gsub(".txt","_ASTRAL_species.tre",astral_inputs[4]), gsub(".txt","_ASTRAL_species.log",astral_inputs[4]), exec_paths["ASTRAL"])
+  # estimate.ASTRAL.species.tree(astral_inputs[1], gsub(".txt","_ASTRAL_species.tre",astral_inputs[1]), gsub(".txt","_ASTRAL_species.log",astral_inputs[1]), exec_paths["ASTRAL"]
+  lapply(astral_inputs, ASTRAL.wrapper, exec_paths["ASTRAL"])
   # Calculate the species tree using IQ-Tree for each of the four categories
   lapply(iqtree_inputs, estimate.IQTREE.species.tree, exec_paths["IQTree"])
-  estimate.IQTREE.species.tree(iqtree_inputs[2], exec_paths["IQTree"])
-  estimate.IQTREE.species.tree(iqtree_inputs[3], exec_paths["IQTree"])
-  estimate.IQTREE.species.tree(iqtree_inputs[4], exec_paths["IQTree"])
 }
 
 ##### Step 5: Partition loci by treelikeness (tree proportion test statistic value) #####
+# Save names of folders/files to estimate species trees of
+astral_trees_to_estimate <- c()
+iqtrees_to_estimate <- c()
+
+# Set up alignments/trees to run species trees analysis
+for (dataset in datasets_to_copy_loci){
+  dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
+  # Rank loci by treelikeness using tree proportion test statistic values from low to high
+  dataset_df <- dataset_df[order(dataset_df$tree_proportion),]
+  # For each of the numbers in loci_windows, save that number of loci of the highest and of the lowest tree proportion values
+  for (n in loci_windows){
+    # Create name for folder/text file
+    tl_name <- paste0("windows_treelike_",sprintf("%04d",n))
+    not_tl_name <- paste0("windows_non-treelike_",sprintf("%04d",n))
+    
+    # Select best 'n' loci (last 'n' in list) and worst 'n' loci (first 'n' in list)
+    tl_loci <- tail(treelikeness_df$loci, n)
+    not_tl_loci <- treelikeness_df$loci[1:n]
+    
+    # Save best 'n' loci using the following functions:
+    # copy.loci.trees(loci_names,loci_trees, output_folder, output_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
+    # copy.loci.alignment(loci_name, dataset_loci_folder, new_alignment_location)
+    copy.loci.trees(tl_loci, dataset_df[dataset_df$loci %in% tl_loci,]$tree, output_dirs[dataset], paste0(tl_name,"_ASTRAL"), copy.all.individually = FALSE, copy.and.collate = TRUE)
+    lapply(tl_loci, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset], tl_name, "_IQ-Tree", "/"))
+
+    # Save best 'n' loci
+    copy.loci.trees(not_tl_loci, dataset_df[dataset_df$loci %in% not_tl_loci,]$tree, output_dirs[dataset], paste0(not_tl_name,"ASTRAL"), copy.all.individually = FALSE, copy.and.collate = TRUE)
+    lapply(not_tl_loci, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset], not_tl_name, "_IQ-Tree", "/"))
+
+    # Save names 
+    astral_trees_to_estimate <- c(astral_trees_to_estimate, paste0(output_dirs[dataset], tl_name, "_ASTRAL.txt"), paste0(output_dirs[dataset], not_tl_name, "_ASTRAL.txt"))
+    iqtrees_to_estimate <- c(iqtrees_to_estimate, paste0(output_dirs[dataset], tl_name, "_IQ-Tree", "/"), paste0(output_dirs[dataset], not_tl_name, "_IQ-Tree", "/"))
+  }
+}
+
+# Save list of astral and iqtrees to estimate
+write(astral_trees_to_estimate, file = paste0(output_dir,"ASTRAL_trees_to_estimate.txt"))
+write(iqtrees_to_estimate, file = paste0(output_dir,"iqtrees_to_estimate.txt"))
+
+# Run species trees analyses
+for (text_file in astral_trees_to_estimate){
+  ASTRAL.wrapper(text_file, exec_paths["ASTRAL"])
+}
+for (folder in iqtrees_to_estimate){
+  # Run IQ-Tree
+  estimate.IQTREE.species.tree(folder, exec_paths["IQTree"])
+}
+
+# notes - use all loci or just those with 29 taxa?
+# check that one locus with a really long tree length
+# do one with all genes for astral and iqtree
+
+
+
 
