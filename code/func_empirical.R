@@ -1138,7 +1138,7 @@ estimate.ASTRAL.species.tree <- function(gene_tree_file, species_tree_file, log_
 
 # Function to estimate species tree of a folder full of alignments using IQ-Tree
 estimate.IQTREE.species.tree <- function(gene_tree_folder, IQTREE_path){
-  iqtree_command <- paste0(IQTREE_path, " -p ", gene_tree_folder, " -bb 1000 -nt AUTO")
+  iqtree_command <- paste0(IQTREE_path, " -p ", gene_tree_folder, " -bb 1000 -m MFP+MERGE -nt AUTO")
   system(iqtree_command)
 }
 
