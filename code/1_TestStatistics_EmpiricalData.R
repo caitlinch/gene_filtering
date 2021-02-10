@@ -5,7 +5,7 @@
 ##     - IQTREE (Nguyen et al 2015) (http://www.iqtree.org/) (need version 2.0 or later)
 ##     - 3SEQ (Lam et al 2018) (http://mol.ax/software/3seq/)
 ##     - Splitstree (Huson and Bryant 2006) (http://www.splitstree.org/) (need SplitsTree 4)
-# Caitlin Cherryh 2019
+# Caitlin Cherryh 2021
 
 
 
