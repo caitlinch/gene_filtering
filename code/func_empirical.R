@@ -1088,3 +1088,36 @@ add.alignment.information <- function(loci_folder){
   out_file <- gsub("pValues","results",p_value_file)
   write.csv(p_value_df, out_file, row.names = FALSE)
 }
+
+# Function to take a list of loci and copy the trees for those loci into either a new folder, a new text file, or both
+copy.loci.trees <- function(loci_names,loci_trees,output_folder,output_name,copy.all.individually = FALSE, copy.and.collate = TRUE){
+  # Make a little dataframe of the tree information
+  tree_df <- data.frame(names = loci_names, trees = loci_trees)
+  # Create output file name and folder name
+  op_dir <- paste0(output_folder, output_name, "/")
+  op_file <- paste0(output_folder, output_name, ".txt")
+  # If required, save each tree into a separate file within the same folder
+  if (copy.all.individually == TRUE){
+    # Create the folder to save trees in (if it doesn't already exist)
+    if (!dir.exists(op_dir)){
+      dir.create(op_dir)
+    }
+    # Iterate through the tree_df to save each tree
+    lapply(1:nrow(tree_df), save.one.tree, tree_df, op_dir)
+  } 
+  # If required, save each tree into the same file
+  if (copy.and.collate == TRUE){
+    # Collate trees together
+    all_tree_text <- paste0(tree_df$trees)
+    # Output all trees
+    write(x = all_tree_text, file = op_file)
+  }
+}
+
+# Function to take a single tree from a tree dataframe and copy it into an output folder
+save.one.tree <- function(row_number,tree_df,op_dir){
+  row <- tree_df[row_number,]
+  op_name <- paste0(op_dir, row$names, ".treefile" )
+  write(x = row$trees, file = op_name)
+}
+
