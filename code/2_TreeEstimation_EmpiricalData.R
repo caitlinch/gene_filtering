@@ -22,7 +22,9 @@ print("opening packages")
 ##### Step 2: Set file paths and run variables #####
 print("set filepaths")
 # input_dir         <- the folder(s) containing the estimated trees from each loci
-# input_names       <- set name(s) for the dataset(s)
+# alignment_dir     <- the folder(s) containing the alignments for each loci
+# input_names       <- set name(s) for the dataset(s) - make sure input_names is in same order as input_dir and alignment_dir 
+#                      (e.g. for 2 datasets, put same dataset first in all three and same dataset last in all three)
 # treelikeness_df   <- csv file containing collated treelikeness test statistics for each loci (created by running the code/1_TestStatistics_EmpiricalData.R file) 
 # output_dir        <- where the coalescent/concatenated trees and tree comparisons will be stored 
 # treedir           <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
@@ -63,6 +65,7 @@ run_location = "local"
 
 if (run_location == "local"){
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_trees")
+  alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/")
   input_names <- "Vanderpool2020"
   treelikeness_df_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/empiricalTreelikeness_Vanderpool2020_collated_results_20210120.csv"
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/")
@@ -107,7 +110,10 @@ if (run_location == "local"){
 
 
 ##### Step 3: Source files for functions #####
-# Create output forlders for each dataset if they don't exist
+# Add dataset names the input_dir and alignment_dir variables so you can index by dataset name
+names(input_dir) <- input_names
+names(alignment_dir) <- input_names
+# Create output folders for each data set if they don't exist
 output_dirs <- paste0(output_dir,input_names,"/")
 names(output_dirs) <- input_names
 for (d in output_dirs){
@@ -136,24 +142,36 @@ source(paste0(maindir,"code/func_empirical.R"))
 for (dataset in datasets_to_copy_loci){
   # filter treelikeness_df by dataset
   dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
-  # split loci into four groups (neither, 3seq, tp or both), then copy all loci from each group into a new folder and a new collated text file
+  # split loci into four groups (neither, 3seq, tp or both), then copy all loci alignments from each group into a new folder and all trees from each group into a new collated text file
   # 3seq p-value and tree proportion p-value both >0.05 (not significant)
   cat_none <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
-  copy.loci.trees(cat_none, dataset_df[dataset_df$loci %in% cat_none,]$tree, output_dirs[dataset], "p-value_categories_none", copy.all.individually = TRUE, copy.and.collate = TRUE)
+  copy.loci.trees(cat_none, dataset_df[dataset_df$loci %in% cat_none,]$tree, output_dirs[dataset], "p-value_categories_none", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  lapply(cat_none, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_none/"))
   # 3seq p-value and tree proportion p-value both <=0.05 (significant)
   cat_both <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
-  copy.loci.trees(cat_both, dataset_df[dataset_df$loci %in% cat_both,]$tree, output_dirs[dataset], "p-value_categories_both", copy.all.individually = TRUE, copy.and.collate = TRUE)
+  copy.loci.trees(cat_both, dataset_df[dataset_df$loci %in% cat_both,]$tree, output_dirs[dataset], "p-value_categories_both", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  lapply(cat_both, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_both/"))
   # Only 3seq p-value <=0.05 and significant, tree proportion p-value not significant
   cat_3seq <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
-  copy.loci.trees(cat_3seq, dataset_df[dataset_df$loci %in% cat_3seq,]$tree, output_dirs[dataset], "p-value_categories_3seq_only", copy.all.individually = TRUE, copy.and.collate = TRUE)
+  copy.loci.trees(cat_3seq, dataset_df[dataset_df$loci %in% cat_3seq,]$tree, output_dirs[dataset], "p-value_categories_3seq_only", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  lapply(cat_3seq, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_3seq_only/"))
   # Only tree proportion p-value <=0.05 and significant, 3seq p-value not significant
   cat_tp   <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
-  copy.loci.trees(cat_tp, dataset_df[dataset_df$loci %in% cat_tp,]$tree, output_dirs[dataset], "p-value_categories_tree_proportion_only", copy.all.individually = TRUE, copy.and.collate = TRUE)
+  copy.loci.trees(cat_tp, dataset_df[dataset_df$loci %in% cat_tp,]$tree, output_dirs[dataset], "p-value_categories_tree_proportion_only", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  lapply(cat_tp, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_tree_proportion_only/"))
 }
 
 # Estimate a species tree for each of the four categories
 for (dataset in datasets_to_estimate_trees){
-  dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset]
+  dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
+  p_value_cat_files <- grep("p-value_categories",list.files(output_dirs[dataset]), value = TRUE)
+  astral_inputs <- paste0(output_dirs[dataset], grep(".txt", p_value_cat_files, value = TRUE))
+  iqtree_inputs <- paste0(output_dirs[dataset], grep(".txt", p_value_cat_files, value = TRUE, invert = TRUE))
+  # Calculate the species tree using ASTRAL for each of the four categories
+  estimate.ASTRAL.species.tree(astral_inputs[1], gsub(".txt","_ASTRAL_species.tre",astral_inputs[1]), gsub(".txt","_ASTRAL_species.log",astral_inputs[1]))
+  estimate.ASTRAL.species.tree(astral_inputs[2], gsub(".txt","_ASTRAL_species.tre",astral_inputs[2]), gsub(".txt","_ASTRAL_species.log",astral_inputs[2]))
+  estimate.ASTRAL.species.tree(astral_inputs[3], gsub(".txt","_ASTRAL_species.tre",astral_inputs[3]), gsub(".txt","_ASTRAL_species.log",astral_inputs[3]))
+  estimate.ASTRAL.species.tree(astral_inputs[4], gsub(".txt","_ASTRAL_species.tre",astral_inputs[4]), gsub(".txt","_ASTRAL_species.log",astral_inputs[4]))
 }
 
 ##### Step 5: Partition loci by treelikeness (tree proportion test statistic value) #####
