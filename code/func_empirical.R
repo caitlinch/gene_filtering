@@ -1089,6 +1089,9 @@ add.alignment.information <- function(loci_folder){
   write.csv(p_value_df, out_file, row.names = FALSE)
 }
 
+
+
+
 # Function to take a list of loci and copy the trees for those loci into either a new folder, a new text file, or both
 copy.loci.trees <- function(loci_names,loci_trees,output_folder,output_name,copy.all.individually = FALSE, copy.and.collate = TRUE){
   # Make a little dataframe of the tree information
@@ -1121,3 +1124,43 @@ save.one.tree <- function(row_number,tree_df,op_dir){
   write(x = row$trees, file = op_name)
 }
 
+
+
+
+# Function to estimate species tree using ASTRAL
+estimate.ASTRAL.species.tree <- function(gene_tree_file, species_tree_file, log_file, ASTRAL_path){
+  astral_command <- paste0("java -jar ", ASTRAL_path, " -i ", gene_tree_file, " -o ", species_tree_file, " 2> ", log_file)
+  system(astral_command)
+}
+
+
+
+
+# Function to estimate species tree of a folder full of alignments using IQ-Tree
+estimate.IQTREE.species.tree <- function(gene_tree_folder, IQTREE_path){
+  iqtree_command <- paste0(IQTREE_path, " -p ", gene_tree_folder, " -bb 1000 -nt AUTO")
+  system(iqtree_command)
+}
+
+
+
+
+# Function to take a list of loci and copy the alignments for those loci into either a new folder
+copy.loci.alignment <- function(loci_name, dataset_loci_folder, new_alignment_location){
+  # Extract the list of loci from the dataset_loci_folder
+  all_loci_alignments <- list.files(dataset_loci_folder)
+  # Extract the loci you are looking for 
+  loci_path <- paste0(dataset_loci_folder, grep(loci_name, all_loci_alignments, value = TRUE))
+  # Check if the new directory exists
+  if (!dir.exists(new_alignment_location)){
+    dir.create(new_alignment_location)
+  }
+  # Extract the suffix from the loci_path - ensure you are keeping file format constant!
+  suffix <- tail(strsplit(loci_path,"\\.")[[1]], 1)
+  # Create the new path using the new location, loci name and the file extension
+  new_loci_path <- paste0(new_alignment_location, loci_name, ".", suffix)
+  # Check if the file exists in the new place
+  if (!file.exists(new_loci_path)){
+    file.copy(loci_path, new_loci_path, overwrite = TRUE, recursive = FALSE, copy.mode = TRUE)
+  }
+}
