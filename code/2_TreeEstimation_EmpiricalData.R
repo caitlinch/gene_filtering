@@ -165,13 +165,18 @@ for (dataset in datasets_to_copy_loci){
 for (dataset in datasets_to_estimate_trees){
   dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
   p_value_cat_files <- grep("p-value_categories",list.files(output_dirs[dataset]), value = TRUE)
-  astral_inputs <- paste0(output_dirs[dataset], grep(".txt", p_value_cat_files, value = TRUE))
-  iqtree_inputs <- paste0(output_dirs[dataset], grep(".txt", p_value_cat_files, value = TRUE, invert = TRUE))
+  astral_inputs <- paste0(output_dirs[dataset], c("p-value_categories_none","p-value_categories_both","p-value_categories_3seq_only","p-value_categories_tree_proportion_only"), ".txt")
+  iqtree_inputs <- paste0(output_dirs[dataset], c("p-value_categories_none","p-value_categories_both","p-value_categories_3seq_only","p-value_categories_tree_proportion_only"))
   # Calculate the species tree using ASTRAL for each of the four categories
-  estimate.ASTRAL.species.tree(astral_inputs[1], gsub(".txt","_ASTRAL_species.tre",astral_inputs[1]), gsub(".txt","_ASTRAL_species.log",astral_inputs[1]))
-  estimate.ASTRAL.species.tree(astral_inputs[2], gsub(".txt","_ASTRAL_species.tre",astral_inputs[2]), gsub(".txt","_ASTRAL_species.log",astral_inputs[2]))
-  estimate.ASTRAL.species.tree(astral_inputs[3], gsub(".txt","_ASTRAL_species.tre",astral_inputs[3]), gsub(".txt","_ASTRAL_species.log",astral_inputs[3]))
-  estimate.ASTRAL.species.tree(astral_inputs[4], gsub(".txt","_ASTRAL_species.tre",astral_inputs[4]), gsub(".txt","_ASTRAL_species.log",astral_inputs[4]))
+  estimate.ASTRAL.species.tree(astral_inputs[1], gsub(".txt","_ASTRAL_species.tre",astral_inputs[1]), gsub(".txt","_ASTRAL_species.log",astral_inputs[1]), exec_paths["ASTRAL"])
+  estimate.ASTRAL.species.tree(astral_inputs[2], gsub(".txt","_ASTRAL_species.tre",astral_inputs[2]), gsub(".txt","_ASTRAL_species.log",astral_inputs[2]), exec_paths["ASTRAL"])
+  estimate.ASTRAL.species.tree(astral_inputs[3], gsub(".txt","_ASTRAL_species.tre",astral_inputs[3]), gsub(".txt","_ASTRAL_species.log",astral_inputs[3]), exec_paths["ASTRAL"])
+  estimate.ASTRAL.species.tree(astral_inputs[4], gsub(".txt","_ASTRAL_species.tre",astral_inputs[4]), gsub(".txt","_ASTRAL_species.log",astral_inputs[4]), exec_paths["ASTRAL"])
+  # Calculate the species tree using IQ-Tree for each of the four categories
+  lapply(iqtree_inputs, estimate.IQTREE.species.tree, exec_paths["IQTree"])
+  estimate.IQTREE.species.tree(iqtree_inputs[2], exec_paths["IQTree"])
+  estimate.IQTREE.species.tree(iqtree_inputs[3], exec_paths["IQTree"])
+  estimate.IQTREE.species.tree(iqtree_inputs[4], exec_paths["IQTree"])
 }
 
 ##### Step 5: Partition loci by treelikeness (tree proportion test statistic value) #####
