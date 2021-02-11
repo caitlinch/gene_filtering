@@ -10,12 +10,10 @@
 
 ##### Step 1: Open packages #####
 print("opening packages")
-#library(ape) # analyses of phylogenetics and evolution
-#library(parallel) # support for parallel computation
-#library(phangorn) # phylogenetic reconstruction and analysis
-#library(phytools) # tools for comparative biology and phylogenetics
-#library(seqinr) # data analysis and visualisation for biological sequence data
-
+library(ape) # analyses of phylogenetics and evolution
+library(parallel) # support for parallel computation
+library(phangorn) # phylogenetic reconstruction and analysis
+library(phytools) # tools for comparative biology and phylogenetics
 
 
 
@@ -25,6 +23,10 @@ print("set filepaths")
 # alignment_dir     <- the folder(s) containing the alignments for each loci
 # input_names       <- set name(s) for the dataset(s) - make sure input_names is in same order as input_dir and alignment_dir 
 #                      (e.g. for 2 datasets, put same dataset first in all three and same dataset last in all three)
+# loci_to_remove    <- If there are any loci to exclude from the analysis, specify them here. 
+#                   <- This parameter is a list containing a vector for each dataset from input_names. The vector names each loci to exclude from that dataset
+# number_of_taxa    <- If there is a certain number of taxa required for your analysis, specify that here.
+#                   <- This parameter is a list containing a vector for each dataset from input_names. The vector contains the allowable number of taxa for that dataset
 # treelikeness_df   <- csv file containing collated treelikeness test statistics for each loci (created by running the code/1_TestStatistics_EmpiricalData.R file) 
 # output_dir        <- where the coalescent/concatenated trees and tree comparisons will be stored 
 # treedir           <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
@@ -59,16 +61,21 @@ print("set filepaths")
 # exec_paths <- paste0(exec_folder, exec_paths)
 # datasets_to_copy_loci <-  c()
 # datasets_to_estimate_trees <- c()
-# loci_windows     <- c(50,100,150,200,250,300,350,400,450,500)
+# loci_windows     <- c(10, 50, 100, 250, 500)
 
 ### Caitlin's paths ###
 run_location = "local"
 # run_location = "server"
 
 if (run_location == "local"){
+  # Datasets/dataset information
+  input_names <- "Vanderpool2020"
+  loci_to_remove <- list("Vanderpool2020" = "ORTHOMCL14552")
+  number_of_taxa <- list("Vanderpool2020" = 29)
+  
+  # File and directory locations
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_trees")
   alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/")
-  input_names <- "Vanderpool2020"
   treelikeness_df_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/empiricalTreelikeness_Vanderpool2020_collated_results_20210120.csv"
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/")
   treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
@@ -89,11 +96,17 @@ if (run_location == "local"){
   datasets_to_estimate_trees <- c("Vanderpool2020")
   
   # Select how many loci to include in each species tree estimate
-  loci_windows     <- c(50,100,150,200,250,300,350,400,450,500)
+  loci_windows     <- c(10, 50, 100, 250, 500)
   
 } else if (run_location=="server"){
-  input_dir <- c(NULL)
+  # Datasets/dataset information
   input_names <- "Vanderpool2020"
+  loci_to_remove <- list("Vanderpool2020" = "ORTHOMCL14552")
+  number_of_taxa <- list("Vanderpool2020" = 29)
+  
+  # File and directory locations
+  input_dir <- NULL
+  alignment_dir <- NULL
   treelikeness_df_file <- NULL
   output_dir <- NULL
   treedir <- "/data/caitlin/treelikeness/" # where the treelikeness repository/folder is
@@ -110,11 +123,20 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("Vanderpool2020")
   datasets_to_estimate_trees <- c("Vanderpool2020")
+  
+  # Select how many loci to include in each species tree estimate
+  loci_windows     <- c(10, 50, 100, 250, 500)
 }
 
 
 
 ##### Step 3: Source files for functions #####
+# Source the functions using the filepaths from Step 2
+source(paste0(maindir,"code/func_empirical.R"))
+
+
+
+##### Step 4: Set up dataframes for analyses #####
 # Add dataset names the input_dir and alignment_dir variables so you can index by dataset name
 names(input_dir) <- input_names
 names(alignment_dir) <- input_names
@@ -129,14 +151,30 @@ for (d in output_dirs){
 
 # Open the treelikeness results dataframe
 treelikeness_df <- read.csv(treelikeness_df_file)
+# Remove loci to remove
+rm_inds <- c()
+for (dataset in input_names){
+  rm_loci_ds <- loci_to_remove[[dataset]]
+  rm_inds_ds <- which(treelikeness_df$dataset == dataset & treelikeness_df$loci %in% rm_loci_ds)
+  rm_inds <- c(rm_inds, rm_inds_ds)
+}
+keep_rows <- setdiff(c(1:nrow(treelikeness_df)),rm_inds)
+treelikeness_df <- treelikeness_df[keep_rows,]
+# Remove loci with the wrong number of taxa
+keep_inds <- c()
+for (dataset in input_names){
+  keep_taxa_num_ds <- number_of_taxa[[dataset]]
+  keep_inds_ds <- which(treelikeness_df$dataset == dataset & treelikeness_df$n_taxa %in% keep_taxa_num_ds)
+  keep_inds <- c(keep_inds, keep_inds_ds)
+}
+treelikeness_df <- treelikeness_df[keep_inds,]
+# Save trimmed treelikeness_df
+trimmed_treelikeness_df_file <- gsub(".csv", "_trimmedLoci_trimmedNTaxa.csv", treelikeness_df_file)
+write.csv(treelikeness_df, file = trimmed_treelikeness_df_file)
 
-# Source the functions using the filepaths from Step 2
-#source(paste0(treedir,"code/func_test_statistic.R"))
-#source(paste0(treedir,"code/func_process_data.R"))
-#source(paste0(treedir,"code/func_parametric_bootstrap.R"))
-source(paste0(maindir,"code/func_empirical.R"))
 
-##### Step 4: Partition loci by treelikeness test p-values (3seq and tree proportion) #####
+
+##### Step 5: Partition loci by treelikeness test p-values (3seq and tree proportion) #####
 # Iterate through each of the datasets
 # Sort loci into four categories based on treelikeness p-values
 #     * both 3seq and tree proportion significant
@@ -164,14 +202,34 @@ for (dataset in datasets_to_copy_loci){
   cat_tp   <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
   copy.loci.trees(cat_tp, dataset_df[dataset_df$loci %in% cat_tp,]$tree, output_dirs[dataset], "p-value_categories_tree_proportion_only", copy.all.individually = FALSE, copy.and.collate = TRUE)
   lapply(cat_tp, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_tree_proportion_only/"))
+  
+  # Repeat for a random sample of 50 trees (because an uneven amount of loci is in each group)
+  # split loci into four groups (neither, 3seq, tp or both), then copy all loci alignments from each group into a new folder and all trees from each group into a new collated text file
+  # 3seq p-value and tree proportion p-value both >0.05 (not significant)
+  cat_none_50 <- sample(cat_none, 50)
+  copy.loci.trees(cat_none_50, dataset_df[dataset_df$loci %in% cat_none_50,]$tree, output_dirs[dataset], "p-value_categories_none_50loci", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  lapply(cat_none_50, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_none_50loci/"))
+  # 3seq p-value and tree proportion p-value both <=0.05 (significant)
+  cat_both_50 <- sample(cat_both, 50)
+  copy.loci.trees(cat_both_50, dataset_df[dataset_df$loci %in% cat_both_50,]$tree, output_dirs[dataset], "p-value_categories_both_50loci", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  lapply(cat_both_50, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_both_50loci/"))
+  # Only 3seq p-value <=0.05 and significant, tree proportion p-value not significant
+  cat_3seq_50 <- sample(cat_3seq, 50)
+  copy.loci.trees(cat_3seq_50, dataset_df[dataset_df$loci %in% cat_3seq_50,]$tree, output_dirs[dataset], "p-value_categories_3seq_only_50loci", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  lapply(cat_3seq_50, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_3seq_only_50loci/"))
+  # Only tree proportion p-value <=0.05 and significant, 3seq p-value not significant
+  cat_tp_50 <- sample(cat_tp, 50)
+  copy.loci.trees(cat_tp_50, dataset_df[dataset_df$loci %in% cat_tp_50,]$tree, output_dirs[dataset], "p-value_categories_tree_proportion_only_50loci", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  lapply(cat_tp_50, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_tree_proportion_only_50loci/"))
 }
 
 # Estimate a species tree for each of the four categories
 for (dataset in datasets_to_estimate_trees){
   dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
-  p_value_cat_files <- grep("p-value_categories",list.files(output_dirs[dataset]), value = TRUE)
-  astral_inputs <- paste0(output_dirs[dataset], c("p-value_categories_none","p-value_categories_both","p-value_categories_3seq_only","p-value_categories_tree_proportion_only"), ".txt")
-  iqtree_inputs <- paste0(output_dirs[dataset], c("p-value_categories_none","p-value_categories_both","p-value_categories_3seq_only","p-value_categories_tree_proportion_only"))
+  p_value_cat_files <- c("p-value_categories_none","p-value_categories_both","p-value_categories_3seq_only","p-value_categories_tree_proportion_only",
+                         "p-value_categories_none_50loci","p-value_categories_both_50loci","p-value_categories_3seq_only_50loci","p-value_categories_tree_proportion_only_50loci")
+  astral_inputs <- paste0(output_dirs[dataset], p_value_cat_files, ".txt")
+  iqtree_inputs <- paste0(output_dirs[dataset], p_value_cat_files)
   # Calculate the species tree using ASTRAL for each of the four categories
   # estimate.ASTRAL.species.tree(astral_inputs[1], gsub(".txt","_ASTRAL_species.tre",astral_inputs[1]), gsub(".txt","_ASTRAL_species.log",astral_inputs[1]), exec_paths["ASTRAL"]
   lapply(astral_inputs, ASTRAL.wrapper, exec_paths["ASTRAL"])
@@ -179,7 +237,9 @@ for (dataset in datasets_to_estimate_trees){
   lapply(iqtree_inputs, estimate.IQTREE.species.tree, exec_paths["IQTree"])
 }
 
-##### Step 5: Partition loci by treelikeness (tree proportion test statistic value) #####
+
+
+##### Step 6: Partition loci by treelikeness (tree proportion test statistic value) #####
 # Save names of folders/files to estimate species trees of
 astral_trees_to_estimate <- c()
 iqtrees_to_estimate <- c()
@@ -228,10 +288,26 @@ for (folder in iqtrees_to_estimate){
   estimate.IQTREE.species.tree(folder, exec_paths["IQTree"])
 }
 
-# notes - use all loci or just those with 29 taxa?
-# check that one locus with a really long tree length
-# do one with all genes for astral and iqtree
 
 
+##### Step 7: Species tree with all loci #####
+for (dataset in datasets_to_copy_loci){
+  # Subset dataframe to only this dataset
+  dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
+  # Create name for ASTRAL and IQ-Tree runs
+  astral_name <- "all_loci_ASTRAL"
+  iqtree_name <- "all_loci_IQTree/"
+  # Copy all loci and all trees
+  all_loci <- dataset_df$loci
+  all_trees <- dataset_df$tre
+  copy.loci.trees(all_loci, all_trees, output_dirs[dataset], astral_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
+  lapply(all_loci, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset], iqtree_name))
+
+  # Calculate the species trees for all loci
+  # estimate.ASTRAL.species.tree(astral_inputs[1], gsub(".txt","_ASTRAL_species.tre",astral_inputs[1]), gsub(".txt","_ASTRAL_species.log",astral_inputs[1]), exec_paths["ASTRAL"]
+  ASTRAL.wrapper(paste0(output_dirs[[dataset]], astral_name,".txt"), exec_paths[["ASTRAL"]])
+  # Calculate the species tree using IQ-Tree for each of the four categories
+  estimate.IQTREE.species.tree(paste0(output_dirs[dataset],iqtree_name), exec_paths[["IQTree"]])
+}
 
 
