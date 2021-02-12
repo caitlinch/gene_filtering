@@ -1137,7 +1137,7 @@ estimate.ASTRAL.species.tree <- function(gene_tree_file, species_tree_file, log_
 
 
 ASTRAL.wrapper <- function(text_file, ASTRAL_path){
-  species_tree_file <- gsub(".txt", "_ASTRAL_species.tre", text_file)
+  species_tree_file <- gsub(".txt", "_species.tre", text_file)
   log_file <- gsub(".txt", "_ASTRAL_species.log", text_file)
   estimate.ASTRAL.species.tree(text_file, species_tree_file, log_file, ASTRAL_path)
 }
