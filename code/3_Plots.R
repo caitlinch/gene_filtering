@@ -61,16 +61,20 @@ for (dataset in datasets){
   # Open output from treelikeness analysis
   op_files <- list.files(output_dir)
   results_files <- grep("collated_results", op_files, value = TRUE)
-  ds_files <- grep(dataset, results_files, value = TRUE)
-  ds_result_file <- paste0(output_dir, grep("melted",ds_files, invert = TRUE, value = TRUE))
+  ds_files <- paste0(output_dir, grep(dataset, results_files, value = TRUE))
+  ds_result_file <- grep("melted",ds_files, invert = TRUE, value = TRUE)
+  ds_result_file <- grep("trimmedLoci",ds_result_file, invert = TRUE, value = TRUE)
   op_df <- read.csv(ds_result_file, stringsAsFactors = FALSE)
   
-  # Calculate derived variables
-  op_df$proportion_constant_sites <- round(op_df$num_constant_sites / op_df$n_sites, 3)
-  op_df$proportion_invariant_sites <- round(op_df$num_invariant_sites / op_df$n_sites, 3)
-  op_df$proportion_informative_sites <- round(op_df$num_parsimony_informative_sites / op_df$n_sites, 3)
-  # Save op_df with derived variables
-  write.csv(op_df, file = ds_result_file, row.names = FALSE)
+  # Calculate derived variables (if they haven't been already calculated)
+  # Check this by seeing if columns for these variables already exist
+  if (length(which(names(dataset) == "proportion_constant_sites")) > 0){
+    op_df$proportion_constant_sites <- round(op_df$num_constant_sites / op_df$n_sites, 3)
+    op_df$proportion_invariant_sites <- round(op_df$num_invariant_sites / op_df$n_sites, 3)
+    op_df$proportion_informative_sites <- round(op_df$num_parsimony_informative_sites / op_df$n_sites, 3)
+    # Save op_df with derived variables
+    write.csv(op_df, file = ds_result_file, row.names = FALSE) 
+  }
   
   # Make name for melted dataset 
   long_op_name <- gsub(".csv","_melted.csv", ds_result_file)
@@ -156,6 +160,16 @@ for (dataset in datasets){
     ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_3seq_pValue_proportionInformativeSites_comparison.png") , plot = p)
     
     # look for a correlation between number of sites and tree proportion/3seq
+    x <- c(rep("n_sites",4), rep("n_taxa", 4), rep("total_tree_length", 4), rep("num_site_patterns",4), rep("GC_content_mean", 4))
+    y <- rep(c("tree_proportion","tree_proportion_p_value","X3SEQ_prop_recombinant_sequences","X3SEQ_p_value"),5)
+    x_names <- c(rep("nSites",4), rep("nTaxa", 4), rep("treeLength",4), rep("numSitePatterns",4), rep("GC_content",4))
+    y_names <- rep(c("tree_proportion","tree_proportion_p_value","3seq_prop_recombinant_sequences","3seq_p_value"),5)
+    for (i in 1:length(x)){
+      p <- ggplot(data = op_df, aes(x = .data[[x[i]]], y = .data[[y[i]]])) + geom_point() + theme_bw()
+      p_name <- paste0(plot_dirs[[dataset]], dataset, "_", y_names[i], "_", x_names[i], "_comparison.png")
+      ggsave(filename = p_name , plot = p)
+    }
+    
     p <- ggplot(data = op_df, aes(x = n_sites, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
     ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treeProportion_nSites_comparison.png") , plot = p)
     p <- ggplot(data = op_df, aes(x = n_sites, y = tree_proportion_p_value)) + geom_point() + theme_bw()
