@@ -164,10 +164,11 @@ for (dataset in datasets){
     y <- rep(c("tree_proportion","tree_proportion_p_value","X3SEQ_prop_recombinant_sequences","X3SEQ_p_value"),5)
     x_names <- c(rep("nSites",4), rep("nTaxa", 4), rep("treeLength",4), rep("numSitePatterns",4), rep("GC_content",4))
     y_names <- rep(c("tree_proportion","tree_proportion_p_value","3seq_prop_recombinant_sequences","3seq_p_value"),5)
-    for (i in 1:length(x)){
+    for (i in 1:3){
       p <- ggplot(data = op_df, aes(x = .data[[x[i]]], y = .data[[y[i]]])) + geom_point() + theme_bw()
       p_name <- paste0(plot_dirs[[dataset]], dataset, "_", y_names[i], "_", x_names[i], "_comparison.png")
-      ggsave(filename = p_name , plot = p)
+      p
+      #ggsave(filename = p_name , plot = p)
     }
     
     p <- ggplot(data = op_df, aes(x = n_sites, y = tree_proportion, color = tree_proportion_p_value)) + geom_point() + theme_bw()
