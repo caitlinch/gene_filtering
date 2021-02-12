@@ -115,7 +115,7 @@ if (run_location == "local"){
   # Create a vector with all of the executable file paths in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("/data/caitlin/executables/ASTRAL/astral.5.7.5.jar","/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
-  names(exec_paths) <- c("Astral","IQTree")
+  names(exec_paths) <- c("ASTRAL","IQTree")
   
   # set number of cores  for parallel processing
   cores_to_use = 15
