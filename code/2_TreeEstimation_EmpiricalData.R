@@ -118,7 +118,7 @@ if (run_location == "local"){
   names(exec_paths) <- c("Astral","IQTree")
   
   # set number of cores  for parallel processing
-  cores_to_use = 25
+  cores_to_use = 15
   
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("Vanderpool2020")
