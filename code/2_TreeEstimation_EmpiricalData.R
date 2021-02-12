@@ -174,7 +174,7 @@ write.csv(treelikeness_df, file = trimmed_treelikeness_df_file)
 
 
 
-##### Step 5: Partition loci by treelikeness test p-values (3seq and tree proportion) #####
+##### Step 5: Categorise loci by treelikeness test p-values (3seq and tree proportion) #####
 # Iterate through each of the datasets
 # Sort loci into four categories based on treelikeness p-values
 #     * both 3seq and tree proportion significant
@@ -188,39 +188,39 @@ for (dataset in datasets_to_copy_loci){
   # split loci into four groups (neither, 3seq, tp or both), then copy all loci alignments from each group into a new folder and all trees from each group into a new collated text file
   # 3seq p-value and tree proportion p-value both >0.05 (not significant)
   cat_none <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
-  copy.loci.trees(cat_none, dataset_df[dataset_df$loci %in% cat_none,]$tree, output_dirs[dataset], "p-value_categories_none", copy.all.individually = FALSE, copy.and.collate = TRUE)
-  mclapply(cat_none, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_none/"), mc.cores = cores_to_use)
+  copy.loci.trees(cat_none, dataset_df[dataset_df$loci %in% cat_none,]$tree, output_dirs[dataset], "p-value_categories_none_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  mclapply(cat_none, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_none_IQ-Tree/"), mc.cores = cores_to_use)
   # 3seq p-value and tree proportion p-value both <=0.05 (significant)
   cat_both <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
-  copy.loci.trees(cat_both, dataset_df[dataset_df$loci %in% cat_both,]$tree, output_dirs[dataset], "p-value_categories_both", copy.all.individually = FALSE, copy.and.collate = TRUE)
-  mclapply(cat_both, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_both/"), mc.cores = cores_to_use)
+  copy.loci.trees(cat_both, dataset_df[dataset_df$loci %in% cat_both,]$tree, output_dirs[dataset], "p-value_categories_both_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  mclapply(cat_both, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_both_IQ-Tree/"), mc.cores = cores_to_use)
   # Only 3seq p-value <=0.05 and significant, tree proportion p-value not significant
   cat_3seq <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
-  copy.loci.trees(cat_3seq, dataset_df[dataset_df$loci %in% cat_3seq,]$tree, output_dirs[dataset], "p-value_categories_3seq_only", copy.all.individually = FALSE, copy.and.collate = TRUE)
-  mclapply(cat_3seq, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_3seq_only/"), mc.cores = cores_to_use)
+  copy.loci.trees(cat_3seq, dataset_df[dataset_df$loci %in% cat_3seq,]$tree, output_dirs[dataset], "p-value_categories_3seq_only_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  mclapply(cat_3seq, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_3seq_only_IQ-Tree/"), mc.cores = cores_to_use)
   # Only tree proportion p-value <=0.05 and significant, 3seq p-value not significant
   cat_tp   <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
-  copy.loci.trees(cat_tp, dataset_df[dataset_df$loci %in% cat_tp,]$tree, output_dirs[dataset], "p-value_categories_tree_proportion_only", copy.all.individually = FALSE, copy.and.collate = TRUE)
-  mclapply(cat_tp, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_tree_proportion_only/"), mc.cores = cores_to_use)
+  copy.loci.trees(cat_tp, dataset_df[dataset_df$loci %in% cat_tp,]$tree, output_dirs[dataset], "p-value_categories_tree_proportion_only_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  mclapply(cat_tp, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_tree_proportion_only_IQ-Tree/"), mc.cores = cores_to_use)
   
   # Repeat for a random sample of 50 trees (because an uneven amount of loci is in each group)
   # split loci into four groups (neither, 3seq, tp or both), then copy all loci alignments from each group into a new folder and all trees from each group into a new collated text file
   # 3seq p-value and tree proportion p-value both >0.05 (not significant)
   cat_none_50 <- sample(cat_none, 50)
-  copy.loci.trees(cat_none_50, dataset_df[dataset_df$loci %in% cat_none_50,]$tree, output_dirs[dataset], "p-value_categories_none_50loci", copy.all.individually = FALSE, copy.and.collate = TRUE)
-  mclapply(cat_none_50, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_none_50loci/"), mc.cores = cores_to_use)
+  copy.loci.trees(cat_none_50, dataset_df[dataset_df$loci %in% cat_none_50,]$tree, output_dirs[dataset], "p-value_categories_none_50loci_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  mclapply(cat_none_50, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_none_50loci_IQ-Tree/"), mc.cores = cores_to_use)
   # 3seq p-value and tree proportion p-value both <=0.05 (significant)
   cat_both_50 <- sample(cat_both, 50)
-  copy.loci.trees(cat_both_50, dataset_df[dataset_df$loci %in% cat_both_50,]$tree, output_dirs[dataset], "p-value_categories_both_50loci", copy.all.individually = FALSE, copy.and.collate = TRUE)
-  mclapply(cat_both_50, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_both_50loci/"), mc.cores = cores_to_use)
+  copy.loci.trees(cat_both_50, dataset_df[dataset_df$loci %in% cat_both_50,]$tree, output_dirs[dataset], "p-value_categories_both_50loci_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  mclapply(cat_both_50, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_both_50loci_IQ-Tree/"), mc.cores = cores_to_use)
   # Only 3seq p-value <=0.05 and significant, tree proportion p-value not significant
   cat_3seq_50 <- sample(cat_3seq, 50)
-  copy.loci.trees(cat_3seq_50, dataset_df[dataset_df$loci %in% cat_3seq_50,]$tree, output_dirs[dataset], "p-value_categories_3seq_only_50loci", copy.all.individually = FALSE, copy.and.collate = TRUE)
-  mclapply(cat_3seq_50, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_3seq_only_50loci/"), mc.cores = cores_to_use)
+  copy.loci.trees(cat_3seq_50, dataset_df[dataset_df$loci %in% cat_3seq_50,]$tree, output_dirs[dataset], "p-value_categories_3seq_only_50loci_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  mclapply(cat_3seq_50, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_3seq_only_50loci_IQ-Tree/"), mc.cores = cores_to_use)
   # Only tree proportion p-value <=0.05 and significant, 3seq p-value not significant
   cat_tp_50 <- sample(cat_tp, 50)
-  copy.loci.trees(cat_tp_50, dataset_df[dataset_df$loci %in% cat_tp_50,]$tree, output_dirs[dataset], "p-value_categories_tree_proportion_only_50loci", copy.all.individually = FALSE, copy.and.collate = TRUE)
-  mclapply(cat_tp_50, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_tree_proportion_only_50loci/"), mc.cores = cores_to_use)
+  copy.loci.trees(cat_tp_50, dataset_df[dataset_df$loci %in% cat_tp_50,]$tree, output_dirs[dataset], "p-value_categories_tree_proportion_only_50loci_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  mclapply(cat_tp_50, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_tree_proportion_only_50loci_IQ-Tree/"), mc.cores = cores_to_use)
 }
 
 # Estimate a species tree for each of the four categories
@@ -239,10 +239,10 @@ for (dataset in datasets_to_estimate_trees){
 
 
 
-##### Step 6: Partition loci by treelikeness (tree proportion test statistic value) #####
-# Save names of folders/files to estimate species trees of
-astral_trees_to_estimate <- c()
-iqtrees_to_estimate <- c()
+##### Step 6: Categorise loci by treelikeness (tree proportion test statistic value) #####
+# Save names of folders/files that were copied
+astral_trees_to_save <- c()
+iqtrees_to_save <- c()
 
 # Set up alignments/trees to run species trees analysis
 for (dataset in datasets_to_copy_loci){
@@ -270,11 +270,23 @@ for (dataset in datasets_to_copy_loci){
     mclapply(not_tl_loci, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset], not_tl_name, "_IQ-Tree", "/"), mc.cores = cores_to_use)
 
     # Save names 
-    astral_trees_to_estimate <- c(astral_trees_to_estimate, paste0(output_dirs[dataset], tl_name, "_ASTRAL.txt"), paste0(output_dirs[dataset], not_tl_name, "_ASTRAL.txt"))
-    iqtrees_to_estimate <- c(iqtrees_to_estimate, paste0(output_dirs[dataset], tl_name, "_IQ-Tree", "/"), paste0(output_dirs[dataset], not_tl_name, "_IQ-Tree", "/"))
+    astral_trees_to_save <- c(astral_trees_to_save, paste0(output_dirs[dataset], tl_name, "_ASTRAL.txt"), paste0(output_dirs[dataset], not_tl_name, "_ASTRAL.txt"))
+    iqtrees_to_save <- c(iqtrees_to_save, paste0(output_dirs[dataset], tl_name, "_IQ-Tree", "/"), paste0(output_dirs[dataset], not_tl_name, "_IQ-Tree", "/"))
   }
 }
+# Save list of astral and iqtrees that were copied
+write(astral_trees_to_save, file = paste0(output_dir,"ASTRAL_trees_saved.txt"))
+write(iqtrees_to_save, file = paste0(output_dir,"iqtrees_saved.txt"))
 
+
+# Construct file/folder names for the datasets you want to estimate trees for 
+astral_trees_to_estimate <- c()
+iqtrees_to_estimate <- c()
+for (dataset in datasets_to_estimate_trees){
+  # Save names 
+  astral_trees_to_estimate <- c(astral_trees_to_estimate, paste0(output_dirs[dataset], tl_name, "_ASTRAL.txt"), paste0(output_dirs[dataset], not_tl_name, "_ASTRAL.txt"))
+  iqtrees_to_estimate <- c(iqtrees_to_estimate, paste0(output_dirs[dataset], tl_name, "_IQ-Tree", "/"), paste0(output_dirs[dataset], not_tl_name, "_IQ-Tree", "/"))
+}
 # Save list of astral and iqtrees to estimate
 write(astral_trees_to_estimate, file = paste0(output_dir,"ASTRAL_trees_to_estimate.txt"))
 write(iqtrees_to_estimate, file = paste0(output_dir,"iqtrees_to_estimate.txt"))
@@ -299,7 +311,7 @@ for (dataset in datasets_to_copy_loci){
   iqtree_name <- "all_loci_IQTree/"
   # Copy all loci and all trees
   all_loci <- dataset_df$loci
-  all_trees <- dataset_df$tre
+  all_trees <- dataset_df$tree
   copy.loci.trees(all_loci, all_trees, output_dirs[dataset], astral_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
   mclapply(all_loci, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset], iqtree_name), mc.cores = cores_to_use)
 
