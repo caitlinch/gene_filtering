@@ -114,7 +114,7 @@ if (run_location == "local"){
   
   # Create a vector with all of the executable file paths in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c(NULL,"/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
+  exec_paths <- c("/data/caitlin/executables/ASTRAL/astral.5.7.5.jar","/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
   names(exec_paths) <- c("Astral","IQTree")
   
   # set number of cores  for parallel processing
@@ -150,7 +150,7 @@ for (d in output_dirs){
 }
 
 # Open the treelikeness results dataframe
-treelikeness_df <- read.csv(treelikeness_df_file)
+treelikeness_df <- read.csv(treelikeness_df_file, stringsAsFactors = FALSE)
 # Remove loci to remove
 rm_inds <- c()
 for (dataset in input_names){
@@ -228,8 +228,8 @@ for (dataset in datasets_to_estimate_trees){
   dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
   p_value_cat_files <- c("p-value_categories_none","p-value_categories_both","p-value_categories_3seq_only","p-value_categories_tree_proportion_only",
                          "p-value_categories_none_50loci","p-value_categories_both_50loci","p-value_categories_3seq_only_50loci","p-value_categories_tree_proportion_only_50loci")
-  astral_inputs <- paste0(output_dirs[dataset], p_value_cat_files, ".txt")
-  iqtree_inputs <- paste0(output_dirs[dataset], p_value_cat_files)
+  astral_inputs <- paste0(output_dirs[dataset], p_value_cat_files, "_ASTRAL.txt")
+  iqtree_inputs <- paste0(output_dirs[dataset], p_value_cat_files,"_IQ-Tree")
   # Calculate the species tree using ASTRAL for each of the four categories
   # estimate.ASTRAL.species.tree(astral_inputs[1], gsub(".txt","_ASTRAL_species.tre",astral_inputs[1]), gsub(".txt","_ASTRAL_species.log",astral_inputs[1]), exec_paths["ASTRAL"]
   lapply(astral_inputs, ASTRAL.wrapper, exec_paths["ASTRAL"])
