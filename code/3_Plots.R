@@ -36,7 +36,7 @@ print("set filepaths")
 treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
 maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
 output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
-plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_results/"
+plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_results/"
 datasets <- c("Vanderpool2020")
 plots <- FALSE
 
@@ -46,8 +46,13 @@ plots <- FALSE
 # Create a set of output folders
 output_dirs <- paste0(output_dir,datasets,"/")
 names(output_dirs) <- datasets
-plot_dirs <- paste0(plot_dir,datasets,"/")
+plot_dirs <- paste0(plot_dir,datasets,"_plots/")
 names(plot_dirs) <- datasets
+for (d in plot_dirs){
+  if (dir.exists(d) == FALSE){
+    dir.create(d)
+  }
+}
 
 ##### Step 3: Data exploration ####
 # Open data
@@ -63,8 +68,12 @@ for (dataset in datasets){
   results_files <- grep("collated_results", op_files, value = TRUE)
   ds_files <- paste0(output_dir, grep(dataset, results_files, value = TRUE))
   ds_result_file <- grep("melted",ds_files, invert = TRUE, value = TRUE)
-  ds_result_file <- grep("trimmedLoci",ds_result_file, invert = TRUE, value = TRUE)
-  op_df <- read.csv(ds_result_file, stringsAsFactors = FALSE)
+  ds_result_file2 <- grep("trimmedLoci",ds_result_file, value = TRUE)
+  op_df <- read.csv(ds_result_file2, stringsAsFactors = FALSE)
+  og_df_file <- grep("trimmedLoci",ds_result_file, invert = TRUE, value = TRUE)
+  og_df <- read.csv(og_df_file, stringsAsFactors = FALSE)
+  og_long_op_name <- gsub(".csv","_melted.csv", og_df_file)
+  og_long_df <- read.csv(og_long_op_name, stringsAsFactors = FALSE)
   
   # Calculate derived variables (if they haven't been already calculated)
   # Check this by seeing if columns for these variables already exist
@@ -77,7 +86,7 @@ for (dataset in datasets){
   }
   
   # Make name for melted dataset 
-  long_op_name <- gsub(".csv","_melted.csv", ds_result_file)
+  long_op_name <- gsub(".csv","trimmedLoci_trimmedNTaxa_melted.csv", ds_result_file)
   # Open long data if it already exists
   if (file.exists(long_op_name)){
     long_df <- read.csv(long_op_name)
@@ -128,7 +137,7 @@ for (dataset in datasets){
       ggsave(filename = p_name, plot = p)
     }
     
-    # look for a correlation between number of sites and tree proportion/3seq
+    # look for a correlation between properties of the alignments and tree proportion/3seq with scatterplots
     x <- c(rep("n_sites",4), rep("n_taxa", 4), rep("total_tree_length", 4), rep("num_site_patterns",4), rep("GC_content_mean", 4), rep("proportion_internal_branches", 4), rep("proportion_informative_sites",4))
     y <- rep(c("tree_proportion","tree_proportion_p_value","X3SEQ_prop_recombinant_sequences","X3SEQ_p_value"),7)
     x_names <- c(rep("nSites",4), rep("nTaxa", 4), rep("treeLength",4), rep("numSitePatterns",4), rep("GC_content",4), rep("proportionInternalBranches", 4), rep("proportionInformativeSites", 4))
@@ -136,6 +145,26 @@ for (dataset in datasets){
     for (i in 1:length(x)){
       p <- ggplot(data = op_df, aes(x = .data[[x[i]]], y = .data[[y[i]]])) + geom_point() + theme_bw()
       p_name <- paste0(plot_dirs[[dataset]], dataset, "_", y_names[i], "_", x_names[i], "_comparison.png")
+      ggsave(filename = p_name , plot = p)
+    }
+    
+    # Plot boxplots of the properties of the alignments against the tes statistics and statistical tests
+    # levels <- c(7, 7, 6, 7, 9, 6, 5)
+    # starts <- c(0, 16, 0, 0, 0.3, 0, 0)
+    # seq(from = starts[i],to = (starts[i]+widths[i]*levels[i]),by = widths[i])
+    boxplot_df <- og_long_df[og_long_df$variable %in% c("tree_proportion","tree_proportion_p_value","X3SEQ_prop_recombinant_sequences","X3SEQ_p_value"),]
+    x <- c("n_sites","n_taxa","total_tree_length","num_site_patterns","GC_content_mean","proportion_internal_branches","proportion_informative_sites")
+    x_label_names <- c("Number of sites","Number of taxa","Total tree length","Number of unique site patterns","Mean GC content","Percent of internal branches","Proportion of informative sites")
+    x_names <- c("nSites","nTaxa","treeLength","numSitePatterns","GC_content","proportionInternalBranches","proportionInformativeSites")
+    widths <- c(1000, 2, 0.5, 500, 0.05, 10, 0.1)
+    x_ticks <- list(seq(0,7000,1000), seq(16,30,2), c("0-0.5","0.5-1","1-1.5","1.5-2","2-2.5","10.5-11"), seq(0,3500,500),seq(0.3,0.75,0.05), seq(0,60,10), seq(0,0.5,0.1))
+    for (i in 1:length(x)){
+      boxplot_df_binned <- dplyr::mutate(boxplot_df, bin = cut_width(.data[[x[i]]], width = widths[i], boundary = 0))
+      boxplot_df_binned$group <- factor(boxplot_df_binned$variable, levels = c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion", "tree_proportion_p_value"),
+                                        labels = c("3seq - proportion of recombinant sequences", "3seq p-value", "Tree proportion", "Tree proportion p-value"), 
+                                        ordered = TRUE)
+      p <- ggplot(data = boxplot_df_binned, aes(x = bin, y = value)) + geom_boxplot() + facet_wrap(group~.)  + theme_bw() +
+          scale_x_discrete(name = x_label_names[i], labels = x_ticks[[i]]) + scale_y_continuous(name = "Value")
       ggsave(filename = p_name , plot = p)
     }
   }
@@ -229,10 +258,12 @@ for (dataset in datasets){
     scale_x_continuous(name = "A1") + scale_y_continuous(name = "A2") + labs(title = "Vanderpool 2020 treespace: A2 ~ A1", subtitle = "Grouped by 3seq p-value and tree proportion") + 
     scale_color_brewer(palette = "Dark2")
   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_PC_A1A2.png") , plot = p)
+  
   p <- ggplot(pc_df,aes(x = A2, y = A3, color = sorted)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
     scale_x_continuous(name = "A2") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2", subtitle = "Grouped by 3seq p-value and tree proportion") + 
     scale_color_brewer(palette = "Dark2")
   ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_PC_A2A3.png") , plot = p)
+  
   p <- ggplot(pc_df,aes(x = A1, y = A3, color = sorted)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
     scale_x_continuous(name = "A1") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2", subtitle = "Grouped by 3seq p-value and tree proportion") + 
     scale_color_brewer(palette = "Dark2")
