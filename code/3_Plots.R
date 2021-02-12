@@ -34,7 +34,7 @@ print("set filepaths")
 # plots             <- output plots - TRUE or FALSE
 
 treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
-maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code isresults_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
+maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
 output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
 plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_results/"
 datasets <- c("Vanderpool2020")
