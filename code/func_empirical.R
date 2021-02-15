@@ -1147,10 +1147,17 @@ ASTRAL.wrapper <- function(text_file, ASTRAL_path){
 
 # Function to estimate species tree of a folder full of alignments using IQ-Tree
 estimate.IQTREE.species.tree <- function(gene_tree_folder, IQTREE_path){
-  iqtree_command <- paste0(IQTREE_path, " -p ", gene_tree_folder, " -bb 1000 -m MFP+MERGE -nt AUTO")
+  iqtree_command <- paste0(IQTREE_path, " -p ", gene_tree_folder, " -m MFP+MERGE -bb 1000 -nt AUTO")
   system(iqtree_command)
 }
 
+
+
+# Function to estimate species tree of a folder full of alignments using IQ-Tree
+estimate.partitioned.IQTREE.species.tree <- function(partition_file, IQTREE_path){
+  iqtree_command <- paste0(IQTREE_path, " -p ", partition_file, " -m MFP+MERGE -bb 1000 -nt AUTO")
+  system(iqtree_command)
+}
 
 
 
@@ -1196,7 +1203,7 @@ make.partition.file <- function(directory){
   # attach all the information together
   op_lines <- c(header, all_charsets, "", charpartitions, footer)
   # output partition file
-  output_file <- paste0(directory, "codon_positions.partitions")
+  output_file <- paste0(directory, "partitions.nex")
   writeLines(op_lines, output_file)
 }
 
