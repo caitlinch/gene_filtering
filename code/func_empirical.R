@@ -1216,11 +1216,11 @@ make.partition.file <- function(directory, add.charpartition = FALSE){
 
 
 
-make.codon.position.charset <- function(filename){
+make.codon.position.charset <- function(filename, directory){
   loci_name <- remove.suffix(filename)
-  firstpos <- paste0("\tcharset ", loci_name, "_1stpos = ", filename, ": 1-.\\3;")
-  secondpos <- paste0("\tcharset ", loci_name, "_2ndpos = ", filename, ": 2-.\\3;")
-  thirdpos <- paste0("\tcharset ", loci_name, "_3rdpos = ", filename, ": 3-.\\3;")
+  firstpos <- paste0("\tcharset ", loci_name, "_1stpos = ", directory, filename, ": 1-.\\3;")
+  secondpos <- paste0("\tcharset ", loci_name, "_2ndpos = ", directory, filename, ": 2-.\\3;")
+  thirdpos <- paste0("\tcharset ", loci_name, "_3rdpos = ", directory, filename, ": 3-.\\3;")
   file_charset <- c(firstpos, secondpos, thirdpos)
   return(file_charset)
 }

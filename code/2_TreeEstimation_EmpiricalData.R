@@ -257,7 +257,6 @@ for (dataset in datasets_to_copy_loci){
 
 # Estimate a species tree for each of the four categories
 for (dataset in datasets_to_estimate_trees){
-  dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
   p_value_cat_files <- c("p-value_categories_none","p-value_categories_both","p-value_categories_3seq_only","p-value_categories_tree_proportion_only",
                          "p-value_categories_none_50loci","p-value_categories_both_50loci","p-value_categories_3seq_only_50loci","p-value_categories_tree_proportion_only_50loci")
   astral_inputs <- paste0(output_dirs[dataset], p_value_cat_files, "_ASTRAL.txt")
