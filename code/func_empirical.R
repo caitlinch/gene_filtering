@@ -1173,3 +1173,64 @@ copy.loci.alignment <- function(loci_name, dataset_loci_folder, new_alignment_lo
     file.copy(loci_path, new_loci_path, overwrite = TRUE, recursive = FALSE, copy.mode = TRUE)
   }
 }
+
+
+
+make.partition.file <- function(directory){
+  # get all loci in directory
+  all_loci <- list.files(directory)
+  # remove any partition files
+  all_loci <- grep(".partition", all_loci, invert = TRUE, value = TRUE)
+  # make start and end of partition files
+  header <- c("#nexus","begin sets;")
+  footer <- c("end;")
+  # make charset for each loci - split by codon position
+  all_charsets <- unlist(lapply(all_loci, make.codon.position.charset))
+  # make the charpartition
+  all_loci_labels <- unlist(lapply(all_loci, make.charpartition.labels))
+  all_inds <- 1:length(all_loci_labels)
+  loci_order <- paste0(all_inds,":",all_loci_labels,", ")
+  loci_order[length(loci_order)] <- gsub(", ",";",loci_order[length(loci_order)])
+  charpartitions_vec <- c("\tcharpartition codon_positions = ",loci_order)
+  charpartitions <- paste(charpartitions_vec, collapse = "")
+  # attach all the information together
+  op_lines <- c(header, all_charsets, "", charpartitions, footer)
+  # output partition file
+  output_file <- paste0(directory, "codon_positions.partitions")
+  writeLines(op_lines, output_file)
+}
+
+
+
+make.codon.position.charset <- function(filename){
+  loci_name <- remove.suffix(filename)
+  firstpos <- paste0("\tcharset ",loci_name,"_1stpos = ",filename,": 1-.\\3;")
+  secondpos <- paste0("\tcharset ",loci_name,"_2ndpos = ",filename,": 2-.\\3;")
+  thirdpos <- paste0("\tcharset ",loci_name,"_3rdpos = ",filename,": 3-.\\3;")
+  file_charset <- c(firstpos, secondpos, thirdpos)
+  return(file_charset)
+}
+
+
+
+make.charpartition.labels <- function(filename){
+  loci_name <- remove.suffix(filename)
+  labels <- c(paste0(loci_name, "_1stpos"),paste0(loci_name, "_2ndpos"),paste0(loci_name, "_3rdpos"))
+  return(labels)
+}
+
+
+
+remove.suffix <- function(full_filename){
+  split_filename <- strsplit(full_filename,"\\.")[[1]]
+  just_filename <- paste0(split_filename[1:(length(split_filename) -1)])
+  return(just_filename)  
+}
+
+
+
+
+
+
+
+
