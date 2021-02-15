@@ -36,6 +36,8 @@ print("set filepaths")
 # exec_paths        <- location to each executable within the folder
 # datasets_to_copy_loci   <- Out of the input names, select which datasets to copy loci trees for tree estimation
 # datasets_to_estimate_trees <- Out of the input names, select which datasets to estimate species trees based on treelikeness results
+# partition.by.codon.position <- Whether to run analysis partitioing by codon position
+#                             <- set TRUE if you want to estimate species trees partitioning by codon position, and FALSE if you don't
 # loci_windows     <- select how many loci to include in each species tree estimate when ranking loci by treelikeness
 
 # The SplitsTree executable path can be tricky to find: 
@@ -61,6 +63,7 @@ print("set filepaths")
 # exec_paths <- paste0(exec_folder, exec_paths)
 # datasets_to_copy_loci <-  c()
 # datasets_to_estimate_trees <- c()
+# partition.by.codon.position = TRUE
 # loci_windows     <- c(10, 50, 100, 250, 500)
 
 ### Caitlin's paths ###
@@ -94,6 +97,7 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("Vanderpool2020")
   datasets_to_estimate_trees <- c("Vanderpool2020")
+  partition.by.codon.position = TRUE
   
   # Select how many loci to include in each species tree estimate
   loci_windows     <- c(10, 50, 100, 250, 500)
@@ -123,6 +127,7 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("Vanderpool2020")
   datasets_to_estimate_trees <- c("Vanderpool2020")
+  partition.by.codon.position = TRUE
   
   # Select how many loci to include in each species tree estimate
   loci_windows     <- c(10, 50, 100, 250, 500)
