@@ -1138,7 +1138,7 @@ estimate.ASTRAL.species.tree <- function(gene_tree_file, species_tree_file, log_
 
 ASTRAL.wrapper <- function(text_file, ASTRAL_path){
   species_tree_file <- gsub(".txt", "_species.tre", text_file)
-  log_file <- gsub(".txt", "_ASTRAL_species.log", text_file)
+  log_file <- gsub(".txt", "_species.log", text_file)
   estimate.ASTRAL.species.tree(text_file, species_tree_file, log_file, ASTRAL_path)
 }
 
@@ -1183,25 +1183,32 @@ copy.loci.alignment <- function(loci_name, dataset_loci_folder, new_alignment_lo
 
 
 
-make.partition.file <- function(directory){
+make.partition.file <- function(directory, add.charpartition = FALSE){
   # get all loci in directory
   all_loci <- list.files(directory)
   # remove any partition files
-  all_loci <- grep(".partition", all_loci, invert = TRUE, value = TRUE)
+  all_loci <- grep("partition", all_loci, invert = TRUE, value = TRUE)
   # make start and end of partition files
-  header <- c("#nexus","begin sets;")
+  header <- c("#nexus","begin sets;","[loci]")
   footer <- c("end;")
   # make charset for each loci - split by codon position
-  all_charsets <- unlist(lapply(all_loci, make.codon.position.charset))
+  all_charsets <- unlist(lapply(all_loci, make.codon.position.charset, directory))
   # make the charpartition
   all_loci_labels <- unlist(lapply(all_loci, make.charpartition.labels))
   all_inds <- 1:length(all_loci_labels)
   loci_order <- paste0(all_inds,":",all_loci_labels,", ")
   loci_order[length(loci_order)] <- gsub(", ",";",loci_order[length(loci_order)])
-  charpartitions_vec <- c("\tcharpartition codon_positions = ",loci_order)
-  charpartitions <- paste(charpartitions_vec, collapse = "")
-  # attach all the information together
-  op_lines <- c(header, all_charsets, "", charpartitions, footer)
+  if (add.charpartition == TRUE){
+    # generate charpartition
+    charpartitions_vec <- c("\tcharpartition loci = ",loci_order)
+    charpartitions <- paste(charpartitions_vec, collapse = "")
+    # attach all the information together
+    op_lines <- c(header, all_charsets, "", charpartitions, footer)
+  } else
+  {
+    # attach all the information together
+    op_lines <- c(header, all_charsets, footer)
+  }
   # output partition file
   output_file <- paste0(directory, "partitions.nex")
   writeLines(op_lines, output_file)
@@ -1211,9 +1218,9 @@ make.partition.file <- function(directory){
 
 make.codon.position.charset <- function(filename){
   loci_name <- remove.suffix(filename)
-  firstpos <- paste0("\tcharset ",loci_name,"_1stpos = ",filename,": 1-.\\3;")
-  secondpos <- paste0("\tcharset ",loci_name,"_2ndpos = ",filename,": 2-.\\3;")
-  thirdpos <- paste0("\tcharset ",loci_name,"_3rdpos = ",filename,": 3-.\\3;")
+  firstpos <- paste0("\tcharset ", loci_name, "_1stpos = ", filename, ": 1-.\\3;")
+  secondpos <- paste0("\tcharset ", loci_name, "_2ndpos = ", filename, ": 2-.\\3;")
+  thirdpos <- paste0("\tcharset ", loci_name, "_3rdpos = ", filename, ": 3-.\\3;")
   file_charset <- c(firstpos, secondpos, thirdpos)
   return(file_charset)
 }
