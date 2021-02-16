@@ -119,7 +119,7 @@ for (dataset in datasets){
     ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treelikeness_histogram_freeX.png") , plot = p)
     
     ### Plot and save information about the alignments as histograms
-    info_df <- melt(all_loci_df, id = c("dataset","loci"), 
+    info_df <- melt(all_loci_df, id.vars = c("dataset","loci"), 
                     measure.vars = c("n_taxa", "n_sites", "proportion_constant_sites", "proportion_informative_sites", "num_site_patterns", "total_tree_length",
                                      "proportion_internal_branches", "GC_content_mean", "GC_content_sd"))
     info_df[info_df$variable == "proportion_internal_branches",4] <- round(info_df[info_df$variable == "proportion_internal_branches",4]/100,3)
@@ -131,15 +131,26 @@ for (dataset in datasets){
     }
     
     ### Plot some variables against each other to investigate relationships
-    # look for a correlation between the 3seq p-value and the proportion of recombinant sequences
     x <- c("X3SEQ_prop_recombinant_sequences", "tree_proportion_p_value", "tree_proportion", "tree_proportion")
+    x_names <- c("Proportion of recombinant sequences", "Tree proportion p-value", "Tree proportion", "Tree proportion")
     y <- c("X3SEQ_p_value", "X3SEQ_p_value", "tree_proportion_p_value", "X3SEQ_prop_recombinant_sequences")
+    y_names <- c("3SEQ p-value", "3SEQ p-value", "Tree proportion p-value", "Proportion of recombinant sequences")
     xy_names <- c("3seq", "p", "tree_proportion", "test_statistic")
+    widths <- rep(0.1,4)
+    intervals <- c(seq(0,1,0.1), seq(0,1,0.1), seq(0.1, 0.9, 0.1), seq(0,1,0.1))
     for (i in 1:length(x)){
+      # Make a scatter plot
       p <- ggplot(data = t29_df, aes(x = .data[[x[i]]], y = .data[[y[i]]])) + geom_point() + theme_bw() + 
         scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05)) + scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
       p_name <- paste0(plot_dirs[[dataset]], dataset, "_", xy_names[i], "_value_comparison.png")
       ggsave(filename = p_name, plot = p)
+      # Make a boxplot
+      # Make a dataframe that contains the variables of interest - melt the df with the x axis as the id.var and the y axis as the measure var, then filter by the 
+      p_df <- dplyr::mutate(t29_df, bin = cut_width(.data[[x[i]]], width = widths[i], boundary = 0))
+      p <- ggplot(data = p_df, aes(x = bin, y = .data[[y[i]]])) + geom_boxplot() + theme_bw() +
+        scale_x_discrete(name = x_names[i]) + scale_y_continuous(name = y_names[i])
+      p_name <- paste0(plot_dirs[[dataset]], dataset, "_", xy_names[i], "_value_comparison_boxplot.png")
+      ggsave(filename = p_name , plot = p)
     }
     
     # look for a correlation between properties of the alignments and tree proportion/3seq with scatterplots
