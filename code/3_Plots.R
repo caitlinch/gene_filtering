@@ -140,18 +140,46 @@ for (dataset in datasets){
     intervals <- c(seq(0,1,0.1), seq(0,1,0.1), seq(0.1, 0.9, 0.1), seq(0,1,0.1))
     for (i in 1:length(x)){
       # Make a scatter plot
-      p <- ggplot(data = t29_df, aes(x = .data[[x[i]]], y = .data[[y[i]]])) + geom_point() + theme_bw() + 
+      p <- ggplot(data = all_loci_df, aes(x = .data[[x[i]]], y = .data[[y[i]]])) + geom_point() + theme_bw() + 
         scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05)) + scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
       p_name <- paste0(plot_dirs[[dataset]], dataset, "_", xy_names[i], "_value_comparison.png")
       ggsave(filename = p_name, plot = p)
       # Make a boxplot
       # Make a dataframe that contains the variables of interest - melt the df with the x axis as the id.var and the y axis as the measure var, then filter by the 
-      p_df <- dplyr::mutate(t29_df, bin = cut_width(.data[[x[i]]], width = widths[i], boundary = 0))
+      p_df <- dplyr::mutate(all_loci_df, bin = cut_width(.data[[x[i]]], width = widths[i], boundary = 0))
       p <- ggplot(data = p_df, aes(x = bin, y = .data[[y[i]]])) + geom_boxplot() + theme_bw() +
         scale_x_discrete(name = x_names[i]) + scale_y_continuous(name = y_names[i])
       p_name <- paste0(plot_dirs[[dataset]], dataset, "_", xy_names[i], "_value_comparison_boxplot.png")
       ggsave(filename = p_name , plot = p)
     }
+    
+    # Make a nice ggpairs plot for all loci, and one for only loci with 29 taxa
+    # For all loci
+    ggp <- GGally::ggpairs(data = all_loci_df, columns = c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion", "tree_proportion_p_value"),
+                    columnLabels = c("Prop. recomb. sequences", "3seq p-value", "Tree proportion", "Tree proportion p-value"),
+                    title = "Generalised pairs plot: all loci") +
+      theme(plot.title = element_text(hjust = 0.5))
+    ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_allLoci.png")
+    ggsave(filename = ggp_name, plot = ggp)
+    # For loci with 29 taxa only
+    ggp <- GGally::ggpairs(data = t29_df, columns = c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion", "tree_proportion_p_value"),
+                           columnLabels = c("Prop. recomb. sequences", "3seq p-value", "Tree proportion", "Tree proportion p-value"),
+                           title = "Generalised pairs plot: only loci with 29 taxa") +
+      theme(plot.title = element_text(hjust = 0.5))
+    ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_29taxa.png")
+    ggsave(filename = ggp_name, plot = ggp)
+    # Compare groups
+    all_loci_df$taxa_category <- all_loci_df$n_taxa
+    all_loci_df[all_loci_df$n_taxa == 29,]$taxa_category <- "29 taxa"
+    all_loci_df[all_loci_df$n_taxa < 29,]$taxa_category <- "< 29 taxa"
+    ggp <- GGally::ggpairs(data = all_loci_df, columns = c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion", "tree_proportion_p_value"),
+                           aes(color = taxa_category),
+                           columnLabels = c("Prop. recomb. sequences", "3seq p-value", "Tree proportion", "Tree proportion p-value"),
+                           title = "Generalised pairs plot: comparison between number of taxa") +
+      theme(plot.title = element_text(hjust = 0.5))
+    ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_taxaCategories.png")
+    ggsave(filename = ggp_name, plot = ggp)
+    
     
     # look for a correlation between properties of the alignments and tree proportion/3seq with scatterplots
     x <- c(rep("n_sites",4), rep("n_taxa", 4), rep("total_tree_length", 4), rep("num_site_patterns",4), rep("GC_content_mean", 4), rep("proportion_internal_branches", 4), rep("proportion_informative_sites",4))
