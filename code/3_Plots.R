@@ -161,12 +161,16 @@ for (dataset in datasets){
       theme(plot.title = element_text(hjust = 0.5))
     ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_allLoci.png")
     ggsave(filename = ggp_name, plot = ggp)
+    ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_allLoci.pdf")
+    ggsave(filename = ggp_name, plot = ggp)
     # For loci with 29 taxa only
     ggp <- GGally::ggpairs(data = t29_df, columns = c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion", "tree_proportion_p_value"),
                            columnLabels = c("Prop. recomb. sequences", "3seq p-value", "Tree proportion", "Tree proportion p-value"),
                            title = "Generalised pairs plot: only loci with 29 taxa") +
       theme(plot.title = element_text(hjust = 0.5))
     ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_29taxa.png")
+    ggsave(filename = ggp_name, plot = ggp)
+    ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_29taxa.pdf")
     ggsave(filename = ggp_name, plot = ggp)
     # Compare groups
     all_loci_df$taxa_category <- all_loci_df$n_taxa
@@ -178,6 +182,8 @@ for (dataset in datasets){
                            title = "Generalised pairs plot: comparison between number of taxa") +
       theme(plot.title = element_text(hjust = 0.5))
     ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_taxaCategories.png")
+    ggsave(filename = ggp_name, plot = ggp)
+    ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_taxaCategories.pdf")
     ggsave(filename = ggp_name, plot = ggp)
     
     
