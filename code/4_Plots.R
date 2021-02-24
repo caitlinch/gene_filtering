@@ -1,0 +1,321 @@
+### empirical_treelikeness/2_ExploreTreelikenessScores.R
+## R program to plot and explore results of the treelikeness test statistics on empirical data
+# Final result is a reformatted csv file and a number of graphs
+# Caitlin Cherryh 2021
+
+# Specifically designed to work with Rob Lanfear's "BenchmarkAlignments"
+# BenchmarkAlignments and metadata have CC0 or CCBY licenses and are available here: https://github.com/roblanf/BenchmarkAlignments
+
+
+
+##### Step 1: Open packages #####
+library(ggplot2) # data visualisation and better plotting
+library(adegraphics) # improved graphical functionalities from ade4 (multivariate data analysis)
+library(adegenet) # toolkit for exploring genomic and genetic data
+library(rgl) # for interactive 3D plots
+library(reshape2)
+library(treespace) # phylogenetic tree exploration
+library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
+# these methods all assume an unrooted tree so trees can be used as is for this analysis
+
+
+
+
+
+
+
+
+##### Step 2: Set the file paths for input and output files, and necessary functions/directories #####
+print("set filepaths")
+# treedir           <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
+# maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+# output_dir        <- for collated output and results from treelikeness analysis. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
+# plots_dir         <- for saving plots and analyses. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
+# datasets          <- set name(s) for the dataset(s)
+# plots             <- output plots - TRUE or FALSE
+
+treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
+maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
+output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
+plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_results/"
+datasets <- c("Vanderpool2020")
+plots <- FALSE
+
+
+
+#### Step 3: Open files
+source(paste0(maindir,"code/func_plots.R"))
+
+# Construct the folder names for the output dirs (where the treelikeness data is stored)
+output_dirs <- paste0(output_dir,datasets,"/")
+names(output_dirs) <- datasets
+# Create a set of output folders
+plot_dirs <- paste0(plot_dir,datasets,"_plots/")
+names(plot_dirs) <- datasets
+for (d in plot_dirs){
+  if (dir.exists(d) == FALSE){
+    dir.create(d)
+  }
+}
+
+##### Step 3: Data exploration ####
+# Open data
+for (dataset in datasets){
+  ### Open files and get dataframes ready for plotting
+  # Make sure folder for plots and results exists
+  if (!dir.exists(plot_dirs[[dataset]])){
+    dir.create(plot_dirs[[dataset]])
+  }
+  
+  # Open output from treelikeness analysis
+  # Dataframes in this file contain treelikeness data as follows: 
+  #   * t29_df <- all loci with 29 taxa, wide format
+  #   * t29_long_df <- all loci with 29 taxa, long format
+  #   * all_loci_df <- all loci, wide format
+  #   * all_loci_long_df <- all loci, long format
+  op_files <- list.files(output_dir)
+  results_files <- grep("collated_results", op_files, value = TRUE)
+  ds_files <- paste0(output_dir, grep(dataset, results_files, value = TRUE))
+  ds_result_file <- grep("melted",ds_files, invert = TRUE, value = TRUE)
+  trimmed_result_file <- grep("trimmedLoci",ds_result_file, value = TRUE)
+  t29_df <- read.csv(trimmed_result_file, stringsAsFactors = FALSE) 
+  all_loci_file <- grep("trimmedLoci",ds_result_file, invert = TRUE, value = TRUE)
+  all_loci_df <- read.csv(all_loci_file, stringsAsFactors = FALSE)
+  all_loci_long_op_name <- gsub(".csv","_melted.csv", all_loci_file)
+  all_loci_long_df <- read.csv(all_loci_long_op_name, stringsAsFactors = FALSE)
+  
+  # Calculate derived variables (if they haven't been already calculated)
+  # Check this by seeing if columns for these variables already exist
+  if (length(which(names(t29_df) == "proportion_constant_sites")) == 0){
+    t29_df$proportion_constant_sites <- round(t29_df$num_constant_sites / t29_df$n_sites, 3)
+    t29_df$proportion_invariant_sites <- round(t29_df$num_invariant_sites / t29_df$n_sites, 3)
+    t29_df$proportion_informative_sites <- round(t29_df$num_parsimony_informative_sites / t29_df$n_sites, 3)
+    # Save t29_df with derived variables
+    write.csv(t29_df, file = trimmed_result_file, row.names = FALSE) 
+  }
+  
+  # Make name for melted dataset 
+  long_trimmed_op_name <- gsub(".csv","_melted.csv", trimmed_result_file)
+  # Open long data if it already exists
+  if (file.exists(long_trimmed_op_name)){
+    t29_long_df <- read.csv(long_trimmed_op_name)
+  } else {
+    # Put data in long format for ggplot
+    id_vars <- c("dataset", "loci", "sequence_type", "n_taxa", "n_sites", "num_constant_sites", "proportion_constant_sites", "num_invariant_sites", "proportion_invariant_sites",
+                 "num_parsimony_informative_sites", "proportion_informative_sites", "num_site_patterns", "total_tree_length", "sum_of_internal_branch_lengths",
+                 "proportion_internal_branches", "substitution_model", "AC_rate", "AG_rate", "AT_rate", "CG_rate", "CT_rate", "GT_rate", "A_freq",
+                 "C_freq", "G_freq", "T_freq", "GC_content_mean", "GC_content_variance", "GC_content_sd")
+    measure_vars <- c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion",
+                      "tree_proportion_p_value", "sCF_mean","sCF_median")
+    t29_long_df <- melt(t29_df, id = id_vars, measure.vars = measure_vars)
+    write.csv(t29_long_df, file = long_trimmed_op_name, row.names = FALSE)
+  }
+  
+  ### Plot and save treelikeness histograms
+  if (plots == TRUE){
+    p <- ggplot(all_loci_long_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free") + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treelikeness_histogram_freeScales.png") , plot = p)
+    p <- ggplot(all_loci_long_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = "free_x") + theme_bw()
+    ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treelikeness_histogram_freeX.png") , plot = p)
+    
+    ### Plot and save information about the alignments as histograms
+    info_df <- melt(all_loci_df, id.vars = c("dataset","loci"), 
+                    measure.vars = c("n_taxa", "n_sites", "proportion_constant_sites", "proportion_informative_sites", "num_site_patterns", "total_tree_length",
+                                     "proportion_internal_branches", "GC_content_mean", "GC_content_sd"))
+    info_df[info_df$variable == "proportion_internal_branches",4] <- round(info_df[info_df$variable == "proportion_internal_branches",4]/100,3)
+    scales_to_plot <- c("free", "free_x")
+    for (s in scales_to_plot){
+      p <- ggplot(info_df, aes(x = value)) + geom_histogram() + facet_wrap(variable ~ ., scales = s) + theme_bw()
+      p_name <- paste0(plot_dirs[[dataset]], dataset, "_alignmentInfo_histogram_", s, "_Scales.png")
+      ggsave(filename = p_name, plot = p)
+    }
+    
+    ### Plot some variables against each other to investigate relationships
+    x <- c("X3SEQ_prop_recombinant_sequences", "tree_proportion_p_value", "tree_proportion", "tree_proportion")
+    x_names <- c("Proportion of recombinant sequences", "Tree proportion p-value", "Tree proportion", "Tree proportion")
+    y <- c("X3SEQ_p_value", "X3SEQ_p_value", "tree_proportion_p_value", "X3SEQ_prop_recombinant_sequences")
+    y_names <- c("3SEQ p-value", "3SEQ p-value", "Tree proportion p-value", "Proportion of recombinant sequences")
+    xy_names <- c("3seq", "p", "tree_proportion", "test_statistic")
+    widths <- rep(0.1,4)
+    intervals <- c(seq(0,1,0.1), seq(0,1,0.1), seq(0.1, 0.9, 0.1), seq(0,1,0.1))
+    for (i in 1:length(x)){
+      # Make a scatter plot
+      p <- ggplot(data = all_loci_df, aes(x = .data[[x[i]]], y = .data[[y[i]]])) + geom_point() + theme_bw() + 
+        scale_x_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05)) + scale_y_continuous(breaks = seq(0,1,0.25), minor_breaks = seq(0,1,0.05))
+      p_name <- paste0(plot_dirs[[dataset]], dataset, "_", xy_names[i], "_value_comparison.png")
+      ggsave(filename = p_name, plot = p)
+      # Make a boxplot
+      # Make a dataframe that contains the variables of interest - melt the df with the x axis as the id.var and the y axis as the measure var, then filter by the 
+      p_df <- dplyr::mutate(all_loci_df, bin = cut_width(.data[[x[i]]], width = widths[i], boundary = 0))
+      p <- ggplot(data = p_df, aes(x = bin, y = .data[[y[i]]])) + geom_boxplot() + theme_bw() +
+        scale_x_discrete(name = x_names[i]) + scale_y_continuous(name = y_names[i])
+      p_name <- paste0(plot_dirs[[dataset]], dataset, "_", xy_names[i], "_value_comparison_boxplot.png")
+      ggsave(filename = p_name , plot = p)
+    }
+    
+    # Make a nice ggpairs plot for all loci, and one for only loci with 29 taxa
+    # For all loci
+    ggp <- GGally::ggpairs(data = all_loci_df, columns = c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion", "tree_proportion_p_value"),
+                           columnLabels = c("Prop. recomb. sequences", "3seq p-value", "Tree proportion", "Tree proportion p-value"),
+                           title = "Generalised pairs plot: all loci") +
+      theme(plot.title = element_text(hjust = 0.5))
+    ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_allLoci.png")
+    ggsave(filename = ggp_name, plot = ggp)
+    ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_allLoci.pdf")
+    ggsave(filename = ggp_name, plot = ggp)
+    # For loci with 29 taxa only
+    ggp <- GGally::ggpairs(data = t29_df, columns = c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion", "tree_proportion_p_value"),
+                           columnLabels = c("Prop. recomb. sequences", "3seq p-value", "Tree proportion", "Tree proportion p-value"),
+                           title = "Generalised pairs plot: only loci with 29 taxa") +
+      theme(plot.title = element_text(hjust = 0.5))
+    ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_29taxa.png")
+    ggsave(filename = ggp_name, plot = ggp)
+    ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_29taxa.pdf")
+    ggsave(filename = ggp_name, plot = ggp)
+    # Compare groups
+    all_loci_df$taxa_category <- all_loci_df$n_taxa
+    all_loci_df[all_loci_df$n_taxa == 29,]$taxa_category <- "29 taxa"
+    all_loci_df[all_loci_df$n_taxa < 29,]$taxa_category <- "< 29 taxa"
+    ggp <- GGally::ggpairs(data = all_loci_df, columns = c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion", "tree_proportion_p_value"),
+                           aes(color = taxa_category),
+                           columnLabels = c("Prop. recomb. sequences", "3seq p-value", "Tree proportion", "Tree proportion p-value"),
+                           title = "Generalised pairs plot: comparison between number of taxa") +
+      theme(plot.title = element_text(hjust = 0.5))
+    ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_taxaCategories.png")
+    ggsave(filename = ggp_name, plot = ggp)
+    ggp_name <- paste0(plot_dirs[[dataset]], dataset, "_testStatistics_generalisedPairsPlot_taxaCategories.pdf")
+    ggsave(filename = ggp_name, plot = ggp)
+    
+    
+    # look for a correlation between properties of the alignments and tree proportion/3seq with scatterplots
+    x <- c(rep("n_sites",4), rep("n_taxa", 4), rep("total_tree_length", 4), rep("num_site_patterns",4), rep("GC_content_mean", 4), rep("proportion_internal_branches", 4), rep("proportion_informative_sites",4))
+    y <- rep(c("tree_proportion","tree_proportion_p_value","X3SEQ_prop_recombinant_sequences","X3SEQ_p_value"),7)
+    x_names <- c(rep("nSites",4), rep("nTaxa", 4), rep("treeLength",4), rep("numSitePatterns",4), rep("GC_content",4), rep("proportionInternalBranches", 4), rep("proportionInformativeSites", 4))
+    y_names <- rep(c("tree_proportion","tree_proportion_p_value","3seq_prop_recombinant_sequences","3seq_p_value"),7)
+    for (i in 1:length(x)){
+      p <- ggplot(data = t29_df, aes(x = .data[[x[i]]], y = .data[[y[i]]])) + geom_point() + theme_bw()
+      p_name <- paste0(plot_dirs[[dataset]], dataset, "_", y_names[i], "_", x_names[i], "_comparison.png")
+      ggsave(filename = p_name , plot = p)
+    }
+    
+    # Plot boxplots of the properties of the alignments against the test statistics and statistical tests
+    # levels <- c(7, 7, 6, 7, 9, 6, 5)
+    # starts <- c(0, 16, 0, 0, 0.3, 0, 0)
+    # seq(from = starts[i],to = (starts[i]+widths[i]*levels[i]),by = widths[i])
+    boxplot_df <- all_loci_long_df[all_loci_long_df$variable %in% c("tree_proportion","tree_proportion_p_value","X3SEQ_prop_recombinant_sequences","X3SEQ_p_value"),]
+    x <- c("n_sites","n_taxa","total_tree_length","num_site_patterns","GC_content_mean","proportion_internal_branches","proportion_informative_sites")
+    x_label_names <- c("Number of sites","Number of taxa","Total tree length","Number of unique site patterns","Mean GC content","Percent of internal branches","Proportion of informative sites")
+    x_names <- c("nSites","nTaxa","treeLength","numSitePatterns","GC_content","proportionInternalBranches","proportionInformativeSites")
+    widths <- c(1000, 2, 0.5, 500, 0.05, 10, 0.1)
+    x_ticks <- list(seq(0,7000,1000), seq(16,30,2), c("0-0.5","0.5-1","1-1.5","1.5-2","2-2.5","10.5-11"), seq(0,3500,500),seq(0.3,0.75,0.05), seq(0,60,10), seq(0,0.5,0.1))
+    for (i in 1:length(x)){
+      boxplot_df_binned <- dplyr::mutate(boxplot_df, bin = cut_width(.data[[x[i]]], width = widths[i], boundary = 0))
+      boxplot_df_binned$group <- factor(boxplot_df_binned$variable, levels = c("X3SEQ_prop_recombinant_sequences", "X3SEQ_p_value", "tree_proportion", "tree_proportion_p_value"),
+                                        labels = c("3seq - proportion of recombinant sequences", "3seq p-value", "Tree proportion", "Tree proportion p-value"), 
+                                        ordered = TRUE)
+      p <- ggplot(data = boxplot_df_binned, aes(x = bin, y = value)) + geom_boxplot() + facet_wrap(group~.)  + theme_bw() +
+        scale_x_discrete(name = x_label_names[i], labels = x_ticks[[i]]) + scale_y_continuous(name = "Value")
+      p_name <- paste0(plot_dirs[[dataset]], dataset, "_",x_names[i], "_allLoci_facet_boxplot.png")
+      ggsave(filename = p_name , plot = p)
+    }
+  }
+  
+  ### Classify trees into 4 groups: 3seq only, tp only, both, neither
+  ## plot and compare treespace - do trees group together?
+  ## plot and compare groves (change colour to be based on group!) - do trees group together?
+  # Start by adding columns to the dataframe that classify each value as either TREELIKE or NON-TREELIKE
+  t29_df <- classify.treelikeness.statistics(t29_df, 0.7)
+  
+  # Now plot the treelikeness test statistics against each other and colour by group
+  pretty_colours <- RColorBrewer::brewer.pal(5,"YlGnBu")[2:5]
+  dark_colours <- RColorBrewer::brewer.pal(4,"Dark2")
+  p <- ggplot(data = t29_df, aes(x = tree_proportion_p_value, y = X3SEQ_p_value, color = sorted_p_value)) + geom_point() + theme_bw() + 
+    scale_color_manual(labels = c("Neither (n = 779)","3seq only  (n = 587)","Tree proportion only  (n = 121)","Both (n = 223)"), values = dark_colours) + 
+    guides(color = guide_legend(title = "Loci treelikeness")) + labs(title = "Grouping loci by treelikeness test p-value results", subtitle = "Vanderpool 2020") +
+    scale_x_continuous(name = "Tree proportion p-value") + scale_y_continuous(name = "3seq p-value")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_sortingLoci_p-values.png") , plot = p)
+  # Now plot the tree proportion test statistics against the 3seq p-value and colour by group
+  p <- ggplot(data = t29_df, aes(x = tree_proportion, y = X3SEQ_p_value, color = sorted)) + geom_point() + theme_bw() + 
+    scale_color_manual(labels = c("Neither (n = 378)","3seq only  (n = 380)","Tree proportion only  (n = 542)","Both (n = 430)"), values = dark_colours) + 
+    guides(color = guide_legend(title = "Loci treelikeness")) + labs(title = "Grouping loci by treelikeness test statistic results", subtitle = "Vanderpool 2020") +
+    scale_x_continuous(name = "Tree proportion") + scale_y_continuous(name = "3seq p-value")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_sortingLoci.png") , plot = p)
+  
+  ### Examine treespace
+  # Break down trees to those with all species
+  t29_df <- t29_df[t29_df$n_taxa == 29,]
+  #t29_df <- t29_df[1:20,] # small dataframe for testing - comment/uncomment as needed
+  # Read in all trees at once
+  mp <- read.tree(text = t29_df$tree)
+  # use treespace <- have to pick a method that works on unrooted trees. Do this by picking one that assumes trees are unrooted
+  # "Warning message: In is.euclid(distmat) : Zero distance(s)" may appear when doing "RF" method <- this means you have duplicate rows in your distance matrix
+  # Basically means two trees have the exact same values so the function thinks that you have a duplicate row
+  res <- treespace(mp, nf=3, method = "wRF")
+  # Use ggplot to plot the treespace using colours to sort loci as above
+  # plotGroves(res$pco, lab.show=FALSE) # plotting treespace using plotGroves function = simple but hard to add colours for factors
+  # Extract principal component vectors and add the sorted column so you know how to group the taxa
+  pc_df <- res$pco$tab
+  pc_df$sorted <- t29_df$sorted
+  pc_df$sorted_p_value <- t29_df$sorted_p_value
+  # sorted_p_value
+  p <- ggplot(pc_df,aes(x = A1, y = A2, color = sorted_p_value)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A2") + labs(title = "Vanderpool 2020 treespace: A2 ~ A1", subtitle = "Grouped by 3seq and tree proportion p-values") + 
+    scale_color_brewer(palette = "Dark2")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_pValue_PC_A1A2.png") , plot = p)
+  p <- ggplot(pc_df,aes(x = A2, y = A3, color = sorted_p_value)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
+    scale_x_continuous(name = "A2") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2", subtitle = "Grouped by 3seq and tree proportion p-values") + 
+    scale_color_brewer(palette = "Dark2")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_pValue_PC_A2A3.png") , plot = p)
+  p <- ggplot(pc_df,aes(x = A1, y = A3, color = sorted_p_value)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2", subtitle = "Grouped by 3seq and tree proportion p-values") + 
+    scale_color_brewer(palette = "Dark2")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_pValue_PC_A1A3.png") , plot = p)
+  # sorted
+  p <- ggplot(pc_df,aes(x = A1, y = A2, color = sorted)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A2") + labs(title = "Vanderpool 2020 treespace: A2 ~ A1", subtitle = "Grouped by 3seq p-value and tree proportion") + 
+    scale_color_brewer(palette = "Dark2")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_PC_A1A2.png") , plot = p)
+  
+  p <- ggplot(pc_df,aes(x = A2, y = A3, color = sorted)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
+    scale_x_continuous(name = "A2") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2", subtitle = "Grouped by 3seq p-value and tree proportion") + 
+    scale_color_brewer(palette = "Dark2")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_PC_A2A3.png") , plot = p)
+  
+  p <- ggplot(pc_df,aes(x = A1, y = A3, color = sorted)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Loci treelikeness")) +
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace: A3 ~ A2", subtitle = "Grouped by 3seq p-value and tree proportion") + 
+    scale_color_brewer(palette = "Dark2")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_treelikeness_PC_A1A3.png") , plot = p)
+  
+  # Now find the groves
+  groves <- findGroves(res, nclust=5)
+  # Plot using plotGroves to see how the groves are organised
+  plotGroves(groves)
+  # Create a data frame to use for plotting
+  groves_pc_df <- groves$treespace$pco$li
+  groves_pc_df$groups <- groves$groups
+  # Make and save the plots
+  p <- ggplot(groves_pc_df,aes(x = A1, y = A2, color = groups)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Groves")) +
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A2") + labs(title = "Vanderpool 2020 treespace with groves: A2 ~ A1") + 
+    scale_color_brewer(palette = "Paired")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_groves_PC_A1A2.png") , plot = p)
+  p <- ggplot(groves_pc_df,aes(x = A2, y = A3, color = groups)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Groves")) +
+    scale_x_continuous(name = "A2") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace with groves: A3 ~ A2") + 
+    scale_color_brewer(palette = "Paired")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_groves_PC_A2A3.png") , plot = p)
+  p <- ggplot(groves_pc_df,aes(x = A1, y = A3, color = groups)) + geom_point() + theme_bw() + guides(color = guide_legend(title = "Groves")) +
+    scale_x_continuous(name = "A1") + scale_y_continuous(name = "A3") + labs(title = "Vanderpool 2020 treespace with groves: A3 ~ A2") + 
+    scale_color_brewer(palette = "Paired")
+  ggsave(filename = paste0(plot_dirs[[dataset]],dataset,"_treespace_groves_PC_A1A3.png") , plot = p)
+  # Plot and save a 3D plot
+  colours <- fac2col(groves$groups, col.pal=colorRampPalette(RColorBrewer::brewer.pal(5,"Paired")))
+  plot3d(groves$treespace$pco$li[,1],
+         groves$treespace$pco$li[,2],
+         groves$treespace$pco$li[,3],
+         col=colours, type="s", size=1.5,
+         xlab="", ylab="", zlab="")
+  rgl.snapshot(paste0(plot_dirs[[dataset]],dataset,"_treespace_groves_3dplot_snapshot.png"), fmt = "png")
+  
+  
+}
+
+
