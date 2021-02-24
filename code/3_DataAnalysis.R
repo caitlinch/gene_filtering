@@ -19,13 +19,29 @@ print("set filepaths")
 # output_dir        <- for collated output and results from treelikeness analysis. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
 # datasets          <- set name(s) for the dataset(s)
 
-treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
-maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
-csv_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
-tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
-output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_results/"
-datasets <- c("Vanderpool2020")
-dataset = "Vanderpool2020"
+# location = "local"
+location = "server"
+
+if (location == "local"){
+  treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
+  maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
+  csv_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
+  tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
+  output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_results/"
+  
+  datasets <- c("Vanderpool2020")
+  dataset = "Vanderpool2020"
+  
+} else if (location == "server"){
+  treedir <- "/data/caitlin/treelikeness/" # where the treelikeness repository/folder is
+  maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness repository/folder is 
+  csv_data_dir <- "/data/caitlin/empirical_treelikeness/Output/"
+  tree_data_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
+  output_dir <- "/data/caitlin/empirical_treelikeness/Output_DataAnalysis/"
+  
+  datasets <- c("Vanderpool2020")
+  dataset = "Vanderpool2020"
+}
 
 
 
