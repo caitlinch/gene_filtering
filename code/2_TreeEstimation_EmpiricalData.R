@@ -107,7 +107,8 @@ if (run_location == "local"){
 } else if (run_location=="server"){
   # Datasets/dataset information
   input_names <- "Vanderpool2020"
-  loci_to_remove <- list("Vanderpool2020" = "ORTHOMCL14552")
+  loci_to_remove <- list("Vanderpool2020" = c("ORTHOMCL13011","ORTHOMCL13077","ORTHOMCL13305","ORTHOMCL13678","ORTHOMCL13824","ORTHOMCL13879",
+                                              "ORTHOMCL14138","ORTHOMCL14425","ORTHOMCL14552"))
   number_of_taxa <- list("Vanderpool2020" = 29)
   
   # File and directory locations
