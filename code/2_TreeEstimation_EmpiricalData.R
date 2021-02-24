@@ -138,6 +138,7 @@ if (run_location == "local"){
 ##### Step 3: Source files for functions #####
 # Source the functions using the filepaths from Step 2
 source(paste0(maindir,"code/func_empirical.R"))
+source(paste0(maindir,"code/func_analysis.R"))
 
 
 
@@ -152,6 +153,24 @@ for (d in output_dirs){
   if (file.exists(d) == FALSE){
     dir.create(d)
   }
+}
+
+# Identify any warnings from the IQ-Tree loci tree estimation
+# Use these warnings to select which loci to exclude
+for (dataset in datasets){
+  # Open this dataset's raw output file from the treelikeness analysis 
+  all_csv_files <- grep(".csv",list.files(csv_data_dir), value = TRUE)
+  all_untrimmed_csv_files <- grep("trimmed",all_csv_files, value = TRUE, invert = TRUE)
+  dataset_csv_file <- grep(dataset, all_untrimmed_csv_files, value = TRUE)
+  dataset_df <- read.csv(paste0(csv_data_dir,dataset_csv_file), stringsAsFactors = FALSE)
+  
+  # Take list of alignments from the raw output file
+  all_alignments <- dataset_df$alignment_file
+  
+  # Collect warnings and write out as a csv file
+  warning_df <- as.data.frame(do.call(rbind, (lapply(all_alignments, check.for.IQTree.warnings))))
+  warning_df_file <- paste0(csv_data_dir, dataset, "_collated_IQ-Tree_warnings.csv")
+  write.csv(warning_df, file = warning_df_file)
 }
 
 # Open the treelikeness results dataframe
