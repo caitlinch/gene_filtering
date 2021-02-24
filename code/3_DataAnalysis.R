@@ -6,7 +6,7 @@
 
 
 ##### Step 1: Open packages #####
-library(treespace) # phylogenetic tree exploration
+library(treespace)
 library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
 # these methods all assume an unrooted tree so trees can be used as is for this analysis
 
@@ -71,9 +71,18 @@ for (dataset in datasets){
   
   # Collect warnings and write out as a csv file
   warning_df <- as.data.frame(do.call(rbind, (lapply(all_alignments, check.for.IQTree.warnings))))
-  warning_df_file <- paste0(csv_data_dir, dataset, "_collated_IQ-Tree_warnings.csv")
+  warning_df_file <- paste0(csv_data_dir, "empiricalTreelikeness_", dataset, "_collated_IQ-Tree_warnings.csv")
   write.csv(warning_df, file = warning_df_file)
 }
+
+# Investigate warnings
+warnings_df <- read.csv(paste0(csv_data_dir, grep("warnings", all_csv_files, value = TRUE)))
+log_df <- warnings_df[warnings_df$file == ".log",]
+unique(log_df$loci)
+unique(log_df$warnings)
+
+iq_df <- warnings_df[warnings_df$file == ".iqtree",]
+length(unique(iq_df$loci))
 
 # 
 # ### Classify trees into 4 groups: 3seq only, tp only, both, neither
