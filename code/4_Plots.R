@@ -1,10 +1,7 @@
-### empirical_treelikeness/2_ExploreTreelikenessScores.R
+### empirical_treelikeness/4_Plots.R
 ## R program to plot and explore results of the treelikeness test statistics on empirical data
 # Final result is a reformatted csv file and a number of graphs
 # Caitlin Cherryh 2021
-
-# Specifically designed to work with Rob Lanfear's "BenchmarkAlignments"
-# BenchmarkAlignments and metadata have CC0 or CCBY licenses and are available here: https://github.com/roblanf/BenchmarkAlignments
 
 
 
@@ -17,11 +14,6 @@ library(reshape2)
 library(treespace) # phylogenetic tree exploration
 library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
 # these methods all assume an unrooted tree so trees can be used as is for this analysis
-
-
-
-
-
 
 
 
