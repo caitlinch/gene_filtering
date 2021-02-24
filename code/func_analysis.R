@@ -23,8 +23,11 @@ check.for.IQTree.warnings <- function(alignment_path){
   alignment_path_split <- strsplit(alignment_path_base, "\\.")[[1]]
   loci_name <- paste0(alignment_path_split[1:(length(alignment_path_split) - 1)], collapse = ".")
   
-  # Output warnings
-  warning_df <- data.frame(loci_path = alignment_path, loci = loci_name, file = c(rep(".iqtree", length(dotiqtree_warnings)), rep(".log", length(dotlog_warnings))),
-                           warnings = c(dotiqtree_warnings, dotlog_warnings))
-  return(warning_df)
+  # If one or more warnings was found, output a dataframe of the warnings
+  if ((length(dotiqtree_warnings) + length(dotlog_warnings)) > 0){
+    # Output warnings
+    warning_df <- data.frame(loci_path = alignment_path, loci = loci_name, file = c(rep(".iqtree", length(dotiqtree_warnings)), rep(".log", length(dotlog_warnings))),
+                             warnings = c(dotiqtree_warnings, dotlog_warnings))
+    return(warning_df)
+  }
 }
