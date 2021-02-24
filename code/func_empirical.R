@@ -1289,6 +1289,11 @@ remove.suffix <- function(full_filename){
 }
 
 
+##### Functions for calculating statistical test for tree proportion #####
+# The functions from here onwards are to calculate the statistical test for tree proportion
+# These have been modified and adapted from the functions used to perform the analyses to process just one alignment at a time
+# These functions call functions found higher up in this script (e.g. call.IQTREE.empirical) and in other scripts 
+# (e.g. tree.proportion from https://github.com/caitlinch/treelikeness/code/func_test_statistic.R)
 
 # Function to perform parametric bootstrap and calculate statistical test for tree proportion
 tree.proportion.statistical.test <- function(loci_path, loci_name, loci_alphabet, loci_model, loci_dataset, loci_output_folder, iqtree_path, splitstree_path, number_of_replicates, 
