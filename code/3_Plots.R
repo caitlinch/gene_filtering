@@ -224,7 +224,7 @@ for (dataset in datasets){
   ## plot and compare treespace - do trees group together?
   ## plot and compare groves (change colour to be based on group!) - do trees group together?
   # Start by adding columns to the dataframe that classify each value as either TREELIKE or NON-TREELIKE
-  t29_df <- classify.treelikeness.statistics(t29_df)
+  t29_df <- classify.treelikeness.statistics(t29_df, 0.7)
   
   # Now plot the treelikeness test statistics against each other and colour by group
   pretty_colours <- RColorBrewer::brewer.pal(5,"YlGnBu")[2:5]
