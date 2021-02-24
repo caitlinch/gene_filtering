@@ -1291,7 +1291,7 @@ remove.suffix <- function(full_filename){
 
 
 # Function to perform parametric bootstrap and calculate statistical test for tree proportion
-tree.proportion.test.statistic <- function(loci_path, loci_name, loci_alphabet, loci_model, loci_dataset, loci_output_folder, iqtree_path, splitstree_path, number_of_replicates, 
+tree.proportion.statistical.test <- function(loci_path, loci_name, loci_alphabet, loci_model, loci_dataset, loci_output_folder, iqtree_path, splitstree_path, number_of_replicates, 
                                            allowable_proportion_missing_sites, iqtree.num_threads, num_of_cores){
   print("tree.proportion.test.statistic")
   # Specify path to alignment
