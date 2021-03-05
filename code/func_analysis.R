@@ -2,9 +2,6 @@
 ## R functions to analyse empirical treelikeness data
 # Caitlin Cherryh 2021
 
-all_alignments <- paste0("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/",
-                         c("Vanderpool2020/ORTHOMCL11779/ORTHOMCL11779.nex", "Vanderpool2020/ORTHOMCL11783/ORTHOMCL11783.nex", "Vanderpool2020/ORTHOMCL11784/ORTHOMCL11784.nex",
-                           "Vanderpool2020/ORTHOMCL11785/ORTHOMCL11785.nex", "Vanderpool2020/ORTHOMCL14552/ORTHOMCL14552.nex"))
 
 # Given an alignment, this function will check the IQ-Tree .log file and .iqtree file for warnings and return all warnings and the corresponding alignment
 check.for.IQTree.warnings <- function(alignment_path){
@@ -31,3 +28,30 @@ check.for.IQTree.warnings <- function(alignment_path){
     return(warning_df)
   }
 }
+
+
+
+# This function looks in a single IQ-Tree folder and checks which loci are present
+get.loci.from.analysis <- function(folder, output_folder){
+  # Create a filename for the output file
+  op_filename <- paste0(output_folder, gsub("_IQ-Tree_partition","",basename(folder)), "_loci.csv")
+  # Get all files in the folder
+  folder_files <- list.files(folder)
+  # Remove any partition files from the folder
+  nonpartition_files <- grep("partition", folder_files, invert = TRUE, value = TRUE)
+  # Get the location of each alignment
+  loci_files <- paste0(folder, nonpartition_files)
+  # Get the loci name from each alignment
+  loci_names <- gsub(".fa", "", nonpartition_files)
+  # Combine the names and locations of each alignment
+  loci_df <- data.frame(loci_name = loci_names, loci_file = loci_files)
+  # Output this information about this analysis
+  write.csv(loci_df, op_filename, row.names = FALSE)
+}
+
+
+
+
+
+  
+
