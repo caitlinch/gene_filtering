@@ -408,7 +408,7 @@ for (dataset in datasets_to_copy_loci){
   dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
   # Create name for ASTRAL and IQ-Tree runs
   astral_name <- "all_loci_ASTRAL"
-  iqtree_name <- "all_loci_IQTree/"
+  iqtree_name <- "all_loci_IQ-Tree/"
   # Copy all loci and all trees
   all_loci <- dataset_df$loci
   all_trees <- dataset_df$tree
@@ -416,7 +416,7 @@ for (dataset in datasets_to_copy_loci){
   mclapply(all_loci, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset], iqtree_name), mc.cores = cores_to_use)
   
   if (partition.by.codon.position == TRUE){
-    partition_name <- "all_loci_IQTree_partition/"
+    partition_name <- "all_loci_IQ-Tree_partition/"
     mclapply(all_loci, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset], partition_name), mc.cores = cores_to_use)
   }
 }
