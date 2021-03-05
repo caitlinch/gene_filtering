@@ -18,6 +18,10 @@ print("set filepaths")
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # output_dir        <- for collated output and results from treelikeness analysis. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
 # datasets          <- set name(s) for the dataset(s)
+## Choose which sections of the script you want to run
+# collect_warnings  <- Whether to collect warnings from the IQ-Tree log and iqtree files. Can be TRUE or FALSE.
+# collate_results   <- Whether to collect results from the output dir. Can be TRUE of FALSE.
+# run_analysis      <- Whether to perform data analysis. Can be TRUE or FALSE.
 
 # location = "local"
 location = "server"
@@ -32,6 +36,10 @@ if (location == "local"){
   datasets <- c("Vanderpool2020")
   dataset = "Vanderpool2020"
   
+  collect_warnings  <- FALSE
+  collate_results   <- TRUE
+  run_analysis      <- TRUE
+  
 } else if (location == "server"){
   treedir <- "/data/caitlin/treelikeness/" # where the treelikeness repository/folder is
   maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness repository/folder is 
@@ -41,6 +49,10 @@ if (location == "local"){
   
   datasets <- c("Vanderpool2020")
   dataset = "Vanderpool2020"
+  
+  collect_warnings  <- FALSE
+  collate_results   <- TRUE
+  run_analysis      <- TRUE
 }
 
 
@@ -57,32 +69,42 @@ for (f in output_dirs){
   }
 }
 
-##### Step 3: Data exploration ####
+##### Step 3: Collect any warnings from tree estimation ####
 # Identify any warnings from the IQ-Tree loci tree estimation
-for (dataset in datasets){
-  # Open this dataset's raw output file from the treelikeness analysis 
-  all_csv_files <- grep(".csv",list.files(csv_data_dir), value = TRUE)
-  all_untrimmed_csv_files <- grep("trimmed",all_csv_files, value = TRUE, invert = TRUE)
-  dataset_csv_file <- grep(dataset, all_untrimmed_csv_files, value = TRUE)
-  dataset_df <- read.csv(paste0(csv_data_dir,dataset_csv_file), stringsAsFactors = FALSE)
+if (collect_warnings == TRUE){
+  for (dataset in datasets){
+    # Open this dataset's raw output file from the treelikeness analysis 
+    all_csv_files <- grep(".csv",list.files(csv_data_dir), value = TRUE)
+    all_untrimmed_csv_files <- grep("trimmed",all_csv_files, value = TRUE, invert = TRUE)
+    dataset_csv_file <- grep(dataset, all_untrimmed_csv_files, value = TRUE)
+    dataset_df <- read.csv(paste0(csv_data_dir,dataset_csv_file), stringsAsFactors = FALSE)
+    
+    # Take list of alignments from the raw output file
+    all_alignments <- dataset_df$alignment_file
+    
+    # Collect warnings and write out as a csv file
+    warning_df <- as.data.frame(do.call(rbind, (lapply(all_alignments, check.for.IQTree.warnings))))
+    warning_df_file <- paste0(csv_data_dir, "empiricalTreelikeness_", dataset, "_collated_IQ-Tree_warnings.csv")
+    write.csv(warning_df, file = warning_df_file)
+  }
   
-  # Take list of alignments from the raw output file
-  all_alignments <- dataset_df$alignment_file
+  # Investigate warnings
+  warnings_df <- read.csv(paste0(csv_data_dir, grep("warnings", all_csv_files, value = TRUE)))
+  log_df <- warnings_df[warnings_df$file == ".log",]
+  unique(log_df$loci)
+  unique(log_df$warnings)
   
-  # Collect warnings and write out as a csv file
-  warning_df <- as.data.frame(do.call(rbind, (lapply(all_alignments, check.for.IQTree.warnings))))
-  warning_df_file <- paste0(csv_data_dir, "empiricalTreelikeness_", dataset, "_collated_IQ-Tree_warnings.csv")
-  write.csv(warning_df, file = warning_df_file)
+  iq_df <- warnings_df[warnings_df$file == ".iqtree",]
+  length(unique(iq_df$loci))
 }
 
-# Investigate warnings
-warnings_df <- read.csv(paste0(csv_data_dir, grep("warnings", all_csv_files, value = TRUE)))
-log_df <- warnings_df[warnings_df$file == ".log",]
-unique(log_df$loci)
-unique(log_df$warnings)
 
-iq_df <- warnings_df[warnings_df$file == ".iqtree",]
-length(unique(iq_df$loci))
+
+##### Step 4: Collate results from tree estimation #####
+if (collate_results == TRUE){
+  
+}
+
 
 # 
 # ### Classify trees into 4 groups: 3seq only, tp only, both, neither
