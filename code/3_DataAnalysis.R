@@ -60,7 +60,16 @@ if (location == "local"){
 #### Step 3: Open files
 source(paste0(maindir,"code/func_analysis.R"))
 
-# Construct the folder names for the output dirs (where the treelikeness data is stored)
+# Construct the folder names for where the estimated species trees are
+tree_data_dirs <- paste0(tree_data_dir,datasets,"/")
+names(tree_data_dirs) <- datasets
+for (f in tree_data_dirs){
+  if (!file.exists(f)){
+    dir.create(f)
+  }
+}
+
+# Construct the folder names for where to save the data analysis results
 output_dirs <- paste0(output_dir,datasets,"/")
 names(output_dirs) <- datasets
 for (f in output_dirs){
@@ -68,6 +77,8 @@ for (f in output_dirs){
     dir.create(f)
   }
 }
+
+
 
 ##### Step 3: Collect any warnings from tree estimation ####
 # Identify any warnings from the IQ-Tree loci tree estimation
@@ -102,7 +113,33 @@ if (collect_warnings == TRUE){
 
 ##### Step 4: Collate results from tree estimation #####
 if (collate_results == TRUE){
-  
+  for (dataset in datasets){
+    # Get a list of all the files in the folder
+    all_files <- list.files(tree_data_dirs[[dataset]])
+    # Collect the names of the species trees from ASTRAL and IQ-Tree
+    astral_tree_files <- grep("ASTRAL_species.tre", all_files, value = TRUE)
+    partition_tree_files <- paste0(grep("IQ-Tree_partition", all_files, value = TRUE), "/partitions.nex.contree")
+    all_trees <- paste0(tree_data_dirs[[dataset]],c(astral_tree_files, partition_tree_files))
+    
+    # Create a new folder to copy only the species trees into
+    copy_folder <- paste0(tree_data_dirs[[dataset]],"AllCollatedSpeciesTrees/")
+    copy_partition_tree_files <- gsub("/partitions","", partition_tree_files)
+    copy_trees <- paste0(copy_folder,c(astral_tree_files, copy_partition_tree_files))
+    # Create the copy folder if it doesn't already exist
+    if (!dir.exists(copy_folder)){
+      dir.create(copy_folder)
+    }
+    # Copy files into this new folder
+    for (i in 1:length(all_trees)){
+      tree_original_location <- all_trees[i]
+      tree_copied_location <- copy_trees[i]
+      file.copy(from = tree_original_location, to = tree_copied_location, overwrite = TRUE, copy.mode = TRUE, copy.date = TRUE)
+    }
+    
+    # Get a list of each loci involved in each analysis
+    partition_folders <- paste0(tree_data_dirs[[dataset]], grep("IQ-Tree_partition", all_files, value = TRUE))
+    lapply(partition_folders, get.loci.from.analysis, copy_folder)
+  }
 }
 
 
