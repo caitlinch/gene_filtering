@@ -23,8 +23,8 @@ print("set filepaths")
 # collate_results   <- Whether to collect results from the output dir. Can be TRUE of FALSE.
 # run_analysis      <- Whether to perform data analysis. Can be TRUE or FALSE.
 
-# location = "local"
-location = "server"
+location = "local"
+# location = "server"
 
 if (location == "local"){
   treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
@@ -122,7 +122,7 @@ if (collate_results == TRUE){
     all_trees <- paste0(tree_data_dirs[[dataset]],c(astral_tree_files, partition_tree_files))
     
     # Create a new folder to copy only the species trees into
-    copy_folder <- paste0(tree_data_dirs[[dataset]],"AllCollatedSpeciesTrees/")
+    copy_folder <- paste0(tree_data_dirs[[dataset]],"all_species_trees/")
     copy_partition_tree_files <- gsub("/partitions","", partition_tree_files)
     copy_trees <- paste0(copy_folder,c(astral_tree_files, copy_partition_tree_files))
     # Create the copy folder if it doesn't already exist
@@ -139,6 +139,15 @@ if (collate_results == TRUE){
     # Get a list of each loci involved in each analysis
     partition_folders <- paste0(tree_data_dirs[[dataset]], grep("IQ-Tree_partition", all_files, value = TRUE))
     lapply(partition_folders, get.loci.from.analysis, copy_folder)
+  }
+}
+
+
+
+##### Step 5: Compare species trees #####
+if (run_analysis == TRUE){
+  for (dataset in datasets) {
+    
   }
 }
 
