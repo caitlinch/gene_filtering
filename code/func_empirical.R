@@ -789,6 +789,8 @@ check.invalid.nexus.characters <- function(alignment_path, seq_type){
     } else if (length(to_edit_seqs) == 0){
       output_indicator = "no_ambiguous_characters"
     }
+  } else if (seq_type == "protein"){
+    output_indicator = "no_ambiguous_characters"
   }
   return(output_indicator)
 }
