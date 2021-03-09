@@ -37,7 +37,7 @@ if (location == "local"){
   dataset = "Vanderpool2020"
   
   collect_warnings  <- FALSE
-  collate_results   <- TRUE
+  collate_results   <- FALSE
   run_analysis      <- TRUE
   
 } else if (location == "server"){
@@ -51,7 +51,7 @@ if (location == "local"){
   dataset = "Vanderpool2020"
   
   collect_warnings  <- FALSE
-  collate_results   <- TRUE
+  collate_results   <- FALSE
   run_analysis      <- TRUE
 }
 

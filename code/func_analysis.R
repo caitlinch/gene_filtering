@@ -40,7 +40,7 @@ get.loci.from.analysis <- function(folder, output_folder){
   # Remove any partition files from the folder
   nonpartition_files <- grep("partition", folder_files, invert = TRUE, value = TRUE)
   # Get the location of each alignment
-  loci_files <- paste0(folder, nonpartition_files)
+  loci_files <- paste0(folder, "/", nonpartition_files)
   # Get the loci name from each alignment
   loci_names <- gsub(".fa", "", nonpartition_files)
   # Combine the names and locations of each alignment
