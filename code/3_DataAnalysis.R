@@ -147,6 +147,8 @@ if (collate_results == TRUE){
 ##### Step 5: Compare species trees #####
 if (run_analysis == TRUE){
   for (dataset in datasets) {
+    #### Comparing trees from p-value categories
+    ## Want to see if loci trees within one category are more similar on average then loci trees from different categories.
     
   }
 }
