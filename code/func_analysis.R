@@ -53,14 +53,21 @@ get.loci.from.analysis <- function(folder, output_folder){
 
 
 
-# Test params for writing
-species_tree_csv <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/all_species_trees/p-value_categories_none_50loci_loci.csv"
-sample_size = 100
-loci_tree_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/loci_trees/"
-output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_results/Vanderpool2020/" 
-
 # This function takes a list of names of loci, randomly selects 100 pairs, compares those two trees and records the average difference between them
 calculate.average.tree.distance <- function(species_tree_csv, loci_tree_folder, output_folder, sample_size = 100){
+  # Extract the category name from the file name
+  if (basename(species_tree_csv) == "all_loci_loci.csv"){
+    category_name = "all_loci"
+  } else {
+    category_name <- gsub("p-value_categories_","",basename(species_tree_csv))
+    category_name <- gsub("_loci.csv","", category_name)
+    if (category_name == "both"){
+      category_name = "both_significant"
+    }
+    if (category_name == "none"){
+      category_name = "neither_significant"
+    } 
+  }
   # Get the record of which loci were included in this category
   species_tree_df <- read.csv(species_tree_csv, stringsAsFactors = FALSE)
   # Randomly sample loci to be compared
@@ -78,13 +85,16 @@ calculate.average.tree.distance <- function(species_tree_csv, loci_tree_folder, 
   distances_op_name <- paste0(output_folder, gsub("_loci.csv", paste0("_",sample_size,"Samples_TreeDistances.csv"), basename(species_tree_csv)))
   write.csv(distances_df, distances_op_name, row.names = FALSE)
   # Calculate the mean for each of the distances
-  avg_dists <- c(mean(as.numeric(distances_df$RF_distance)), mean(as.numeric(distances_df$normalized_RF_distance)), mean(as.numeric(distances_df$weighted_RF_distance)),
-                 mean(as.numeric(distances_df$normalized_weighted_RF_distance)), mean(as.numeric(distances_df$path_difference)), 
-                 mean(as.numeric(distances_df$weighted_path_difference)), mean(as.numeric(distances_df$KF_distance)))
+  avg_dists <- c(mean(as.numeric(distances_df$RF_distance)), mean(as.numeric(distances_df$normalized_RF_distance)), 
+                 mean(as.numeric(distances_df$weighted_RF_distance)),mean(as.numeric(distances_df$normalized_weighted_RF_distance)), 
+                 mean(as.numeric(distances_df$path_difference)),mean(as.numeric(distances_df$weighted_path_difference)), 
+                 mean(as.numeric(distances_df$KF_distance)))
   avg_dists <- signif(avg_dists, digits = 4)
-  names(avg_dists) <- c("mean_RF_distance", "mean_normalized_RF_distance", "mean_weighted_RF_distance",
-                        "mean_normalized_weighted_RF_distance", "mean_path_difference", 
-                        "mean_weighted_path_difference","mean_KF_distance")
+  avg_dists <- c(category_name, avg_dists)
+  names(avg_dists) <- c("category","mean_RF_distance", "mean_normalized_RF_distance", 
+                        "mean_weighted_RF_distance", "mean_normalized_weighted_RF_distance", 
+                        "mean_path_difference", "mean_weighted_path_difference",
+                        "mean_KF_distance")
   # Return average distances
   return(avg_dists)
 }
@@ -142,4 +152,46 @@ find.loci.tree.path <- function(loci_name, loci_tree_folder){
     return("COULD NOT FIND PATH")
   }
 }
+
+
+
+# This function takes an alignment and calculates the AU test using IQ-Tree
+perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, three_trees_path, iqtree_path){
+  # Find the loci file in the data folder
+  all_data_files <- list.files(data_folder)
+  loci_file <- paste0(data_folder, grep(loci_name, all_data_files, value = TRUE))
+  # Copy the file into the output folder
+  copy_path <- paste0(output_folder, loci_name, ".fasta")
+  file.copy(from = loci_file, to = copy_path, overwrite = FALSE, copy.mode = TRUE)
+  # Conduct the analysis at the position of the copied file
+  alignment_path <- copy_path
+  # List all files and identify tree path
+  all_files <- list.files(loci_folder)
+  tree_path <- grep(".treefile", all_files, value = TRUE)
+  tree_path <- paste0(loci_folder, grep(".treefile.", tree_path, invert = TRUE, value = TRUE))
+  # construct IQ-tree command
+  iqtree_command <- paste0(iqtree_path, " -s ", alignment_path, " -z ", three_trees_path, " -au")
+  # run command
+  system(iqtree_command)
+  # Open the log file
+  log_file <- paste0(alignment_path, ".log")
+  log_lines <- readLines(log_file)
+  ind <- grep("Reading trees in",log_lines) + 2
+  # extract log likelihood values
+  tree1_logl <- log_lines[ind]
+  tree1_logl <- as.numeric(strsplit(tree1_logl, ":")[[1]][2])
+  tree2_logl <- log_lines[ind + 1]
+  tree2_logl <- as.numeric(strsplit(tree2_logl, ":")[[1]][2])
+  tree3_logl <- log_lines[ind + 2]
+  tree3_logl <- as.numeric(strsplit(tree3_logl, ":")[[1]][2])
+  best_tree_number <- which(c(tree1_logl, tree2_logl, tree3_logl) == max(c(tree1_logl, tree2_logl, tree3_logl)))
+  output_df <- data.frame(locus = loci_name, tree1_log_likelihood =  tree1_logl, tree2_log_likelihood = tree2_logl, 
+                          tree3_log_likelihood = tree3_logl, best_tree = best_tree_number)
+  write.csv(output_df, file = paste0(csv_folder, loci_name, "_AU_test_results.csv"))
+}
+
+
+
+
+
 

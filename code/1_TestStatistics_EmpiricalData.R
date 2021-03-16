@@ -67,8 +67,8 @@ print("set filepaths")
 # datasets_to_collect_trees <- ""
 
 ### Caitlin's paths ###
-# run_location = "local"
-run_location = "server"
+run_location = "local"
+# run_location = "server"
 
 if (run_location == "local"){
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
@@ -98,8 +98,15 @@ if (run_location == "local"){
   
   # Select datasets to run analysis and collect results
   datasets_to_run <- c()
-  datasets_to_collate <- c("Vanderpool2020")
-  datasets_to_collect_trees <- c("Vanderpool2020")
+  datasets_to_collate <- c()
+  datasets_to_collect_trees <- c()
+  apply_AU_test = c("Vanderpool2020")
+  
+  # Parameters to perform AU test - needed if one or more dataset names included in apply_AU_test
+  AU_output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_AU_tests/"
+  AU_results_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_AU_test_results/"
+  three_trees_path <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/possible_trees/three_possible_topologies.txt"
+  
   
 } else if (run_location=="server"){
   input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
@@ -127,7 +134,8 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   datasets_to_run <- c()
   datasets_to_collate <- c()
-  datasets_to_collect_trees <- c("Vanderpool2020")
+  datasets_to_collect_trees <- c()
+  apply_AU_test <- c()
 }
 
 
@@ -149,126 +157,148 @@ source(paste0(treedir,"code/func_test_statistic.R"))
 source(paste0(treedir,"code/func_process_data.R"))
 source(paste0(treedir,"code/func_parametric_bootstrap.R"))
 source(paste0(maindir,"code/func_empirical.R"))
+source(paste0(maindir,"code/func_analysis.R"))
 
 
 
-##### Step 4: Extract names and locations of loci #####
-# Obtaining the list of file paths from 1KP is the messiest as each alignment in it a separate folder, where the folder's name is the gene number
-# Then, extract the best model for each loci (to feed into IQ-Tree - because we want to use as many of the original paramaters as we can!)
-OKP_paths <- paste0(input_dir[["1KP"]], list.files(input_dir[["1KP"]], recursive = TRUE, full.names = FALSE))
-OKP_names <- list.files(input_dir[["1KP"]], full.names = FALSE)
-if (is.na(best_model_paths[["1KP"]])){
-  OKP_model <- rep("MFP", length(OKP_paths))
-} else {
-  OKP_model <- model.from.partition.scheme(OKP_names,best_model_paths[["1KP"]],"1KP")
-}
-OKP_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
-# Obtaining the list of loci file paths from Misof 2014 is easy -- all the loci are in the same folder
-Misof2014_paths <- paste0(input_dir[["Misof2014"]], list.files(input_dir[["Misof2014"]], full.names = FALSE))
-Misof2014_names <- gsub(".nex","",grep(".nex",unlist(strsplit((Misof2014_paths), "/")), value = TRUE))
-if (is.na(best_model_paths[["Misof2014"]])){
-  Misof2014_model <- rep("MFP", length(Misof2014_paths))
-} else {
-  Misof2014_model <- model.from.partition.scheme(Misof2014_names,best_model_paths[["Misof2014"]],"Misof2014")
-}
-Misof2014_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
-# Obtaining the list of loci file paths from Vanderpool 2020 is easy -- all the loci are in the same folder
-Vanderpool2020_paths <- paste0(input_dir[["Vanderpool2020"]], list.files(input_dir[["Vanderpool2020"]], full.names = FALSE))
-Vanderpool2020_names <- gsub("_NoNcol.Noambig.fa","",grep(".fa",unlist(strsplit((Vanderpool2020_paths), "/")), value = TRUE))
-if (is.na(best_model_paths[["Vanderpool2020"]])){
-  # no set of models for these loci. 
-  # Use "-m MFP" in IQ-Tree to automatically set best model - see Vanderpool et al (2020)
-  Vanderpool2020_model <- rep("MFP", length(Vanderpool2020_paths))
-}
-Vanderpool2020_allowed_missing_sites <- NA # Allow the Vanderpool dataset to run as it it
-# Create a dataframe of loci information for all three datasets: loci name, alphabet type, model, dataset, path, output path
-loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names, OKP_names),
-                      alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Misof2014_paths)), rep("protein",length(OKP_paths))),
-                      best_model = c(Vanderpool2020_model, Misof2014_model, OKP_model),
-                      dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Misof2014",length(Misof2014_paths)), rep("1KP",length(OKP_paths))),
-                      loci_path = c(Vanderpool2020_paths, Misof2014_paths, OKP_paths),
-                      output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), rep(output_dirs[["1KP"]],length(OKP_paths))),
-                      allowable_proportion_missing_sites = c(rep(Vanderpool2020_allowed_missing_sites, length(Vanderpool2020_paths)),
-                                                             rep(Misof2014_allowed_missing_sites, length(Misof2014_paths)),
-                                                             rep(OKP_allowed_missing_sites,length(OKP_paths))),
-                      stringsAsFactors = FALSE)
+# ##### Step 4: Extract names and locations of loci #####
+# # Obtaining the list of file paths from 1KP is the messiest as each alignment in it a separate folder, where the folder's name is the gene number
+# # Then, extract the best model for each loci (to feed into IQ-Tree - because we want to use as many of the original paramaters as we can!)
+# OKP_paths <- paste0(input_dir[["1KP"]], list.files(input_dir[["1KP"]], recursive = TRUE, full.names = FALSE))
+# OKP_names <- list.files(input_dir[["1KP"]], full.names = FALSE)
+# if (is.na(best_model_paths[["1KP"]])){
+#   OKP_model <- rep("MFP", length(OKP_paths))
+# } else {
+#   OKP_model <- model.from.partition.scheme(OKP_names,best_model_paths[["1KP"]],"1KP")
+# }
+# OKP_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
+# # Obtaining the list of loci file paths from Misof 2014 is easy -- all the loci are in the same folder
+# Misof2014_paths <- paste0(input_dir[["Misof2014"]], list.files(input_dir[["Misof2014"]], full.names = FALSE))
+# Misof2014_names <- gsub(".nex","",grep(".nex",unlist(strsplit((Misof2014_paths), "/")), value = TRUE))
+# if (is.na(best_model_paths[["Misof2014"]])){
+#   Misof2014_model <- rep("MFP", length(Misof2014_paths))
+# } else {
+#   Misof2014_model <- model.from.partition.scheme(Misof2014_names,best_model_paths[["Misof2014"]],"Misof2014")
+# }
+# Misof2014_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
+# # Obtaining the list of loci file paths from Vanderpool 2020 is easy -- all the loci are in the same folder
+# Vanderpool2020_paths <- paste0(input_dir[["Vanderpool2020"]], list.files(input_dir[["Vanderpool2020"]], full.names = FALSE))
+# Vanderpool2020_names <- gsub("_NoNcol.Noambig.fa","",grep(".fa",unlist(strsplit((Vanderpool2020_paths), "/")), value = TRUE))
+# if (is.na(best_model_paths[["Vanderpool2020"]])){
+#   # no set of models for these loci. 
+#   # Use "-m MFP" in IQ-Tree to automatically set best model - see Vanderpool et al (2020)
+#   Vanderpool2020_model <- rep("MFP", length(Vanderpool2020_paths))
+# }
+# Vanderpool2020_allowed_missing_sites <- NA # Allow the Vanderpool dataset to run as it it
+# # Create a dataframe of loci information for all three datasets: loci name, alphabet type, model, dataset, path, output path
+# loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names, OKP_names),
+#                       alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Misof2014_paths)), rep("protein",length(OKP_paths))),
+#                       best_model = c(Vanderpool2020_model, Misof2014_model, OKP_model),
+#                       dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Misof2014",length(Misof2014_paths)), rep("1KP",length(OKP_paths))),
+#                       loci_path = c(Vanderpool2020_paths, Misof2014_paths, OKP_paths),
+#                       output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), rep(output_dirs[["1KP"]],length(OKP_paths))),
+#                       allowable_proportion_missing_sites = c(rep(Vanderpool2020_allowed_missing_sites, length(Vanderpool2020_paths)),
+#                                                              rep(Misof2014_allowed_missing_sites, length(Misof2014_paths)),
+#                                                              rep(OKP_allowed_missing_sites,length(OKP_paths))),
+#                       stringsAsFactors = FALSE)
 
-# Remove rows with best_model == NA <- these are the Misof2014 clans, protein domains and voids (whereas above, we extracted the models only for the orthologous genes)
-# "!is.na()" means "is not NA" <- we want to keep only the rows where best_model is not NA
-loci_df <- loci_df[!is.na(loci_df$best_model),]
-# output loci_df <- save a record of the input parameters you used!
-loci_df_name <- paste0(output_dir,"empiricalTreelikeness_input_loci_parameters.csv")
-write.csv(loci_df, file = loci_df_name)
+# # Remove rows with best_model == NA <- these are the Misof2014 clans, protein domains and voids (whereas above, we extracted the models only for the orthologous genes)
+# # "!is.na()" means "is not NA" <- we want to keep only the rows where best_model is not NA
+# loci_df <- loci_df[!is.na(loci_df$best_model),]
+# # output loci_df <- save a record of the input parameters you used!
+# loci_df_name <- paste0(output_dir,"empiricalTreelikeness_input_loci_parameters.csv")
+# write.csv(loci_df, file = loci_df_name)
+# 
+# 
+# 
+# ##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
+# print("starting analysis")
+# print("apply treelikeness test statistics")
+# # To run locally for one alignment: empirical.bootstraps.wrapper(empirical_alignment_path = empirical_alignment_path, program_paths = program_paths,
+# #                                                        number_of_replicates = 9, iqtree.num_threads = AUTO, iqtree.num_quartets = 100,
+# #                                                        num_of_cores = 1)
+# # Parameter choice explanation:
+# #       ~ iqtree.num_thread = 1: allows parallelisation higher up in the workflow 
+# #                              - i.e. program will run parametric bootstrap for test statistics with multiple threads
+# #                              - (number of simulatenous bootstraps set by choice of cores_to_use value)
+# #       ~ iqtree.num_quartets = 1000: greater than 100 quartets necessary for stable sCF values
+# 
+# if ("Vanderpool2020" %in% datasets_to_run){
+#   V_ids <- which(loci_df$dataset == "Vanderpool2020")
+#   lapply(V_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
+#          iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
+# }
+# if ("Misof2014" %in% datasets_to_run){
+#   M_ids <- which(loci_df$dataset == "Misof2014")
+#   lapply(M_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
+#          iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
+# }
+# if ("1KP" %in% datasets_to_run){
+#   O_ids <- which(loci_df$dataset == "1KP")
+#   lapply(O_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
+#          iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
+# }
+# 
+# 
+# 
+# ##### Step 6: Collate test statistic results #####
+# print("collate results")
+# # Check if there are any datasets to collate
+# if (length(datasets_to_collate) > 0){
+#   # Iterate through each dataset
+#   for (dataset in datasets_to_collate){
+#     # Want to go through each loci and add info from parameter values into p-value folder
+#     # Start by getting each loci folder
+#     all_ds_folder <- paste0(output_dirs[[dataset]], list.dirs(output_dirs[[dataset]], recursive = FALSE, full.names = FALSE))
+#     # Extract information about the alignment/model for each loci
+#     lapply(all_ds_folder,add.alignment.information)
+#     # collate all the data from this dataset together
+#     results_file <- paste0(output_dir,"empiricalTreelikeness_",dataset,"_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
+#     results_df <- collate.bootstraps(directory = output_dirs[[dataset]], file.name = "_results", id = "", output.file.name = results_file)
+#   }
+# }
+# 
+# 
+# 
+# ##### Step 7: Collate trees #####
+# print("collate trees")
+# # Check if there are any trees to collate
+# if (length(datasets_to_collect_trees) > 0){
+#   # Iterate through each dataset
+#   for (dataset in datasets_to_collect_trees){
+#     # Create output folder path for trees and create folder if it doesn't exist
+#     op_tree_folder <- paste0(output_dir,dataset,"_trees/")
+#     if (!dir.exists(op_tree_folder)){
+#       dir.create(op_tree_folder)
+#     }
+#     # Start by getting each loci folder
+#     all_ds_folder <- paste0(output_dirs[[dataset]], list.dirs(output_dirs[[dataset]], recursive = FALSE, full.names = FALSE))
+#     # Want to go through each loci folder and save tree into op_tree_folder
+#     lapply(all_ds_folder, save.tree, trees_folder = op_tree_folder)
+#   }
+# }
 
 
 
-##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
-print("starting analysis")
-print("apply treelikeness test statistics")
-# To run locally for one alignment: empirical.bootstraps.wrapper(empirical_alignment_path = empirical_alignment_path, program_paths = program_paths,
-#                                                        number_of_replicates = 9, iqtree.num_threads = AUTO, iqtree.num_quartets = 100,
-#                                                        num_of_cores = 1)
-# Parameter choice explanation:
-#       ~ iqtree.num_thread = 1: allows parallelisation higher up in the workflow 
-#                              - i.e. program will run parametric bootstrap for test statistics with multiple threads
-#                              - (number of simulatenous bootstraps set by choice of cores_to_use value)
-#       ~ iqtree.num_quartets = 1000: greater than 100 quartets necessary for stable sCF values
-
-if ("Vanderpool2020" %in% datasets_to_run){
-  V_ids <- which(loci_df$dataset == "Vanderpool2020")
-  lapply(V_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
-         iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
-}
-if ("Misof2014" %in% datasets_to_run){
-  M_ids <- which(loci_df$dataset == "Misof2014")
-  lapply(M_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
-         iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
-}
-if ("1KP" %in% datasets_to_run){
-  O_ids <- which(loci_df$dataset == "1KP")
-  lapply(O_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
-         iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
-}
-
-
-
-##### Step 6: Collate test statistic results #####
-print("collate results")
-# Check if there are any datasets to collate
-if (length(datasets_to_collate) > 0){
-  # Iterate through each dataset
-  for (dataset in datasets_to_collate){
-    # Want to go through each loci and add info from parameter values into p-value folder
-    # Start by getting each loci folder
-    all_ds_folder <- paste0(output_dirs[[dataset]], list.dirs(output_dirs[[dataset]], recursive = FALSE, full.names = FALSE))
-    # Extract information about the alignment/model for each loci
-    lapply(all_ds_folder,add.alignment.information)
-    # collate all the data from this dataset together
-    results_file <- paste0(output_dir,"empiricalTreelikeness_",dataset,"_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
-    results_df <- collate.bootstraps(directory = output_dirs[[dataset]], file.name = "_results", id = "", output.file.name = results_file)
+##### Step 8: Apply the AU test to each alignment #####
+if (length(apply_AU_test) > 0){
+  for (dataset in apply_AU_test){
+    # Get the list of loci names
+    data_folder <- input_dir[[dataset]]
+    all_als <- list.files(data_folder)
+    loci_names <- gsub("_NoNcol.Noambig.fa", "", all_als)
+    # Run the analysis
+    lapply(loci_names, perform.AU.test, data_folder, AU_output_folder, AU_results_folder, three_trees_path, exec_paths[["IQTree"]])
   }
 }
 
-
-
-##### Step 7: Collate trees #####
-print("collate trees")
-# Check if there are any trees to collate
-if (length(datasets_to_collect_trees) > 0){
-  # Iterate through each dataset
-  for (dataset in datasets_to_collect_trees){
-    # Create output folder path for trees and create folder if it doesn't exist
-    op_tree_folder <- paste0(output_dir,dataset,"_trees/")
-    if (!dir.exists(op_tree_folder)){
-      dir.create(op_tree_folder)
-    }
-    # Start by getting each loci folder
-    all_ds_folder <- paste0(output_dirs[[dataset]], list.dirs(output_dirs[[dataset]], recursive = FALSE, full.names = FALSE))
-    # Want to go through each loci folder and save tree into op_tree_folder
-    lapply(all_ds_folder, save.tree, trees_folder = op_tree_folder)
-  }
-}
-
+# Sample parameters used for testing AU implementation
+three_trees_path <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/possible_trees/three_possible_topologies.txt"
+iqtree_path <- "/Users/caitlincherryh/Documents/Honours/SimulationsCodeAndResults/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
+loci_name <- "ORTHOMCL11779"
+data_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/"
+output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_AU_tests/"
+csv_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_AU_test_results/"
 
 
 
