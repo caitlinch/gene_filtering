@@ -149,7 +149,38 @@ if (run_analysis == TRUE){
   for (dataset in datasets) {
     #### Comparing trees from p-value categories
     ## Want to see if loci trees within one category are more similar on average then loci trees from different categories.
-    
+    # Extract the lists of which loci are in which categories
+    species_tree_folder_files <- list.files(paste0(tree_data_dirs[[dataset]],"all_species_trees"))
+    species_tree_folder_files <- paste0(tree_data_dirs[[dataset]],"all_species_trees/", species_tree_folder_files)
+    loci_list_csvs <- grep(".csv",species_tree_folder_files, value = TRUE)
+    all_category_csvs <- grep("p-value_categories", loci_list_csvs, value = TRUE)
+    whole_category_csvs <- grep("50loci", all_category_csvs, value = TRUE, invert = TRUE)
+    all_loci_csv <- grep("all_loci", loci_list_csvs, value = TRUE)
+    cats_to_run <- c(whole_category_csvs, all_loci_csv)
+    # Calculate the mean distances
+    mean_dist_list <- lapply(cats_to_run, calculate.average.tree.distance, loci_tree_folder = paste0(tree_data_dirs[[dataset]],"loci_trees/"),
+           output_folder = output_dirs[[dataset]], sample_size = 1000)
+    mean_dist_df <- as.data.frame(do.call(rbind, mean_dist_list))
+    write.csv(mean_dist_df, file = paste0(output_dirs[[dataset]], "category_mean_tree_distances.csv"))
+    # Divide each category distance by the all_loci distance to determine if there is a difference in the trees
+    mean_dist_df$mean_RF_distance <- as.numeric(mean_dist_df$mean_RF_distance)
+    mean_dist_df$mean_weighted_RF_distance <- as.numeric(mean_dist_df$mean_weighted_RF_distance)
+    mean_dist_df$mean_path_difference <- as.numeric(mean_dist_df$mean_path_difference)
+    var_dist_df <- data.frame(category = c(mean_dist_df$category[1:4]),
+                              mean_RF_distance = c(mean_dist_df$mean_RF_distance[1]/mean_dist_df$mean_RF_distance[5],
+                                                   mean_dist_df$mean_RF_distance[2]/mean_dist_df$mean_RF_distance[5],
+                                                   mean_dist_df$mean_RF_distance[3]/mean_dist_df$mean_RF_distance[5],
+                                                   mean_dist_df$mean_RF_distance[4]/mean_dist_df$mean_RF_distance[5]),
+                              mean_wRF_distance = c(mean_dist_df$mean_weighted_RF_distance[1]/mean_dist_df$mean_weighted_RF_distance[5],
+                                                    mean_dist_df$mean_weighted_RF_distance[2]/mean_dist_df$mean_weighted_RF_distance[5],
+                                                    mean_dist_df$mean_weighted_RF_distance[3]/mean_dist_df$mean_weighted_RF_distance[5],
+                                                    mean_dist_df$mean_weighted_RF_distance[4]/mean_dist_df$mean_weighted_RF_distance[5]),
+                              mean_path_difference = c(mean_dist_df$mean_path_difference[1]/mean_dist_df$mean_path_difference[5],
+                                                       mean_dist_df$mean_path_difference[2]/mean_dist_df$mean_path_difference[5],
+                                                       mean_dist_df$mean_path_difference[3]/mean_dist_df$mean_path_difference[5],
+                                                       mean_dist_df$mean_path_difference[4]/mean_dist_df$mean_path_difference[5]))
+    # output var_dist_df
+    write.csv(var_dist_df, file = paste0(output_dirs[[dataset]], "category_ComparisonWithNoCategory_mean_tree_distances.csv"))
   }
 }
 
