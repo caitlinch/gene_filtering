@@ -103,6 +103,7 @@ if (run_location == "local"){
   apply_AU_test = c("Vanderpool2020")
   
   # Parameters to perform AU test - needed if one or more dataset names included in apply_AU_test
+  AU_test_loci_csv <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/all_species_trees/all_loci_loci.csv"
   AU_output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_AU_tests/"
   AU_results_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_AU_test_results/"
   three_trees_path <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/possible_trees/three_possible_topologies.txt"
@@ -283,11 +284,13 @@ source(paste0(maindir,"code/func_analysis.R"))
 ##### Step 8: Apply the AU test to each alignment #####
 if (length(apply_AU_test) > 0){
   for (dataset in apply_AU_test){
-    # Get the list of loci names
-    data_folder <- input_dir[[dataset]]
-    all_als <- list.files(data_folder)
-    loci_names <- gsub("_NoNcol.Noambig.fa", "", all_als)
-    # Run the analysis
+    # Open the AU_test_loci_csv
+    AU_test_df <- read.csv(AU_test_loci_csv, stringsAsFactors = FALSE)
+    # Get all loci from this file
+    loci_names <- AU_test_df$loci_name
+    # Run the analysis on all of those files
+    # Note that we can't run the analysis on ALL files - because the tree we provided has 29 tips
+    # We would have to selectively drop tips and input the file again for each locus with a different set of tips
     lapply(loci_names, perform.AU.test, data_folder, AU_output_folder, AU_results_folder, three_trees_path, exec_paths[["IQTree"]])
   }
 }

@@ -171,8 +171,10 @@ perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, t
   tree_path <- paste0(loci_folder, grep(".treefile.", tree_path, invert = TRUE, value = TRUE))
   # construct IQ-tree command
   iqtree_command <- paste0(iqtree_path, " -s ", alignment_path, " -z ", three_trees_path, " -au")
-  # run command
-  system(iqtree_command)
+  # run command if it hasn't already been run
+  if (file.exists(paste0(alignment_path,".log")) == FALSE){
+    system(iqtree_command)
+  }
   # Open the log file
   log_file <- paste0(alignment_path, ".log")
   log_lines <- readLines(log_file)
@@ -184,9 +186,15 @@ perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, t
   tree2_logl <- as.numeric(strsplit(tree2_logl, ":")[[1]][2])
   tree3_logl <- log_lines[ind + 2]
   tree3_logl <- as.numeric(strsplit(tree3_logl, ":")[[1]][2])
+  logl_sum <- tree1_logl + tree2_logl + tree3_logl
+  tree1_prop_logl <- tree1_logl/logl_sum
+  tree2_prop_logl <- tree2_logl/logl_sum
+  tree3_prop_logl <- tree3_logl/logl_sum
   best_tree_number <- which(c(tree1_logl, tree2_logl, tree3_logl) == max(c(tree1_logl, tree2_logl, tree3_logl)))
   output_df <- data.frame(locus = loci_name, tree1_log_likelihood =  tree1_logl, tree2_log_likelihood = tree2_logl, 
-                          tree3_log_likelihood = tree3_logl, best_tree = best_tree_number)
+                          tree3_log_likelihood = tree3_logl, sum_log_likelihood = logl_sum, best_tree = best_tree_number, 
+                          tree1_likelihood_proportion = tree1_prop_logl, tree2_likelihood_proportion = tree2_prop_logl, 
+                          tree3_likelihood_proportion = tree3_prop_logl)
   write.csv(output_df, file = paste0(csv_folder, loci_name, "_AU_test_results.csv"))
 }
 
