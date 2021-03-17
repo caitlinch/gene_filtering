@@ -157,24 +157,26 @@ find.loci.tree.path <- function(loci_name, loci_tree_folder){
 
 # This function takes an alignment and calculates the AU test using IQ-Tree
 perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, three_trees_path, iqtree_path){
-  # Find the loci file in the data folder
-  all_data_files <- list.files(data_folder)
-  loci_file <- paste0(data_folder, grep(loci_name, all_data_files, value = TRUE))
-  # Copy the file into the output folder
   copy_path <- paste0(output_folder, loci_name, ".fasta")
-  file.copy(from = loci_file, to = copy_path, overwrite = FALSE, copy.mode = TRUE)
-  # Conduct the analysis at the position of the copied file
   alignment_path <- copy_path
-  # List all files and identify tree path
-  all_files <- list.files(loci_folder)
-  tree_path <- grep(".treefile", all_files, value = TRUE)
-  tree_path <- paste0(loci_folder, grep(".treefile.", tree_path, invert = TRUE, value = TRUE))
-  # construct IQ-tree command
-  iqtree_command <- paste0(iqtree_path, " -s ", alignment_path, " -z ", three_trees_path, " -au")
-  # run command if it hasn't already been run
+  # If the log file doesn't exist, run IQ-Tree
   if (file.exists(paste0(alignment_path,".log")) == FALSE){
+    # Find the loci file in the data folder
+    all_data_files <- list.files(data_folder)
+    loci_file <- paste0(data_folder, grep(loci_name, all_data_files, value = TRUE))
+    # Copy the file into the output folder
+    file.copy(from = loci_file, to = copy_path, overwrite = FALSE, copy.mode = TRUE)
+    # # List all files and identify tree path
+    # all_files <- list.files(loci_folder)
+    # tree_path <- grep(".treefile", all_files, value = TRUE)
+    # tree_path <- paste0(loci_folder, grep(".treefile.", tree_path, invert = TRUE, value = TRUE))
+    # Conduct the analysis using the copied file
+    # Construct IQ-tree command
+    iqtree_command <- paste0(iqtree_path, " -s ", alignment_path, " -z ", three_trees_path, " -au")
+    # run command
     system(iqtree_command)
   }
+  # Collect the results of the AU test
   # Open the log file
   log_file <- paste0(alignment_path, ".log")
   log_lines <- readLines(log_file)
@@ -190,11 +192,22 @@ perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, t
   tree1_prop_logl <- tree1_logl/logl_sum
   tree2_prop_logl <- tree2_logl/logl_sum
   tree3_prop_logl <- tree3_logl/logl_sum
-  best_tree_number <- which(c(tree1_logl, tree2_logl, tree3_logl) == max(c(tree1_logl, tree2_logl, tree3_logl)))
+  find_best_tree <- which(c(tree1_logl, tree2_logl, tree3_logl) == max(c(tree1_logl, tree2_logl, tree3_logl)))
+  best_tree_number <- paste(c(find_best_tree), collapse = " + ")
+  if (length(find_best_tree) == 1){
+    best_tree_exists = "YES"
+  } else if (length(find_best_tree) > 1){
+    best_tree_exists = "NO"
+  }
+  if ((round(tree1_logl, 4) ==  round(tree2_logl, 4)) & (round(tree2_logl, 4) ==  round(tree3_logl, 4)) & (round(tree1_logl, 4) ==  round(tree3_logl, 4))){
+    logl_equal = TRUE
+  } else {
+    logl_equal = FALSE
+  }
   output_df <- data.frame(locus = loci_name, tree1_log_likelihood =  tree1_logl, tree2_log_likelihood = tree2_logl, 
                           tree3_log_likelihood = tree3_logl, sum_log_likelihood = logl_sum, best_tree = best_tree_number, 
-                          tree1_likelihood_proportion = tree1_prop_logl, tree2_likelihood_proportion = tree2_prop_logl, 
-                          tree3_likelihood_proportion = tree3_prop_logl)
+                          one_tree_best = best_tree_exists, all_likelihoods_equal = logl_equal, tree1_likelihood_proportion = tree1_prop_logl, 
+                          tree2_likelihood_proportion = tree2_prop_logl, tree3_likelihood_proportion = tree3_prop_logl)
   write.csv(output_df, file = paste0(csv_folder, loci_name, "_AU_test_results.csv"))
 }
 

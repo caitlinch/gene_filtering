@@ -6,6 +6,7 @@
 
 
 ##### Step 1: Open packages #####
+library(Ternary)
 library(treespace)
 library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
 # these methods all assume an unrooted tree so trees can be used as is for this analysis
@@ -59,6 +60,10 @@ if (location == "local"){
 
 #### Step 3: Open files
 source(paste0(maindir,"code/func_analysis.R"))
+
+# Construct the folder names for where the treelikeness results are
+csv_data_dirs <- paste0(csv_data_dir,datasets,"/")
+names(csv_data_dirs) <- datasets
 
 # Construct the folder names for where the estimated species trees are
 tree_data_dirs <- paste0(tree_data_dir,datasets,"/")
@@ -144,7 +149,31 @@ if (collate_results == TRUE){
 
 
 
-##### Step 5: Compare species trees #####
+##### Step 5: Plot the results of the AU test #####
+if (run_analysis == TRUE){
+  for (dataset in datasets) {
+    # Find the collated AU test csv file and open it as a dataframe
+    all_results_files <- list.files(output_dirs[dataset])
+    AU_test_file <- paste0(output_dirs[dataset],grep("AU_test", all_results_files, value = TRUE))
+    AU_df <- read.csv(file = AU_test_file, stringsAsFactors = FALSE)
+    AU_df <- AU_df[,c("locus", "tree1_log_likelihood", "tree2_log_likelihood",  "tree3_log_likelihood", 
+                      "sum_log_likelihood", "best_tree", "tree1_likelihood_proportion", "tree2_likelihood_proportion", 
+                      "tree3_likelihood_proportion")]
+    # Open the tree proportion csv
+    all_csv_data_dir_files <- list.files(csv_data_dir)
+    dataset_files <- grep(dataset, all_csv_data_dir_files, value = TRUE)
+    dataset_tl_files <- grep("empiricalTreelikeness", dataset_files, value = TRUE)
+    tp_file <- grep("trimmedLoci", dataset_tl_files, value = TRUE)
+    tp_df <- read.csv(paste0(csv_data_dir, tp_file))
+    # Add the tree proportion of each point to the AU_df dataframe
+    
+    # Create a ternary plot
+  }
+}
+
+
+
+##### Step 6: Compare the distance between treelike and non-treelike trees #####
 if (run_analysis == TRUE){
   for (dataset in datasets) {
     #### Comparing trees from p-value categories
