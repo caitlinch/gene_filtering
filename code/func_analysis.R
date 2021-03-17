@@ -214,5 +214,9 @@ perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, t
 
 
 
-
+change.to.ternary.points <- function(ind, df){
+  row <- df[ind,]
+  point <- c(row$tree1_likelihood_proportion, row$tree2_likelihood_proportion, row$tree3_likelihood_proportion)
+  return(point)
+}
 

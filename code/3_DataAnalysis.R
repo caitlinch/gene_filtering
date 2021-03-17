@@ -7,6 +7,7 @@
 
 ##### Step 1: Open packages #####
 library(Ternary)
+library(adegenet)
 library(treespace)
 library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
 # these methods all assume an unrooted tree so trees can be used as is for this analysis
@@ -166,8 +167,27 @@ if (run_analysis == TRUE){
     tp_file <- grep("trimmedLoci", dataset_tl_files, value = TRUE)
     tp_df <- read.csv(paste0(csv_data_dir, tp_file))
     # Add the tree proportion of each point to the AU_df dataframe
-    
-    # Create a ternary plot
+    # Order locus names so both dataframes have identical order 
+    AU_df <- AU_df[order(AU_df$locus),]
+    tp_df <- tp_df[order(tp_df$loci),]
+    # Add tree proportion to the AU_df
+    AU_df$tree_proportion <- tp_df$tree_proportion
+    AU_df$tree_proportion_p_value <- tp_df$tree_proportion_p_value
+    # Format the data for plotting
+    AU_points <- lapply(1:nrow(AU_df), change.to.ternary.points, df = AU_df)
+    AU_cols <- fac2col(AU_df$tree_proportion, col.pal=colorRampPalette(RColorBrewer::brewer.pal(5,"YlGnBu")))
+    # Create a ternary plot of the likelihoods, coloured by tree proportion value
+    png(filename = paste0(output_dir, dataset, "/TernaryPlot_AU_test_TreeProportion.png"))
+    TernaryPlot(point = 'up', atip = 'Tree 1', btip = 'Tree 2', ctip = 'Tree 3',
+                alab = 'Percentage likelihood of Tree 1', blab = 'Percentage likelihood of Tree 2', clab = 'Percentage likelihood of Tree 3')
+    AddToTernary(points, AU_points, pch = 19, col = AU_cols, cex = 2)
+    dev.off()
+    png(filename = paste0(output_dir, dataset,"/TernaryPlot_AU_test_TreeProportion_zoomed.png"))
+    TernaryPlot(point = 'up', atip = 'Tree 1', btip = 'Tree 2', ctip = 'Tree 3',
+                alab = 'Percentage likelihood of Tree 1', blab = 'Percentage likelihood of Tree 2', clab = 'Percentage likelihood of Tree 3',
+                xlim = c(0,0), ylim = c(0.288,0.288), padding = 0.10)
+    AddToTernary(points, AU_points, pch = 19, col = AU_cols, cex = 5)
+    dev.off()
   }
 }
 
