@@ -32,15 +32,30 @@ print("set filepaths")
 # cores_for_iqtree  <- specify the number of threads for IQ-Tree to use. If using parallelisation for parametric bootstrap, use 1. Otherwise, can use 1 or set to "AUTO" and let IQ-Tree select the best number
 # reps_to_do        <- the number of of bootstrap replicates to perform
 # sCF_replicates    <- number of quartets to use for computing the site concordance factors in IQ-Tree (see http://www.iqtree.org/doc/Concordance-Factor)
-# exec_folder       <- the folder containing the software executables needed for analysis (3SEQ, IQ-Tree and SplitsTree4)
-# exec_paths        <- location to each executable within the folder. Attach the names of the executables so the paths can be accessed by name
-# datasets_to_run   <- Out of the input names, select which datasets will have the treelikeness analysis run 
-# datasets_to_collate <- Out of the input names, select which datasets will have the treelikeness results collated
-# datasets_to_collect_trees <- Out of the input names, select which datasets will have the maximum likelihood trees from IQ-Tree collected and saved in a separate folder for easy downloading 
 
 # The SplitsTree executable path can be tricky to find: 
 #       - in MacOS, the path is "SplitsTree.app/Contents/MacOS/JavaApplicationStub" (assuming you are in the same directory as the application)
 #       - in Linux, after installing and navigating into the folder it's simply "SplitsTree"
+# exec_folder       <- the folder containing the software executables needed for analysis (3SEQ, IQ-Tree and SplitsTree4)
+# exec_paths        <- location to each executable within the folder. Attach the names of the executables so the paths can be accessed by name
+
+# Set which datasets you want to run through which analyses
+# If do not want to run that part of the analysis, assign empty vector i.e. datasets_to_run <- c()
+# If want to run specific datasets through that part of the analysis, assign only those. E.g. if you have datasets "Trees", "Animals" and "Fungi" and
+#    want to run only "Trees" and "Fungi": datasets_to_run <- c("Trees", "Fungi")
+# If want to run all of the datasets, assign all names i.e. datasets_to_run <- input_names
+# datasets_to_run   <- Out of the input names, select which datasets will have the treelikeness analysis run 
+# datasets_to_collate <- Out of the input names, select which datasets will have the treelikeness results collated
+# datasets_to_collect_trees <- Out of the input names, select which datasets will have the maximum likelihood trees from IQ-Tree collected and saved in a separate folder for easy downloading
+# datasets_apply_AU_test <- Out of the input names, which datasets will you apply the AU test (https://doi.org/10.1080/10635150290069913)
+
+# If you are running the AU test, you need to include some extra file paths
+# If you are running multiple datasets on the AU test, provide a path for each dataset (i.e. AU_output_folder <- c("/path/to/op1", "/path/to/op2")) in the SAME ORDER
+#   as the datasets are in `datasets_apply_AU_test`
+# AU_test_loci_csv <- a csv file containing the a column called `loci_name` that contains the list of all loci to test with the AU test
+# AU_output_folder <- A folder to put the output from the AU test (IQ-Tree log files, copy of alignment)
+# AU_results_folder <- A folder to output the results of the AU test - for each loci, there will be a csv file containing the log likelihood for each tree topology
+# three_trees_path <- A file containing the tree topologies to test using the AU test (called three_trees_path because our analysis compared three three topologies)
 
 # # UNCOMMENT THE FOLLOWING LINES AND ENTER YOUR FILE PATHS/VARIABLES
 # input_dir <- ""
@@ -65,6 +80,11 @@ print("set filepaths")
 # datasets_to_run <- ""
 # datasets_to_collate <- ""
 # datasets_to_collect_trees <- ""
+# datasets_apply_AU_test <- ""
+# AU_test_loci_csv <- ""
+# AU_output_folder <- ""
+# AU_results_folder <- ""
+# three_trees_path <- ""
 
 ### Caitlin's paths ###
 run_location = "local"
@@ -97,12 +117,16 @@ if (run_location == "local"){
   sCF_replicates = 1000
   
   # Select datasets to run analysis and collect results
+  # If do not want to run that part of the analysis, assign empty vector i.e. datasets_to_run <- c()
+  # If want to run specific datasets, assign only those. E.g. if you have datasets "Trees", "Animals" and "Fungi" and
+  #     want to run only "Trees" and "Fungi": datasets_to_run <- c("Trees", "Fungi")
+  # If want to run all of the datasets, assign all names i.e. datasets_to_run <- input_names
   datasets_to_run <- c()
   datasets_to_collate <- c()
   datasets_to_collect_trees <- c()
-  apply_AU_test = c("Vanderpool2020")
+  datasets_apply_AU_test = c("Vanderpool2020")
   
-  # Parameters to perform AU test - needed if one or more dataset names included in apply_AU_test
+  # Parameters to perform AU test - needed if one or more dataset names included in datasets_apply_AU_test
   AU_test_loci_csv <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/all_species_trees/all_loci_loci.csv"
   AU_output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_AU_tests/"
   AU_results_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_AU_test_results/"
@@ -136,7 +160,7 @@ if (run_location == "local"){
   datasets_to_run <- c()
   datasets_to_collate <- c()
   datasets_to_collect_trees <- c()
-  apply_AU_test <- c()
+  datasets_apply_AU_test <- c()
 }
 
 
@@ -282,26 +306,27 @@ source(paste0(maindir,"code/func_analysis.R"))
 
 
 ##### Step 8: Apply the AU test to each alignment #####
-if (length(apply_AU_test) > 0){
-  for (dataset in apply_AU_test){
+# Assign each variable names based on which datasets will be run
+names(AU_test_loci_csv) <- datasets_apply_AU_test
+names(AU_output_folder) <- datasets_apply_AU_test
+names(AU_results_folder) <- datasets_apply_AU_test
+names(three_trees_path) <- datasets_apply_AU_test
+
+# Run the AU test
+if (length(datasets_apply_AU_test) > 0){
+  for (dataset in datasets_apply_AU_test){
     # Open the AU_test_loci_csv
-    AU_test_df <- read.csv(AU_test_loci_csv, stringsAsFactors = FALSE)
+    AU_test_df <- read.csv(AU_test_loci_csv[dataset], stringsAsFactors = FALSE)
     # Get all loci from this file
     loci_names <- AU_test_df$loci_name
+    # Get the directory containing the loci for this dataset from the input_dir object
+    data_folder <- input_dir[dataset]
     # Run the analysis on all of those files
     # Note that we can't run the analysis on ALL files - because the tree we provided has 29 tips
     # We would have to selectively drop tips and input the file again for each locus with a different set of tips
-    lapply(loci_names, perform.AU.test, data_folder, AU_output_folder, AU_results_folder, three_trees_path, exec_paths[["IQTree"]])
+    lapply(loci_names, perform.AU.test, data_folder, AU_output_folder[dataset], AU_results_folder[dataset], three_trees_path[dataset], exec_paths[["IQTree"]])
   }
 }
-
-# Sample parameters used for testing AU implementation
-three_trees_path <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/possible_trees/three_possible_topologies.txt"
-iqtree_path <- "/Users/caitlincherryh/Documents/Honours/SimulationsCodeAndResults/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
-loci_name <- "ORTHOMCL11779"
-data_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/"
-output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_AU_tests/"
-csv_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_AU_test_results/"
 
 
 
