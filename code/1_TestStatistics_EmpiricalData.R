@@ -325,6 +325,12 @@ if (length(datasets_apply_AU_test) > 0){
     # Note that we can't run the analysis on ALL files - because the tree we provided has 29 tips
     # We would have to selectively drop tips and input the file again for each locus with a different set of tips
     lapply(loci_names, perform.AU.test, data_folder, AU_output_folder[dataset], AU_results_folder[dataset], three_trees_path[dataset], exec_paths[["IQTree"]])
+    # Read in all the csv files and combine them
+    all_AU_csvs <- paste0(AU_results_folder[dataset],list.files(AU_results_folder[dataset]))
+    all_csvs <- lapply(all_AU_csvs, read.csv, stringsAsFactors = FALSE, row.names = 1)
+    AU_df <- as.data.frame(do.call(rbind, all_csvs))
+    AU_df_name <- paste0(output_dirs[dataset], dataset,"_AU_test_collated.csv")
+    write.csv(AU_df, file = AU_df_name)
   }
 }
 
