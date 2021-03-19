@@ -216,6 +216,12 @@ perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, t
 
 # Function to calculate the likelihood weights from the log likelihoods
 calculate.likelihood.weights <- function(row_number, lw_df){
+  ### Minh's trick for computing likelihood weights
+  # Say, you have 3 trees with log likelihood L1, L2, L3. Let assume L1 >= L2 >= L3. 
+  # You want to compute the weight of tree i by exp(L_i) / (exp(L1) + exp(L2)+exp(L3)). 
+  # Rewrite this as exp(L_i-L1)/(exp(0) + exp(L2-L1)+exp(L3-L1)).  
+  # This will avoid numerical underflow. In case for some i, where L_i - L1 < -745, you can directly set its weight to 0.
+  
   # Take the row using the row number
   row <- lw_df[row_number,]
   # Take the log likelihood associated with each tree and give it a corresponding name
