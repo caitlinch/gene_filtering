@@ -214,13 +214,27 @@ perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, t
 
 
 
-change.to.ternary.points <- function(ind, df, cols){
-  row <- df[ind,]
-  if (cols == "log_likelihood"){
-    point <- c(row$tree1_likelihood_proportion, row$tree2_likelihood_proportion, row$tree3_likelihood_proportion) 
-  } else if (cols == "inverse_likelihood_weights") {
-    point <- c(row$tree1_inverse_likelihood_weight, row$tree2_inverse_likelihood_weight, row$tree3_inverse_likelihood_weight) 
-  }
-  return(point)
+# Function to calculate the likelihood weights from the log likelihoods
+calculate.likelihood.weights <- function(row_number, lw_df){
+  # Take the row using the row number
+  row <- lw_df[row_number,]
+  # Take the log likelihood associated with each tree and give it a corresponding name
+  ll1 <- row$tree1_log_likelihood
+  ll2 <- row$tree2_log_likelihood
+  ll3 <- row$tree3_log_likelihood
+  # Collect a vector of the log likelihoods
+  lls <- c(row$tree1_log_likelihood, row$tree2_log_likelihood, row$tree3_log_likelihood)
+  # Identify which of the three log likelihoods are the highest, middle, and lowest value
+  max_ll <- sort(lls, decreasing = TRUE)[1]
+  mid_ll <- sort(lls, decreasing = TRUE)[2]
+  min_ll <- sort(lls, decreasing = TRUE)[3]
+  # Calculate the likelihood weights
+  lw1 <- exp(ll1-max_ll)/(exp(0) + exp(mid_ll-max_ll) + exp(min_ll - max_ll))
+  lw2 <- exp(ll2-max_ll)/(exp(0) + exp(mid_ll-max_ll) + exp(min_ll - max_ll))
+  lw3 <- exp(ll3-max_ll)/(exp(0) + exp(mid_ll-max_ll) + exp(min_ll - max_ll))
+  # Construct a one-row dataframe
+  row_df <- data.frame(locus = row$locus, tree1_likelihood_weight = lw1, tree2_likelihood_weight = lw2,
+                      tree_3_likelihood_weight = lw3, tree_proportion = row$tree_proportion)
+  return(row_df)
 }
 
