@@ -183,33 +183,24 @@ if (run_analysis == TRUE){
       AU_df$tree1_inverse_likelihood <- abs(1/AU_df$tree1_log_likelihood)
       AU_df$tree2_inverse_likelihood <- abs(1/AU_df$tree2_log_likelihood)
       AU_df$tree3_inverse_likelihood <- abs(1/AU_df$tree3_log_likelihood)
-      AU_df$total_inverse_likelihood <- AU_df$tree1_inverse_likelihood_weight + AU_df$tree2_inverse_likelihood_weight + AU_df$tree3_inverse_likelihood_weight
+      AU_df$total_inverse_likelihood <- AU_df$tree1_inverse_likelihood + AU_df$tree2_inverse_likelihood + AU_df$tree3_inverse_likelihood
       AU_df$tree1_inverse_likelihood_weight <- AU_df$tree1_inverse_likelihood/AU_df$total_inverse_likelihood
       AU_df$tree2_inverse_likelihood_weight <- AU_df$tree2_inverse_likelihood/AU_df$total_inverse_likelihood
       AU_df$tree3_inverse_likelihood_weight <- AU_df$tree3_inverse_likelihood/AU_df$total_inverse_likelihood
       # Using ggtern, make a nice plot
+      # To zoom in on ggtern plots:
+      # https://stackoverflow.com/questions/49716425/how-to-use-axis-range-and-labels-from-original-data-in-ggtern
+      # Base structure of function: ggtern(data=points,aes(L,T,R))
       ggtern(data = AU_df, mapping = aes(tree1_inverse_likelihood_weight, tree2_inverse_likelihood_weight, tree3_inverse_likelihood_weight, col = tree_proportion)) + 
-        theme_zoom_center(0.35) +
-        geom_point()
-        scale_color_brewer(palette = "YlGnBu")
-      
-      
-      # Format the data for plotting
-      AU_points <- lapply(1:nrow(AU_df), change.to.ternary.points, df = AU_df, cols = "inverse_likelihood_weights")
-      AU_colours <- fac2col(AU_df$tree_proportion, col.pal=colorRampPalette(RColorBrewer::brewer.pal(5,"YlGnBu")))
-      # Create a ternary plot of the likelihoods, coloured by tree proportion value
-      png(filename = paste0(output_dir, dataset, "/TernaryPlot_AU_test_TreeProportion.png"))
-      TernaryPlot(point = 'up', atip = 'Tree 1', btip = 'Tree 2', ctip = 'Tree 3',
-                  alab = 'Tree 1 Inverse Likelihood Weight', blab = 'Tree 2 Inverse Likelihood Weight', clab = 'Tree 3 Inverse Likelihood Weight',
-                  xlim=c(0.05,0.15))
-      AddToTernary(points, AU_points, pch = 19, col = AU_colours, cex = 2)
-      dev.off()
-      png(filename = paste0(output_dir, dataset,"/TernaryPlot_AU_test_TreeProportion_zoomed.png"))
-      TernaryPlot(point = 'up', atip = 'Tree 1', btip = 'Tree 2', ctip = 'Tree 3',
-                  alab = 'Tree 1 Inverse Likelihood Weight', blab = 'Tree 2 Inverse Likelihood Weight', clab = 'Tree 3 Inverse Likelihood Weight',
-                  xlim = c(0,0), ylim = c(0.288,0.288), padding = 0.10)
-      AddToTernary(points, AU_points, pch = 19, col = AU_colours, cex = 5)
-      dev.off()
+        geom_point() +
+        scale_color_viridis_c() +
+        labs( title = "Inverse likelihood weights for the 3 possible topologies of Cebidae",
+              L = "Tree 1",
+              T = "Tree 2",
+              R = "Tree 3") +
+        theme_zoom_center(0.35) + 
+        theme(plot.title = element_text(hjust = 0.5)) + 
+        guides(fill = guide_legend(title = "Tree proportion"))
     }
   }
 }
