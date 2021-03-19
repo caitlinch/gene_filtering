@@ -214,9 +214,13 @@ perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, t
 
 
 
-change.to.ternary.points <- function(ind, df){
+change.to.ternary.points <- function(ind, df, cols){
   row <- df[ind,]
-  point <- c(row$tree1_likelihood_proportion, row$tree2_likelihood_proportion, row$tree3_likelihood_proportion)
+  if (cols == "log_likelihood"){
+    point <- c(row$tree1_likelihood_proportion, row$tree2_likelihood_proportion, row$tree3_likelihood_proportion) 
+  } else if (cols == "inverse_likelihood_weights") {
+    point <- c(row$tree1_inverse_likelihood_weight, row$tree2_inverse_likelihood_weight, row$tree3_inverse_likelihood_weight) 
+  }
   return(point)
 }
 
