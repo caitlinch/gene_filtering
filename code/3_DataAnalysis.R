@@ -6,7 +6,7 @@
 
 
 ##### Step 1: Open packages #####
-library(Ternary)
+library(ggtern)
 library(adegenet)
 library(treespace)
 library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
@@ -156,43 +156,61 @@ if (collate_results == TRUE){
 ##### Step 5: Plot the results of the AU test #####
 if (run_analysis == TRUE){
   for (dataset in datasets) {
-    # Find the collated AU test csv file and open it as a dataframe
-    all_results_files <- list.files(output_dirs[dataset])
-    AU_test_file <- paste0(output_dirs[dataset],grep("AU_test", all_results_files, value = TRUE))
-    AU_test_file <- grep("CladeOfInterest", AU_test_file, value = TRUE)
-    AU_test_file <- grep(".csv", AU_test_file, value = TRUE)
-    AU_df <- read.csv(file = AU_test_file, stringsAsFactors = FALSE)
-    AU_df <- AU_df[,c("locus", "tree1_log_likelihood", "tree2_log_likelihood",  "tree3_log_likelihood", 
-                      "sum_log_likelihood", "best_tree", "tree1_likelihood_proportion", "tree2_likelihood_proportion", 
-                      "tree3_likelihood_proportion")]
-    # Open the tree proportion csv
-    all_csv_data_dir_files <- list.files(csv_data_dir)
-    dataset_files <- grep(dataset, all_csv_data_dir_files, value = TRUE)
-    dataset_tl_files <- grep("empiricalTreelikeness", dataset_files, value = TRUE)
-    tp_file <- grep("trimmedLoci", dataset_tl_files, value = TRUE)
-    tp_df <- read.csv(paste0(csv_data_dir, tp_file))
-    # Add the tree proportion of each point to the AU_df dataframe
-    # Order locus names so both dataframes have identical order 
-    AU_df <- AU_df[order(AU_df$locus),]
-    tp_df <- tp_df[order(tp_df$loci),]
-    # Add tree proportion to the AU_df
-    AU_df$tree_proportion <- tp_df$tree_proportion
-    AU_df$tree_proportion_p_value <- tp_df$tree_proportion_p_value
-    # Format the data for plotting
-    AU_points <- lapply(1:nrow(AU_df), change.to.ternary.points, df = AU_df)
-    AU_cols <- fac2col(AU_df$tree_proportion, col.pal=colorRampPalette(RColorBrewer::brewer.pal(5,"YlGnBu")))
-    # Create a ternary plot of the likelihoods, coloured by tree proportion value
-    png(filename = paste0(output_dir, dataset, "/TernaryPlot_AU_test_TreeProportion.png"))
-    TernaryPlot(point = 'up', atip = 'Tree 1', btip = 'Tree 2', ctip = 'Tree 3',
-                alab = 'Percentage likelihood of Tree 1', blab = 'Percentage likelihood of Tree 2', clab = 'Percentage likelihood of Tree 3')
-    AddToTernary(points, AU_points, pch = 19, col = AU_cols, cex = 2)
-    dev.off()
-    png(filename = paste0(output_dir, dataset,"/TernaryPlot_AU_test_TreeProportion_zoomed.png"))
-    TernaryPlot(point = 'up', atip = 'Tree 1', btip = 'Tree 2', ctip = 'Tree 3',
-                alab = 'Percentage likelihood of Tree 1', blab = 'Percentage likelihood of Tree 2', clab = 'Percentage likelihood of Tree 3',
-                xlim = c(0,0), ylim = c(0.288,0.288), padding = 0.10)
-    AddToTernary(points, AU_points, pch = 19, col = AU_cols, cex = 5)
-    dev.off()
+    for (id in AU_test_id){
+      # Find the collated AU test csv file and open it as a dataframe
+      all_results_files <- list.files(output_dirs[dataset])
+      AU_test_file <- paste0(output_dirs[dataset],grep("AU_test", all_results_files, value = TRUE))
+      AU_test_file <- grep(id, AU_test_file, value = TRUE)
+      AU_test_file <- grep(".csv", AU_test_file, value = TRUE)
+      AU_df <- read.csv(file = AU_test_file, stringsAsFactors = FALSE)
+      AU_df <- AU_df[,c("locus", "tree1_log_likelihood", "tree2_log_likelihood",  "tree3_log_likelihood", 
+                        "sum_log_likelihood", "best_tree", "tree1_likelihood_proportion", "tree2_likelihood_proportion", 
+                        "tree3_likelihood_proportion")]
+      # Open the tree proportion csv
+      all_csv_data_dir_files <- list.files(csv_data_dir)
+      dataset_files <- grep(dataset, all_csv_data_dir_files, value = TRUE)
+      dataset_tl_files <- grep("empiricalTreelikeness", dataset_files, value = TRUE)
+      tp_file <- grep("trimmedLoci", dataset_tl_files, value = TRUE)
+      tp_df <- read.csv(paste0(csv_data_dir, tp_file))
+      # Add the tree proportion of each point to the AU_df dataframe
+      # Order locus names so both dataframes have identical order 
+      AU_df <- AU_df[order(AU_df$locus),]
+      tp_df <- tp_df[order(tp_df$loci),]
+      # Add tree proportion to the AU_df
+      AU_df$tree_proportion <- tp_df$tree_proportion
+      AU_df$tree_proportion_p_value <- tp_df$tree_proportion_p_value
+      # Add new columns for inverse likelihood weights
+      AU_df$tree1_inverse_likelihood <- abs(1/AU_df$tree1_log_likelihood)
+      AU_df$tree2_inverse_likelihood <- abs(1/AU_df$tree2_log_likelihood)
+      AU_df$tree3_inverse_likelihood <- abs(1/AU_df$tree3_log_likelihood)
+      AU_df$total_inverse_likelihood <- AU_df$tree1_inverse_likelihood_weight + AU_df$tree2_inverse_likelihood_weight + AU_df$tree3_inverse_likelihood_weight
+      AU_df$tree1_inverse_likelihood_weight <- AU_df$tree1_inverse_likelihood/AU_df$total_inverse_likelihood
+      AU_df$tree2_inverse_likelihood_weight <- AU_df$tree2_inverse_likelihood/AU_df$total_inverse_likelihood
+      AU_df$tree3_inverse_likelihood_weight <- AU_df$tree3_inverse_likelihood/AU_df$total_inverse_likelihood
+      # Using ggtern, make a nice plot
+      ggtern(data = AU_df, mapping = aes(tree1_inverse_likelihood_weight, tree2_inverse_likelihood_weight, tree3_inverse_likelihood_weight, col = tree_proportion)) + 
+        theme_zoom_center(0.35) +
+        geom_point()
+        scale_color_brewer(palette = "YlGnBu")
+      
+      
+      # Format the data for plotting
+      AU_points <- lapply(1:nrow(AU_df), change.to.ternary.points, df = AU_df, cols = "inverse_likelihood_weights")
+      AU_colours <- fac2col(AU_df$tree_proportion, col.pal=colorRampPalette(RColorBrewer::brewer.pal(5,"YlGnBu")))
+      # Create a ternary plot of the likelihoods, coloured by tree proportion value
+      png(filename = paste0(output_dir, dataset, "/TernaryPlot_AU_test_TreeProportion.png"))
+      TernaryPlot(point = 'up', atip = 'Tree 1', btip = 'Tree 2', ctip = 'Tree 3',
+                  alab = 'Tree 1 Inverse Likelihood Weight', blab = 'Tree 2 Inverse Likelihood Weight', clab = 'Tree 3 Inverse Likelihood Weight',
+                  xlim=c(0.05,0.15))
+      AddToTernary(points, AU_points, pch = 19, col = AU_colours, cex = 2)
+      dev.off()
+      png(filename = paste0(output_dir, dataset,"/TernaryPlot_AU_test_TreeProportion_zoomed.png"))
+      TernaryPlot(point = 'up', atip = 'Tree 1', btip = 'Tree 2', ctip = 'Tree 3',
+                  alab = 'Tree 1 Inverse Likelihood Weight', blab = 'Tree 2 Inverse Likelihood Weight', clab = 'Tree 3 Inverse Likelihood Weight',
+                  xlim = c(0,0), ylim = c(0.288,0.288), padding = 0.10)
+      AddToTernary(points, AU_points, pch = 19, col = AU_colours, cex = 5)
+      dev.off()
+    }
   }
 }
 
@@ -213,7 +231,7 @@ if (run_analysis == TRUE){
     cats_to_run <- c(whole_category_csvs, all_loci_csv)
     # Calculate the mean distances
     mean_dist_list <- lapply(cats_to_run, calculate.average.tree.distance, loci_tree_folder = paste0(tree_data_dirs[[dataset]],"loci_trees/"),
-           output_folder = output_dirs[[dataset]], sample_size = 1000)
+                             output_folder = output_dirs[[dataset]], sample_size = 1000)
     mean_dist_df <- as.data.frame(do.call(rbind, mean_dist_list))
     write.csv(mean_dist_df, file = paste0(output_dirs[[dataset]], "category_mean_tree_distances.csv"))
     # Divide each category distance by the all_loci distance to determine if there is a difference in the trees
