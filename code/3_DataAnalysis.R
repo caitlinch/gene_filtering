@@ -20,6 +20,8 @@ print("set filepaths")
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # output_dir        <- for collated output and results from treelikeness analysis. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
 # datasets          <- set name(s) for the dataset(s)
+# AU_test_id       <- When  the AU test was run in in script 1, you provide an ID add into the file name. Add that ID here.
+#                   <- If the AU test was run more than once, supply all the names as a character vector 
 ## Choose which sections of the script you want to run
 # collect_warnings  <- Whether to collect warnings from the IQ-Tree log and iqtree files. Can be TRUE or FALSE.
 # collate_results   <- Whether to collect results from the output dir. Can be TRUE of FALSE.
@@ -34,6 +36,7 @@ if (location == "local"){
   csv_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
   tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
   output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_results/"
+  AU_test_id <- c("CladeOfInterest", "ComparisonTrees")
   
   datasets <- c("Vanderpool2020")
   dataset = "Vanderpool2020"
@@ -156,6 +159,8 @@ if (run_analysis == TRUE){
     # Find the collated AU test csv file and open it as a dataframe
     all_results_files <- list.files(output_dirs[dataset])
     AU_test_file <- paste0(output_dirs[dataset],grep("AU_test", all_results_files, value = TRUE))
+    AU_test_file <- grep("CladeOfInterest", AU_test_file, value = TRUE)
+    AU_test_file <- grep(".csv", AU_test_file, value = TRUE)
     AU_df <- read.csv(file = AU_test_file, stringsAsFactors = FALSE)
     AU_df <- AU_df[,c("locus", "tree1_log_likelihood", "tree2_log_likelihood",  "tree3_log_likelihood", 
                       "sum_log_likelihood", "best_tree", "tree1_likelihood_proportion", "tree2_likelihood_proportion", 
