@@ -187,22 +187,30 @@ if (run_analysis == TRUE){
       # To zoom in on ggtern plots:
       # https://stackoverflow.com/questions/49716425/how-to-use-axis-range-and-labels-from-original-data-in-ggtern
       # Base structure of function: ggtern(data=points,aes(L,T,R))
-      if (id == "CladeOfInterest"){
-        plot_title = "Likelihood weights for the 3 possible topologies of Cebidae" 
-        T_label = "Tree 1"
-        zoom_value = 1
-      } else if (id == "ComparisonTrees"){
-        plot_title = "Likelihood weights for the 3 possible topologies around a deep split" 
-        T_label = "Species tree"
-        zoom_value = 1
+      if (dataset == "Vanderpool2020"){
+        if (id == "CladeOfInterest"){
+          plot_title = "Likelihood weights for the 3 possible topologies of Cebidae" 
+          T_label = "Tree 1"
+          zoom_value = 1
+        } else if (id == "ComparisonTrees"){
+          plot_title = "Likelihood weights for the 3 possible topologies around a deep split" 
+          T_label = "Species tree"
+          zoom_value = 1
+        }
       }
-      t <- ggtern(data = lw_df, mapping = aes(tree2_likelihood_weight, tree1_likelihood_weight, tree_3_likelihood_weight, colour = tree_proportion)) + 
+      # To change the l/t/r axes labels/breaks to be from 0 - 100 with minor breaks every 5 and major breaks every 10
+      # scale_L_continuous(breaks = seq(0,100,10), labels = seq(0,100,10), minor_breaks = seq(0,100,5)) +
+      # scale_T_continuous(breaks = seq(0,100,10), labels = seq(0,100,10), minor_breaks = seq(0,100,5)) +
+      # scale_R_continuous(breaks = seq(0,100,10), labels = seq(0,100,10), minor_breaks = seq(0,100,5))
+      
+      # Pretty ternary plot:
+      t <- ggtern(data = lw_df, mapping = aes(tree2_likelihood_weight, tree1_likelihood_weight, tree3_likelihood_weight, colour = tree_proportion)) + 
         geom_point() +
         scale_colour_gradientn(colours = RColorBrewer::brewer.pal(9,"YlGnBu"), name = "Tree proportion") +
         labs(title = plot_title,
-              L = "Tree 2",
-              T = T_label,
-              R = "Tree 3") +
+             L = "Tree 2",
+             T = T_label,
+             R = "Tree 3") + 
         theme_zoom_center(zoom_value) + 
         theme_bw() + 
         theme(plot.title = element_text(hjust = 0.5))
@@ -213,7 +221,7 @@ if (run_analysis == TRUE){
       t_name <- paste0(output_dir, dataset, "/TernaryPlot_AU_test_",id,"_TreeProportion.pdf")
       ggsave(filename = t_name, plot = t, device = "pdf")
       
-
+      
     }
   }
 }
