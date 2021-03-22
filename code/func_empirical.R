@@ -620,15 +620,20 @@ copy.alignment.as.nexus <- function(alignment_path, alignment_folder, loci_name,
       } else if (loci_row$alphabet == "protein") {
         seq_type = "AA"
       }
-      # read in the fasta data
-      f_data <- read.fasta(alignment_path, seqtype = seq_type)
-      f_new <- list()
-      # Remove any " " in the alignment
-      for (s in names(f_data)){
-        f_new[[s]] <- c(f_data[[s]][grep(" ", f_data[[s]], invert = TRUE)])
+      if (loci_row$dataset == "Vanderpool2020"){
+        # read in the fasta data
+        f_data <- read.fasta(alignment_path, seqtype = seq_type)
+        f_new <- list()
+        # Remove any " " in the alignment
+        for (s in names(f_data)){
+          f_new[[s]] <- c(f_data[[s]][grep(" ", f_data[[s]], invert = TRUE)])
+        }
+        # write the output as a nexus file to the output folder for this alignment
+        write.nexus.data(f_new, file = new_path, format = loci_row$alphabet, interleaved = FALSE, datablock = FALSE)
+      } else {
+        f_data <- read.fasta(alignment_path, seqtype = seq_type)
+        write.nexus.data(f_data, file = new_path, format = loci_row$alphabet, interleaved = FALSE, datablock = FALSE)
       }
-      # write the output as a nexus file to the output folder for this alignment
-      write.nexus.data(f_new, file = new_path, format = loci_row$alphabet, interleaved = FALSE, datablock = FALSE)
       # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
       nexus <- readLines(new_path) # open the new nexus file
       ind <- grep("BEGIN CHARACTERS",nexus)+2 # find which line

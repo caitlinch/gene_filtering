@@ -128,11 +128,11 @@ if (run_location == "local"){
   # If want to run specific datasets, assign only those. E.g. if you have datasets "Trees", "Animals" and "Fungi" and
   #     want to run only "Trees" and "Fungi": datasets_to_run <- c("Trees", "Fungi")
   # If want to run all of the datasets, assign all names i.e. datasets_to_run <- input_names
-  create_information_dataframe <- FALSE
-  datasets_to_run <- c()
-  datasets_to_collate <- c()
-  datasets_to_collect_trees <- c()
-  datasets_apply_AU_test = c("Vanderpool2020")
+  create_information_dataframe <- TRUE
+  datasets_to_run <- c("1KP")
+  datasets_to_collate <- c("1KP")
+  datasets_to_collect_trees <- c("1KP")
+  datasets_apply_AU_test = c()
   
   # Parameters to perform AU test - needed if one or more dataset names included in datasets_apply_AU_test
   AU_test_id <- "ComparisonTrees"
@@ -244,7 +244,10 @@ if (create_information_dataframe == TRUE){
   loci_df <- loci_df[!is.na(loci_df$best_model),]
   # output loci_df <- save a record of the input parameters you used!
   loci_df_name <- paste0(output_dir,"empiricalTreelikeness_input_loci_parameters.csv")
-  write.csv(loci_df, file = loci_df_name)
+  # If the loci_df hasn't been saved, save it now
+  if (file.exists(loci_df_name) == FALSE){
+    write.csv(loci_df, file = loci_df_name) 
+  }
 }
 
 
@@ -318,31 +321,33 @@ if (length(datasets_to_collect_trees) > 0){
 
 
 ##### Step 8: Apply the AU test to each alignment #####
-# Assign each variable names based on which datasets will be run
-names(AU_test_loci_csv) <- datasets_apply_AU_test
-names(AU_output_folder) <- datasets_apply_AU_test
-names(AU_results_folder) <- datasets_apply_AU_test
-names(three_trees_path) <- datasets_apply_AU_test
-
 # Run the AU test
 if (length(datasets_apply_AU_test) > 0){
+  # Assign each variable names based on which datasets will be run
+  names(AU_test_loci_csv) <- datasets_apply_AU_test
+  names(AU_output_folder) <- datasets_apply_AU_test
+  names(AU_results_folder) <- datasets_apply_AU_test
+  names(three_trees_path) <- datasets_apply_AU_test
+  # Now, iterate through the datasets
   for (dataset in datasets_apply_AU_test){
-    # Open the AU_test_loci_csv
-    AU_test_df <- read.csv(AU_test_loci_csv[dataset], stringsAsFactors = FALSE)
-    # Get all loci from this file
-    loci_names <- AU_test_df$loci_name
-    # Get the directory containing the loci for this dataset from the input_dir object
-    data_folder <- input_dir[dataset]
-    # Run the analysis on all of those files
-    # Note that we can't run the analysis on ALL files - because the tree we provided has 29 tips
-    # We would have to selectively drop tips and input the file again for each locus with a different set of tips
-    lapply(loci_names, perform.AU.test, data_folder, AU_output_folder[dataset], AU_results_folder[dataset], three_trees_path[dataset], exec_paths[["IQTree"]])
-    # Read in all the csv files and combine them
-    all_AU_csvs <- paste0(AU_results_folder[dataset],list.files(AU_results_folder[dataset]))
-    all_csvs <- lapply(all_AU_csvs, read.csv, stringsAsFactors = FALSE, row.names = 1)
-    AU_df <- as.data.frame(do.call(rbind, all_csvs))
-    AU_df_name <- paste0(output_dirs[dataset], dataset, "_", AU_test_id,"_AU_test_collated.csv")
-    write.csv(AU_df, file = AU_df_name)
+    for (id in AU_test_id){
+      # Open the AU_test_loci_csv
+      AU_test_df <- read.csv(AU_test_loci_csv[dataset], stringsAsFactors = FALSE)
+      # Get all loci from this file
+      loci_names <- AU_test_df$loci_name
+      # Get the directory containing the loci for this dataset from the input_dir object
+      data_folder <- input_dir[dataset]
+      # Run the analysis on all of those files
+      # Note that we can't run the analysis on ALL files - because the tree we provided has 29 tips
+      # We would have to selectively drop tips and input the file again for each locus with a different set of tips
+      lapply(loci_names, perform.AU.test, data_folder, AU_output_folder[dataset], AU_results_folder[dataset], three_trees_path[dataset], exec_paths[["IQTree"]])
+      # Read in all the csv files and combine them
+      all_AU_csvs <- paste0(AU_results_folder[dataset],list.files(AU_results_folder[dataset]))
+      all_csvs <- lapply(all_AU_csvs, read.csv, stringsAsFactors = FALSE, row.names = 1)
+      AU_df <- as.data.frame(do.call(rbind, all_csvs))
+      AU_df_name <- paste0(output_dirs[dataset], dataset, "_", AU_test_id,"_AU_test_collated.csv")
+      write.csv(AU_df, file = AU_df_name)
+    }
   }
 }
 
