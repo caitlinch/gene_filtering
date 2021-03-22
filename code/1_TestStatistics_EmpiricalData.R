@@ -166,10 +166,10 @@ if (run_location == "local"){
   sCF_replicates = 1000
   
   # Select datasets to run analysis and collect results
-  create_information_dataframe <- FALSE
-  datasets_to_run <- c()
-  datasets_to_collate <- c()
-  datasets_to_collect_trees <- c()
+  create_information_dataframe <- TRUE
+  datasets_to_run <- c("1KP")
+  datasets_to_collate <- c("1KP")
+  datasets_to_collect_trees <- c("1KP")
   datasets_apply_AU_test <- c()
 }
 ### End Caitlin's paths ###
