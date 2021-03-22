@@ -213,20 +213,26 @@ write.csv(treelikeness_df, file = trimmed_treelikeness_df_file)
 for (dataset in datasets_to_copy_loci){
   # filter treelikeness_df by dataset
   dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
-  # split loci into four groups (neither, 3seq, tp or both), then copy all loci alignments from each group into a new folder and all trees from each group into a new collated text file
-  # 3seq p-value and tree proportion p-value both >0.05 (not significant)
+  ### split loci into four groups (neither, 3seq, tp or both), then copy all loci alignments from each group into a new folder and all trees from each group into a new collated text file
+  ### Note that these categories are based on the number of statistical tests that are statistically significant
+  ### e.g. none = no loci in this category have a statistically significant p-value, which means we accept the null hypotheses of treelikeness and clonal evolution)
+  # 3seq p-value and tree proportion p-value both >0.05 (not significant = do not reject null hypothesis of treelikeness/clonal evolution)
+  # none = NO SIGNIFICANT P-VALUES
   cat_none <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
   copy.loci.trees(cat_none, dataset_df[dataset_df$loci %in% cat_none,]$tree, output_dirs[dataset], "p-value_categories_none_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
   mclapply(cat_none, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_none_IQ-Tree/"), mc.cores = cores_to_use)
-  # 3seq p-value and tree proportion p-value both <=0.05 (significant)
+  # 3seq p-value and tree proportion p-value both <=0.05 (significant = reject null hypothesis of treelikeness/clonal evolution)
+  # both = BOTH SIGNIFICANT P-VALUES
   cat_both <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
   copy.loci.trees(cat_both, dataset_df[dataset_df$loci %in% cat_both,]$tree, output_dirs[dataset], "p-value_categories_both_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
   mclapply(cat_both, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_both_IQ-Tree/"), mc.cores = cores_to_use)
-  # Only 3seq p-value <=0.05 and significant, tree proportion p-value not significant
+  # Only 3seq p-value <=0.05 and significant, tree proportion p-value not significant (reject null hyoithesis of clonal evolution but do not reject null hypothesis of treelikeness)
+  # 3seq only = treelike, not clonal
   cat_3seq <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
   copy.loci.trees(cat_3seq, dataset_df[dataset_df$loci %in% cat_3seq,]$tree, output_dirs[dataset], "p-value_categories_3seq_only_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
   mclapply(cat_3seq, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_3seq_only_IQ-Tree/"), mc.cores = cores_to_use)
-  # Only tree proportion p-value <=0.05 and significant, 3seq p-value not significant
+  # Only tree proportion p-value <=0.05 and significant, 3seq p-value not significant (reject null hypothesis of treelikeness but do not reject null hypothesis of clonal evolution)
+  # tree_proportion_only = not-treelike, clonal
   cat_tp   <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
   copy.loci.trees(cat_tp, dataset_df[dataset_df$loci %in% cat_tp,]$tree, output_dirs[dataset], "p-value_categories_tree_proportion_only_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
   mclapply(cat_tp, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_tree_proportion_only_IQ-Tree/"), mc.cores = cores_to_use)
