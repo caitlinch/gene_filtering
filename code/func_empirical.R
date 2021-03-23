@@ -365,7 +365,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     if (loci_row$alphabet == "dna"){
       invalid_character_check <- check.invalid.nexus.characters(empirical_alignment_path, loci_row$alphabet)
     } else if (loci_row$alphabet == "protein"){
-      invalid_character_check <- "no_ambiguous_characters"
+      invalid_character_check <- check.invalid.nexus.characters(empirical_alignment_path, loci_row$alphabet)
     }
     
     # Check whether IQ-Tree has been run
@@ -799,7 +799,21 @@ check.invalid.nexus.characters <- function(alignment_path, seq_type){
       output_indicator = "no_ambiguous_characters"
     }
   } else if (seq_type == "protein"){
-    output_indicator = "no_ambiguous_characters"
+    n <- read.nexus.data(alignment_path)
+    seq_names <- names(n)
+    # Find which sequences contain ambiguous characters
+    to_edit_inds <- grep("X|x|B|b|Z|z|K|j|Φ|Ω|Ψ|π|ζ|+",n)
+    to_edit_inds <- grep("X|x|B|b|Z|z|K|j|\\Φ|\\Ω|\\Ψ|\\π|\\ζ|\\+",n)
+    to_edit_seqs <- seq_names[to_edit_inds]
+    if (length(to_edit_seqs) > 0){
+      fasta.name <- gsub(".nex",".fasta",alignment_path)
+      if (!file.exists(fasta.name)){
+        write.dna(n, file = fasta.name, format = "fasta")
+      }
+      output_indicator = "contains_ambiguous_characters-use_FASTA"
+    } else if (length(to_edit_seqs) == 0){
+      output_indicator = "no_ambiguous_characters"
+    }
   }
   return(output_indicator)
 }
