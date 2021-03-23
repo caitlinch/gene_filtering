@@ -6,8 +6,8 @@
 
 
 ##### Step 1: Open packages #####
-library(ggtern)
-library(adegenet)
+library(ggplot2)
+#library(adegenet)
 library(treespace)
 library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
 # these methods all assume an unrooted tree so trees can be used as is for this analysis
@@ -18,9 +18,11 @@ library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes
 print("set filepaths")
 # treedir           <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+# csv_data_dir      <- Location of the csvs containing the tree proportion results
+# tree_data_dir     <- Location of the gene trees
 # output_dir        <- for collated output and results from treelikeness analysis. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
 # datasets          <- set name(s) for the dataset(s)
-# AU_test_id       <- When  the AU test was run in in script 1, you provide an ID add into the file name. Add that ID here.
+# AU_test_id        <- When  the AU test was run in in script 1, you provide an ID add into the file name. Add that ID here.
 #                   <- If the AU test was run more than once, supply all the names as a character vector 
 ## Choose which sections of the script you want to run
 # collect_warnings  <- Whether to collect warnings from the IQ-Tree log and iqtree files. Can be TRUE or FALSE.
@@ -155,7 +157,8 @@ if (collate_results == TRUE){
 
 ##### Step 5: Plot the results of the AU test #####
 if (run_analysis == TRUE){
-  for (dataset in datasets) {
+  if ("Vanderpool2020" %in% datasets) {
+    library(ggtern)
     for (id in AU_test_id){
       ### Find the collated AU test csv file and open it as a dataframe
       all_results_files <- list.files(output_dirs[dataset])
@@ -221,14 +224,17 @@ if (run_analysis == TRUE){
       t_name <- paste0(output_dir, dataset, "/TernaryPlot_AU_test_",id,"_TreeProportion.pdf")
       ggsave(filename = t_name, plot = t, device = "pdf")
       
-      
     }
   }
 }
 
 
 
-##### Step 6: Compare the distance between treelike and non-treelike trees #####
+##### Step 6: Investigate whether there is sampling bias! #####
+
+
+
+##### Step 7: Compare the distance between treelike and non-treelike trees #####
 if (run_analysis == TRUE){
   for (dataset in datasets) {
     #### Comparing trees from p-value categories
