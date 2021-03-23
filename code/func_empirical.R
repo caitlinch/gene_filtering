@@ -445,10 +445,9 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     missing_als <- bs_als[!file.exists(bs_als)]
     missing_iqtree <- bs_als[!file.exists(paste0(bs_als,".iqtree"))]
     missing_tree <- bs_als[!file.exists(paste0(bs_als,".treefile"))]
-    missing_scf <- bs_als[!file.exists(paste0(bs_als,".treefile.cf.stat"))]
     missing_testStatistics <- bs_als[!file.exists(ts_csvs)]
     # Collate the missing files and identify the alignments to rerun
-    all_missing <- unique(c(missing_als,missing_iqtree,missing_tree,missing_scf,missing_testStatistics))
+    all_missing <- unique(c(missing_als,missing_iqtree,missing_tree,missing_testStatistics))
     als_to_rerun <- bootstrap_ids[which((bs_als %in% all_missing))]
     print(paste0("Number of missing alignments to rerun = ",length(als_to_rerun)))
     # Rerun the missing als
