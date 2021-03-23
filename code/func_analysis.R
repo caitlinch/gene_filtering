@@ -244,3 +244,75 @@ calculate.likelihood.weights <- function(row_number, lw_df){
   return(row_df)
 }
 
+
+
+
+# Function to take in a csv of loci names and return the counts of the best tree for each loci and the most common tree for the whole set
+identify.most.likely.tree.from.csv <- function(csv_file, AU_test_results){
+  l <- read.csv(csv_file)
+  # For each loci, look up with tree had the highest likelihood from the AU test
+  best_trees <- unlist(lapply(l$loci_name, get.best.tree.from.AU.test.results, AU_test_results))
+  # Remove any loci that didn't have one best tree
+  num_no_best_tree <- length(grep("\\+", best_trees, value = TRUE))
+  best_trees <- grep("\\+", best_trees, value = TRUE, invert = TRUE)
+  # Find the tree that appeared the most within this set of genes
+  num_tree1 <- length(best_trees[best_trees == "1"])
+  num_tree2 <- length(best_trees[best_trees == "2"])
+  num_tree3 <- length(best_trees[best_trees == "3"])
+  if ((num_tree1 > num_tree2) & (num_tree1 > num_tree3)){
+    most_common_tree <- "1"
+    percent_common_tree <- ((num_tree1)/length(l$loci_name))
+  } else if ((num_tree2 > num_tree1) & (num_tree2 > num_tree3)){
+    most_common_tree <- "2"
+    percent_common_tree <- ((num_tree2)/length(l$loci_name))
+  } else if ((num_tree3 > num_tree1) & (num_tree3 > num_tree2)){
+    most_common_tree <- "3"
+    percent_common_tree <- ((num_tree3)/length(l$loci_name))
+  } else {
+    most_common_tree <- NA
+    percent_common_tree <- NA
+  }
+  name_chunks <- strsplit(basename(csv_file), "_")[[1]]
+  op_row <- c("windows_mostCommonTree", NA,  name_chunks[2], as.numeric(name_chunks[3]), num_tree1, num_tree2, num_tree3, num_no_best_tree, most_common_tree, percent_common_tree)
+  names(op_row) <- c("Analysis_type", "Tree_estimation_method", "Treelikeness", "n_loci", "count_tree1", "count_tree2", "count_tree3", "count_multiple_best_tree","most_common_tree", "percent_common_tree")
+  return(op_row)
+}
+
+
+
+# Function to pick a number of loci randomly based on the input "n" and return the counts of the best tree for each loci and the most common tree for the whole set
+identify.most.likely.tree.from.window.size <- function(n, AU_test_results){
+  sampled_loci <- sample(AU_test_results$locus, n)
+  best_trees <- unlist(lapply(sampled_loci, get.best.tree.from.AU.test.results, AU_test_results))
+  num_no_best_tree <- length(grep("\\+", best_trees, value = TRUE))
+  best_trees <- grep("\\+", best_trees, value = TRUE, invert = TRUE)
+  # Find the tree that appeared the most within this set of genes
+  num_tree1 <- length(best_trees[best_trees == "1"])
+  num_tree2 <- length(best_trees[best_trees == "2"])
+  num_tree3 <- length(best_trees[best_trees == "3"])
+  if ((num_tree1 > num_tree2) & (num_tree1 > num_tree3)){
+    most_common_tree <- "1"
+    percent_common_tree <- num_tree1/n
+  } else if ((num_tree2 > num_tree1) & (num_tree2 > num_tree3)){
+    most_common_tree <- "2"
+    percent_common_tree <- num_tree2/n
+  } else if ((num_tree3 > num_tree1) & (num_tree3 > num_tree2)){
+    most_common_tree <- "3"
+    percent_common_tree <- num_tree3/n
+  } else {
+    most_common_tree <- NA
+    percent_common_tree <- NA
+  }
+  op_row <- c("random_sample", NA, NA, n, num_tree1, num_tree2, num_tree3, num_no_best_tree, most_common_tree, percent_common_tree)
+  names(op_row) <- c("Analysis_type","Tree_estimation_method", "Treelikeness", "n_loci", "count_tree1", "count_tree2", "count_tree3", "count_multiple_best_tree","most_common_tree", "percent_common_tree")
+  return(op_row)
+}
+
+
+
+# Quick function to extract the tree with the highest likelihood from the AU test results for a single loci by name
+get.best.tree.from.AU.test.results <- function(loci_name_to_find, AU_test_results){
+  best_tree <- AU_test_results[AU_test_results$locus == loci_name_to_find,]$best_tree
+  return(best_tree)
+}
+

@@ -159,6 +159,7 @@ if (collate_results == TRUE){
 if (run_analysis == TRUE){
   if ("Vanderpool2020" %in% datasets) {
     library(ggtern)
+    dataset = "Vanderpool2020"
     for (id in AU_test_id){
       ### Find the collated AU test csv file and open it as a dataframe
       all_results_files <- list.files(output_dirs[dataset])
@@ -231,6 +232,67 @@ if (run_analysis == TRUE){
 
 
 ##### Step 6: Investigate whether there is sampling bias! #####
+# Find the list of 
+if (run_analysis == TRUE){
+  if ("Vanderpool2020" %in% datasets){
+    dataset = "Vanderpool2020"
+    id = "CladeOfInterest"
+    analysis_df_name <- paste0(output_dirs[dataset],dataset,"_SamplingBias_SimulatedWindows.csv")
+    # If the dataframe already exists, open it
+    # If it doesn't exist, run the analysis to create it
+    # This avoids you overwriting your samples (they will change every time because it is random sampling)
+    if (file.exists(analysis_df_name) == TRUE){
+      analysis_df <- read.csv(analysis_df_name, stringsAsFactors = FALSE)
+    } else if (file.exists(analysis_df_name) == FALSE){
+      ### Find the collated AU test csv file and open it as a dataframe
+      all_results_files <- list.files(output_dirs[dataset])
+      AU_test_file <- paste0(output_dirs[dataset],grep("AU_test", all_results_files, value = TRUE))
+      AU_test_file <- grep(id, AU_test_file, value = TRUE)
+      AU_test_file <- grep(".csv", AU_test_file, value = TRUE)
+      AU_df <- read.csv(file = AU_test_file, stringsAsFactors = FALSE)
+      AU_df <- AU_df[,c("locus", "tree1_log_likelihood", "tree2_log_likelihood",  "tree3_log_likelihood", 
+                        "sum_log_likelihood", "best_tree", "tree1_likelihood_proportion", "tree2_likelihood_proportion", 
+                        "tree3_likelihood_proportion")]
+      ### Open the tree proportion csv
+      all_csv_data_dir_files <- list.files(csv_data_dir)
+      dataset_files <- grep(dataset, all_csv_data_dir_files, value = TRUE)
+      dataset_tl_files <- grep("empiricalTreelikeness", dataset_files, value = TRUE)
+      tp_file <- grep("trimmedLoci", dataset_tl_files, value = TRUE)
+      tp_df <- read.csv(paste0(csv_data_dir, tp_file))
+      ### Add the tree proportion of each point to the AU_df dataframe
+      # Order locus names so both dataframes have identical order 
+      AU_df <- AU_df[order(AU_df$locus),]
+      tp_df <- tp_df[order(tp_df$loci),]
+      # Add tree proportion to the AU_df
+      AU_df$tree_proportion <- tp_df$tree_proportion
+      AU_df$tree_proportion_p_value <- tp_df$tree_proportion_p_value
+      ### Get all the csv files and for each window, get the list of loci in that window
+      # Then, get the best tree for each loci and the most common tree for each window
+      all_species_loci_lists <- grep(".csv",list.files(paste0(tree_data_dirs["Vanderpool2020"],"/all_species_trees/")), value = TRUE)
+      window_csv_files <- paste0(tree_data_dirs["Vanderpool2020"],"all_species_trees/",grep("window", all_species_loci_lists, value = TRUE))
+      window_list <- lapply(window_csv_files, identify.most.likely.tree.from.csv, AU_test_results = AU_df)
+      window_df <- as.data.frame(do.call(rbind, window_list))
+      ### Generate windows by randomly picking loci to make up the window size, then identify the best tree for each loci and the most common tree for each window
+      sample_windows <- c(rep(10,100),rep(50,100),rep(100,100),rep(250,100),rep(500,100))
+      sample_window_list <- lapply(sample_windows, identify.most.likely.tree.from.window.size, AU_test_results = AU_df)
+      sample_df <- as.data.frame(do.call(rbind, sample_window_list))
+      ### Create a dataframe based on the species tree analysis
+      species_df <- data.frame(Analysis_type = rep("windows_speciesTree", 20), Tree_estimation_method = rep(c("ASTRAL","IQ-TREE"),10), 
+                               Treelikeness = c(rep("treelike", 10), rep("non-treelike", 10)), n_loci = rep(c(rep(c(10,50,100,250,500),each = 2)),2), 
+                               count_tree1 = rep(NA, 20), count_tree2 = rep(NA, 20), count_tree3 = rep(NA, 20), count_multiple_best_tree = rep(NA, 20), 
+                               most_common_tree = c(1,1,2,1,1,1,1,1,1,1,2,3,3,3,2,3,2,2,2,1), 
+                               percent_common_tree = rep(NA, 20))
+      ### Combine all of these dataframes into one
+      analysis_df <- rbind(species_df, window_df, sample_df)
+      analysis_df_name <- paste0(output_dirs[dataset],dataset,"_SamplingBias_SimulatedWindows.csv")
+      write.csv(analysis_df, file = analysis_df_name)
+    }
+    ### Test for each window size 
+    ten_df <- analysis_df[analysis_df$n_loci == 10,]
+    ten_df <- ten_df[which(is.na(ten_df$Treelikeness) == FALSE),]
+    ten_df <- ten_df[order(ten_df$Treelikeness),]
+  }
+}
 
 
 
