@@ -252,6 +252,7 @@ identify.most.likely.tree.from.csv <- function(csv_file, AU_test_results){
   l <- read.csv(csv_file)
   # For each loci, look up with tree had the highest likelihood from the AU test
   best_trees <- unlist(lapply(l$loci_name, get.best.tree.from.AU.test.results, AU_test_results))
+  raw_tree_proportion <- unlist(lapply(l$loci_name, get.tree.proportion.from.AU.test.results, AU_test_results))
   # Remove any loci that didn't have one best tree
   num_no_best_tree <- length(grep("\\+", best_trees, value = TRUE))
   best_trees <- grep("\\+", best_trees, value = TRUE, invert = TRUE)
@@ -272,9 +273,16 @@ identify.most.likely.tree.from.csv <- function(csv_file, AU_test_results){
     most_common_tree <- NA
     percent_common_tree <- NA
   }
+  # Calculate average tree proportion
+  mean_tp <- mean(raw_tree_proportion)
+  sd_tp <- sd(raw_tree_proportion)
+  median_tp <- median(raw_tree_proportion)
+  # Create output row
   name_chunks <- strsplit(basename(csv_file), "_")[[1]]
-  op_row <- c("windows_mostCommonTree", NA,  name_chunks[2], as.numeric(name_chunks[3]), num_tree1, num_tree2, num_tree3, num_no_best_tree, most_common_tree, percent_common_tree)
-  names(op_row) <- c("Analysis_type", "Tree_estimation_method", "Treelikeness", "n_loci", "count_tree1", "count_tree2", "count_tree3", "count_multiple_best_tree","most_common_tree", "percent_common_tree")
+  op_row <- c("windows_mostCommonTree", NA,  name_chunks[2], as.numeric(name_chunks[3]), num_tree1, num_tree2, num_tree3,
+              num_no_best_tree, most_common_tree, percent_common_tree, mean_tp, sd_tp, median_tp)
+  names(op_row) <- c("Analysis_type", "Tree_estimation_method", "Treelikeness", "n_loci", "count_tree1", "count_tree2", "count_tree3",
+                     "count_multiple_best_tree","most_common_tree", "percent_common_tree", "mean_tree_proportion", "sd_tree_proportion", "median_tree_proportion")
   return(op_row)
 }
 
@@ -284,6 +292,7 @@ identify.most.likely.tree.from.csv <- function(csv_file, AU_test_results){
 identify.most.likely.tree.from.window.size <- function(n, AU_test_results){
   sampled_loci <- sample(AU_test_results$locus, n)
   best_trees <- unlist(lapply(sampled_loci, get.best.tree.from.AU.test.results, AU_test_results))
+  raw_tree_proportion <- unlist(lapply(sampled_loci, get.tree.proportion.from.AU.test.results, AU_test_results))
   num_no_best_tree <- length(grep("\\+", best_trees, value = TRUE))
   best_trees <- grep("\\+", best_trees, value = TRUE, invert = TRUE)
   # Find the tree that appeared the most within this set of genes
@@ -302,9 +311,16 @@ identify.most.likely.tree.from.window.size <- function(n, AU_test_results){
   } else {
     most_common_tree <- NA
     percent_common_tree <- NA
-  }
-  op_row <- c("random_sample", NA, NA, n, num_tree1, num_tree2, num_tree3, num_no_best_tree, most_common_tree, percent_common_tree)
-  names(op_row) <- c("Analysis_type","Tree_estimation_method", "Treelikeness", "n_loci", "count_tree1", "count_tree2", "count_tree3", "count_multiple_best_tree","most_common_tree", "percent_common_tree")
+  }  
+  # Calculate average tree proportion
+  mean_tp <- mean(raw_tree_proportion)
+  sd_tp <- sd(raw_tree_proportion)
+  median_tp <- median(raw_tree_proportion)
+  # Create output row
+  op_row <- c("random_sample", NA, NA, n, num_tree1, num_tree2, num_tree3
+              , num_no_best_tree, most_common_tree, percent_common_tree, mean_tp, sd_tp, median_tp)
+  names(op_row) <- c("Analysis_type","Tree_estimation_method", "Treelikeness", "n_loci", "count_tree1", "count_tree2", "count_tree3",
+                     "count_multiple_best_tree","most_common_tree", "percent_common_tree", "mean_tree_proportion", "sd_tree_proportion", "median_tree_proportion")
   return(op_row)
 }
 
@@ -314,5 +330,10 @@ identify.most.likely.tree.from.window.size <- function(n, AU_test_results){
 get.best.tree.from.AU.test.results <- function(loci_name_to_find, AU_test_results){
   best_tree <- AU_test_results[AU_test_results$locus == loci_name_to_find,]$best_tree
   return(best_tree)
+}
+
+get.tree.proportion.from.AU.test.results <- function(loci_name_to_find, AU_test_results){
+  tp <- AU_test_results[AU_test_results$locus == loci_name_to_find,]$tree_proportion
+  return(tp)
 }
 
