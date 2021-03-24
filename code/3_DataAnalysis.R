@@ -273,7 +273,7 @@ if (run_analysis == TRUE){
       window_list <- lapply(window_csv_files, identify.most.likely.tree.from.csv, AU_test_results = AU_df)
       window_df <- as.data.frame(do.call(rbind, window_list))
       ### Generate windows by randomly picking loci to make up the window size, then identify the best tree for each loci and the most common tree for each window
-      sample_windows <- c(rep(10,100),rep(50,100),rep(100,100),rep(250,100),rep(500,100))
+      sample_windows <- c(rep(10,1000),rep(50,1000),rep(100,1000),rep(250,1000),rep(500,1000))
       sample_window_list <- lapply(sample_windows, identify.most.likely.tree.from.window.size, AU_test_results = AU_df)
       sample_df <- as.data.frame(do.call(rbind, sample_window_list))
       ### Create a dataframe based on the species tree analysis
@@ -284,13 +284,30 @@ if (run_analysis == TRUE){
                                percent_common_tree = rep(NA, 20))
       ### Combine all of these dataframes into one
       analysis_df <- rbind(species_df, window_df, sample_df)
-      analysis_df_name <- paste0(output_dirs[dataset],dataset,"_SamplingBias_SimulatedWindows.csv")
+      analysis_df_name <- paste0(output_dirs[dataset],dataset,"_SamplingBias_SimulatedWindows_1000Samples.csv")
       write.csv(analysis_df, file = analysis_df_name)
     }
-    ### Test for each window size 
-    ten_df <- analysis_df[analysis_df$n_loci == 10,]
-    ten_df <- ten_df[which(is.na(ten_df$Treelikeness) == FALSE),]
-    ten_df <- ten_df[order(ten_df$Treelikeness),]
+    ### Compare species trees with most common gene tree for each window size
+    tree_df <- analysis_df[which(is.na(analysis_df$Treelikeness) == FALSE),]
+    tree_df <- tree_df[order(tree_df$Treelikeness, tree_df$n_loci),]
+    ### Make a nice plot of the most common gene tree
+    # If there is more than one most common tree, replace the "NA" with "Multiple trees tied"
+    na_ids <- which(is.na(sample_df$most_common_tree))
+    sample_df$most_common_tree[na_ids] <- "Two or more trees" 
+    # Make a nice ggplot
+    p <- ggplot(data = sample_df, aes(x = n_loci, fill = most_common_tree)) + geom_bar(colour = "black") + 
+      xlab("Window size") + ylab("Count") + labs(title = "Most common gene tree topology for sampled windows \nof Vanderpool et al (2020) loci") +
+      scale_fill_viridis_d(option = "D", direction = -1) +
+      guides(fill = guide_legend(title = "Most common gene \ntree topology")) +
+      theme_bw() +
+      theme(plot.title = element_text(hjust = 0.5))
+    p_filename <- paste0(output_dirs[dataset],dataset,"_BarPlot_FrequencyTreeTopology_SampledWindows_1000Samples.png")
+    ggsave(filename = p_filename, plot = p, device = "png")
+    p_filename <- paste0(output_dirs[dataset],dataset,"_BarPlot_FrequencyTreeTopology_SampledWindows_1000Samples.pdf")
+    ggsave(filename = p_filename, plot = p, device = "pdf")
+    
+    
+    
   }
 }
 
