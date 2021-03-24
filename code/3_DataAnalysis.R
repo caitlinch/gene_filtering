@@ -317,7 +317,7 @@ if (run_analysis == TRUE){
     ### Make a nice boxplot of the tree proportion
     p <- ggplot(data = sample_df, aes(x = window_group, y = mean_tree_proportion, fill = most_common_tree)) + geom_boxplot() + 
       scale_fill_viridis_d(option = "D", direction = -1) + 
-      xlab("Window size") + ylab("Tree proportion") + labs(title = "Tree proportion of windows randomly sampled from \nVanderpool et al (2020) loci") +
+      xlab("Window size") + ylab("Mean tree proportion") + labs(title = "Tree proportion of windows randomly sampled from \nVanderpool et al (2020) loci") +
       guides(fill = guide_legend(title = "Gene tree \nwith highest \nfreqency in \nwindow")) +
       scale_y_continuous(breaks = seq(0.56,0.8,0.02), labels = seq(0.56,0.80,0.02), minor_breaks = seq(0.56,0.80,0.01), limits = c(0.56,0.8)) + 
       theme_bw() +
@@ -344,6 +344,29 @@ if (run_analysis == TRUE){
     ggsave(filename = p_filename, plot = p, device = "png")
     p_filename <- paste0(output_dirs[dataset],dataset,"_BarPlot_FrequencyComparison_1000samples_SpeciesTrees.pdf")
     ggsave(filename = p_filename, plot = p, device = "pdf")
+    ### Make a nice boxplot of the tree proportion showing the mean tree proportion value for each window
+    plot_df <- analysis_df[(analysis_df$Analysis_type %in% c("random_sample")),]
+    plot_df$window_group <- factor(x = plot_df$n_loci, levels = c(10,50,100,250,500), labels = c("10","50","100","250","500"), ordered = TRUE)
+    window_df <- analysis_df[(analysis_df$Analysis_type %in% c("windows_mostCommonTree")),]
+    window_df$window_group <- factor(x = window_df$n_loci, levels = c(10,50,100,250,500), labels = c("10","50","100","250","500"), ordered = TRUE)
+    window_df$mean_tree_proportion <- as.numeric(window_df$mean_tree_proportion)
+    big_plot_df <- rbind(window_df[,c("window_group","mean_tree_proportion","most_common_tree","Treelikeness")], plot_df[,c("window_group","mean_tree_proportion","most_common_tree","Treelikeness")])
+    p <- ggplot() + 
+      geom_boxplot(data = plot_df, aes(x = window_group, y = mean_tree_proportion, fill = most_common_tree)) + 
+      geom_point(data = window_df, aes(x = window_group, y = mean_tree_proportion, colour= Treelikeness), shape = 17, size = 5, alpha = 0.8, 
+                 position = position_dodge(width = 1)) +
+      scale_fill_viridis_d(option = "D", direction = -1) + 
+      scale_colour_manual(values = c("black","grey70"), breaks = c("non-treelike","treelike"), labels = c("Non-treelike loci","Treelike loci")) +
+      xlab("Window size") + ylab("Mean tree proportion") + labs(title = "Mean tree proportion of windows of Vanderpool et al (2020) loci") +
+      guides(fill = guide_legend(title = "Gene tree topology \nfrom randomly \nsampled windows"), colour = guide_legend(title = "Windows ordered by \nincreasing/decreasing \ntreelikeness values")) +
+      scale_y_continuous(breaks = seq(0.56,0.8,0.02), labels = seq(0.56,0.80,0.02), minor_breaks = seq(0.56,0.80,0.01), limits = c(0.56,0.8)) + 
+      theme_bw() +
+      theme(plot.title = element_text(hjust = 0.5))
+    p_filename <- paste0(output_dirs[dataset],dataset,"_BoxPlot_TreeProportion_SampledWindows_1000Samples_withWindowTPs.png")
+    ggsave(filename = p_filename, plot = p, device = "png")
+    p_filename <- paste0(output_dirs[dataset],dataset,"_BoxPlot_TreeProportion_SampledWindows_1000Samples_withWindowTPs.pdf")
+    ggsave(filename = p_filename, plot = p, device = "pdf")
+    
   }
 }
 
