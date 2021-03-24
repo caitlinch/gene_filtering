@@ -237,7 +237,7 @@ if (run_analysis == TRUE){
   if ("Vanderpool2020" %in% datasets){
     dataset = "Vanderpool2020"
     id = "CladeOfInterest"
-    analysis_df_name <- paste0(output_dirs[dataset],dataset,"_SamplingBias_SimulatedWindows_100Samples.csv")
+    analysis_df_name <- paste0(output_dirs[dataset],dataset,"_SamplingBias_SimulatedWindows_1000Samples.csv")
     # If the dataframe already exists, open it
     # If it doesn't exist, run the analysis to create it
     # This avoids you overwriting your samples (they will change every time because it is random sampling)
@@ -292,7 +292,7 @@ if (run_analysis == TRUE){
       sample_df$most_common_tree[na_ids] <- "Two or \nmore trees" 
       ### Combine all of these dataframes into one
       analysis_df <- rbind(species_df, window_df, sample_df)
-      analysis_df_name <- paste0(output_dirs[dataset],dataset,"_SamplingBias_SimulatedWindows_100Samples.csv")
+      analysis_df_name <- paste0(output_dirs[dataset],dataset,"_SamplingBias_SimulatedWindows_1000Samples.csv")
       write.csv(analysis_df, file = analysis_df_name)
     }
     ### Compare species trees with most common gene tree for each window size
@@ -303,18 +303,18 @@ if (run_analysis == TRUE){
     sample_df$n_loci <- as.numeric(sample_df$n_loci)
     sample_df <- sample_df[order(sample_df$n_loci),]
     sample_df$window_group <- factor(x = sample_df$n_loci, levels = c(10,50,100,250,500), labels = c("10","50","100","250","500"), ordered = TRUE)
-    # Make a nice ggplot
+    ### Make a nice bar plot
     p <- ggplot(data = sample_df, aes(x = window_group, fill = most_common_tree)) + geom_bar(colour = "black") + 
       xlab("Window size") + ylab("Count") + labs(title = "Most common gene tree topology for sampled windows \nof Vanderpool et al (2020) loci") +
       scale_fill_viridis_d(option = "D", direction = -1) +
       guides(fill = guide_legend(title = "Gene tree \nwith highest \nfreqency in \nwindow")) +
       theme_bw() +
       theme(plot.title = element_text(hjust = 0.5))
-    p_filename <- paste0(output_dirs[dataset],dataset,"_BarPlot_FrequencyTreeTopology_SampledWindows_100Samples.png")
+    p_filename <- paste0(output_dirs[dataset],dataset,"_BarPlot_FrequencyTreeTopology_SampledWindows_1000Samples.png")
     ggsave(filename = p_filename, plot = p, device = "png")
-    p_filename <- paste0(output_dirs[dataset],dataset,"_BarPlot_FrequencyTreeTopology_SampledWindows_100Samples.pdf")
+    p_filename <- paste0(output_dirs[dataset],dataset,"_BarPlot_FrequencyTreeTopology_SampledWindows_1000Samples.pdf")
     ggsave(filename = p_filename, plot = p, device = "pdf")
-    # Make a nice boxplot of the tree proportion
+    ### Make a nice boxplot of the tree proportion
     p <- ggplot(data = sample_df, aes(x = window_group, y = mean_tree_proportion, fill = most_common_tree)) + geom_boxplot() + 
       scale_fill_viridis_d(option = "D", direction = -1) + 
       xlab("Window size") + ylab("Tree proportion") + labs(title = "Tree proportion of windows randomly sampled from \nVanderpool et al (2020) loci") +
@@ -322,9 +322,27 @@ if (run_analysis == TRUE){
       scale_y_continuous(breaks = seq(0.56,0.8,0.02), labels = seq(0.56,0.80,0.02), minor_breaks = seq(0.56,0.80,0.01), limits = c(0.56,0.8)) + 
       theme_bw() +
       theme(plot.title = element_text(hjust = 0.5))
-    p_filename <- paste0(output_dirs[dataset],dataset,"_BoxPlot_TreeProportion_SampledWindows_100Samples.png")
+    p_filename <- paste0(output_dirs[dataset],dataset,"_BoxPlot_TreeProportion_SampledWindows_1000Samples.png")
     ggsave(filename = p_filename, plot = p, device = "png")
-    p_filename <- paste0(output_dirs[dataset],dataset,"_BoxPlot_TreeProportion_SampledWindows_100Samples.pdf")
+    p_filename <- paste0(output_dirs[dataset],dataset,"_BoxPlot_TreeProportion_SampledWindows_1000Samples.pdf")
+    ggsave(filename = p_filename, plot = p, device = "pdf")
+    ### Make a nice faceted bar plot comparing the species tree results with the simulated results
+    plot_df <- analysis_df[(analysis_df$Analysis_type %in% c("windows_speciesTree","random_sample")),]
+    plot_df$window_group <- factor(x = plot_df$n_loci, levels = c(10,50,100,250,500), labels = c("10","50","100","250","500"), ordered = TRUE)
+    # Create the labels
+    facet_labels = c("IQ-Tree/ASTRAL trees","Most common gene tree \n in randomly sampled windows")
+    names(facet_labels) = c("windows_speciesTree","random_sample")
+    # Make the plot
+    p <- ggplot(data = plot_df, aes(x = window_group, fill = most_common_tree)) + geom_bar(colour = "black") +
+      facet_wrap(Analysis_type~., scales = "free_y", labeller = labeller(Analysis_type = facet_labels)) +
+      xlab("Window size") + ylab("Count") + labs(title = "") +
+      scale_fill_viridis_d(option = "D", direction = -1) +
+      guides(fill = guide_legend(title = "Tree topology")) +
+      theme_bw() +
+      theme(plot.title = element_text(hjust = 0.5))
+    p_filename <- paste0(output_dirs[dataset],dataset,"_BarPlot_FrequencyComparison_1000samples_SpeciesTrees.png")
+    ggsave(filename = p_filename, plot = p, device = "png")
+    p_filename <- paste0(output_dirs[dataset],dataset,"_BarPlot_FrequencyComparison_1000samples_SpeciesTrees.pdf")
     ggsave(filename = p_filename, plot = p, device = "pdf")
   }
 }
