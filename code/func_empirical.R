@@ -85,8 +85,8 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   
   # Open the nexus file and get the number of taxa and the number of characters 
   file_name_list <- strsplit(basename(alignment_path),"\\.")[[1]]
-  file_extention <- file_name_list[length(file_name_list)]
-    
+  file_extension <- file_name_list[length(file_name_list)]
+  
   if (file_extension == ".nex" | file_extension == ".nexus"){
     n <- read.nexus.data(alignment_path)
     n_taxa <- length(n)
@@ -96,37 +96,41 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
     n_taxa <- length(f)
     n_char <- length(unlist(f[1]))
   }
-
+  
   
   # Run IQ-tree on the alignment (if it hasn't already been run)
   call.IQTREE.empirical(alignment_path, iqtree_path = program_paths["IQTree"], iqtree.model, num_threads = iqtree.num_threads)
   initial_iqtree_tree <- paste0(alignment_path,".treefile")
-
+  
   # Change to the log (storage for log files) folder for this alignment - means that 3seq and Phi files will be saved into a unique folder
   setwd(log_folder)
-  # Get path to 3SEQ
   
-  # Only run 3SEQ if the path is an alignment (don't need bootstrap replicates of 3SEQ)
+  # Only run 3SEQ and collect sCF values if the path is an alignment (don't need bootstrap replicates for 3SEQ/sCF)
   if (bootstrap_id == "alignment"){
-    print("run 3SEQ")
-    seq_path <- program_paths[["3seq"]] # get path to 3seq executable
-    # 3SEQ only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
-    # Check if the fasta file already exists
-    fasta.name <- gsub(".nex",".fasta",alignment_path)
-    if (file.exists(fasta.name) == FALSE){
-      write.fasta(sequences = n,names = names(n), file.out = fasta.name) # output alignment as a fasta format
-      # # Old way of making the fasta name:
-      # fasta.name <- paste0(log_folder,output_id,".fasta") # make a name for the fasta alignment by adding .fasta (super original ;) )
-    }
-    # run 3seq 
-    # Note that 3Seq will only be run if they haven't already been run (checks for log files)
+    # Check if 3SEQ has already been run. Only run 3SEQ if the log file doesn't exist
     if (file.exists(paste0(log_folder,"3s.log")) == FALSE){
-      seq_command <- paste0(seq_path," -f ", fasta.name)
-      system(seq_command) #call 3SEQ
+      if (file_extension == ".fasta" | file_extension == ".fa" | file_extension == ".fna" | file_extension == ".ffn" | file_extension == ".faa" | file_extension == ".frn"){
+        # 3SEQ only reads in phylip or fasta format - if the alignment is already in that format, call 3SEQ on the alignment
+        seq_command <- paste0(seq_path," -f ", alignment_path)
+        system(seq_command) #call 3SEQ
+      } else if (file_extension == ".nex" | file_extension == ".nexus"){
+        # 3SEQ only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
+        # Assemble a name for a copy of the alignment as a fasta file
+        fasta.name <- gsub(file_extension, ".fasta", alignment_path)
+        # Check if the fasta file already exists
+        if (file.exists(fasta.name) == FALSE){
+          # If the fasta version doesn't exist, write out the nexus sequence in fasta formt
+          n <- read.nexus.data(alignment_path)
+          write.fasta(sequences = n, names = names(n), file.out = fasta.name) # output alignment as a fasta format
+        }
+        # There is now a definitely a fasta format version of this alignment
+        # Assemble the 3SEQ command using the new fasta alignment
+        seq_command <- paste0(seq_path, " -f ", fasta.name)
+        # Call 3SEQ
+        system(seq_command)
+      }
     }
-    
-    # 3SEQ will have created a file with the information about the statistics in
-    # Extract results output from 3Seq output
+    # Now, collect the results from the 3SEQ log file
     seq_file <- paste0(log_folder,"3s.log")
     seq_log <- readLines(seq_file) # open file
     ind      <- grep("Number of recombinant triplets",seq_log) # find the number of recombinant triplets line index
@@ -171,7 +175,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
                                 path = alignment_path, network_algorithm = "neighbournet", trimmed = TRUE,
                                 tree_path = initial_iqtree_tree, run_IQTREE = FALSE, seq_type = alphabet)
   
-
+  
   # Name the test statistics file using the output id (this way if it's a  bootstrap replicate, it adds the replicate number!)
   print(paste0("output results for ",output_id))
   results_file <- paste0(alignment_folder,output_id,"_testStatistics.csv")
@@ -260,7 +264,7 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
       nexus_edit[ind] <- "  FORMAT DATATYPE=PROTEIN MISSING=? GAP=- INTERLEAVE;" # replace the line
       writeLines(nexus_edit,shuffled_alignment_path) # output the edited nexus file
     }
-
+    
     # Third, mask each alignment with the gaps and unknown characters from the original sequence 
     print("masking alignment")
     # for each alignment:
@@ -321,9 +325,9 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
     empirical.runTS(alignment_path = bootstrap_alignment_path, program_paths = program_paths, bootstrap_id = bootstrap_id, 
                     iqtree.num_threads, iqtree.num_quartets, iqtree.model = empirical_alignment_row$best_model, 
                     alphabet = empirical_alignment_row$alphabet, dataset_name = empirical_alignment_row$dataset)
-  
     
-    }
+    
+  }
 }
 
 
@@ -804,7 +808,7 @@ check.invalid.nexus.characters <- function(alignment_path, seq_type){
     if (length(to_edit_seqs) > 0){
       fasta.name <- gsub(".nex",".fasta",alignment_path)
       if (!file.exists(fasta.name)){
-          write.dna(n, file = fasta.name, format = "fasta")
+        write.dna(n, file = fasta.name, format = "fasta")
       }
       output_indicator = "contains_ambiguous_characters-use_FASTA"
     } else if (length(to_edit_seqs) == 0){
@@ -1334,7 +1338,7 @@ remove.suffix <- function(full_filename){
 
 # Function to perform parametric bootstrap and calculate statistical test for tree proportion
 tree.proportion.statistical.test <- function(loci_path, loci_name, loci_alphabet, loci_model, loci_dataset, loci_output_folder, iqtree_path, splitstree_path, number_of_replicates, 
-                                           allowable_proportion_missing_sites, iqtree.num_threads, num_of_cores){
+                                             allowable_proportion_missing_sites, iqtree.num_threads, num_of_cores){
   print("tree.proportion.test.statistic")
   # Specify path to alignment
   empirical_alignment_path <- loci_path
@@ -1402,7 +1406,7 @@ tree.proportion.statistical.test <- function(loci_path, loci_name, loci_alphabet
     if (file.exists(ts_file) == FALSE){
       print("run test statistics")
       output.tree.proportion.csv(empirical_alignment_path, iqtree_path, splitstree_path, bootstrap_id = "alignment", iqtree.num_threads, 
-                      iqtree.model = loci_model, alphabet = loci_alphabet, dataset_name = loci_dataset)
+                                 iqtree.model = loci_model, alphabet = loci_alphabet, dataset_name = loci_dataset)
     }
     
     #Check that the test statistic file ran ok 
@@ -1552,8 +1556,8 @@ output.tree.proportion.csv <- function(alignment_path, iqtree_path, splitstree_p
   # Call the test statistic functions
   initial_iqtree_tree <- paste0(alignment_path,".treefile")
   tp <- tree.proportion(iqpath = iqtree_path, splitstree_path = splitstree_path,
-                                path = alignment_path, network_algorithm = "neighbournet", trimmed = TRUE,
-                                tree_path = initial_iqtree_tree, run_IQTREE = FALSE, seq_type = alphabet)
+                        path = alignment_path, network_algorithm = "neighbournet", trimmed = TRUE,
+                        tree_path = initial_iqtree_tree, run_IQTREE = FALSE, seq_type = alphabet)
   
   
   # Name the test statistics file using the output id (this way if it's a  bootstrap replicate, it adds the replicate number!)
