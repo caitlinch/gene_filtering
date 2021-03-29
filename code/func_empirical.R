@@ -109,11 +109,11 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   if (bootstrap_id == "alignment"){
     # Check if 3SEQ has already been run. Only run 3SEQ if the log file doesn't exist
     if (file.exists(paste0(log_folder,"3s.log")) == FALSE){
-      if (file_extension == ".fasta" | file_extension == ".fa" | file_extension == ".fna" | file_extension == ".ffn" | file_extension == ".faa" | file_extension == ".frn"){
+      if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | file_extension == "faa" | file_extension == "frn"){
         # 3SEQ only reads in phylip or fasta format - if the alignment is already in that format, call 3SEQ on the alignment
         seq_command <- paste0(seq_path," -f ", alignment_path)
         system(seq_command) #call 3SEQ
-      } else if (file_extension == ".nex" | file_extension == ".nexus"){
+      } else if (file_extension == "nex" | file_extension == "nexus"){
         # 3SEQ only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
         # Assemble a name for a copy of the alignment as a fasta file
         fasta.name <- gsub(file_extension, ".fasta", alignment_path)
