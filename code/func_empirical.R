@@ -8,6 +8,7 @@ library(phytools)
 library(ape)
 library(phangorn)
 library(parallel)
+library(seqinr)
 
 # Given a nexus file, this function removes all species except those specified and outputs a nexus file of the new (smaller) alignment
 cutSpecies <- function(alignment_path, keep, output_path_provided = "FALSE", output_path){
@@ -45,15 +46,16 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   # extract the alignment folder from the alignment path
   alignment_folder <- paste0(dirname(alignment_path),"/")
   output_id <- gsub(".nex","",basename(alignment_path))
+  output_id <- gsub(".fasta","",output_id)
   # Create some folder and filenames
   if (bootstrap_id == "alignment"){
     # Get the alignment name and remove the extension to get the loci name
-    loci_name <- gsub(".nex","",basename(alignment_path))
+    loci_name <- output_id
     # Extract the dataset name (basename of alignment folder: element after last "/" in alignment_folder)
     dataset <- dataset_name
   } else {
     # If the alignment is a bootstrap replicate, need to remove the bootstrap rep number to get the loci name
-    loci_name <- gsub(".nex","",basename(alignment_path)) # get the basis of the loci name
+    loci_name <- output_id # get the basis of the loci name
     loci_list <- unlist(strsplit(loci_name, "_")) # break the alignment name into bits
     max_ind <- grep("bootstrapReplicate",loci_list) - 1 # which ind is the bootstrapReplicate at?
     loci_list <- loci_list[1:max_ind] # get only parts of alignment name
@@ -82,9 +84,19 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   }
   
   # Open the nexus file and get the number of taxa and the number of characters 
-  n <- read.nexus.data(alignment_path)
-  n_taxa <- length(n)
-  n_char <- length(unlist(n[1]))
+  file_name_list <- strsplit(basename(alignment_path),"\\.")[[1]]
+  file_extention <- file_name_list[length(file_name_list)]
+    
+  if (file_extension == ".nex" | file_extension == ".nexus"){
+    n <- read.nexus.data(alignment_path)
+    n_taxa <- length(n)
+    n_char <- length(unlist(n[1]))
+  } else if (file_extension == ".fasta" | file_extension == ".fa" | file_extension == ".fna" | file_extension == ".ffn" | file_extension == ".faa" | file_extension == ".frn"){
+    f <- read.fasta(file = alignment_path)
+    n_taxa <- length(f)
+    n_char <- length(unlist(f[1]))
+  }
+
   
   # Run IQ-tree on the alignment (if it hasn't already been run)
   call.IQTREE.empirical(alignment_path, iqtree_path = program_paths["IQTree"], iqtree.model, num_threads = iqtree.num_threads)
@@ -343,6 +355,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   gamma_categories_file <- paste0(alignment_folder,loci_name,"_gammaCategories.csv")
   aa_frequency_file <- paste0(alignment_folder,loci_name,"_amino_acid_frequencies.csv")
   rate_matrix_file <- paste0(alignment_folder,loci_name,"_QRateMatrix.csv")
+  ts_file <- paste0(dirname(empirical_alignment_path),"/",loci_name,"_testStatistics.csv")
   
   # Only run this section if the p-value csv has not been created yet (skip reruns)
   if (file.exists(p_value_file) == FALSE){
@@ -388,7 +401,6 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     }
     
     # Calculate the test statistics if it hasn't already been done
-    ts_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_testStatistics.csv")
     if (file.exists(ts_file) == FALSE){
       print("run test statistics")
       empirical.runTS(empirical_alignment_path, program_paths, bootstrap_id = "alignment", iqtree.num_threads, iqtree.num_quartets, 
@@ -1345,6 +1357,7 @@ tree.proportion.statistical.test <- function(loci_path, loci_name, loci_alphabet
   gamma_categories_file <- paste0(alignment_folder,loci_name,"_gammaCategories.csv")
   aa_frequency_file <- paste0(alignment_folder,loci_name,"_amino_acid_frequencies.csv")
   rate_matrix_file <- paste0(alignment_folder,loci_name,"_QRateMatrix.csv")
+  ts_file <- paste0(dirname(empirical_alignment_path),"/",loci_name,"_testStatistics.csv")
   
   # Only run this section if the p-value csv has not been created yet (skip reruns)
   if (file.exists(p_value_file) == FALSE){
@@ -1386,7 +1399,6 @@ tree.proportion.statistical.test <- function(loci_path, loci_name, loci_alphabet
     }
     
     # Calculate the test statistics if it hasn't already been done
-    ts_file <- paste0(dirname(empirical_alignment_path),"/",gsub(".nex","",basename(empirical_alignment_path)),"_testStatistics.csv")
     if (file.exists(ts_file) == FALSE){
       print("run test statistics")
       output.tree.proportion.csv(empirical_alignment_path, iqtree_path, splitstree_path, bootstrap_id = "alignment", iqtree.num_threads, 
