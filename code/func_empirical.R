@@ -47,161 +47,169 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   alignment_folder <- paste0(dirname(alignment_path),"/")
   output_id <- gsub(".nex","",basename(alignment_path))
   output_id <- gsub(".fasta","",output_id)
-  # Create some folder and filenames
-  if (bootstrap_id == "alignment"){
-    # Get the alignment name and remove the extension to get the loci name
-    loci_name <- output_id
-    # Extract the dataset name (basename of alignment folder: element after last "/" in alignment_folder)
-    dataset <- dataset_name
-  } else {
-    # If the alignment is a bootstrap replicate, need to remove the bootstrap rep number to get the loci name
-    loci_name <- output_id # get the basis of the loci name
-    loci_list <- unlist(strsplit(loci_name, "_")) # break the alignment name into bits
-    max_ind <- grep("bootstrapReplicate",loci_list) - 1 # which ind is the bootstrapReplicate at?
-    loci_list <- loci_list[1:max_ind] # get only parts of alignment name
-    loci_name <- paste(loci_list,collapse="_") # squash the alignment name together
-    # Extract the dataset name (basename of alignment folder: element after second-last "/" in alignment_folder)
-    dataset <- dataset_name
-  }
   
-  if (bootstrap_id == "alignment"){
-    # If this is not a bootstrap replicate, you need to create a folder to store the program logs in
-    # Otherwise they will get overwritten for each locus you run - this means you can keep them for late
-    log_folder <- paste0(alignment_folder,loci_name,"/")
-    # make a rep id - e.g. an id to store in output df so you can identify what's a simulation and what's from empirical data
-    rep_id <- loci_name
-  } else {
-    # If the run is a bootstrap replicate, you can just save the information in its folder (only 1 alignment per folder in bootstrap replicate folders)
-    log_folder <- alignment_folder
-    # make a rep id - e.g. an id to store in output df so you can identify what's a simulation and what's from empirical data
-    rep_id <- bootstrap_id
-  }
-  
-  
-  # If the log file doesn't exist, create it 
-  if (dir.exists(log_folder) == FALSE){
-    dir.create(log_folder) # create a new folder to store the log files from the executables for this loci in
-  }
-  
-  # Open the nexus file and get the number of taxa and the number of characters 
-  file_name_list <- strsplit(basename(alignment_path),"\\.")[[1]]
-  file_extension <- file_name_list[length(file_name_list)]
-  
-  if (file_extension == "nex" | file_extension == "nexus"){
-    n <- read.nexus.data(alignment_path)
-    n_taxa <- length(n)
-    n_char <- length(unlist(n[1]))
-  } else if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | file_extension == "faa" | file_extension == "frn"){
-    f <- read.fasta(file = alignment_path)
-    n_taxa <- length(f)
-    n_char <- length(unlist(f[1]))
-  }
-  
-  
-  # Run IQ-tree on the alignment (if it hasn't already been run)
-  call.IQTREE.empirical(alignment_path, iqtree_path = program_paths["IQTree"], iqtree.model, num_threads = iqtree.num_threads)
-  initial_iqtree_tree <- paste0(alignment_path,".treefile")
-  
-  # Change to the log (storage for log files) folder for this alignment - means that 3seq and Phi files will be saved into a unique folder
-  setwd(log_folder)
-  
-  # Only run 3SEQ and collect sCF values if the path is an alignment (don't need bootstrap replicates for 3SEQ/sCF)
-  if (bootstrap_id == "alignment"){
-    # Check if 3SEQ has already been run. Only run 3SEQ if the log file doesn't exist
-    if (file.exists(paste0(log_folder,"3s.log")) == FALSE){
-      if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | file_extension == "faa" | file_extension == "frn"){
-        # 3SEQ only reads in phylip or fasta format - if the alignment is already in that format, call 3SEQ on the alignment
-        seq_command <- paste0(seq_path," -f ", alignment_path)
-        system(seq_command) #call 3SEQ
-      } else if (file_extension == "nex" | file_extension == "nexus"){
-        # 3SEQ only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
-        # Assemble a name for a copy of the alignment as a fasta file
-        fasta.name <- gsub(file_extension, ".fasta", alignment_path)
-        # Check if the fasta file already exists
-        if (file.exists(fasta.name) == FALSE){
-          # If the fasta version doesn't exist, write out the nexus sequence in fasta formt
-          n <- read.nexus.data(alignment_path)
-          write.fasta(sequences = n, names = names(n), file.out = fasta.name) # output alignment as a fasta format
-        }
-        # There is now a definitely a fasta format version of this alignment
-        # Assemble the 3SEQ command using the new fasta alignment
-        seq_command <- paste0(seq_path, " -f ", fasta.name)
-        # Call 3SEQ
-        system(seq_command)
-      }
-    }
-    # Now, collect the results from the 3SEQ log file
-    seq_file <- paste0(log_folder,"3s.log")
-    seq_log <- readLines(seq_file) # open file
-    ind      <- grep("Number of recombinant triplets",seq_log) # find the number of recombinant triplets line index
-    num_trips <- seq_log[ind]
-    num_trips <- strsplit(num_trips,":")[[1]][2] # extract the number of recombinant triplets
-    num_trips <- trimws(num_trips) # trim the whitespace from the number of triplets
-    ind      <- grep("Number of distinct recombinant sequences",seq_log) # find the number of distinct recombinant sequences line index
-    num_dis <- seq_log[ind]
-    num_dis <- strsplit(num_dis,":")[[1]][2] # extract the number of distinct recombinant sequences
-    num_dis <- trimws(num_dis) # trim the whitespace from the number of distinct recombinant sequences
-    # null hypothesis is of clonal evolution - need significant p-value to accept the alternative hypothesis
-    ind      <- grep("Rejection of the null hypothesis of clonal evolution",seq_log) # find the p value line index
-    seq_sig <- seq_log[ind]
-    seq_sig <- strsplit(seq_sig,"=")[[1]][2] # extract the p value
-    seq_sig <- trimws(seq_sig) # trim the whitespace from the number of distinct recombinant sequences
-    # record proportion of recombinant sequences
-    prop_recomb_seq <- as.numeric(num_dis)/as.numeric(n_taxa)
-    
-    # Calculate the site concordance factor results
-    # Run IQ-tree on the alignment (if it hasn't already been run), and get the site concordance factor results
-    sCF <- calculate.empirical.sCF(alignment_path, iqtree_path = program_paths["IQTree"], iqtree.model, num_threads = iqtree.num_threads, num_scf_quartets = iqtree.num_quartets)
-    scf_mean_value <- sCF$mean_scf
-    scf_median_value <- sCF$median_scf
-  } else {
-    # If this is a bootstrap replicate, don't need either the sCF or the 3SEQ values
-    # These are recorded from the original alignment
-    num_trips <- "NA"
-    num_dis <- "NA"
-    seq_sig <- "NA"
-    prop_recomb_seq <- "NA"
-    scf_mean_value <- "NA"
-    scf_median_value <- "NA"
-  }
-  
-  # Change back to directory containing alignments and iqtree files
-  setwd(alignment_folder)
-  
-  # Run trimmed version of the NeighborNet tree proportion
-  # Call the test statistic functions
-  initial_iqtree_tree <- paste0(alignment_path,".treefile")
-  nn_trimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]],
-                                path = alignment_path, network_algorithm = "neighbournet", trimmed = TRUE,
-                                tree_path = initial_iqtree_tree, run_IQTREE = FALSE, seq_type = alphabet)
-  
-  
-  # Name the test statistics file using the output id (this way if it's a  bootstrap replicate, it adds the replicate number!)
-  print(paste0("output results for ",output_id))
+  # Make the name for the testStatistics output file for this alignment
   results_file <- paste0(alignment_folder,output_id,"_testStatistics.csv")
-  # Make somewhere to store the results
-  df_names <- c("dataset", "loci", "bootstrap_replicate_id", "n_taxa", "n_sites", "alignment_file",
-                "3SEQ_num_recombinant_triplets", "3SEQ_num_distinct_recombinant_sequences", "3SEQ_prop_recombinant_sequences", "3SEQ_p_value",
-                "tree_proportion","sCF_mean", "sCF_median")
-  df <- data.frame(matrix(nrow=0,ncol=length(df_names))) # create an empty dataframe of the correct size
-  op_row <- c(dataset, loci_name, rep_id, n_taxa, n_char, alignment_path,
-              num_trips, num_dis, prop_recomb_seq, seq_sig,
-              nn_trimmed, scf_mean_value, scf_median_value) # collect all the information
-  df <- rbind(df,op_row,stringsAsFactors = FALSE) # place row in dataframe
-  names(df) <- df_names # add names to the df so you know what's what
-  write.csv(df,file = results_file, row.names = FALSE)
-  
-  if (bootstrap_id == "alignment"){
-    # Repeat the above to create an output folder for the sCF values
-    print(paste0("output sCF values for ",output_id))
-    results_file <- paste0(alignment_folder,output_id,"_sCF_branch.csv")
+  # Check if the testStatistics.csv file for this alignment already exists
+  if (file.exists(results_file) == FALSE){
+    # If the testStatistics.csv doesn't exist, run the test statistics and collate the results
+    
+    # Create some folder and filenames
+    if (bootstrap_id == "alignment"){
+      # Get the alignment name and remove the extension to get the loci name
+      loci_name <- output_id
+      # Extract the dataset name (basename of alignment folder: element after last "/" in alignment_folder)
+      dataset <- dataset_name
+    } else {
+      # If the alignment is a bootstrap replicate, need to remove the bootstrap rep number to get the loci name
+      loci_name <- output_id # get the basis of the loci name
+      loci_list <- unlist(strsplit(loci_name, "_")) # break the alignment name into bits
+      max_ind <- grep("bootstrapReplicate",loci_list) - 1 # which ind is the bootstrapReplicate at?
+      loci_list <- loci_list[1:max_ind] # get only parts of alignment name
+      loci_name <- paste(loci_list,collapse="_") # squash the alignment name together
+      # Extract the dataset name (basename of alignment folder: element after second-last "/" in alignment_folder)
+      dataset <- dataset_name
+    }
+    
+    if (bootstrap_id == "alignment"){
+      # If this is not a bootstrap replicate, you need to create a folder to store the program logs in
+      # Otherwise they will get overwritten for each locus you run - this means you can keep them for late
+      log_folder <- paste0(alignment_folder,loci_name,"/")
+      # make a rep id - e.g. an id to store in output df so you can identify what's a simulation and what's from empirical data
+      rep_id <- loci_name
+    } else {
+      # If the run is a bootstrap replicate, you can just save the information in its folder (only 1 alignment per folder in bootstrap replicate folders)
+      log_folder <- alignment_folder
+      # make a rep id - e.g. an id to store in output df so you can identify what's a simulation and what's from empirical data
+      rep_id <- bootstrap_id
+    }
+    
+    
+    # If the log file doesn't exist, create it 
+    if (dir.exists(log_folder) == FALSE){
+      dir.create(log_folder) # create a new folder to store the log files from the executables for this loci in
+    }
+    
+    # Open the nexus file and get the number of taxa and the number of characters 
+    file_name_list <- strsplit(basename(alignment_path),"\\.")[[1]]
+    file_extension <- file_name_list[length(file_name_list)]
+    
+    if (file_extension == "nex" | file_extension == "nexus"){
+      n <- read.nexus.data(alignment_path)
+      n_taxa <- length(n)
+      n_char <- length(unlist(n[1]))
+    } else if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | file_extension == "faa" | file_extension == "frn"){
+      f <- read.fasta(file = alignment_path)
+      n_taxa <- length(f)
+      n_char <- length(unlist(f[1]))
+    }
+    
+    
+    # Run IQ-tree on the alignment (if it hasn't already been run)
+    call.IQTREE.empirical(alignment_path, iqtree_path = program_paths["IQTree"], iqtree.model, num_threads = iqtree.num_threads)
+    initial_iqtree_tree <- paste0(alignment_path,".treefile")
+    
+    # Change to the log (storage for log files) folder for this alignment - means that 3seq and Phi files will be saved into a unique folder
+    setwd(log_folder)
+    
+    # Only run 3SEQ and collect sCF values if the path is an alignment (don't need bootstrap replicates for 3SEQ/sCF)
+    if (bootstrap_id == "alignment"){
+      # Check if 3SEQ has already been run. Only run 3SEQ if the log file doesn't exist
+      if (file.exists(paste0(log_folder,"3s.log")) == FALSE){
+        if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | file_extension == "faa" | file_extension == "frn"){
+          # 3SEQ only reads in phylip or fasta format - if the alignment is already in that format, call 3SEQ on the alignment
+          seq_command <- paste0(seq_path," -f ", alignment_path)
+          system(seq_command) #call 3SEQ
+        } else if (file_extension == "nex" | file_extension == "nexus"){
+          # 3SEQ only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
+          # Assemble a name for a copy of the alignment as a fasta file
+          fasta.name <- gsub(file_extension, ".fasta", alignment_path)
+          # Check if the fasta file already exists
+          if (file.exists(fasta.name) == FALSE){
+            # If the fasta version doesn't exist, write out the nexus sequence in fasta formt
+            n <- read.nexus.data(alignment_path)
+            write.fasta(sequences = n, names = names(n), file.out = fasta.name) # output alignment as a fasta format
+          }
+          # There is now a definitely a fasta format version of this alignment
+          # Assemble the 3SEQ command using the new fasta alignment
+          seq_command <- paste0(seq_path, " -f ", fasta.name)
+          # Call 3SEQ
+          system(seq_command)
+        }
+      }
+      # Now, collect the results from the 3SEQ log file
+      seq_file <- paste0(log_folder,"3s.log")
+      seq_log <- readLines(seq_file) # open file
+      ind      <- grep("Number of recombinant triplets",seq_log) # find the number of recombinant triplets line index
+      num_trips <- seq_log[ind]
+      num_trips <- strsplit(num_trips,":")[[1]][2] # extract the number of recombinant triplets
+      num_trips <- trimws(num_trips) # trim the whitespace from the number of triplets
+      ind      <- grep("Number of distinct recombinant sequences",seq_log) # find the number of distinct recombinant sequences line index
+      num_dis <- seq_log[ind]
+      num_dis <- strsplit(num_dis,":")[[1]][2] # extract the number of distinct recombinant sequences
+      num_dis <- trimws(num_dis) # trim the whitespace from the number of distinct recombinant sequences
+      # null hypothesis is of clonal evolution - need significant p-value to accept the alternative hypothesis
+      ind      <- grep("Rejection of the null hypothesis of clonal evolution",seq_log) # find the p value line index
+      seq_sig <- seq_log[ind]
+      seq_sig <- strsplit(seq_sig,"=")[[1]][2] # extract the p value
+      seq_sig <- trimws(seq_sig) # trim the whitespace from the number of distinct recombinant sequences
+      # record proportion of recombinant sequences
+      prop_recomb_seq <- as.numeric(num_dis)/as.numeric(n_taxa)
+      
+      # Calculate the site concordance factor results
+      # Run IQ-tree on the alignment (if it hasn't already been run), and get the site concordance factor results
+      sCF <- calculate.empirical.sCF(alignment_path, iqtree_path = program_paths["IQTree"], iqtree.model, num_threads = iqtree.num_threads, num_scf_quartets = iqtree.num_quartets)
+      scf_mean_value <- sCF$mean_scf
+      scf_median_value <- sCF$median_scf
+    } else {
+      # If this is a bootstrap replicate, don't need either the sCF or the 3SEQ values
+      # These are recorded from the original alignment
+      num_trips <- "NA"
+      num_dis <- "NA"
+      seq_sig <- "NA"
+      prop_recomb_seq <- "NA"
+      scf_mean_value <- "NA"
+      scf_median_value <- "NA"
+    }
+    
+    # Change back to directory containing alignments and iqtree files
+    setwd(alignment_folder)
+    
+    # Run trimmed version of the NeighborNet tree proportion
+    # Call the test statistic functions
+    initial_iqtree_tree <- paste0(alignment_path,".treefile")
+    nn_trimmed <- tree.proportion(iqpath = program_paths[["IQTree"]], splitstree_path = program_paths[["SplitsTree"]],
+                                  path = alignment_path, network_algorithm = "neighbournet", trimmed = TRUE,
+                                  tree_path = initial_iqtree_tree, run_IQTREE = FALSE, seq_type = alphabet)
+    
+    
+    # Name the test statistics file using the output id (this way if it's a  bootstrap replicate, it adds the replicate number!)
+    print(paste0("output results for ",output_id))
+    results_file <- paste0(alignment_folder,output_id,"_testStatistics.csv")
     # Make somewhere to store the results
-    op_row <- c(dataset,loci_name,rep_id,n_taxa,n_char,alignment_path,sCF$all_scfs) # collect all the information
-    df <- data.frame(matrix(nrow=0,ncol=length(op_row))) # create an empty dataframe of the correct size
-    df_names <- c("dataset","loci","bootstrap_replicate_id","n_taxa","n_sites","alignment_file", sCF$branch_ids)
+    df_names <- c("dataset", "loci", "bootstrap_replicate_id", "n_taxa", "n_sites", "alignment_file",
+                  "3SEQ_num_recombinant_triplets", "3SEQ_num_distinct_recombinant_sequences", "3SEQ_prop_recombinant_sequences", "3SEQ_p_value",
+                  "tree_proportion","sCF_mean", "sCF_median")
+    df <- data.frame(matrix(nrow=0,ncol=length(df_names))) # create an empty dataframe of the correct size
+    op_row <- c(dataset, loci_name, rep_id, n_taxa, n_char, alignment_path,
+                num_trips, num_dis, prop_recomb_seq, seq_sig,
+                nn_trimmed, scf_mean_value, scf_median_value) # collect all the information
     df <- rbind(df,op_row,stringsAsFactors = FALSE) # place row in dataframe
     names(df) <- df_names # add names to the df so you know what's what
     write.csv(df,file = results_file, row.names = FALSE)
+    
+    if (bootstrap_id == "alignment"){
+      # Repeat the above to create an output folder for the sCF values
+      print(paste0("output sCF values for ",output_id))
+      results_file <- paste0(alignment_folder,output_id,"_sCF_branch.csv")
+      # Make somewhere to store the results
+      op_row <- c(dataset,loci_name,rep_id,n_taxa,n_char,alignment_path,sCF$all_scfs) # collect all the information
+      df <- data.frame(matrix(nrow=0,ncol=length(op_row))) # create an empty dataframe of the correct size
+      df_names <- c("dataset","loci","bootstrap_replicate_id","n_taxa","n_sites","alignment_file", sCF$branch_ids)
+      df <- rbind(df,op_row,stringsAsFactors = FALSE) # place row in dataframe
+      names(df) <- df_names # add names to the df so you know what's what
+      write.csv(df,file = results_file, row.names = FALSE)
+    }
   }
 }
 
