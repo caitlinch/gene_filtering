@@ -87,11 +87,11 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
   file_name_list <- strsplit(basename(alignment_path),"\\.")[[1]]
   file_extension <- file_name_list[length(file_name_list)]
   
-  if (file_extension == ".nex" | file_extension == ".nexus"){
+  if (file_extension == "nex" | file_extension == "nexus"){
     n <- read.nexus.data(alignment_path)
     n_taxa <- length(n)
     n_char <- length(unlist(n[1]))
-  } else if (file_extension == ".fasta" | file_extension == ".fa" | file_extension == ".fna" | file_extension == ".ffn" | file_extension == ".faa" | file_extension == ".frn"){
+  } else if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | file_extension == "faa" | file_extension == "frn"){
     f <- read.fasta(file = alignment_path)
     n_taxa <- length(f)
     n_char <- length(unlist(f[1]))
