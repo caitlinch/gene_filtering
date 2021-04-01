@@ -106,7 +106,9 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
     
     
     # Run IQ-tree on the alignment (if it hasn't already been run)
-    call.IQTREE.empirical(alignment_path, iqtree_path = program_paths["IQTree"], iqtree.model, num_threads = iqtree.num_threads)
+    if (file.exists(paste0(alignment_path, ".iqtree")) == FALSE){
+      call.IQTREE.empirical(alignment_path, iqtree_path = program_paths["IQTree"], iqtree.model, num_threads = iqtree.num_threads) 
+    }
     initial_iqtree_tree <- paste0(alignment_path,".treefile")
     
     # Change to the log (storage for log files) folder for this alignment - means that 3seq and Phi files will be saved into a unique folder
@@ -118,7 +120,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
       if (file.exists(paste0(log_folder,"3s.log")) == FALSE){
         if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | file_extension == "faa" | file_extension == "frn"){
           # 3SEQ only reads in phylip or fasta format - if the alignment is already in that format, call 3SEQ on the alignment
-          seq_command <- paste0(seq_path," -f ", alignment_path)
+          seq_command <- paste0(program_paths[["3seq"]]," -f ", alignment_path)
           system(seq_command) #call 3SEQ
         } else if (file_extension == "nex" | file_extension == "nexus"){
           # 3SEQ only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
@@ -132,7 +134,7 @@ empirical.runTS <- function(alignment_path, program_paths, bootstrap_id, iqtree.
           }
           # There is now a definitely a fasta format version of this alignment
           # Assemble the 3SEQ command using the new fasta alignment
-          seq_command <- paste0(seq_path, " -f ", fasta.name)
+          seq_command <- paste0(program_paths[["3seq"]], " -f ", fasta.name)
           # Call 3SEQ
           system(seq_command)
         }
@@ -279,8 +281,21 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
     #     - copy the sequence out from the new alignment: temp <- as.numeric(new_aln$X)
     #     - replace the non 18s with the generated sequence of the right length: temp[which(new_aln$X !=18)] <- new_seq
     #     - replace the new seq into the new aln: new_aln$X <- temp
+    file_name_list <- strsplit(basename(empirical_alignment_path),"\\.")[[1]]
+    file_extension <- file_name_list[length(file_name_list)]
+    # Open the nexus file
+    if (file_extension == "nex" | file_extension == "nexus"){
+      n <- read.nexus.data(alignment_path)
+      n_taxa <- length(n)
+      n_char <- length(unlist(n[1]))
+    } else if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | file_extension == "faa" | file_extension == "frn"){
+      # If the fasta file was used for the gene tree estimation, switch and open the nexus file to copy the gaps across
+      nexus_name <- gsub(file_extension, "nex", empirical_alignment_path)
+      n <- read.nexus.data(nexus_name)
+      n_taxa <- length(n)
+      n_char <- length(unlist(n[1]))
+    }
     # Open the new alignment as a nexus file
-    n <- read.nexus.data(empirical_alignment_path)
     n_new <- read.nexus.data(shuffled_alignment_path)
     # Get the names of all the sequences
     seq_names <- names(n_new)
@@ -367,7 +382,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
   gamma_categories_file <- paste0(alignment_folder,loci_name,"_gammaCategories.csv")
   aa_frequency_file <- paste0(alignment_folder,loci_name,"_amino_acid_frequencies.csv")
   rate_matrix_file <- paste0(alignment_folder,loci_name,"_QRateMatrix.csv")
-  ts_file <- paste0(dirname(empirical_alignment_path),"/",loci_name,"_testStatistics.csv")
+  ts_file <- paste0(alignment_folder,loci_name,"_testStatistics.csv")
   
   # Only run this section if the p-value csv has not been created yet (skip reruns)
   if (file.exists(p_value_file) == FALSE){
@@ -386,7 +401,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     }
     
     # Remove characters that IQ-Tree won't accept from the alignment
-    # Leave only A,C,G,N,T,-
+    # Leave only A,C,G,N,T,- for DNA
     if (loci_row$alphabet == "dna"){
       invalid_character_check <- check.invalid.nexus.characters(empirical_alignment_path, loci_row$alphabet)
     } else if (loci_row$alphabet == "protein"){

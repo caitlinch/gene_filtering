@@ -94,8 +94,8 @@ print("set filepaths")
 # three_trees_path <- ""
 
 ### Caitlin's paths ###
-# run_location = "local"
-run_location = "server"
+run_location = "local"
+#run_location = "server"
 
 if (run_location == "local"){
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
@@ -119,8 +119,8 @@ if (run_location == "local"){
   
   # set number of cores and reps for bootstraps
   cores_to_use = 1
-  cores_for_iqtree = 1
-  reps_to_do = 6
+  cores_for_iqtree = "AUTO"
+  reps_to_do = 3
   sCF_replicates = 1000
   
   # Select datasets to run analysis and collect results
