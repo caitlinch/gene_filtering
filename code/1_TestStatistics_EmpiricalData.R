@@ -268,11 +268,6 @@ if ("Vanderpool2020" %in% datasets_to_run){
   lapply(V_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
          iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
 }
-if ("Misof2014" %in% datasets_to_run){
-  M_ids <- which(loci_df$dataset == "Misof2014")
-  lapply(M_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
-         iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
-}
 if ("1KP" %in% datasets_to_run){
   O_ids <- which(loci_df$dataset == "1KP")
   lapply(O_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
