@@ -232,8 +232,14 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
   if (dir.exists(bootstrap_folder) == FALSE){
     dir.create(bootstrap_folder)
   }
-  shuffled_alignment_path <- paste0(bootstrap_folder,bootstrap_name,"_shuffled_noGaps.nex")
-  bootstrap_alignment_path <- paste0(bootstrap_folder,bootstrap_name,".nex")
+  
+  # Get the file extension of the empirical alignment path
+  file_name_list <- strsplit(basename(empirical_alignment_path),"\\.")[[1]]
+  file_extension <- file_name_list[length(file_name_list)]
+  
+  # Make the file names for the files created by this function
+  shuffled_alignment_path <- paste0(bootstrap_folder,bootstrap_name,"_shuffled_noGaps.",file_extension)
+  bootstrap_alignment_path <- paste0(bootstrap_folder,bootstrap_name,".",file_extension)
   empirical_alignment_tree_path <- paste0(empirical_alignment_path,".treefile")
   empirical_alignment_tree <- read.tree(empirical_alignment_tree_path)
   
@@ -255,24 +261,38 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
     new_aln_df <- new_aln_df[sample(nrow(new_aln_df)),] # sample the rows randomly (this will randomly distribute the gamma categories throughout)
     rownames(new_aln_df) <- 1:nrow(new_aln_df) # reset the row names as 1:nrows (they got mixed up when the sampling occurred)
     # Turn the dataframe back into an alignment:
-    if (empirical_alignment_row$alphabet == "dna"){
-      new_aln_shuffled <- as.phyDat(new_aln_df, type = "DNA")
-      #write the shuffled alignment to disk
-      write.phyDat(new_aln_shuffled, file = shuffled_alignment_path, format = "nexus", interleave = TRUE)
-      # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
-      nexus_edit <- readLines(shuffled_alignment_path) # open the new nexus file
-      ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
-      nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
-      writeLines(nexus_edit,shuffled_alignment_path) # output the edited nexus file
-    } else if (empirical_alignment_row$alphabet == "protein"){
-      new_aln_shuffled <- as.phyDat(new_aln_df, type = "AA")
-      #write the shuffled alignment to disk
-      write.phyDat(new_aln_shuffled, file = shuffled_alignment_path, format = "nexus", interleave = TRUE)
-      # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
-      nexus_edit <- readLines(shuffled_alignment_path) # open the new nexus file
-      ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
-      nexus_edit[ind] <- "  FORMAT DATATYPE=PROTEIN MISSING=? GAP=- INTERLEAVE;" # replace the line
-      writeLines(nexus_edit,shuffled_alignment_path) # output the edited nexus file
+    if (file_extension == "nex" | file_extension == "nexus"){
+      if (empirical_alignment_row$alphabet == "dna"){
+        new_aln_shuffled <- as.phyDat(new_aln_df, type = "DNA")
+        #write the shuffled alignment to disk
+        write.phyDat(new_aln_shuffled, file = shuffled_alignment_path, format = "nexus", interleave = TRUE)
+        # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
+        nexus_edit <- readLines(shuffled_alignment_path) # open the new nexus file
+        ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
+        nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
+        writeLines(nexus_edit,shuffled_alignment_path) # output the edited nexus file
+      } else if (empirical_alignment_row$alphabet == "protein"){
+        new_aln_shuffled <- as.phyDat(new_aln_df, type = "AA")
+        #write the shuffled alignment to disk
+        write.phyDat(new_aln_shuffled, file = shuffled_alignment_path, format = "nexus", interleave = TRUE)
+        # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
+        nexus_edit <- readLines(shuffled_alignment_path) # open the new nexus file
+        ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
+        nexus_edit[ind] <- "  FORMAT DATATYPE=PROTEIN MISSING=? GAP=- INTERLEAVE;" # replace the line
+        writeLines(nexus_edit,shuffled_alignment_path) # output the edited nexus file
+      }
+      
+    } else if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | 
+                file_extension == "ffn" | file_extension == "faa" | file_extension == "frn"){
+      if (empirical_alignment_row$alphabet == "dna"){
+        new_aln_shuffled <- as.phyDat(new_aln_df, type = "DNA")
+        #write the shuffled alignment to disk
+        write.phyDat(new_aln_shuffled, file = shuffled_alignment_path, format = "fasta", colsep = "")
+      } else if (empirical_alignment_row$alphabet == "protein"){
+        new_aln_shuffled <- as.phyDat(new_aln_df, type = "AA")
+        #write the shuffled alignment to disk
+        write.phyDat(new_aln_shuffled, file = shuffled_alignment_path, format = "fasta", colsep = "")
+      }
     }
     
     # Third, mask each alignment with the gaps and unknown characters from the original sequence 
@@ -281,55 +301,84 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
     #     - copy the sequence out from the new alignment: temp <- as.numeric(new_aln$X)
     #     - replace the non 18s with the generated sequence of the right length: temp[which(new_aln$X !=18)] <- new_seq
     #     - replace the new seq into the new aln: new_aln$X <- temp
-    file_name_list <- strsplit(basename(empirical_alignment_path),"\\.")[[1]]
-    file_extension <- file_name_list[length(file_name_list)]
-    # Open the nexus file
+    # If nexus file used for tree estimation, open the nexus file and recreate the gaps
     if (file_extension == "nex" | file_extension == "nexus"){
-      n <- read.nexus.data(alignment_path)
+      n <- read.nexus.data(empirical_alignment_path)
       n_taxa <- length(n)
       n_char <- length(unlist(n[1]))
-    } else if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | file_extension == "faa" | file_extension == "frn"){
-      # If the fasta file was used for the gene tree estimation, switch and open the nexus file to copy the gaps across
-      nexus_name <- gsub(file_extension, "nex", empirical_alignment_path)
-      n <- read.nexus.data(nexus_name)
-      n_taxa <- length(n)
-      n_char <- length(unlist(n[1]))
+      # Open the new alignment as a nexus file
+      n_new <- read.nexus.data(shuffled_alignment_path)
+      # Get the names of all the sequences
+      seq_names <- names(n_new)
+      print(paste0("number of names: ",length(seq_names)))
+      print(paste0("number of unique names: ",length(unique(seq_names))))
+      # Iterate through the names and add the gaps from the original sequence into the bootstrap sequence
+      for (seq_name in seq_names){
+        original_seq <- n[[seq_name]] # get the original empirical sequence
+        new_seq <- n_new[[seq_name]] # get the new simulated sequence that has the same name
+        gap_inds <- which(original_seq == "-") # find out which sites are a gap in the original alignment
+        unknown_inds <- which(original_seq == "?") # find out which sites are unknown in the original alignment
+        new_seq[gap_inds] <- "-" # add the gaps into the simulated alignment
+        new_seq[unknown_inds] <- "?" # add the unknowns into the simulated alignment
+        n_new[[seq_name]] <- new_seq
+      }
+      # Output the final alignment (same parameters and gaps as input alignment) as a nexus file
+      print("output nexus file")
+      if (empirical_alignment_row$alphabet == "dna"){
+        # write out the nexus with the gaps added
+        write.nexus.data(n_new,file = bootstrap_alignment_path, format = "dna", interleaved = TRUE)
+        # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
+        nexus_edit <- readLines(bootstrap_alignment_path) # open the new nexus file
+        ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
+        nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
+        writeLines(nexus_edit,bootstrap_alignment_path) # output the edited nexus file
+      } else if (empirical_alignment_row$alphabet == "protein"){
+        # write out the nexus with the gaps added
+        write.nexus.data(n_new,file = bootstrap_alignment_path, format = "protein", interleaved = TRUE)
+        # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
+        nexus_edit <- readLines(bootstrap_alignment_path) # open the new nexus file
+        ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
+        nexus_edit[ind] <- "  FORMAT DATATYPE=PROTEIN MISSING=? GAP=- INTERLEAVE;" # replace the line
+        writeLines(nexus_edit,bootstrap_alignment_path) # output the edited nexus file
+      }
+      
+    } else if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" |
+               file_extension == "ffn" | file_extension == "faa" | file_extension == "frn"){
+      # If the fasta file was used for the gene tree estimation, open the fasta file and recreate the gaps
+      if (empirical_alignment_row$alphabet == "dna"){
+        fasta_type = "DNA"
+      } else if (empirical_alignment_row$alphabet == "protein"){
+        fasta_type = "AA"
+      }
+      f <- read.fasta(empirical_alignment_path, seqtype = fasta_type)
+      n_taxa <- length(f)
+      n_char <- length(unlist(f[1]))
+      # Open the new alignment as a nexus file
+      f_new <- read.fasta(shuffled_alignment_path, seqtype = fasta_type)
+      # Get the names of all the sequences
+      seq_names <- names(f_new)
+      print(paste0("number of names: ",length(seq_names)))
+      print(paste0("number of unique names: ",length(unique(seq_names))))
+      # Iterate through the names
+      for (seq_name in seq_names){
+        original_seq <- f[[seq_name]] # get the original empirical sequence
+        new_seq <- f_new[[seq_name]] # get the new simulated sequence that has the same name
+        gap_inds <- which(original_seq == "-") # find out which sites are a gap in the original alignment
+        unknown_inds <- which(original_seq == "?") # find out which sites are unknown in the original alignment
+        new_seq[gap_inds] <- "-" # add the gaps into the simulated alignment
+        new_seq[unknown_inds] <- "?" # add the unknowns into the simulated alignment
+        f_new[[seq_name]] <- new_seq
+      }
+      # Save the bootstrap alignment with the gaps added in the same place as in the original alignment
+      if (empirical_alignment_row$alphabet == "dna"){
+        #write the alignment with gaps to disk
+        write.fasta(f_new, seq_names, file.out = bootstrap_alignment_path, )
+      } else if (empirical_alignment_row$alphabet == "protein"){
+        #write the alignment with gaps to disk
+        write.fasta(f_new, seq_names, file.out = bootstrap_alignment_path)
+      }
     }
-    # Open the new alignment as a nexus file
-    n_new <- read.nexus.data(shuffled_alignment_path)
-    # Get the names of all the sequences
-    seq_names <- names(n_new)
-    print(paste0("number of names: ",length(seq_names)))
-    print(paste0("number of unique names: ",length(unique(seq_names))))
-    # Iterate through the names
-    for (seq_name in seq_names){
-      original_seq <- n[[seq_name]] # get the original empirical sequence
-      new_seq <- n_new[[seq_name]] # get the new simulated sequence that has the same name
-      gap_inds <- which(original_seq == "-") # find out which sites are a gap in the original alignment
-      unknown_inds <- which(original_seq == "?") # find out which sites are unknown in the original alignment
-      new_seq[gap_inds] <- "-" # add the gaps into the simulated alignment
-      new_seq[unknown_inds] <- "?" # add the unknowns into the simulated alignment
-      n_new[[seq_name]] <- new_seq
-    }
-    # Output the final alignment (same parameters and gaps as input alignment) as a nexus file
-    print("output nexus file")
-    if (empirical_alignment_row$alphabet == "dna"){
-      # write out the nexus with the gaps added
-      write.nexus.data(n_new,file = bootstrap_alignment_path, format = "dna", interleaved = TRUE)
-      # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
-      nexus_edit <- readLines(bootstrap_alignment_path) # open the new nexus file
-      ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
-      nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
-      writeLines(nexus_edit,bootstrap_alignment_path) # output the edited nexus file
-    } else if (empirical_alignment_row$alphabet == "protein"){
-      # write out the nexus with the gaps added
-      write.nexus.data(n_new,file = bootstrap_alignment_path, format = "protein", interleaved = TRUE)
-      # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
-      nexus_edit <- readLines(bootstrap_alignment_path) # open the new nexus file
-      ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
-      nexus_edit[ind] <- "  FORMAT DATATYPE=PROTEIN MISSING=? GAP=- INTERLEAVE;" # replace the line
-      writeLines(nexus_edit,bootstrap_alignment_path) # output the edited nexus file
-    }
+    
   }
   # Run all the test statistics
   # bootstrap_id will be "bootstrapReplicateXXXX" where XXXX is a number
