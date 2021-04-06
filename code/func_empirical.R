@@ -400,12 +400,14 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
       prune.taxa.by.length(empirical_alignment_path, loci_row$allowable_proportion_missing_sites, loci_row$alphabet, write_output_text = TRUE, alignment_folder)
     }
     
-    # Remove characters that IQ-Tree won't accept from the alignment
-    # Leave only A,C,G,N,T,- for DNA
-    if (loci_row$alphabet == "dna"){
+    # If the alignment file is a nexus file, make sure that it doesn't contain any characters that aren't allowed in the format (e.g. R and Y for nexus DNA files)
+    # If it is a fasta file, ignore this setion and just fun the fasta file
+    file_type <- tail(strsplit(empirical_alignment_path,"\\.")[[1]],1)
+    if (file_type == "nex" || file_type == "nexus" || file_type == "nxs"){
       invalid_character_check <- check.invalid.nexus.characters(empirical_alignment_path, loci_row$alphabet)
-    } else if (loci_row$alphabet == "protein"){
-      invalid_character_check <- check.invalid.nexus.characters(empirical_alignment_path, loci_row$alphabet)
+    } else if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
+               file_type == "fa" || file_type == "ffn" || file_type == "frn") {
+      invalid_character_check <- "use_FASTA"
     }
     
     # Check whether IQ-Tree has been run
@@ -413,12 +415,22 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
       print("need to run IQ-Tree")
       # Run IQ-tree on the alignment (if it hasn't already been run), and get the sCF results
       print("run IQTree and estimate sCFs")
-      if (invalid_character_check == "contains_ambiguous_characters-use_FASTA"){
-        # If the nexus file contains ambiguous characters that aren't permitted by the format, run IQ-Tree using the FASTA file
-        empirical_alignment_path <- gsub(".nex",".fasta",empirical_alignment_path)
-        scfs <- calculate.empirical.sCF(alignment_path = empirical_alignment_path, iqtree_path = program_paths[["IQTree"]], 
-                                        alignment_model = loci_row$best_model, num_threads = iqtree.num_threads, 
-                                        num_scf_quartets = iqtree.num_quartets)
+      if (invalid_character_check == "use_FASTA"){
+        if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
+            file_type == "fa" || file_type == "ffn" || file_type == "frn"){
+          # If the file is already a fasta, call the function using the fasta file
+          scfs <- calculate.empirical.sCF(alignment_path = empirical_alignment_path, iqtree_path = program_paths[["IQTree"]], 
+                                          alignment_model = loci_row$best_model, num_threads = iqtree.num_threads, 
+                                          num_scf_quartets = iqtree.num_quartets)
+        } else if (file_type == "nex" || file_type == "nexus" || file_type == "nxs"){
+          # If the nexus file contains ambiguous characters that aren't permitted by the format, run IQ-Tree using the FASTA file
+          # Change the nexus file extension to a fasta file extension
+          empirical_alignment_path <- gsub(".nex",".fasta",empirical_alignment_path)
+          # Call the function using the newly selected fasta file
+          scfs <- calculate.empirical.sCF(alignment_path = empirical_alignment_path, iqtree_path = program_paths[["IQTree"]], 
+                                          alignment_model = loci_row$best_model, num_threads = iqtree.num_threads, 
+                                          num_scf_quartets = iqtree.num_quartets)
+        }
       } else {
         # If the nexus file doesn't contain any ambiguous characters, use the nexus file to run IQ-Tree
         scfs <- calculate.empirical.sCF(alignment_path = empirical_alignment_path, iqtree_path = program_paths[["IQTree"]], 
@@ -684,7 +696,18 @@ copy.alignment.as.nexus <- function(alignment_path, alignment_folder, loci_name,
       alignment_path <- new_path
     }
   }
-  return(new_path)
+  # Depending on which dataset you are using, return either the nexus path or the fasta path
+  if (loci_row$dataset == "Vanderpool2020"){
+    # Use nexus path
+    return_path = new_path
+  } else if (loci_row$dataset == "1KP"){
+    # Use fasta path
+    return_path = new_fasta_path
+  } else if (loci_row$datset == "Strassert2021"){
+    # use fasta path
+    return_path = new_fasta_path
+  }
+  return(return_path)
 }
 
 
@@ -740,34 +763,69 @@ copy.alignment.as.nexus.tpts <- function(alignment_path, alignment_folder, loci_
 
 # Function to remove empty sequences from a nexus file (either AA or DNA)
 remove.empty.taxa <- function(alignment_path, seq_type){
-  n <- read.nexus.data(alignment_path)
-  # Initialise a new sequence
-  copy_names <- c()
-  seq_names <- names(n)
-  # Iterate through the names and add non-missing sequences to the new sequence
-  for (seq_name in seq_names){
-    seq <- n[[seq_name]] # get the original empirical sequence
-    chars <- toupper(unique(seq))
-    if (setequal(chars,c("?")) || setequal(chars,c("-")) || setequal(chars,c("-","?")) || setequal(chars,c("X")) ||
-        setequal(chars,c("-", "X")) || setequal(chars,c("-", "N")) || setequal(chars,c("N"))){
-      # If the only characters are the empty character or the question mark character, ignore this sequence
-      next
-    } else {
-      # If the sequence contains genetic information, include it in the new sequence
-      copy_names <- c(copy_names,seq_name)
+  file_type <- tail(strsplit(alignment_path,"\\.")[[1]],1)
+  # If file is a nexus, open nexus and remove empty sequences
+  if (file_type == "nex" || file_type == "nexus" || file_type == "nxs"){
+    n <- read.nexus.data(alignment_path)
+    # Initialise a new sequence
+    copy_names <- c()
+    seq_names <- names(n)
+    # Iterate through the names and add non-missing sequences to the new sequence
+    for (seq_name in seq_names){
+      seq <- n[[seq_name]] # get the original empirical sequence
+      chars <- toupper(unique(seq))
+      if (setequal(chars,c("?")) || setequal(chars,c("-")) || setequal(chars,c("-","?")) || setequal(chars,c("X")) ||
+          setequal(chars,c("-", "X")) || setequal(chars,c("-", "N")) || setequal(chars,c("N"))){
+        # If the only characters are the empty character or the question mark character, ignore this sequence
+        next
+      } else {
+        # If the sequence contains genetic information, include it in the new sequence
+        copy_names <- c(copy_names,seq_name)
+      }
     }
+    n_new <- n[copy_names]
+    write.nexus.data(n_new,file = alignment_path, format = seq_type, interleaved = TRUE)
+    # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
+    nexus_edit <- readLines(alignment_path) # open the new nexus file
+    ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
+    if (seq_type == "dna"){
+      nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
+    } else if (seq_type == "protein"){
+      nexus_edit[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN INTERLEAVE;" # replace the line
+    }
+    writeLines(nexus_edit,alignment_path) # output the edited nexus file
+    
+  } else if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
+             file_type == "fa" || file_type == "ffn" || file_type == "frn") {
+    # Change seq_type to be the right parameters for opening a fasta file
+    if (seq_type == "dna"){
+      fasta_type = "DNA"
+    } else if (seq_type == "protein"){
+      fasta_type = "AA"
+    }
+    # If file is a fasta, open fasta and remove empty sequences
+    f <- read.fasta(alignment_path, fasta_type)
+    # Initialise a new sequence
+    copy_names <- c()
+    seq_names <- names(f)
+    # Iterate through the names and add non-missing sequences to the new sequence
+    for (seq_name in seq_names){
+      seq <- f[[seq_name]] # get the original empirical sequence
+      chars <- toupper(unique(seq))
+      if (setequal(chars,c("?")) || setequal(chars,c("-")) || setequal(chars,c("-","?")) || setequal(chars,c("X")) ||
+          setequal(chars,c("-", "X")) || setequal(chars,c("-", "N")) || setequal(chars,c("N"))){
+        # If the only characters are the empty character or the question mark character, ignore this sequence
+        next
+      } else {
+        # If the sequence contains genetic information, include it in the new sequence
+        copy_names <- c(copy_names,seq_name)
+      }
+    }
+    # Copy across the non-empty sequences
+    f_new <- f[copy_names]
+    # Write the new fasta file
+    write.fasta(f_new, copy_names, file.out = alignment_path, open = "w")
   }
-  n_new <- n[copy_names]
-  write.nexus.data(n_new,file = alignment_path, format = seq_type, interleaved = TRUE)
-  # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
-  nexus_edit <- readLines(alignment_path) # open the new nexus file
-  ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
-  if (seq_type == "dna"){
-    nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=- INTERLEAVE;" # replace the line
-  } else if (seq_type == "protein"){
-    nexus_edit[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN INTERLEAVE;" # replace the line
-  }
-  writeLines(nexus_edit,alignment_path) # output the edited nexus file
 }
 
 
@@ -781,32 +839,65 @@ prune.taxa.by.length <- function(alignment_path, proportion_allowed_missing, seq
   } else if (seq_type == "protein"){
     missing_chars <- "X|-|\\.|\\~|\\*|\\?"
   }
-  # Read in nexus file
-  n <- read.nexus.data(alignment_path)
-  # Initialise a new sequence
-  copy_names <- c()
-  seq_names <- names(n)
-  output_text <- c("Taxa, proportion_missing")
-  # Iterate through the names. If a sequence has more missing/ambiguous characters than the allowed proportion, do not include it
-  for (seq_name in seq_names){
-    seq <- toupper(n[[seq_name]]) # get the original empirical sequence
-    proportion_missing <- sum(lengths(regmatches(seq, gregexpr(missing_chars, seq))))/length(seq)
-    output_text <- c(output_text,paste0(seq_name," , ",proportion_missing))
-    if (proportion_missing<=proportion_allowed_missing){
-      copy_names <- c(copy_names,seq_name)
+  # Get file type
+  file_type <- tail(strsplit(alignment_path,"\\.")[[1]],1)
+  # If file is a nexus
+  if (file_type == "nex" || file_type == "nexus" || file_type == "nxs"){
+    # Read in nexus file
+    n <- read.nexus.data(alignment_path)
+    # Initialise a new sequence
+    copy_names <- c()
+    seq_names <- names(n)
+    output_text <- c("Taxa, proportion_missing")
+    # Iterate through the names. If a sequence has more missing/ambiguous characters than the allowed proportion, do not include it
+    for (seq_name in seq_names){
+      seq <- toupper(n[[seq_name]]) # get the original empirical sequence
+      proportion_missing <- sum(lengths(regmatches(seq, gregexpr(missing_chars, seq))))/length(seq)
+      output_text <- c(output_text,paste0(seq_name," , ",proportion_missing))
+      if (proportion_missing<=proportion_allowed_missing){
+        copy_names <- c(copy_names,seq_name)
+      }
     }
+    n_new <- n[copy_names]
+    write.nexus.data(n_new,file = alignment_path, format = seq_type, interleaved = FALSE)
+    # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
+    nexus_edit <- readLines(alignment_path) # open the new nexus file
+    ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
+    if (seq_type == "dna"){
+      nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=-;" # replace the line
+    } else if (seq_type == "protein"){
+      nexus_edit[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN;" # replace the line
+    }
+    writeLines(nexus_edit,alignment_path) # output the edited nexus file
+  } else if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
+             file_type == "fa" || file_type == "ffn" || file_type == "frn") {
+    # If file is a fasta:
+    # Change the type into one readable by read.fasta function
+    if (seq_type == "dna"){
+      fasta_type = "DNA"
+    } else if (seq_type == "protein"){
+      fasta_type = "AA"
+    }
+    # Open fasta
+    f <- read.fasta(alignment_path, fasta_type)
+    # Initialise a new sequence
+    copy_names <- c()
+    seq_names <- names(f)
+    output_text <- c("Taxa, proportion_missing")
+    # Iterate through the names. If a sequence has more missing/ambiguous characters than the allowed proportion, do not include it
+    for (seq_name in seq_names){
+      seq <- toupper(f[[seq_name]]) # get the original empirical sequence
+      proportion_missing <- sum(lengths(regmatches(seq, gregexpr(missing_chars, seq))))/length(seq)
+      output_text <- c(output_text,paste0(seq_name," , ",proportion_missing))
+      if (proportion_missing<=proportion_allowed_missing){
+        copy_names <- c(copy_names,seq_name)
+      }
+    }
+    # Copy across the non-empty sequences
+    f_new <- f[copy_names]
+    # Write the new fasta file
+    write.fasta(f_new, copy_names, file.out = alignment_path, open = "w")
   }
-  n_new <- n[copy_names]
-  write.nexus.data(n_new,file = alignment_path, format = seq_type, interleaved = FALSE)
-  # open the nexus file and delete the interleave = YES or INTERLEAVE = NO part so IQ-TREE can read it
-  nexus_edit <- readLines(alignment_path) # open the new nexus file
-  ind <- grep("BEGIN DATA",nexus_edit)+2 # find which line
-  if (seq_type == "dna"){
-    nexus_edit[ind] <- "  FORMAT DATATYPE=DNA MISSING=? GAP=-;" # replace the line
-  } else if (seq_type == "protein"){
-    nexus_edit[ind] <- "  FORMAT MISSING=? GAP=- DATATYPE=PROTEIN;" # replace the line
-  }
-  writeLines(nexus_edit,alignment_path) # output the edited nexus file
   
   # If required, output all the proportions
   if (write_output_text == TRUE){
@@ -833,7 +924,7 @@ check.invalid.nexus.characters <- function(alignment_path, seq_type){
       if (!file.exists(fasta.name)){
         write.dna(n, file = fasta.name, format = "fasta")
       }
-      output_indicator = "contains_ambiguous_characters-use_FASTA"
+      output_indicator = "use_FASTA"
     } else if (length(to_edit_seqs) == 0){
       output_indicator = "no_ambiguous_characters"
     }
@@ -849,7 +940,7 @@ check.invalid.nexus.characters <- function(alignment_path, seq_type){
       if (!file.exists(fasta.name)){
         write.dna(n, file = fasta.name, format = "fasta")
       }
-      output_indicator = "contains_ambiguous_characters-use_FASTA"
+      output_indicator = "use_FASTA"
     } else if (length(to_edit_seqs) == 0){
       output_indicator = "no_ambiguous_characters"
     }
