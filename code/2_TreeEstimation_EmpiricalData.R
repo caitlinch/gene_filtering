@@ -99,8 +99,8 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
   datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020")
-  partition.by.codon.position = TRUE
-  estimate.trees.in.IQTREE = FALSE
+  partition.by.codon.position = TRUE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
+  estimate.trees.in.IQTREE = FALSE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   
 } else if (run_location=="server"){
   # Datasets/dataset information
@@ -129,8 +129,8 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
   datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020")
-  partition.by.codon.position = TRUE
-  estimate.trees.in.IQTREE = FALSE
+  partition.by.codon.position = TRUE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
+  estimate.trees.in.IQTREE = FALSE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
 }
 
 
@@ -230,12 +230,13 @@ for (dataset in datasets_to_copy_loci){
   
   # If estimating trees in IQ-Tree, copy the information you need into a new folder for each analysis
   if (estimate.trees.in.IQTREE == TRUE){
-    mclapply(cat_none, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_none_IQ-Tree/"), mc.cores = cores_to_use)
-    mclapply(cat_both, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_both_IQ-Tree/"), mc.cores = cores_to_use)
-    mclapply(cat_3seq, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_3seq_only_IQ-Tree/"), mc.cores = cores_to_use)
-    mclapply(cat_tp, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_tree_proportion_only_IQ-Tree/"), mc.cores = cores_to_use)
-    # If partitioning by codon position, repeat the IQ-Tree set-up
-    if (partition.by.codon.position == TRUE){
+    if (partition.by.codon.position == FALSE){
+      mclapply(cat_none, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_none_IQ-Tree/"), mc.cores = cores_to_use)
+      mclapply(cat_both, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_both_IQ-Tree/"), mc.cores = cores_to_use)
+      mclapply(cat_3seq, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_3seq_only_IQ-Tree/"), mc.cores = cores_to_use)
+      mclapply(cat_tp, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset],"p-value_categories_tree_proportion_only_IQ-Tree/"), mc.cores = cores_to_use)
+      # If partitioning by codon position, repeat the IQ-Tree set-up
+    } else if (partition.by.codon.position == TRUE){
       # filter treelikeness_df by dataset
       dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
       # split loci into four groups (neither, 3seq, tp or both), then copy all loci alignments from each group into a new folder and all trees from each group into a new collated text file
@@ -264,11 +265,12 @@ for (dataset in datasets_to_estimate_trees){
   lapply(astral_inputs, ASTRAL.wrapper, exec_paths["ASTRAL"])
   
   if (estimate.trees.in.IQTREE == TRUE){
-    # Calculate the species tree using IQ-Tree for each of the four categories
-    iqtree_inputs <- paste0(output_dirs[dataset], p_value_cat_files,"_IQ-Tree")
-    lapply(iqtree_inputs, estimate.IQTREE.species.tree, exec_paths["IQTree"])
-    # If partitioning by codon position, create a partition file for each folder and then estimate the tree using IQ-Tree
-    if (partition.by.codon.position == TRUE){
+    if (partition.by.codon.position == FALSE){
+      # Calculate the species tree using IQ-Tree for each of the four categories
+      iqtree_inputs <- paste0(output_dirs[dataset], p_value_cat_files,"_IQ-Tree")
+      lapply(iqtree_inputs, estimate.IQTREE.species.tree, exec_paths["IQTree"])
+      # If partitioning by codon position, create a partition file for each folder and then estimate the tree using IQ-Tree
+    } else if (partition.by.codon.position == TRUE){
       # Make list of folders for partition analysis
       partition_inputs <- paste0(iqtree_inputs,"_partition/")
       # Create the partition files
@@ -294,12 +296,15 @@ for (dataset in datasets_to_copy_loci){
   copy.loci.trees(all_loci, all_trees, output_dirs[dataset], astral_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
   
   if (estimate.trees.in.IQTREE == TRUE){
-    # Create name for IQ-Tree run
-    iqtree_name <- "all_loci_IQ-Tree/"
-    # Copy all loci
-    mclapply(all_loci, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset], iqtree_name), mc.cores = cores_to_use)
-    if (partition.by.codon.position == TRUE){
+    if (partition.by.codon.position == FALSE){
+      # Create name for IQ-Tree run
+      iqtree_name <- "all_loci_IQ-Tree/"
+      # Copy all loci
+      mclapply(all_loci, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset], iqtree_name), mc.cores = cores_to_use)
+    } else if (partition.by.codon.position == TRUE){
+      # Create name for IQ-Tree run
       partition_name <- "all_loci_IQ-Tree_partition/"
+      # Copy all loci
       mclapply(all_loci, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset], partition_name), mc.cores = cores_to_use)
     }
   }
@@ -311,9 +316,10 @@ for (dataset in datasets_to_estimate_trees){
   ASTRAL.wrapper(paste0(output_dirs[[dataset]], astral_name,".txt"), exec_paths[["ASTRAL"]])
   
   if (estimate.trees.in.IQTREE == TRUE){
-    # Calculate the species tree using IQ-Tree for each of the four categories
-    estimate.IQTREE.species.tree(paste0(output_dirs[dataset],iqtree_name), exec_paths[["IQTree"]])
-    if (partition.by.codon.position == TRUE){
+    if (partition.by.codon.position == FALSE){
+      # Calculate the species tree using IQ-Tree for each of the four categories
+      estimate.IQTREE.species.tree(paste0(output_dirs[dataset],iqtree_name), exec_paths[["IQTree"]])
+    } else if (partition.by.codon.position == TRUE){
       partition_name <- "all_loci_IQTree_partition/"
       make.partition.file(paste0(output_dirs[dataset], partition_name))
       estimate.partitioned.IQTREE.species.tree(paste0(output_dirs[[dataset]], partition_name, "partitions.nex"), exec_paths[["IQTree"]])
