@@ -225,6 +225,8 @@ for (dataset in datasets_to_copy_loci){
   # Randomly sample the same number of genes and copy them into a file named with a replicate number
   # Estimate a species tree in ASTRAL using the replicates
   # Compare the difference between the species tree and the replicate trees with the difference between the category tree and the species tree
+  # Add in a dataframe to keep track of which loci are sampled
+  rep_list <- list()
   for (i in 1:99){
     # Identify the number of loci included in this category
     n_loci <- length(cat_none)
@@ -235,7 +237,12 @@ for (dataset in datasets_to_copy_loci){
     # Copy the trees into a separate file
     copy.loci.trees(replicate_loci, dataset_df[dataset_df$loci %in% replicate_loci,]$tree, output_dirs[dataset], 
                     paste0("p-value_categories_none_ASTRAL","_replicate",rep_id), copy.all.individually = FALSE, copy.and.collate = TRUE)
+    # Attach the loci used to the dataframe
+    rep_list[[as.character(rep_id)]] <- replicate_loci
   }
+  rep_df <- as.data.frame(do.call(rbind, rep_list))
+  names(rep_df) <- paste0("sampled_loci_",sprintf("%04d", 1:ncol(rep_df)))
+  write.csv(rep_df, file = paste0(output_dirs[dataset], "p-value_categories_none_ASTRAL_SampledReplicatesLoci.csv"))
   
   # 3seq p-value and tree proportion p-value both <=0.05 (significant = reject null hypothesis of treelikeness/clonal evolution)
   # both = BOTH SIGNIFICANT P-VALUES
