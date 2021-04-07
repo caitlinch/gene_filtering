@@ -72,7 +72,7 @@ run_location = "server"
 
 if (run_location == "local"){
   # Datasets/dataset information
-  input_names <- "Vanderpool2020"
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   loci_to_remove <- list("Vanderpool2020" = "ORTHOMCL14552")
   number_of_taxa <- list("Vanderpool2020" = 29)
   
@@ -99,12 +99,13 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
   datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020")
+  check.for.warnings = FALSE # check IQ-Tree .log file and .iqtree file output for each gene tree for warnings
   partition.by.codon.position = TRUE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
   estimate.trees.in.IQTREE = FALSE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   
 } else if (run_location=="server"){
   # Datasets/dataset information
-  input_names <- "Vanderpool2020"
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   loci_to_remove <- list("Vanderpool2020" = c("ORTHOMCL14552"))
   number_of_taxa <- list("Vanderpool2020" = 29)
   
@@ -129,6 +130,7 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
   datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020")
+  check.for.warnings = FALSE # check IQ-Tree .log file and .iqtree file output for each gene tree for warnings
   partition.by.codon.position = TRUE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
   estimate.trees.in.IQTREE = FALSE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
 }
@@ -155,22 +157,24 @@ for (d in output_dirs){
   }
 }
 
-# Identify any warnings from the IQ-Tree loci tree estimation
-# Use these warnings to select which loci to exclude
-for (dataset in datasets){
-  # Open this dataset's raw output file from the treelikeness analysis 
-  all_csv_files <- grep(".csv",list.files(csv_data_dir), value = TRUE)
-  all_untrimmed_csv_files <- grep("trimmed",all_csv_files, value = TRUE, invert = TRUE)
-  dataset_csv_file <- grep(dataset, all_untrimmed_csv_files, value = TRUE)
-  dataset_df <- read.csv(paste0(csv_data_dir,dataset_csv_file), stringsAsFactors = FALSE)
-  
-  # Take list of alignments from the raw output file
-  all_alignments <- dataset_df$alignment_file
-  
-  # Collect warnings and write out as a csv file
-  warning_df <- as.data.frame(do.call(rbind, (lapply(all_alignments, check.for.IQTree.warnings))))
-  warning_df_file <- paste0(csv_data_dir, dataset, "_collated_IQ-Tree_warnings.csv")
-  write.csv(warning_df, file = warning_df_file)
+if (check.for.warnings == TRUE){
+  # Identify any warnings from the IQ-Tree loci tree estimation
+  # Use these warnings to select which loci to exclude
+  for (dataset in datasets){
+    # Open this dataset's raw output file from the treelikeness analysis 
+    all_csv_files <- grep(".csv",list.files(csv_data_dir), value = TRUE)
+    all_untrimmed_csv_files <- grep("trimmed",all_csv_files, value = TRUE, invert = TRUE)
+    dataset_csv_file <- grep(dataset, all_untrimmed_csv_files, value = TRUE)
+    dataset_df <- read.csv(paste0(csv_data_dir,dataset_csv_file), stringsAsFactors = FALSE)
+    
+    # Take list of alignments from the raw output file
+    all_alignments <- dataset_df$alignment_file
+    
+    # Collect warnings and write out as a csv file
+    warning_df <- as.data.frame(do.call(rbind, (lapply(all_alignments, check.for.IQTree.warnings))))
+    warning_df_file <- paste0(csv_data_dir, dataset, "_collated_IQ-Tree_warnings.csv")
+    write.csv(warning_df, file = warning_df_file)
+  }
 }
 
 # Open the treelikeness results dataframe
@@ -215,18 +219,79 @@ for (dataset in datasets_to_copy_loci){
   # 3seq p-value and tree proportion p-value both >0.05 (not significant = do not reject null hypothesis of treelikeness/clonal evolution)
   # none = NO SIGNIFICANT P-VALUES
   cat_none <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
-  copy.loci.trees(cat_none, dataset_df[dataset_df$loci %in% cat_none,]$tree, output_dirs[dataset], "p-value_categories_none_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  copy.loci.trees(cat_none, dataset_df[dataset_df$loci %in% cat_none,]$tree, output_dirs[dataset], 
+                  "p-value_categories_none_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  # Perform 99 replicates of this condition
+  # Randomly sample the same number of genes and copy them into a file named with a replicate number
+  # Estimate a species tree in ASTRAL using the replicates
+  # Compare the difference between the species tree and the replicate trees with the difference between the category tree and the species tree
+  for (i in 1:99){
+    # Identify the number of loci included in this category
+    n_loci <- length(cat_none)
+    # Randomly sample the list of loci in the dataset_df
+    replicate_loci <- sample(dataset_df$loci, n_loci)
+    # Pad out the number for a nice output name
+    rep_id <- sprintf("%04d",i)
+    # Copy the trees into a separate file
+    copy.loci.trees(replicate_loci, dataset_df[dataset_df$loci %in% replicate_loci,]$tree, output_dirs[dataset], 
+                    paste0("p-value_categories_none_ASTRAL","_replicate",rep_id), copy.all.individually = FALSE, copy.and.collate = TRUE)
+  }
+  
   # 3seq p-value and tree proportion p-value both <=0.05 (significant = reject null hypothesis of treelikeness/clonal evolution)
   # both = BOTH SIGNIFICANT P-VALUES
   cat_both <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
-  copy.loci.trees(cat_both, dataset_df[dataset_df$loci %in% cat_both,]$tree, output_dirs[dataset], "p-value_categories_both_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)  # Only 3seq p-value <=0.05 and significant, tree proportion p-value not significant (reject null hyoithesis of clonal evolution but do not reject null hypothesis of treelikeness)
+  copy.loci.trees(cat_both, dataset_df[dataset_df$loci %in% cat_both,]$tree, output_dirs[dataset], 
+                  "p-value_categories_both_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  # Perform 99 replicates of this condition
+  for (i in 1:99){
+    # Identify the number of loci included in this category
+    n_loci <- length(cat_both)
+    # Randomly sample the list of loci in the dataset_df
+    replicate_loci <- sample(dataset_df$loci, n_loci)
+    # Pad out the number for a nice output name
+    rep_id <- sprintf("%04d",i)
+    # Copy the trees into a separate file
+    copy.loci.trees(replicate_loci, dataset_df[dataset_df$loci %in% replicate_loci,]$tree, output_dirs[dataset], 
+                    paste0("p-value_categories_both_ASTRAL","_replicate",rep_id), copy.all.individually = FALSE, copy.and.collate = TRUE)
+  }
+  
+  # Only 3SEQ p-value <=0.05 and significant, tree proportion p-value not significant  (reject null hypothesis of clonal evolution but do not reject null hypothesis of treelikeness)
   # 3seq only = treelike, not clonal
   cat_3seq <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
-  copy.loci.trees(cat_3seq, dataset_df[dataset_df$loci %in% cat_3seq,]$tree, output_dirs[dataset], "p-value_categories_3seq_only_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  copy.loci.trees(cat_3seq, dataset_df[dataset_df$loci %in% cat_3seq,]$tree, output_dirs[dataset], 
+                  "p-value_categories_3seq_only_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  # Perform 99 replicates of this condition
+  for (i in 1:99){
+    # Identify the number of loci included in this category
+    n_loci <- length(cat_3seq)
+    # Randomly sample the list of loci in the dataset_df
+    replicate_loci <- sample(dataset_df$loci, n_loci)
+    # Pad out the number for a nice output name
+    rep_id <- sprintf("%04d",i)
+    # Copy the trees into a separate file
+    copy.loci.trees(replicate_loci, dataset_df[dataset_df$loci %in% replicate_loci,]$tree, output_dirs[dataset], 
+                    paste0("p-value_categories_3seq_only_ASTRAL","_replicate",rep_id), copy.all.individually = FALSE, copy.and.collate = TRUE)
+  }
+  
+  
   # Only tree proportion p-value <=0.05 and significant, 3seq p-value not significant (reject null hypothesis of treelikeness but do not reject null hypothesis of clonal evolution)
   # tree_proportion_only = not-treelike, clonal
   cat_tp   <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
-  copy.loci.trees(cat_tp, dataset_df[dataset_df$loci %in% cat_tp,]$tree, output_dirs[dataset], "p-value_categories_tree_proportion_only_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  copy.loci.trees(cat_tp, dataset_df[dataset_df$loci %in% cat_tp,]$tree, output_dirs[dataset], 
+                  "p-value_categories_tree_proportion_only_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  # Perform 99 replicates of this condition
+  for (i in 1:99){
+    # Identify the number of loci included in this category
+    n_loci <- length(cat_tp)
+    # Randomly sample the list of loci in the dataset_df
+    replicate_loci <- sample(dataset_df$loci, n_loci)
+    # Pad out the number for a nice output name
+    rep_id <- sprintf("%04d",i)
+    # Copy the trees into a separate file
+    copy.loci.trees(replicate_loci, dataset_df[dataset_df$loci %in% replicate_loci,]$tree, output_dirs[dataset], 
+                    paste0("p-value_categories_tree_proportion_only_ASTRAL","_replicate",rep_id), copy.all.individually = FALSE, copy.and.collate = TRUE)
+  }
+  
   
   # If estimating trees in IQ-Tree, copy the information you need into a new folder for each analysis
   if (estimate.trees.in.IQTREE == TRUE){
