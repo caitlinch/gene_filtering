@@ -199,6 +199,7 @@ source(paste0(maindir,"code/func_analysis.R"))
 
 ##### Step 4: Extract names and locations of loci #####
 if (create_information_dataframe == TRUE){
+  ### One Thousand Plants dataset
   # Obtaining the list of file paths from 1KP is the messiest as each alignment in it a separate folder, where the folder's name is the gene number
   # Then, extract the best model for each loci (to feed into IQ-Tree - because we want to use as many of the original paramaters as we can!)
   OKP_paths <- paste0(input_dir[["1KP"]], list.files(input_dir[["1KP"]], recursive = TRUE, full.names = FALSE))
@@ -208,7 +209,12 @@ if (create_information_dataframe == TRUE){
   } else {
     OKP_model <- model.from.partition.scheme(OKP_names,best_model_paths[["1KP"]],"1KP")
   }
-  OKP_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
+  OKP_allowed_missing_sites <- NA # Remove any sequence that has less than half the sites present
+  
+  ### Strassert 2021 dataset
+  Strassert2021_paths <- paste0(input_dir[["Strassert2021"]], list.files(input_dir[["Strassert2021"]], full.names = FALSE))
+  
+  ### Misof 2014 dataset
   # Obtaining the list of loci file paths from Misof 2014 is easy -- all the loci are in the same folder
   Misof2014_paths <- paste0(input_dir[["Misof2014"]], list.files(input_dir[["Misof2014"]], full.names = FALSE))
   Misof2014_names <- gsub(".nex","",grep(".nex",unlist(strsplit((Misof2014_paths), "/")), value = TRUE))
@@ -217,7 +223,9 @@ if (create_information_dataframe == TRUE){
   } else {
     Misof2014_model <- model.from.partition.scheme(Misof2014_names,best_model_paths[["Misof2014"]],"Misof2014")
   }
-  Misof2014_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
+  Misof2014_allowed_missing_sites <- NA # Remove any sequence that has less than half the sites present
+  
+  ### Vanderpool 2020 dataset
   # Obtaining the list of loci file paths from Vanderpool 2020 is easy -- all the loci are in the same folder
   Vanderpool2020_paths <- paste0(input_dir[["Vanderpool2020"]], list.files(input_dir[["Vanderpool2020"]], full.names = FALSE))
   Vanderpool2020_names <- gsub("_NoNcol.Noambig.fa","",grep(".fa",unlist(strsplit((Vanderpool2020_paths), "/")), value = TRUE))
