@@ -99,12 +99,12 @@ run_location = "server"
 
 if (run_location == "local"){
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
-                 "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Misof2014/loci/",
+                 "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Strassert2021/02_trimAL_Divvier_filtered_genes_only/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/")
   best_model_paths <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/OKP_loci_bestmodel.txt",
-                        "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Misof2014/Misof2014_orthologousGenes_bestmodel.txt",
+                        NA,
                         NA)
-  input_names <- c("1KP", "Misof2014","Vanderpool2020")
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/")
   treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
@@ -129,9 +129,9 @@ if (run_location == "local"){
   #     want to run only "Trees" and "Fungi": datasets_to_run <- c("Trees", "Fungi")
   # If want to run all of the datasets, assign all names i.e. datasets_to_run <- input_names
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("1KP")
-  datasets_to_collate <- c("1KP")
-  datasets_to_collect_trees <- c("1KP")
+  datasets_to_run <- c("Strassert2021","1KP")
+  datasets_to_collate <- c("Strassert2021","1KP")
+  datasets_to_collect_trees <- c("Strassert2021","1KP")
   datasets_apply_AU_test = c()
   
   # Parameters to perform AU test - needed if one or more dataset names included in datasets_apply_AU_test
@@ -144,12 +144,12 @@ if (run_location == "local"){
   
 } else if (run_location=="server"){
   input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
-                 "/data/caitlin/empirical_treelikeness/Data_Misof2014/",
+                 "/data/caitlin/empirical_treelikeness/Data_Strassert2021/",
                  "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/")
   best_model_paths <- c("/data/caitlin/empirical_treelikeness/Data_inputFiles/OKP_loci_bestmodel.txt",
-                        "/data/caitlin/empirical_treelikeness/Data_inputFiles/Misof2014_orthologousGenes_bestmodel.txt",
+                        NA,
                         NA)
-  input_names <- c("1KP", "Misof2014","Vanderpool2020")
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   output_dir <- "/data/caitlin/empirical_treelikeness/Output/"
   treedir <- "/data/caitlin/treelikeness/" # where the treelikeness repository/folder is
   maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness repository/folder is 
@@ -167,9 +167,9 @@ if (run_location == "local"){
   
   # Select datasets to run analysis and collect results
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("1KP")
-  datasets_to_collate <- c("1KP")
-  datasets_to_collect_trees <- c("1KP")
+  datasets_to_run <- c("Strassert2021","1KP")
+  datasets_to_collate <- c("Strassert2021","1KP")
+  datasets_to_collect_trees <- c("Strassert2021","1KP")
   datasets_apply_AU_test <- c()
 }
 ### End Caitlin's paths ###
@@ -187,6 +187,11 @@ names(best_model_paths) <- input_names
 # Create a set of output folders
 output_dirs <- paste0(output_dir,input_names,"/")
 names(output_dirs) <- input_names
+for (d in output_dirs){
+  if (file.exists(d) == FALSE){
+    dir.create(d)
+  }
+}
 
 # Source the functions using the filepaths from Step 2
 source(paste0(treedir,"code/func_test_statistic.R"))
@@ -209,22 +214,18 @@ if (create_information_dataframe == TRUE){
   } else {
     OKP_model <- model.from.partition.scheme(OKP_names,best_model_paths[["1KP"]],"1KP")
   }
-  OKP_allowed_missing_sites <- NA # Remove any sequence that has less than half the sites present
+  OKP_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
   
   ### Strassert 2021 dataset
   Strassert2021_paths <- paste0(input_dir[["Strassert2021"]], list.files(input_dir[["Strassert2021"]], full.names = FALSE))
-  
-  ### Misof 2014 dataset
-  # Obtaining the list of loci file paths from Misof 2014 is easy -- all the loci are in the same folder
-  Misof2014_paths <- paste0(input_dir[["Misof2014"]], list.files(input_dir[["Misof2014"]], full.names = FALSE))
-  Misof2014_names <- gsub(".nex","",grep(".nex",unlist(strsplit((Misof2014_paths), "/")), value = TRUE))
-  if (is.na(best_model_paths[["Misof2014"]])){
-    Misof2014_model <- rep("MFP", length(Misof2014_paths))
-  } else {
-    Misof2014_model <- model.from.partition.scheme(Misof2014_names,best_model_paths[["Misof2014"]],"Misof2014")
+  Strassert2021_names <- gsub(".filtered.ginsi.bmge.merged.fa.divvy.trimal.fas","",basename(Strassert2021_paths))
+  if (is.na(best_model_paths[["Strassert2021"]])){
+    # no set of models for these loci.
+    # Use "-m MFP" in IQ-Tree to automatically set best model - see Strassert et al (2021)
+    Strassert2021_model <- rep("MFP", length(Strassert2021_paths))
   }
-  Misof2014_allowed_missing_sites <- NA # Remove any sequence that has less than half the sites present
-  
+  Strassert2021_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
+
   ### Vanderpool 2020 dataset
   # Obtaining the list of loci file paths from Vanderpool 2020 is easy -- all the loci are in the same folder
   Vanderpool2020_paths <- paste0(input_dir[["Vanderpool2020"]], list.files(input_dir[["Vanderpool2020"]], full.names = FALSE))
@@ -234,22 +235,21 @@ if (create_information_dataframe == TRUE){
     # Use "-m MFP" in IQ-Tree to automatically set best model - see Vanderpool et al (2020)
     Vanderpool2020_model <- rep("MFP", length(Vanderpool2020_paths))
   }
-  Vanderpool2020_allowed_missing_sites <- NA # Allow the Vanderpool dataset to run as it it
+  Vanderpool2020_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
+  
+  ### Compile datasets into one dataframe
   # Create a dataframe of loci information for all three datasets: loci name, alphabet type, model, dataset, path, output path
-  loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Misof2014_names, OKP_names),
-                        alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Misof2014_paths)), rep("protein",length(OKP_paths))),
-                        best_model = c(Vanderpool2020_model, Misof2014_model, OKP_model),
-                        dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Misof2014",length(Misof2014_paths)), rep("1KP",length(OKP_paths))),
-                        loci_path = c(Vanderpool2020_paths, Misof2014_paths, OKP_paths),
-                        output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Misof2014"]], length(Misof2014_paths)), rep(output_dirs[["1KP"]],length(OKP_paths))),
+  loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Strassert2021_names, OKP_names),
+                        alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Strassert2021_paths)), rep("protein",length(OKP_paths))),
+                        best_model = c(Vanderpool2020_model, Strassert2021_model, OKP_model),
+                        dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Strassert2021",length(Strassert2021_paths)), rep("1KP",length(OKP_paths))),
+                        loci_path = c(Vanderpool2020_paths, Strassert2021_paths, OKP_paths),
+                        output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Strassert2021"]], length(Strassert2021_paths)), rep(output_dirs[["1KP"]],length(OKP_paths))),
                         allowable_proportion_missing_sites = c(rep(Vanderpool2020_allowed_missing_sites, length(Vanderpool2020_paths)),
-                                                               rep(Misof2014_allowed_missing_sites, length(Misof2014_paths)),
+                                                               rep(Strassert2021_allowed_missing_sites, length(Strassert2021_paths)),
                                                                rep(OKP_allowed_missing_sites,length(OKP_paths))),
                         stringsAsFactors = FALSE)
   
-  # Remove rows with best_model == NA <- these are the Misof2014 clans, protein domains and voids (whereas above, we extracted the models only for the orthologous genes)
-  # "!is.na()" means "is not NA" <- we want to keep only the rows where best_model is not NA
-  loci_df <- loci_df[!is.na(loci_df$best_model),]
   # output loci_df <- save a record of the input parameters you used!
   loci_df_name <- paste0(output_dir,"empiricalTreelikeness_input_loci_parameters.csv")
   # If the loci_df hasn't been saved, save it now
