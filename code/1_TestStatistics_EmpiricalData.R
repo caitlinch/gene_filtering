@@ -214,7 +214,7 @@ if (create_information_dataframe == TRUE){
   } else {
     OKP_model <- model.from.partition.scheme(OKP_names,best_model_paths[["1KP"]],"1KP")
   }
-  OKP_allowed_missing_sites <- 0.5 # Remove any sequence that has less than half the sites present
+  OKP_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
   
   ### Strassert 2021 dataset
   Strassert2021_paths <- paste0(input_dir[["Strassert2021"]], list.files(input_dir[["Strassert2021"]], full.names = FALSE))
@@ -225,7 +225,7 @@ if (create_information_dataframe == TRUE){
     Strassert2021_model <- rep("MFP", length(Strassert2021_paths))
   }
   Strassert2021_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
-
+  
   ### Vanderpool 2020 dataset
   # Obtaining the list of loci file paths from Vanderpool 2020 is easy -- all the loci are in the same folder
   Vanderpool2020_paths <- paste0(input_dir[["Vanderpool2020"]], list.files(input_dir[["Vanderpool2020"]], full.names = FALSE))
