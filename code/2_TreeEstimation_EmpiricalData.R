@@ -96,6 +96,9 @@ if (run_location == "local"){
   # set number of cores for parallel processing
   cores_to_use = 1
   
+  # Set number of replicates to do for the treelikeness category analysis
+  number_of_category_replicates = 3
+  
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
   datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020")
@@ -126,6 +129,9 @@ if (run_location == "local"){
   
   # set number of cores  for parallel processing
   cores_to_use = 15
+  
+  # Set number of replicates to do for the treelikeness category analysis
+  number_of_category_replicates = 999
   
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
@@ -227,29 +233,6 @@ for (dataset in datasets_to_copy_loci){
   cat_none <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
   copy.loci.trees(cat_none, dataset_df[dataset_df$loci %in% cat_none,]$tree, category_output_folder, 
                   "p-value_categories_none_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
-  # # Perform 99 replicates of this condition
-  # # Randomly sample the same number of genes and copy them into a file named with a replicate number
-  # # Estimate a species tree in ASTRAL using the replicates
-  # # Compare the difference between the species tree and the replicate trees with the difference between the category tree and the species tree
-  # # Add in a dataframe to keep track of which loci are sampled
-  # rep_list <- list()
-  # for (i in 1:99){
-  #   # Identify the number of loci included in this category
-  #   n_loci <- length(cat_none)
-  #   # Randomly sample the list of loci in the dataset_df
-  #   replicate_loci <- sample(dataset_df$loci, n_loci)
-  #   # Pad out the number for a nice output name
-  #   rep_id <- sprintf("%04d",i)
-  #   # Copy the trees into a separate file
-  #   copy.loci.trees(replicate_loci, dataset_df[dataset_df$loci %in% replicate_loci,]$tree, category_output_folder, 
-  #                   paste0("p-value_categories_none_ASTRAL","_replicate",rep_id), copy.all.individually = FALSE, copy.and.collate = TRUE)
-  #   # Attach the loci used to the dataframe
-  #   rep_list[[as.character(rep_id)]] <- replicate_loci
-  # }
-  # rep_df <- as.data.frame(do.call(rbind, rep_list))
-  # names(rep_df) <- paste0("sampled_loci_",sprintf("%04d", 1:ncol(rep_df)))
-  # write.csv(rep_df, file = paste0(category_output_folder, "p-value_categories_none_ASTRAL_SampledReplicatesLoci.csv"))
-  
   # 3seq p-value and tree proportion p-value both <=0.05 (significant = reject null hypothesis of treelikeness/clonal evolution)
   # both = BOTH SIGNIFICANT P-VALUES
   cat_both <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
@@ -280,7 +263,7 @@ for (dataset in datasets_to_copy_loci){
     # Initialise list to store loci replicates
     rep_list <- list()
     # Perform 99 replicates of this condition
-    for (i in 1:3){
+    for (i in 1:number_of_category_replicates){
       # Identify the number of loci included in this category
       n_loci <- length(c_loci)
       # Randomly sample the list of loci in the dataset_df
