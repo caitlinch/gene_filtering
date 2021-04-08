@@ -455,7 +455,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
     if (file_type == "nex" || file_type == "nexus" || file_type == "nxs"){
       invalid_character_check <- check.invalid.nexus.characters(empirical_alignment_path, loci_row$alphabet)
     } else if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
-               file_type == "fa" || file_type == "ffn" || file_type == "frn") {
+               file_type == "fa" || file_type == "ffn" || file_type == "frn" || file_type == "fas") {
       invalid_character_check <- "use_FASTA"
     }
     
@@ -466,7 +466,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
       print("run IQTree and estimate sCFs")
       if (invalid_character_check == "use_FASTA"){
         if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
-            file_type == "fa" || file_type == "ffn" || file_type == "frn"){
+            file_type == "fa" || file_type == "ffn" || file_type == "frn" || file_type == "fas"){
           # If the file is already a fasta, call the function using the fasta file
           scfs <- calculate.empirical.sCF(alignment_path = empirical_alignment_path, iqtree_path = program_paths[["IQTree"]], 
                                           alignment_model = loci_row$best_model, num_threads = iqtree.num_threads, 
@@ -705,7 +705,7 @@ copy.alignment.as.nexus <- function(alignment_path, alignment_folder, loci_name,
     }
     alignment_path <- new_path
   } else if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
-             file_type == "fa" || file_type == "ffn" || file_type == "frn") {
+             file_type == "fa" || file_type == "ffn" || file_type == "frn" || file_type == "fas") {
     new_fasta_path <- paste0(alignment_folder,loci_name,".fasta")
     # Move and save fasta file
     if (file.exists(new_fasta_path) == FALSE){
@@ -752,7 +752,7 @@ copy.alignment.as.nexus <- function(alignment_path, alignment_folder, loci_name,
   } else if (loci_row$dataset == "1KP"){
     # Use fasta path
     return_path = new_fasta_path
-  } else if (loci_row$datset == "Strassert2021"){
+  } else if (loci_row$dataset == "Strassert2021"){
     # use fasta path
     return_path = new_fasta_path
   }
@@ -773,7 +773,7 @@ copy.alignment.as.nexus.tpts <- function(alignment_path, alignment_folder, loci_
     }
     alignment_path <- new_path
   } else if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
-             file_type == "fa" || file_type == "ffn" || file_type == "frn") {
+             file_type == "fa" || file_type == "ffn" || file_type == "frn" || file_type == "fas") {
     new_fasta_path <- paste0(alignment_folder,loci_name,".fasta")
     # Move and save fasta file
     if (file.exists(new_fasta_path) == FALSE){
@@ -845,7 +845,7 @@ remove.empty.taxa <- function(alignment_path, seq_type){
     writeLines(nexus_edit,alignment_path) # output the edited nexus file
     
   } else if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
-             file_type == "fa" || file_type == "ffn" || file_type == "frn") {
+             file_type == "fa" || file_type == "ffn" || file_type == "frn" || file_type == "fas") {
     # Change seq_type to be the right parameters for opening a fasta file
     if (seq_type == "dna"){
       fasta_type = "DNA"
@@ -919,7 +919,7 @@ prune.taxa.by.length <- function(alignment_path, proportion_allowed_missing, seq
     }
     writeLines(nexus_edit,alignment_path) # output the edited nexus file
   } else if (file_type == "fasta" || file_type == "faa" || file_type == "fna" || 
-             file_type == "fa" || file_type == "ffn" || file_type == "frn") {
+             file_type == "fa" || file_type == "ffn" || file_type == "frn" || file_type == "fas") {
     # If file is a fasta:
     # Change the type into one readable by read.fasta function
     if (seq_type == "dna"){
