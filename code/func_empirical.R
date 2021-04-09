@@ -456,7 +456,7 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
       # Read in the file
       strassert_fasta <- read.fasta(empirical_alignment_path)
       strassert_fasta_names <- names(strassert_fasta)
-      no_slashes_names <- gsub("/","",strassert_fasta_names)
+      no_slashes_names <- gsub("N/A", "NA", strassert_fasta_names)
       names(strassert_fasta) <- no_slashes_names
       write.dna(strassert_fasta, empirical_alignment_path, format = "fasta", append = FALSE, colsep = "")
     }
