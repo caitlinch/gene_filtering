@@ -8,7 +8,7 @@
 ##### Step 1: Open packages #####
 library(ggplot2)
 #library(adegenet)
-library(treespace)
+#library(treespace)
 library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
 # these methods all assume an unrooted tree so trees can be used as is for this analysis
 
@@ -40,7 +40,7 @@ if (location == "local"){
   output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_results/"
   AU_test_id <- c("CladeOfInterest", "ComparisonTrees")
   
-  datasets <- c("Vanderpool2020")
+  datasets <- c("Vanderpool2020", "Strassert2021", "1KP")
   dataset = "Vanderpool2020"
   
   collect_warnings  <- FALSE
@@ -133,7 +133,7 @@ if (collate_results == TRUE){
     all_trees <- paste0(tree_data_dirs[[dataset]],c(astral_tree_files, partition_tree_files))
     
     # Create a new folder to copy only the species trees into
-    copy_folder <- paste0(tree_data_dirs[[dataset]],"all_species_trees/")
+    copy_folder <- paste0(tree_data_dirs[[dataset]],"all_estimated_trees/")
     copy_partition_tree_files <- gsub("/partitions","", partition_tree_files)
     copy_trees <- paste0(copy_folder,c(astral_tree_files, copy_partition_tree_files))
     # Create the copy folder if it doesn't already exist
@@ -149,13 +149,66 @@ if (collate_results == TRUE){
     
     # Get a list of each loci involved in each analysis
     partition_folders <- paste0(tree_data_dirs[[dataset]], grep("IQ-Tree_partition", all_files, value = TRUE))
-    lapply(partition_folders, get.loci.from.analysis, copy_folder)
+    if (length(partition_folders) > 0){
+      lapply(partition_folders, get.loci.from.analysis, copy_folder)
+    }
   }
 }
 
 
 
 ##### Step 5: Plot the results of the AU test #####
+# Collect the species tree estimated in ASTRAl for each dataset
+species_trees_files <- c()
+for (dataset in datasets){
+  all_tree_data_files <- list.files(tree_data_dirs[[dataset]], full.names = TRUE)
+  all_tree_data_files <- gsub("//","/", all_tree_data_files)
+  all_loci_files <- grep("all_loci", all_tree_data_files, value = TRUE)
+  all_loci_trees <- grep("\\.tre", all_loci_files, value = TRUE)
+  all_loci_ASTRAL_tree <- grep("ASTRAL", all_loci_trees, value = TRUE)
+  species_trees_files <- c(species_trees_files, all_loci_ASTRAL_tree)
+}
+names(species_trees_files) <- datasets
+# Collect all the tree files
+category_tree_folders <- paste0(tree_data_dirs, "ASTRAL_category_trees")
+names(category_tree_folders) <- datasets
+all_category_files <- list.files(category_tree_folders, full.names = TRUE)
+all_category_trees <- grep("\\.tre", all_category_files, value = TRUE)
+astral_category_trees <- grep("ASTRAL", all_category_trees, value = TRUE)
+# Extract information from each tree file and calculate RF distance to relevant species tree
+category_list <- lapply(all_category_trees, get.filename.info, species_trees_files)
+category_df <- data.frame(do.call(rbind, category_list))
+
+# # For fake plotting
+# # To add more rows and change the dataset to fake having three datasets
+# category_df <- category_df[rep(seq_len(nrow(category_df)), 3), ]
+# category_df$dataset[17:32] <- "Strassert2021"
+# category_df$dataset[33:48] <- "1KP"
+
+# plot your nice dataframe
+# Split into replicates and category trees
+rep_df <- category_df[(category_df$replicate_category == "replicate"),]
+cat_df <- category_df[(category_df$replicate_category == "category_tree"),]
+# make a nice plot
+facet_labels <- c("Plants", "Eukaryotes", "Primates")
+names(facet_labels) <- c("1KP", "Strassert2021", "Vanderpool2020")
+ggplot() + geom_boxplot(data = rep_df, aes(x = treelikeness_category, y = normalised_RF_distance)) +
+  geom_point(data = cat_df, aes(x = treelikeness_category, y = normalised_RF_distance), shape = 18, size = 5) + 
+  facet_wrap(~dataset, labeller = labeller(dataset = facet_labels)) +
+  xlab("\nTreelikeness category") + ylab("Robinson Folds distance\n") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 55, hjust = 1, size = 13),
+        axis.text.y = element_text(size = 13),
+        axis.title = element_text(size = 16),
+        strip.text = element_text(size = 20))
+
+plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot.png")
+ggsave(filename = plot_name, plot = p)
+plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot.pdf")
+ggsave(filename = plot_name, plot = p)
+
+
+##### Step 6: Plot the results of the AU test #####
 if (run_analysis == TRUE){
   if ("Vanderpool2020" %in% datasets) {
     library(ggtern)
@@ -231,7 +284,7 @@ if (run_analysis == TRUE){
 
 
 
-##### Step 6: Investigate whether there is sampling bias! #####
+##### Step 7: Investigate whether there is sampling bias! #####
 # Find the list of 
 if (run_analysis == TRUE){
   if ("Vanderpool2020" %in% datasets){
@@ -372,7 +425,7 @@ if (run_analysis == TRUE){
 
 
 
-##### Step 7: Compare the distance between treelike and non-treelike trees #####
+##### Step 8: Compare the distance between treelike and non-treelike trees #####
 if (run_analysis == TRUE){
   for (dataset in datasets) {
     #### Comparing trees from p-value categories
