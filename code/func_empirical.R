@@ -449,6 +449,18 @@ empirical.bootstraps.wrapper <- function(loci_number, loci_df, program_paths, nu
       prune.taxa.by.length(empirical_alignment_path, loci_row$allowable_proportion_missing_sites, loci_row$alphabet, write_output_text = TRUE, alignment_folder)
     }
     
+    # The taxa names in the Strassert 2021 dataset contain slashes, which gets messy when feeding the alignments into other programs and reading back the results
+    # If the alignment is from the Strassert 2021 dataset, read it in, and save it without the slashes in the name 
+    # So instead of "N/A" it will say "NA"
+    if (loci_row$dataset == "Strassert2021"){
+      # Read in the file
+      strassert_fasta <- read.fasta(empirical_alignment_path)
+      strassert_fasta_names <- names(strassert_fasta)
+      no_slashes_names <- gsub("/","",strassert_fasta_names)
+      names(strassert_fasta) <- no_slashes_names
+      write.dna(strassert_fasta, empirical_alignment_path, format = "fasta", append = FALSE, colsep = "")
+    }
+    
     # If the alignment file is a nexus file, make sure that it doesn't contain any characters that aren't allowed in the format (e.g. R and Y for nexus DNA files)
     # If it is a fasta file, ignore this setion and just fun the fasta file
     file_type <- tail(strsplit(empirical_alignment_path,"\\.")[[1]],1)
