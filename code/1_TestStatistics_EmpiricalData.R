@@ -120,7 +120,7 @@ if (run_location == "local"){
   # set number of cores and reps for bootstraps
   cores_to_use = 1
   cores_for_iqtree = "AUTO"
-  reps_to_do = 3
+  reps_to_do = 1
   sCF_replicates = 1000
   
   # Select datasets to run analysis and collect results
@@ -279,6 +279,8 @@ if ("Vanderpool2020" %in% datasets_to_run){
 
 if ("Strassert2021" %in% datasets_to_run){
   S_ids <- which(loci_df$dataset == "Strassert2021")
+  lapply(S_ids[1], empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
+         iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
   lapply(S_ids, empirical.bootstraps.wrapper, loci_df, program_paths = exec_paths, number_of_replicates = reps_to_do, iqtree.num_threads = cores_for_iqtree,
          iqtree.num_quartets = sCF_replicates, num_of_cores = cores_to_use)
 }
