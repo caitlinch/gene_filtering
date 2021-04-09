@@ -337,3 +337,59 @@ get.tree.proportion.from.AU.test.results <- function(loci_name_to_find, AU_test_
   return(tp)
 }
 
+
+# Quick function to take in the name from an ASTRAL category tree and return key information about that tree
+get.filename.info <- function(full_filename){
+  # Separate the name part from the file path part
+  filename <- basename(full_filename)
+  
+  # Determine which dataset
+  full_path <- strsplit(dirname(full_filename), "/")[[1]]
+  if ("Vanderpool2020" %in% full_path){
+    dataset = "Vanderpool2020"
+  } else if ("Strassert2021" %in% full_path){
+    dataset = "Strassert2021"
+  } else if ("1KP" %in% full_path){
+    dataset = "1KP"
+  }
+  
+  
+  # Determine which category the tree is in
+  if (identical(integer(0), grep("3seq_only", filename)) == FALSE){
+    category = "3seq_only"
+    plot_category = "Non-treelike 3"
+  } else if (identical(integer(0), grep("both", filename)) == FALSE){
+    category = "both"
+    plot_category = "Non-treelike 1"
+  } else if (identical(integer(0), grep("none", filename)) == FALSE){
+    category = "none"
+    plot_category = "Treelike"
+  } else if (identical(integer(0), grep("tree_proportion", filename)) == FALSE){
+    category = "tree_proportion_only"
+    plot_category = "Non-treelike 2"
+  }
+  
+  # Get the replicate id
+  if (identical(integer(0), grep("replicate", filename)) == FALSE){
+    split_filename = strsplit(filename, "_")[[1]]
+    rep_id <- split_filename[grep("replicate",split_filename)]
+    rep_number <- gsub("replicate","",rep_id)
+    rep_category <- "replicate"
+  } else if (identical(integer(0), grep("replicate", filename)) == TRUE){
+    rep_number = NA
+    rep_category = "category_tree"
+  }
+  
+  # Get the tree
+  file_tree <- readLines(full_filename)
+  
+  #Assemble information into a row
+  info_row <- c(dataset, category, plot_category, rep_category, rep_number, full_filename, file_tree)
+  names(info_row) <- c("dataset","significant_p_values", "treelikeness_category", "replicate_category", "replicate_number","filename", "tree")
+  
+  return(info_row)
+}
+
+
+
+
