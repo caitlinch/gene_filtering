@@ -339,7 +339,7 @@ get.tree.proportion.from.AU.test.results <- function(loci_name_to_find, AU_test_
 
 
 # Quick function to take in the name from an ASTRAL category tree and return key information about that tree
-get.filename.info <- function(full_filename){
+get.filename.info <- function(full_filename, species_trees_files){
   # Separate the name part from the file path part
   filename <- basename(full_filename)
   
@@ -352,7 +352,6 @@ get.filename.info <- function(full_filename){
   } else if ("1KP" %in% full_path){
     dataset = "1KP"
   }
-  
   
   # Determine which category the tree is in
   if (identical(integer(0), grep("3seq_only", filename)) == FALSE){
@@ -381,11 +380,26 @@ get.filename.info <- function(full_filename){
   }
   
   # Get the tree
-  file_tree <- readLines(full_filename)
+  file_tree_text <- readLines(full_filename)
+  file_tree <- read.tree(text = file_tree_text)
+  
+  # Calculate distance to species tree
+  species_tree_file <- species_trees_files[[dataset]]
+  species_tree <- read.tree(file = species_tree_file)
+  
+  # Compare distance between trees
+  rf_distance <- RF.dist(file_tree, species_tree, check.labels = TRUE)
+  norm_rf_dist <- RF.dist(file_tree, species_tree, normalize = TRUE, check.labels = TRUE)
+  weighted_RF_distance <- wRF.dist(file_tree, species_tree, check.labels = TRUE)
+  KF_dist <- KF.dist(file_tree,species_tree, check.labels = TRUE)
+  path_difference <- path.dist(file_tree, species_tree, check.labels = TRUE)
+  spr_distance <- sprdist(file_tree, species_tree)[[1]]
   
   #Assemble information into a row
-  info_row <- c(dataset, category, plot_category, rep_category, rep_number, full_filename, file_tree)
-  names(info_row) <- c("dataset","significant_p_values", "treelikeness_category", "replicate_category", "replicate_number","filename", "tree")
+  info_row <- c(dataset, category, plot_category, rep_category, rep_number, rf_distance, norm_rf_dist, weighted_RF_distance, 
+                KF_dist, path_difference, spr_distance, full_filename, file_tree_text)
+  names(info_row) <- c("dataset","significant_p_values", "treelikeness_category", "replicate_category", "replicate_number", "RobinsonFolds_distance", "normalised_RF_distance", "weighted_RF_distance",
+                       "branch_score_difference", "path_difference_metric", "approx_SPR_distance", "filename", "tree")
   
   return(info_row)
 }
