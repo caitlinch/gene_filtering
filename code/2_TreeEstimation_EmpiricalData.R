@@ -72,7 +72,8 @@ run_location = "server"
 
 if (run_location == "local"){
   # Datasets/dataset information
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
+  input_names <- c("Vanderpool2020")
+  # input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   loci_to_remove <- list("Vanderpool2020" = "ORTHOMCL14552")
   number_of_taxa <- list("Vanderpool2020" = 29)
   
@@ -100,8 +101,10 @@ if (run_location == "local"){
   number_of_category_replicates = 3
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
-  datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020")
+  datasets_to_copy_loci <-  c("Vanderpool2020")
+  datasets_to_estimate_trees <- c("Vanderpool2020")
+  # datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
+  # datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020")
   check.for.warnings = FALSE # check IQ-Tree .log file and .iqtree file output for each gene tree for warnings
   estimate.trees.in.IQTREE = FALSE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = TRUE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
@@ -110,7 +113,7 @@ if (run_location == "local"){
   # Datasets/dataset information
   input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   loci_to_remove <- list("Vanderpool2020" = c("ORTHOMCL14552"))
-  number_of_taxa <- list("Vanderpool2020" = 29)
+  number_of_taxa <- list("Vanderpool2020" = NA)
   
   # File and directory locations
   input_dir <- "/data/caitlin/empirical_treelikeness/Output/Vanderpool2020_trees/"
@@ -189,22 +192,36 @@ treelikeness_df <- read.csv(treelikeness_df_file, stringsAsFactors = FALSE)
 # Remove loci to remove
 rm_inds <- c()
 for (dataset in input_names){
-  rm_loci_ds <- loci_to_remove[[dataset]]
-  rm_inds_ds <- which(treelikeness_df$dataset == dataset & treelikeness_df$loci %in% rm_loci_ds)
-  rm_inds <- c(rm_inds, rm_inds_ds)
+  if (!is.na(loci_to_remove[[dataset]])){
+    rm_loci_ds <- loci_to_remove[[dataset]]
+    rm_inds_ds <- which(treelikeness_df$dataset == dataset & treelikeness_df$loci %in% rm_loci_ds)
+    rm_inds <- c(rm_inds, rm_inds_ds)
+  }
 }
 keep_rows <- setdiff(c(1:nrow(treelikeness_df)),rm_inds)
 treelikeness_df <- treelikeness_df[keep_rows,]
 # Remove loci with the wrong number of taxa
 keep_inds <- c()
 for (dataset in input_names){
-  keep_taxa_num_ds <- number_of_taxa[[dataset]]
-  keep_inds_ds <- which(treelikeness_df$dataset == dataset & treelikeness_df$n_taxa %in% keep_taxa_num_ds)
-  keep_inds <- c(keep_inds, keep_inds_ds)
+  if (is.na(number_of_taxa[[dataset]])){
+    # If you want all the loci regardless of how many taxa they have, keep all of the loci in that dataset
+    # e.g. if you want all the loci for Vanderpool 2020: number_of_taxa <- list("Vanderpool2020" = NA)
+    keep_taxa_num_ds <- number_of_taxa[[dataset]]
+    keep_inds_ds <- which(treelikeness_df$dataset == dataset)
+    keep_inds <- c(keep_inds, keep_inds_ds)
+  } else if (class(number_of_taxa[[dataset]]) == "numeric") {
+    # If you only want to keep loci with certain numbers of loci, extract all the loci with that number of taxa
+    # e.g. if you want all the loci with all 29 taxa for Vanderpool 2020: number_of_taxa <- list("Vanderpool2020" = 29)
+    # e.g if only allowing up to 2 missing taxa for Vanderpool 2020: number_of_taxa <- list("Vanderpool2020" = c(27, 28, 29))
+    keep_taxa_num_ds <- number_of_taxa[[dataset]]
+    keep_inds_ds <- which(treelikeness_df$dataset == dataset & treelikeness_df$n_taxa %in% keep_taxa_num_ds)
+    keep_inds <- c(keep_inds, keep_inds_ds)
+  }
 }
+
 treelikeness_df <- treelikeness_df[keep_inds,]
 # Save trimmed treelikeness_df
-trimmed_treelikeness_df_file <- gsub(".csv", "_trimmedLoci_trimmedNTaxa.csv", treelikeness_df_file)
+trimmed_treelikeness_df_file <- gsub(".csv", "_trimmedLoci_trimmedTaxa.csv", treelikeness_df_file)
 write.csv(treelikeness_df, file = trimmed_treelikeness_df_file)
 
 
@@ -278,7 +295,7 @@ for (dataset in datasets_to_copy_loci){
     }
     rep_df <- as.data.frame(do.call(rbind, rep_list))
     names(rep_df) <- paste0("sampled_loci_",sprintf("%04d", 1:ncol(rep_df)))
-    write.csv(rep_df, file = paste0(output_dirs[dataset], "p-value_categories_", c_op_name, "_ASTRAL_SampledReplicatesLoci.csv"))
+    write.csv(rep_df, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_", c_op_name, "_ASTRAL_SampledReplicatesLoci.csv"))
   }
   
   # If estimating trees in IQ-Tree, copy the information you need into a new folder for each analysis
