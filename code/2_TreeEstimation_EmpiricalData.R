@@ -72,8 +72,7 @@ run_location = "server"
 
 if (run_location == "local"){
   # Datasets/dataset information
-  input_names <- c("Vanderpool2020")
-  # input_names <- c("1KP", "Strassert2021","Vanderpool2020")
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   loci_to_remove <- list("Vanderpool2020" = "ORTHOMCL14552")
   number_of_taxa <- list("Vanderpool2020" = 29)
   
@@ -101,10 +100,8 @@ if (run_location == "local"){
   number_of_category_replicates = 3
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c("Vanderpool2020")
-  datasets_to_estimate_trees <- c("Vanderpool2020")
-  # datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
-  # datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020")
+  datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
+  datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020")
   check.for.warnings = FALSE # check IQ-Tree .log file and .iqtree file output for each gene tree for warnings
   estimate.trees.in.IQTREE = FALSE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = TRUE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
@@ -374,7 +371,7 @@ for (dataset in datasets_to_copy_loci){
   dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
   # Create name for ASTRAL run
   astral_name <- "all_loci_ASTRAL"
-  # Copy all loci and all trees
+  # Copy all loci and all trees 
   all_loci <- dataset_df$loci
   all_trees <- dataset_df$tree
   copy.loci.trees(all_loci, all_trees, output_dirs[dataset], astral_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
