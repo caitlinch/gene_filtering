@@ -111,7 +111,7 @@ if (collect_warnings == TRUE){
   }
   
   # Investigate warnings
-  warnings_df <- read.csv(paste0(csv_data_dir, grep("warnings", all_csv_files, value = TRUE)))
+  warnings_df <- read.csv(paste0(csv_data_dir, grep("warnings", grep(".csv",list.files(csv_data_dir), value = TRUE), value = TRUE)))
   log_df <- warnings_df[warnings_df$file == ".log",]
   unique(log_df$loci)
   unique(log_df$warnings)
