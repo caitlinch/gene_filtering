@@ -177,14 +177,24 @@ for (dataset in datasets){
 }
 names(species_trees_files) <- datasets
 # Collect all the tree files
-category_tree_folders <- paste0(tree_data_dirs, "ASTRAL_category_trees")
+category_tree_folders <- paste0(tree_data_dirs, "ASTRAL_category_trees_only_copied")
 names(category_tree_folders) <- datasets
 all_category_files <- list.files(category_tree_folders, full.names = TRUE)
 all_category_trees <- grep("\\.tre", all_category_files, value = TRUE)
 astral_category_trees <- grep("ASTRAL", all_category_trees, value = TRUE)
+astral_category_trees <- grep("all_loci", astral_category_trees, invert = TRUE, value = TRUE)
 # Extract information from each tree file and calculate RF distance to relevant species tree
-category_list <- lapply(all_category_trees, get.filename.info, species_trees_files)
+category_list <- lapply(astral_category_trees, get.filename.info, species_trees_files)
 category_df <- data.frame(do.call(rbind, category_list))
+# Write the category dataframe out 
+write.csv(category_df, file = paste0(output_dir, "allDatasets_CategoryTrees_comparison.csv"))
+# convert category df columns to numbers
+category_df$RobinsonFolds_distance <- as.numeric(category_df$RobinsonFolds_distance)
+category_df$normalised_RF_distance <- as.numeric(category_df$normalised_RF_distance)
+category_df$weighted_RF_distance <- as.numeric(category_df$weighted_RF_distance)
+category_df$branch_score_difference <- as.numeric(category_df$branch_score_difference)
+category_df$path_difference_metric <- as.numeric(category_df$path_difference_metric)
+category_df$approx_SPR_distance <- as.numeric(category_df$approx_SPR_distance)
 
 # # For fake plotting
 # # To add more rows and change the dataset to fake having three datasets
@@ -199,19 +209,66 @@ cat_df <- category_df[(category_df$replicate_category == "category_tree"),]
 # make a nice plot
 facet_labels <- c("Plants", "Eukaryotes", "Primates")
 names(facet_labels) <- c("1KP", "Strassert2021", "Vanderpool2020")
-ggplot() + geom_boxplot(data = rep_df, aes(x = treelikeness_category, y = normalised_RF_distance)) +
-  geom_point(data = cat_df, aes(x = treelikeness_category, y = normalised_RF_distance), shape = 18, size = 5) + 
-  facet_wrap(~dataset, labeller = labeller(dataset = facet_labels)) +
+p <- ggplot() + geom_boxplot(data = rep_df, aes(x = treelikeness_category, y = RobinsonFolds_distance)) +
+  geom_point(data = cat_df, aes(x = treelikeness_category, y = RobinsonFolds_distance), shape = 18, size = 5, col = "darkred") + 
+  facet_wrap(~dataset, labeller = labeller(dataset = facet_labels), scales = "free_y") +
   xlab("\nTreelikeness category") + ylab("Robinson Folds distance\n") + 
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 55, hjust = 1, size = 13),
         axis.text.y = element_text(size = 13),
         axis.title = element_text(size = 16),
         strip.text = element_text(size = 20))
-
-plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot.png")
+plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot_RFdistance.png")
 ggsave(filename = plot_name, plot = p)
-plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot.pdf")
+plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot_RFdistance.pdf")
+ggsave(filename = plot_name, plot = p)
+
+p <- ggplot() + geom_boxplot(data = rep_df, aes(x = treelikeness_category, y = path_difference_metric)) +
+  geom_point(data = cat_df, aes(x = treelikeness_category, y = path_difference_metric), shape = 18, size = 5, col = "darkred") + 
+  facet_wrap(~dataset, labeller = labeller(dataset = facet_labels), scales = "free_y") +
+  xlab("\nTreelikeness category") + ylab("Path difference metric\n") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 55, hjust = 1, size = 13),
+        axis.text.y = element_text(size = 13),
+        axis.title = element_text(size = 16),
+        strip.text = element_text(size = 20))
+plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot_PathDifferenceMetric.png")
+ggsave(filename = plot_name, plot = p)
+plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot_PathDifferenceMetric.pdf")
+ggsave(filename = plot_name, plot = p)
+
+p <- ggplot(data = rep_df, aes(x = treelikeness_category, fill = as.factor(RobinsonFolds_distance))) + geom_bar() + 
+  xlab("\nTreelikeness category") + ylab("Count \n") + 
+  facet_wrap(~dataset, labeller = labeller(dataset = facet_labels), scales = "free_y") +
+  theme_bw() +
+  scale_fill_viridis_d(option = "C", direction = -1) +
+  theme(axis.text.x = element_text(angle = 55, hjust = 1, size = 13),
+        axis.text.y = element_text(size = 13),
+        axis.title = element_text(size = 16),
+        strip.text = element_text(size = 20),
+        legend.title = element_text(size = 16),
+        legend.text = element_text(size = 16)) + 
+  guides(fill = guide_legend(title = "Robinson Folds \ndistance"))
+plot_name <- paste0(output_dir, "p-value_category_distance_comparison_barplot_RFdistance.png")
+ggsave(filename = plot_name, plot = p)
+plot_name <- paste0(output_dir, "p-value_category_distance_comparison_barplot_RFdistance.pdf")
+ggsave(filename = plot_name, plot = p)
+
+p <- ggplot(data = rep_df, aes(x = treelikeness_category, fill = as.factor(round(path_difference_metric, digits = 1)))) + geom_bar() + 
+  xlab("\nTreelikeness category") + ylab("Count \n") + 
+  facet_wrap(~dataset, labeller = labeller(dataset = facet_labels), scales = "free_y") +
+  theme_bw() +
+  scale_fill_viridis_d(option = "C", direction = -1) +
+  theme(axis.text.x = element_text(angle = 55, hjust = 1, size = 13),
+        axis.text.y = element_text(size = 13),
+        axis.title = element_text(size = 16),
+        strip.text = element_text(size = 20),
+        legend.title = element_text(size = 16),
+        legend.text = element_text(size = 16)) + 
+  guides(fill = guide_legend(title = "Path difference \nmetric"))
+plot_name <- paste0(output_dir, "p-value_category_distance_comparison_barplot_PathDifferenceMetric.png")
+ggsave(filename = plot_name, plot = p)
+plot_name <- paste0(output_dir, "p-value_category_distance_comparison_barplot_PathDifferenceMetric.pdf")
 ggsave(filename = plot_name, plot = p)
 
 
