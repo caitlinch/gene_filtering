@@ -97,7 +97,7 @@ if (run_location == "local"){
   cores_to_use = 1
   
   # Set number of replicates to do for the treelikeness category analysis
-  number_of_category_replicates = 3
+  number_of_category_replicates = 999
   
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
@@ -268,6 +268,11 @@ for (dataset in datasets_to_copy_loci){
   write(cat_both, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_both_loci_list.txt"))
   write(cat_3seq, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_3seq_only_loci_list.txt"))
   write(cat_tp, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_tree_proportion_only_loci_list.txt"))
+  cat_op_df <- data.frame("dataset" = dataset, "n_loci_none" = length(cat_none), "n_plot_name_none" = "Treelike",
+                          "n_loci_both" = length(cat_both), "n_plot_name_both" = "Non-treelike 1",
+                          "n_loci_3seq_only" = length(cat_3seq), "n_plot_name_3seq_only" = "Non-treelike 3",
+                          "n_loci_tree_proportion_only" = length(cat_tp), "n_plot_name_tree_proportion_only" = "Non-treelike 2")
+  write.csv(cat_op_df, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_info.csv"))
   
   # Perform 99 replicates of each category with randomly sampled loci
   # Set information about categories
