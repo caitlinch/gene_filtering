@@ -74,7 +74,7 @@ if (run_location == "local"){
   # Datasets/dataset information
   input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   loci_to_remove <- list("Vanderpool2020" = "ORTHOMCL14552")
-  number_of_taxa <- list("Vanderpool2020" = 29)
+  number_of_taxa <- list("Vanderpool2020" = NA)
   
   # File and directory locations
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_trees")
@@ -218,7 +218,7 @@ for (dataset in input_names){
 
 treelikeness_df <- treelikeness_df[keep_inds,]
 # Save trimmed treelikeness_df
-trimmed_treelikeness_df_file <- gsub(".csv", "_trimmedLoci_trimmedTaxa.csv", treelikeness_df_file)
+trimmed_treelikeness_df_file <- gsub(".csv", paste0("_trimmedLoci_trimmedTaxa_",format(Sys.Date(),"%Y%m%d"),".csv"), treelikeness_df_file)
 write.csv(treelikeness_df, file = trimmed_treelikeness_df_file)
 
 
@@ -262,6 +262,12 @@ for (dataset in datasets_to_copy_loci){
   cat_tp   <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
   copy.loci.trees(cat_tp, dataset_df[dataset_df$loci %in% cat_tp,]$tree, category_output_folder, 
                   "p-value_categories_tree_proportion_only_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
+  
+  # Write out the loci from each category
+  write(cat_none, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_none_loci_list.txt"))
+  write(cat_both, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_both_loci_list.txt"))
+  write(cat_3seq, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_3seq_only_loci_list.txt"))
+  write(cat_tp, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_tree_proportion_only_loci_list.txt"))
   
   # Perform 99 replicates of each category with randomly sampled loci
   # Set information about categories
