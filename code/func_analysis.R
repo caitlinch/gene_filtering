@@ -382,10 +382,36 @@ get.filename.info <- function(full_filename, species_trees_files){
   # Get the tree
   file_tree_text <- readLines(full_filename)
   file_tree <- read.tree(text = file_tree_text)
+  # Check whether any branch lengths in the tree contains NA or NaN
+  if (TRUE %in% is.na(tree1$edge.length)){
+    missing_branch_lengths_ft = TRUE
+    # ASTRAL does not estimate the lengths of terminal taxa 
+    # Unfortunately this means it's hard to compare the trees with each other (can't use any metric that uses branch lengths)
+    # If there are missing branches, replace them with 1 - that branch length now has a value of 1
+    missing_inds_ft <- which(is.na(file_tree$edge.length))
+    num_missing_inds_ft <- length(missing_inds_ft)
+    file_tree$edge.length[missing_inds_ft] <- 1
+  } else {
+    missing_branch_lengths_ft = FALSE
+    num_missing_inds_ft <- 0
+  }
   
-  # Calculate distance to species tree
+  # Open the species tree
   species_tree_file <- species_trees_files[[dataset]]
   species_tree <- read.tree(file = species_tree_file)
+  # Check whether any branch lengths in the species tree contains NA or NaN
+  if (TRUE %in% is.na(tree1$edge.length)){
+    missing_branch_lengths_st = TRUE
+    # ASTRAL does not estimate the lengths of terminal taxa 
+    # Unfortunately this means it's hard to compare the trees with each other (can't use any metric that uses branch lengths)
+    # If there are missing branches, replace them with 1 - that branch length now has a value of 1
+    missing_inds_st <- which(is.na(species_tree$edge.length))
+    num_missing_inds_st <- length(missing_inds_st)
+    file_tree$edge.length[missing_inds_st] <- 1
+  } else {
+    missing_branch_lengths_st = FALSE
+    num_missing_inds_st <- 0
+  }
   
   # Compare distance between trees
   rf_distance <- RF.dist(file_tree, species_tree, check.labels = TRUE)
@@ -394,12 +420,20 @@ get.filename.info <- function(full_filename, species_trees_files){
   KF_dist <- KF.dist(file_tree,species_tree, check.labels = TRUE)
   path_difference <- path.dist(file_tree, species_tree, check.labels = TRUE)
   spr_distance <- sprdist(file_tree, species_tree)[[1]]
+  KC_metric_topology <- treespace::treeDist(file_tree, species_tree, lambda = 0)
+  KC_metric_branch_lengths <- treespace::treeDist(file_tree, species_tree, lambda = 1)
   
   #Assemble information into a row
-  info_row <- c(dataset, category, plot_category, rep_category, rep_number, rf_distance, norm_rf_dist, weighted_RF_distance, 
-                KF_dist, path_difference, spr_distance, full_filename, file_tree_text)
-  names(info_row) <- c("dataset","significant_p_values", "treelikeness_category", "replicate_category", "replicate_number", "RobinsonFolds_distance", "normalised_RF_distance", "weighted_RF_distance",
-                       "branch_score_difference", "path_difference_metric", "approx_SPR_distance", "filename", "tree")
+  info_row <- c(dataset, category, plot_category, rep_category, rep_number, 
+                missing_branch_lengths_ft, num_missing_inds_ft, missing_branch_lengths_st, num_missing_inds_st, 
+                rf_distance, norm_rf_dist, weighted_RF_distance, 
+                KF_dist, path_difference, spr_distance, 
+                KC_metric_topology, KC_metric_branch_lengths, full_filename, file_tree_text)
+  names(info_row) <- c("dataset","significant_p_values", "treelikeness_category", "replicate_category", "replicate_number", 
+                       "missing_branches_tree", "number_missing_branches_tree", "missing_branches_species_tree", "number_missing_branches_species_tree", 
+                       "RobinsonFoulds_distance", "normalised_RF_distance", "weighted_RF_distance",
+                       "branch_score_difference", "path_difference_metric", "approx_SPR_distance", 
+                       "KendallColijn_metric_topology", "KendallColijn_metric_branchLengths", "filename", "tree")
   
   return(info_row)
 }
