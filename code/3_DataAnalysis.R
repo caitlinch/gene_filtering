@@ -8,7 +8,7 @@
 ##### Step 1: Open packages #####
 library(ggplot2)
 #library(adegenet)
-#library(treespace)
+library(treespace)
 library(phangorn) # using phangorn to get the KF.dist, RF.dist, wRF.dist, nNodes, and patristic methods for summarising trees as vectors 
 # these methods all assume an unrooted tree so trees can be used as is for this analysis
 
@@ -189,12 +189,14 @@ category_df <- data.frame(do.call(rbind, category_list))
 # Write the category dataframe out 
 write.csv(category_df, file = paste0(output_dir, "allDatasets_CategoryTrees_comparison.csv"))
 # convert category df columns to numbers
-category_df$RobinsonFolds_distance <- as.numeric(category_df$RobinsonFolds_distance)
+category_df$RobinsonFoulds_distance <- as.numeric(category_df$RobinsonFoulds_distance)
 category_df$normalised_RF_distance <- as.numeric(category_df$normalised_RF_distance)
 category_df$weighted_RF_distance <- as.numeric(category_df$weighted_RF_distance)
 category_df$branch_score_difference <- as.numeric(category_df$branch_score_difference)
 category_df$path_difference_metric <- as.numeric(category_df$path_difference_metric)
 category_df$approx_SPR_distance <- as.numeric(category_df$approx_SPR_distance)
+category_df$KendallColijn_metric_topology <- as.numeric(category_df$KendallColijn_metric_topology)
+category_df$KendallColijn_metric_branchLengths <- as.numeric(category_df$KendallColijn_metric_branchLengths)
 
 # # For fake plotting
 # # To add more rows and change the dataset to fake having three datasets
@@ -209,10 +211,10 @@ cat_df <- category_df[(category_df$replicate_category == "category_tree"),]
 # make a nice plot
 facet_labels <- c("Plants", "Eukaryotes", "Primates")
 names(facet_labels) <- c("1KP", "Strassert2021", "Vanderpool2020")
-p <- ggplot() + geom_boxplot(data = rep_df, aes(x = treelikeness_category, y = RobinsonFolds_distance)) +
-  geom_point(data = cat_df, aes(x = treelikeness_category, y = RobinsonFolds_distance), shape = 18, size = 5, col = "darkred") + 
+p <- ggplot() + geom_boxplot(data = rep_df, aes(x = treelikeness_category, y = RobinsonFoulds_distance)) +
+  geom_point(data = cat_df, aes(x = treelikeness_category, y = RobinsonFoulds_distance), shape = 18, size = 5, col = "darkred") + 
   facet_wrap(~dataset, labeller = labeller(dataset = facet_labels), scales = "free_y") +
-  xlab("\nTreelikeness category") + ylab("Robinson Folds distance\n") + 
+  xlab("\nTreelikeness category") + ylab("Robinson Foulds distance\n") + 
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 55, hjust = 1, size = 13),
         axis.text.y = element_text(size = 13),
@@ -237,7 +239,7 @@ ggsave(filename = plot_name, plot = p)
 plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot_PathDifferenceMetric.pdf")
 ggsave(filename = plot_name, plot = p)
 
-p <- ggplot(data = rep_df, aes(x = treelikeness_category, fill = as.factor(RobinsonFolds_distance))) + geom_bar() + 
+p <- ggplot(data = rep_df, aes(x = treelikeness_category, fill = as.factor(RobinsonFoulds_distance))) + geom_bar() + 
   xlab("\nTreelikeness category") + ylab("Count \n") + 
   facet_wrap(~dataset, labeller = labeller(dataset = facet_labels), scales = "free_y") +
   theme_bw() +
@@ -248,7 +250,7 @@ p <- ggplot(data = rep_df, aes(x = treelikeness_category, fill = as.factor(Robin
         strip.text = element_text(size = 20),
         legend.title = element_text(size = 16),
         legend.text = element_text(size = 16)) + 
-  guides(fill = guide_legend(title = "Robinson Folds \ndistance"))
+  guides(fill = guide_legend(title = "Robinson Foulds \ndistance"))
 plot_name <- paste0(output_dir, "p-value_category_distance_comparison_barplot_RFdistance.png")
 ggsave(filename = plot_name, plot = p)
 plot_name <- paste0(output_dir, "p-value_category_distance_comparison_barplot_RFdistance.pdf")
