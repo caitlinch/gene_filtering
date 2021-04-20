@@ -164,7 +164,7 @@ if (collate_results == TRUE){
 
 
 
-##### Step 5: Plot the results of the AU test #####
+##### Step 5: Plot the results of the category tree analysis #####
 # Collect the species tree estimated in ASTRAl for each dataset
 species_trees_files <- c()
 for (dataset in datasets){
@@ -183,11 +183,18 @@ all_category_files <- list.files(category_tree_folders, full.names = TRUE)
 all_category_trees <- grep("\\.tre", all_category_files, value = TRUE)
 astral_category_trees <- grep("ASTRAL", all_category_trees, value = TRUE)
 astral_category_trees <- grep("all_loci", astral_category_trees, invert = TRUE, value = TRUE)
-# Extract information from each tree file and calculate RF distance to relevant species tree
-category_list <- lapply(astral_category_trees, get.filename.info, species_trees_files)
-category_df <- data.frame(do.call(rbind, category_list))
-# Write the category dataframe out 
-write.csv(category_df, file = paste0(output_dir, "allDatasets_CategoryTrees_comparison.csv"))
+# Check whether the file already exists
+complete_category_analysis_file <- paste0(output_dir, "allDatasets_CategoryTrees_comparison.csv")
+if (file.exists(complete_category_analysis_file) == FALSE){
+  # Extract information from each tree file and calculate RF distance to relevant species tree
+  category_list <- lapply(astral_category_trees, get.filename.info, species_trees_files)
+  category_df <- data.frame(do.call(rbind, category_list))
+  # Write the category dataframe out 
+  write.csv(category_df, file = paste0(output_dir, "allDatasets_CategoryTrees_comparison.csv"))
+} else if (file.exists(complete_category_analysis_file) == TRUE){
+  category_df <- read.csv(complete_category_analysis_file, stringsAsFactors = TRUE)
+}
+
 # convert category df columns to numbers
 category_df$RobinsonFoulds_distance <- as.numeric(category_df$RobinsonFoulds_distance)
 category_df$normalised_RF_distance <- as.numeric(category_df$normalised_RF_distance)
@@ -211,6 +218,24 @@ cat_df <- category_df[(category_df$replicate_category == "category_tree"),]
 # make a nice plot
 facet_labels <- c("Plants", "Eukaryotes", "Primates")
 names(facet_labels) <- c("1KP", "Strassert2021", "Vanderpool2020")
+
+# wRF distance box plot
+p <- ggplot() + geom_boxplot(data = rep_df, aes(x = treelikeness_category, y = weighted_RF_distance)) +
+  geom_point(data = cat_df, aes(x = treelikeness_category, y = weighted_RF_distance), shape = 18, size = 5, col = "darkred") + 
+  facet_wrap(~dataset, labeller = labeller(dataset = facet_labels), scales = "free_y") +
+  xlab("\nTreelikeness category") + ylab("Weighted Robinson Foulds distance\n") + 
+  scale_y_continuous(breaks = seq(0,7,1), labels = seq(0,7,1), minor_breaks = seq(0,7,0.5), limits = c(0,7)) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 55, hjust = 1, size = 20),
+        axis.text.y = element_text(size = 20),
+        axis.title = element_text(size = 22),
+        strip.text = element_text(size = 26))
+plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot_wRFdistance.png")
+ggsave(filename = plot_name, plot = p)
+plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot_wRFdistance.pdf")
+ggsave(filename = plot_name, plot = p)
+
+# RF distance box plot
 p <- ggplot() + geom_boxplot(data = rep_df, aes(x = treelikeness_category, y = RobinsonFoulds_distance)) +
   geom_point(data = cat_df, aes(x = treelikeness_category, y = RobinsonFoulds_distance), shape = 18, size = 5, col = "darkred") + 
   facet_wrap(~dataset, labeller = labeller(dataset = facet_labels), scales = "free_y") +
@@ -225,6 +250,7 @@ ggsave(filename = plot_name, plot = p)
 plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot_RFdistance.pdf")
 ggsave(filename = plot_name, plot = p)
 
+# Path difference metric box plot
 p <- ggplot() + geom_boxplot(data = rep_df, aes(x = treelikeness_category, y = path_difference_metric)) +
   geom_point(data = cat_df, aes(x = treelikeness_category, y = path_difference_metric), shape = 18, size = 5, col = "darkred") + 
   facet_wrap(~dataset, labeller = labeller(dataset = facet_labels), scales = "free_y") +
@@ -239,6 +265,7 @@ ggsave(filename = plot_name, plot = p)
 plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot_PathDifferenceMetric.pdf")
 ggsave(filename = plot_name, plot = p)
 
+# RF distance bar plot
 p <- ggplot(data = rep_df, aes(x = treelikeness_category, fill = as.factor(RobinsonFoulds_distance))) + geom_bar() + 
   xlab("\nTreelikeness category") + ylab("Count \n") + 
   facet_wrap(~dataset, labeller = labeller(dataset = facet_labels), scales = "free_y") +
@@ -256,6 +283,7 @@ ggsave(filename = plot_name, plot = p)
 plot_name <- paste0(output_dir, "p-value_category_distance_comparison_barplot_RFdistance.pdf")
 ggsave(filename = plot_name, plot = p)
 
+# Path difference metric bar plot
 p <- ggplot(data = rep_df, aes(x = treelikeness_category, fill = as.factor(round(path_difference_metric, digits = 1)))) + geom_bar() + 
   xlab("\nTreelikeness category") + ylab("Count \n") + 
   facet_wrap(~dataset, labeller = labeller(dataset = facet_labels), scales = "free_y") +
@@ -350,7 +378,59 @@ if (run_analysis == TRUE){
 
 
 
-##### Step 7: Investigate whether there is sampling bias! #####
+##### Step 7: Make a nice plot of the possible trees #####
+library(ggtree)
+# Open species tree
+v_species_tree <- read.tree(file = paste0(tree_data_dirs["Vanderpool2020"], "all_loci_ASTRAL_species.tre"))
+# Replace empty edges with 1 (make the branch lengths for the terminal branches 1)
+v_branch_lengths <- v_species_tree$edge.length
+na_ids <- which(is.na(v_branch_lengths))
+v_branch_lengths[na_ids] <- 1
+v_species_tree$edge.length <- v_branch_lengths
+# Root tree at mus musculus
+mus_root_tree <- root(v_species_tree, "Mus_musculus")
+dec_tree <- ladderize(mus_root_tree, right = TRUE)
+
+png(filename = paste0(tree_data_dirs["Vanderpool2020"], "all_loci_ASTRAL_species_tree_plot.png"), width = 1000, height = 1000)
+plot.phylo(dec_tree, use.edge.length = TRUE, edge.width = 2, cex = 1.5, font = 1, adj = 0.1, underscore = FALSE)
+dev.off()
+pdf(file = paste0(tree_data_dirs["Vanderpool2020"], "all_loci_ASTRAL_species_tree_plot.pdf"))
+plot.phylo(dec_tree, use.edge.length = TRUE, edge.width = 2, cex = 1, font = 1, adj = 0.1, underscore = FALSE)
+dev.off()
+
+# Create each of the three possible topologies for the clade of interest
+clade1_txt <- "((Callithrix_jacchus,Aotus_nancymaae),(Cebus_capucinus_imitator,Saimiri_boliviensis));"
+clade_1 <- ladderize(read.tree(text = clade1_txt))
+clade2_txt <- "(Callithrix_jacchus,(Aotus_nancymaae,(Cebus_capucinus_imitator,Saimiri_boliviensis)));"
+clade_2 <- ladderize(read.tree(text = clade2_txt))
+clade3_txt <- "(Aotus_nancymaae,(Callithrix_jacchus,(Cebus_capucinus_imitator,Saimiri_boliviensis)));"
+clade_3 <- ladderize(read.tree(text = clade3_txt))
+
+# Plot each of those clades 
+png(filename = paste0(tree_data_dirs["Vanderpool2020"], "AU_test_clade_tree1.png"))
+plot.phylo(clade_1, use.edge.length = TRUE, edge.width = 2, cex = 1, font = 1, adj = 0.1, underscore = FALSE)
+dev.off()
+png(filename = paste0(tree_data_dirs["Vanderpool2020"], "AU_test_clade_tree2.png"))
+plot.phylo(clade_2, use.edge.length = TRUE, edge.width = 2, cex = 1, font = 1, adj = 0.1, underscore = FALSE)
+dev.off()
+png(filename = paste0(tree_data_dirs["Vanderpool2020"], "AU_test_clade_tree3.png"))
+plot.phylo(clade_3, use.edge.length = TRUE, edge.width = 2, cex = 1, font = 1, adj = 0.1, underscore = FALSE)
+dev.off()
+
+## Plot same tree in ggtree (this didn't work out so well...)
+# Change labels to have spaces not underscores
+dec_tree$tip.label <- gsub("_"," ", dec_tree$tip.label)
+# Change order of tip labels to be decreasing
+is_tip <- (dec_tree$edge[,2] <= length(dec_tree$tip.label))
+# Make a nice plot
+p <- ggtree(dec_tree) +
+  geom_tiplab()
+p <- rotate(p,30)
+p <- p + geom_cladelab(node = 33, label = "Variable clade", barcolour = "darkred", textcolour = "darkred", offset = -2, align = TRUE)
+plot_title <- paste0(tree_data_dirs["Vanderpool2020"], "all_loci_ASTRAL_species_tree_plot_ggtree.png")
+ggsave(plot_title, plot = p, device = "png", units = "cm", width = 90, height = 20)
+
+##### Step 8: Investigate whether there is sampling bias! #####
 # Find the list of 
 if (run_analysis == TRUE){
   if ("Vanderpool2020" %in% datasets){
