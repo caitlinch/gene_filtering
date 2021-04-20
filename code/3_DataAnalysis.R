@@ -176,16 +176,17 @@ for (dataset in datasets){
   species_trees_files <- c(species_trees_files, all_loci_ASTRAL_tree)
 }
 names(species_trees_files) <- datasets
-# Collect all the tree files
-category_tree_folders <- paste0(tree_data_dirs, "ASTRAL_category_trees_only_copied")
-names(category_tree_folders) <- datasets
-all_category_files <- list.files(category_tree_folders, full.names = TRUE)
-all_category_trees <- grep("\\.tre", all_category_files, value = TRUE)
-astral_category_trees <- grep("ASTRAL", all_category_trees, value = TRUE)
-astral_category_trees <- grep("all_loci", astral_category_trees, invert = TRUE, value = TRUE)
-# Check whether the file already exists
+
+# Check whether the category analysis file already exists
 complete_category_analysis_file <- paste0(output_dir, "allDatasets_CategoryTrees_comparison.csv")
 if (file.exists(complete_category_analysis_file) == FALSE){
+  # Collect all the tree files
+  category_tree_folders <- paste0(tree_data_dirs, "ASTRAL_category_trees_only_copied")
+  names(category_tree_folders) <- datasets
+  all_category_files <- list.files(category_tree_folders, full.names = TRUE)
+  all_category_trees <- grep("\\.tre", all_category_files, value = TRUE)
+  astral_category_trees <- grep("ASTRAL", all_category_trees, value = TRUE)
+  astral_category_trees <- grep("all_loci", astral_category_trees, invert = TRUE, value = TRUE)
   # Extract information from each tree file and calculate RF distance to relevant species tree
   category_list <- lapply(astral_category_trees, get.filename.info, species_trees_files)
   category_df <- data.frame(do.call(rbind, category_list))
@@ -221,19 +222,19 @@ names(facet_labels) <- c("1KP", "Strassert2021", "Vanderpool2020")
 
 # wRF distance box plot
 p <- ggplot() + geom_boxplot(data = rep_df, aes(x = treelikeness_category, y = weighted_RF_distance)) +
-  geom_point(data = cat_df, aes(x = treelikeness_category, y = weighted_RF_distance), shape = 18, size = 5, col = "darkred") + 
+  geom_point(data = cat_df, aes(x = treelikeness_category, y = weighted_RF_distance), shape = 18, size = 6, col = "red", alpha = 0.5) + 
   facet_wrap(~dataset, labeller = labeller(dataset = facet_labels), scales = "free_y") +
   xlab("\nTreelikeness category") + ylab("Weighted Robinson Foulds distance\n") + 
   scale_y_continuous(breaks = seq(0,7,1), labels = seq(0,7,1), minor_breaks = seq(0,7,0.5), limits = c(0,7)) +
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 55, hjust = 1, size = 20),
-        axis.text.y = element_text(size = 20),
-        axis.title = element_text(size = 22),
-        strip.text = element_text(size = 26))
+        axis.text.y = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        strip.text = element_text(size = 24))
 plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot_wRFdistance.png")
-ggsave(filename = plot_name, plot = p)
+ggsave(filename = plot_name, plot = p, units = "in", height = 8, width = 7)
 plot_name <- paste0(output_dir, "p-value_category_distance_comparison_boxplot_wRFdistance.pdf")
-ggsave(filename = plot_name, plot = p)
+ggsave(filename = plot_name, plot = p, units = "in", height = 8, width = 7)
 
 # RF distance box plot
 p <- ggplot() + geom_boxplot(data = rep_df, aes(x = treelikeness_category, y = RobinsonFoulds_distance)) +
@@ -379,7 +380,7 @@ if (run_analysis == TRUE){
 
 
 ##### Step 7: Make a nice plot of the possible trees #####
-library(ggtree)
+#library(ggtree)
 # Open species tree
 v_species_tree <- read.tree(file = paste0(tree_data_dirs["Vanderpool2020"], "all_loci_ASTRAL_species.tre"))
 # Replace empty edges with 1 (make the branch lengths for the terminal branches 1)
