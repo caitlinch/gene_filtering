@@ -81,13 +81,14 @@ csv_files <- paste0(dirname(output_folder), "/", csv_files)
 csv_list <- lapply(csv_files, read.csv)
 windows_df <- as.data.frame(do.call(rbind, csv_list))
 
-# Check how many sites specified in mvf
+# Check how many sites specified in mvf for chromosome 1
 mvf_file <- "/Users/caitlincherryh/Downloads/doi_10.5061_dryad.182dv__v1/Pease_etal_Tomato29acc_HQ_ch01.mvf"
 mvf <- readLines(mvf_file)
 mvf_trimmed <- mvf[grep("1:", mvf)]
 mvf_nums <- unlist(strsplit(mvf_trimmed, " "))[c(TRUE,FALSE)]
 mvf_nums <- gsub("1:","",mvf_nums)
 mvf_nums <- as.numeric(mvf_nums)
+# Compare to how many sites there should be based on the alignment length for chromosome 1
 all_nums <- seq(924, 98543114, 1)
 all_nums[!(all_nums %in% mvf_nums)]
 
@@ -105,7 +106,13 @@ chromosome_length # 21918490
 # Need to map back onto reference I suppose...
 # Leave this here for now - this is a complex problem to solve
 
-
+windows <- tsv_100kb$alignlength
+windows <- sort(windows, decreasing = TRUE)
+windows[2744:2746] # 24629 24603 24564
+length(which(windows > 24600)) # 2745
+# So if the threshold was 24,600 then we would end up with 2745 gene trees
+length(which(windows > 20000)) # 3118
+# So if the threshold was 20,000 then we would end up with 3118 gene trees
 
 
 
