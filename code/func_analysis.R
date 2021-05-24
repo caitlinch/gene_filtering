@@ -33,7 +33,8 @@ check.for.IQTree.warnings <- function(alignment_path){
 
 
 
-# This function looks in a single IQ-Tree folder and checks which loci are present
+# This function looks in a single folder filled with loci for a concatenated IQ-Tree tree estimation 
+# and makes a list as a text file of the names of the loci that are present
 get.loci.from.analysis <- function(folder, output_folder){
   # Create a filename for the output file
   op_filename <- paste0(output_folder, gsub("_IQ-Tree_partition","",basename(folder)), "_loci.csv")
