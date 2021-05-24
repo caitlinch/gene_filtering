@@ -1,6 +1,5 @@
 ### empirical_treelikeness/code/func_empirical.R
-## R functions to process and modify empirical sequence alignments, specifically Rob Lanfear's "BenchmarkAlignments"
-## BenchmarkAlignments and metadata available here: https://github.com/roblanf/BenchmarkAlignments and have CC0 or CCBY licenses
+## R functions to process and modify empirical sequence alignments
 # Caitlin Cherryh 2021
 
 # Packages required 
