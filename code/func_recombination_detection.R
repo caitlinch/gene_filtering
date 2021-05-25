@@ -8,7 +8,7 @@ library(ape)
 # Wrapper to take a dataframe row and feed it into the apply.recombination.detection.methods function
 recombination.detection.wrapper <- function(index, df, executable_paths, iqtree_num_threads){
   loci_row <- df[index,]
-  apply.recombination.detection.methods(loci_row, executable_paths, iqtree_num_threads)
+  apply.recombination.detection.methods(loci_row = loci_row, executable_paths, iqtree_num_threads)
 }
 
 
@@ -24,28 +24,29 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
   # Create the names for the output files for this locus
   recombination_results_file <- paste0(alignment_folder, loci_row$dataset, "_", loci_row$loci_name, 
                                        "_RecombinationDetection_results.csv")
-  
   # Check if this output file exists
   # If it doesn't, run the recombination detection methods
   if (file.exists(recombination_results_file) == FALSE){
     # Set this directory as the current working directory (so output files from executables will get saved here)
     setwd(alignment_folder)
     # Copy the alignment into the output folder
-    file_extension <- tail(strsplit(loci_row$loci_path,"\\.")[[1]],1)
+    loci_row_path <- loci_row$loci_path
+    file_extension_list <- strsplit(loci_row_path, "\\.")[[1]]
+    file_extension <- file_extension_list[length(file_extension_list)]
     alignment_path <- paste0(alignment_folder, loci_row$loci_name, ".", file_extension)
     if (file.exists(alignment_path) == FALSE){
-      file.copy(loci_row$loci_path, alignment_path, overwrite = TRUE)
+      file.copy(loci_row_path, alignment_path, overwrite = TRUE)
     }
     
     # Remove empty taxa from the alignment
-    remove.empty.taxa(empirical_alignment_path, loci_row$alphabet)
+    remove.empty.taxa(alignment_path, loci_row$alphabet)
     # Remove any sequences from the alignment that have more than the allowable proportion of ambiguous/missing sites or gaps
     if (is.na(loci_row$allowable_proportion_missing_sites) == FALSE){
       # If the allowable proportion of missing sites is NOT NA, run the pruning function
       # The pruning function will remove any sequences where the proportion of missing sites is GREATER than the allowable proportion of missing sites
       prune.taxa.by.length(alignment_path, loci_row$allowable_proportion_missing_sites, loci_row$alphabet, write_output_text = TRUE, alignment_folder)
     }
-    
+  
     # Run 3seq
     threeseq_results <- run.3seq(alignment_path, alignment_folder, threeseq_path = executable_paths[["3seq"]])
     # Run PhiPack
@@ -53,7 +54,7 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
     # Run GeneConv
     geneconv_results <- run.geneconv(alignment_path, alignment_folder, geneconv_path = executable_paths[["GeneConv"]])
     # Run IQ-Tree
-    call.IQTREE.empirical(alignment_path, executable_paths[["IQTree"]], loci_row$best_model, num_threads = iqtree_num_threads)
+    call.IQTREE.empirical.UFB(alignment_path, executable_paths[["IQTree"]], loci_row$best_model, num_bootstraps = 1000, num_threads = iqtree_num_threads)
     
     # Extract basic information about the alignment for the output csv file
     # Check file extension of alignment
@@ -86,14 +87,19 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
     # Combine results into a nice row for output csv file
     results_vec <- c(loci_row$dataset, loci_row$loci_name, loci_row$alphabet, loci_row$best_model,
                      n_taxa, n_char, threeseq_results, prop_recomb_seq, phipack_results,
-                     newick_tree)
+                     geneconv_results, newick_tree)
     results_df <- data.frame(as.list(results_vec))
     result_names <- c("dataset", "loci_name", "alphabet", "best_model", "n_taxa", "n_bp",
                       names(threeseq_results), "proportion_recombinant_sequences", names(phipack_results),
-                      "tree")
-    names(results_vec) <- results_names
-    names(results_df) <- results_names
-    write.csv(results_df, file = recombination_results_file)
+                      names(geneconv_results), "tree")
+    names(results_vec) <- result_names
+    names(results_df) <- result_names
+    write.csv(results_df, file = recombination_results_file, row.names = FALSE)
+  } else if (file.exists(recombination_results_file) == TRUE){
+    results_df <- read.csv(recombination_results_file)
+    result_names <- names(results_df)
+    results_vec <- as.character(results_df[1,])
+    names(results_vec) <- result_names
   }
   return(results_vec)
 }
@@ -106,7 +112,7 @@ run.3seq <- function(alignment_path, alignment_folder, threeseq_path){
   setwd(alignment_folder)
   
   # Determine file extension
-  file_extension <- tail(strsplit(loci_row$loci_path,"\\.")[[1]],1)
+  file_extension <- tail(strsplit(alignment_path,"\\.")[[1]],1)
   
   # Only run 3SEQ and collect sCF values if the path is an alignment (don't need bootstrap replicates for 3SEQ/sCF)
   # Check if 3SEQ has already been run. Only run 3SEQ if the log file doesn't exist
@@ -167,7 +173,7 @@ run.phipack <- function(alignment_path, alignment_folder, phipack_path){
   if (file.exists(paste0(alignment_folder,"Phi.log")) == FALSE){
     
     # Determine file extension
-    file_extension <- tail(strsplit(loci_row$loci_path,"\\.")[[1]],1)
+    file_extension <- tail(strsplit(alignment_path,"\\.")[[1]],1)
     
     # Check file extension of alignment
     if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | 
@@ -223,8 +229,8 @@ run.phipack <- function(alignment_path, alignment_folder, phipack_path){
   names(phi_results) <- c("analytical_PHI_mean_value", "permutation_PHI_mean_value",
                           "analytical_PHI_variance_value", "permutation_PHI_variance_value",
                           "analytical_PHI_observed_value", "permutation_PHI_observed_value",
-                          "NSS_p-value", "max_chi_squared_p-value", 
-                          "PHI_permutation_p-value", "PHI_normal_p-value")
+                          "NSS_p_value", "max_chi_squared_p_value", 
+                          "PHI_permutation_p_value", "PHI_normal_p_value")
   
   # Return PHIPack results
   return(phi_results)
@@ -232,47 +238,63 @@ run.phipack <- function(alignment_path, alignment_folder, phipack_path){
 
 
 
+# Run the GeneConv program on one alignment and return the key variables calculated by the program
 run.geneconv <- function(alignment_path, alignment_folder, geneconv_path){
   # Set working directory to alignment folder, so that PHI output files are saved correctly
   setwd(alignment_folder)
   
   # Determine file extension
-  file_extension <- tail(strsplit(loci_row$loci_path,"\\.")[[1]],1)
+  file_extension <- tail(strsplit(alignment_path,"\\.")[[1]],1)
   
   # Check whether GeneConv has already been run
   if (file.exists(paste0(gsub(file_extension, "", alignment_path), "frags")) == FALSE){
     #generate seed by taking the numbers from today's date
     seed <- gsub("-", "", Sys.Date())
     # Assemble and call the system command
-    geneconv_command <- paste0(geneconv_path, " ", basename(alignment_path), " /w", seed, " /lp -ExpFormat -Nolog > ",
+    geneconv_command <- paste0(geneconv_path, " ", basename(alignment_path), " /w", seed, " /lp /sp /sb -ExpFormat -Nolog > ",
                 gsub(paste0(".", file_extension), "_geneconv_terminal.txt", basename(alignment_path)))
     system(geneconv_command)
-    
-    # Open geneconv .frag file to extract results
-    geneconv_file_path <- paste0(alignment_folder, grep(".frag", list.files(alignment_folder), value = TRUE))
-    geneconv_file <- readLines(geneconv_file_path)
-    # Extract number of significant fragments
-    ind <- grep("Global lists:", geneconv_file)
-    global_line <- geneconv_file[ind]
-    global_line <- strsplit(gsub(" significant fragments", "", gsub("# Global lists:", "", global_line)), " and ")[[1]]
-    global_inner_pair <- gsub(" ", "", gsub(" I", "", global_line[1]))
-    if (global_inner_pair == "no"){global_inner_pair = 0}
-    global_outer_seq <- gsub(" ", "", gsub(" O", "", global_line[2]))
-    if (global_outer_seq == "no"){global_outer_seq = 0}
-    pairwise_line <- geneconv_file[ind+1]
-    pairwise_line <- strsplit(gsub(" significant fragments", "", gsub("# Pairwise lists:", "", pairwise_line)), " and ")[[1]]
-    pairwise_inner_pair <- gsub(" ", "", gsub(" I", "", pairwise_line[1]))
-    if (pairwise_inner_pair == "no"){pairwise_inner_pair = 0}
-    pairwise_outer_seq <- gsub(" ", "", gsub(" O", "", pairwise_line[2]))
-    if (pairwise_outer_seq == "no"){pairwise_outer_seq = 0}
-    # Extract minimum p-values
-    
-    # Assemble geneconv results
-    geneconv_results <- c("geneconv_seed")
-    names(geneconv_results) <- c(seed)
-    # Return geneconv results
-    return(geneconv_results)
   }
+  
+  # Open geneconv .frag file to extract results
+  geneconv_file_path <- paste0(alignment_folder, grep(".frag", list.files(alignment_folder), value = TRUE))
+  geneconv_file <- readLines(geneconv_file_path)
+  # Extract seed
+  ind <- grep("# The starting random number seed is", geneconv_file)
+  seed_line <- geneconv_file[ind]
+  starting_seed <- gsub(" ", "", gsub("\\.", "", gsub("# The starting random number seed is", "", seed_line)))
+  # Extract number of significant fragments
+  ind <- grep("Global lists:", geneconv_file)
+  global_line <- geneconv_file[ind]
+  global_line <- strsplit(gsub(" significant fragments", "", gsub("# Global lists:", "", global_line)), " and ")[[1]]
+  global_inner_pair <- gsub(" ", "", gsub(" I", "", global_line[1]))
+  if (global_inner_pair == "no"){global_inner_pair = 0}
+  global_outer_seq <- gsub(" ", "", gsub(" O", "", global_line[2]))
+  if (global_outer_seq == "no"){global_outer_seq = 0}
+  pairwise_line <- geneconv_file[ind+1]
+  pairwise_line <- strsplit(gsub(" significant fragments", "", gsub("# Pairwise lists:", "", pairwise_line)), " and ")[[1]]
+  pairwise_inner_pair <- gsub(" ", "", gsub(" I", "", pairwise_line[1]))
+  if (pairwise_inner_pair == "no"){pairwise_inner_pair = 0}
+  pairwise_outer_seq <- gsub(" ", "", gsub(" O", "", pairwise_line[2]))
+  if (pairwise_outer_seq == "no"){pairwise_outer_seq = 0}
+  # Extract minimum p-values
+  ind <- grep("# Simulated P-values are based on ", geneconv_file)
+  inner_line <- geneconv_file[ind+4]
+  inner_line_split <- strsplit(inner_line, "    ")[[1]]
+  inner_line_split <- inner_line_split[inner_line_split != ""]
+  inner_line_vars <- gsub(" ", "", inner_line_split[2:5])
+  inner_line_var_names <- c("geneconv_inner_fragment_maximum_blast-like_score", "geneconv_inner_fragment_simulated_p_value", "geneconv_inner_fragment_sd_above_sim_mean", "geneconv_inner_fragment_sd_of_sim")
+  outer_line <- geneconv_file[ind+6]
+  outer_line_split <- strsplit(outer_line, "    ")[[1]]
+  outer_line_split <- outer_line_split[outer_line_split != ""]
+  outer_line_vars <- gsub(" ", "", outer_line_split[2:5])
+  outer_line_var_names <- c("geneconv_outer_fragment_maximum_blast-like_score", "geneconv_outer_fragment_simulated_p_value", "geneconv_outer_fragment_sd_above_sim_mean", "geneconv_outer_fragment_sd_of_sim")
+  # Assemble geneconv results
+  geneconv_results <- c(starting_seed, global_inner_pair, global_outer_seq, pairwise_inner_pair, pairwise_outer_seq, inner_line_vars, outer_line_vars)
+  names(geneconv_results) <- c("geneconv_seed", "geneconv_num_global_inner_fragments", "geneconv_num_global_outer-sequence_fragments", "geneconv_num_pairwise_inner_fragments", 
+                               "geneconv_num_pairwise_outer-sequence_fragments", inner_line_var_names, outer_line_var_names) 
+  # Return geneconv results
+  return(geneconv_results)
 }
 
 
