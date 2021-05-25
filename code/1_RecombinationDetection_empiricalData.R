@@ -7,20 +7,7 @@
 ##     - Splitstree (Huson and Bryant 2006) (http://www.splitstree.org/) (need SplitsTree 4)
 # Caitlin Cherryh 2021
 
-
-
-##### Step 1: Open packages #####
-print("opening packages")
-library(ape) # analyses of phylogenetics and evolution
-library(parallel) # support for parallel computation
-library(phangorn) # phylogenetic reconstruction and analysis
-library(phytools) # tools for comparative biology and phylogenetics
-library(seqinr) # data analysis and visualisation for biological sequence data
-library(stringr) # wrappers for string operations
-
-
-
-##### Step 2: Set file paths and run variables #####
+##### Step 1: Set file paths and run variables #####
 print("set filepaths")
 # input_dir         <- the folder(s) containing the empirical data
 # input_names       <- set name(s) for the dataset(s)
@@ -41,10 +28,10 @@ print("set filepaths")
 #                              <- this information includes loci name, best model for each loci, location of alignment for each loci, etc
 #                              <- if TRUE, program will collect all these variables in a dataframe and output a .csv containing this dataframe
 #                              <- if FALSE, this step will be skipped
-# datasets_to_run   <- Out of the input names, select which datasets will have the treelikeness analysis run 
-# datasets_to_collate <- Out of the input names, select which datasets will have the treelikeness results collated
-# datasets_to_collect_trees <- Out of the input names, select which datasets will have the maximum likelihood trees from IQ-Tree collected and saved in a separate folder for easy downloading
-# datasets_apply_AU_test <- Out of the input names, which datasets will you apply the AU test (https://doi.org/10.1080/10635150290069913)
+# datasets_to_run   <- Out of the input names, select which datasets will have the treelikeness analysis run and the results collated. If running all, set datasets_to_run <- input_names
+# datasets_to_collect_trees <- Out of the input names, select which datasets will have the maximum likelihood trees from IQ-Tree collected and saved in a separate folder for easy downloading. 
+#                             If saving all, set datasets_to_run <- input_names
+# datasets_apply_AU_test <- Out of the input names, which datasets will you apply the AU test (https://doi.org/10.1080/10635150290069913). If running all, set datasets_to_run <- input_names
 
 # If you are running the AU test, you need to include some extra file paths
 # If you are running multiple datasets on the AU test, provide a path for each dataset (i.e. AU_output_folder <- c("/path/to/op1", "/path/to/op2")) in the SAME ORDER
@@ -85,7 +72,7 @@ print("set filepaths")
 # three_trees_path <- ""
 
 ### Caitlin's paths ###
-run_location = "macbook"
+run_location = "local"
 
 if (run_location == "local"){
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
@@ -102,8 +89,7 @@ if (run_location == "local"){
   exec_folder <- "/Users/caitlincherryh/Documents/Executables/"
   # Create a vector with all of the executable file paths  in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("3seq","iqtree-2.0-rc1-MacOSX/bin/iqtree",
-                  "SplitsTree.app/Contents/MacOS/JavaApplicationStub")
+  exec_paths <- c("3seq","Phi", "GENECONV_v1.81_unix.source/geneconv","iqtree-2.0-rc1-MacOSX/bin/iqtree")
   exec_paths <- paste0(exec_folder,exec_paths)
   names(exec_paths) <- c("3seq","PHIPack","GeneConv","IQTree")
   
@@ -117,9 +103,8 @@ if (run_location == "local"){
   #     want to run only "Trees" and "Fungi": datasets_to_run <- c("Trees", "Fungi")
   # If want to run all of the datasets, assign all names i.e. datasets_to_run <- input_names
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("Strassert2021","1KP")
-  datasets_to_collate <- c("Strassert2021","1KP")
-  datasets_to_collect_trees <- c("Strassert2021","1KP")
+  datasets_to_run <- c("Strassert2021","1KP", "Vanderpool2020")
+  datasets_to_collect_trees <- c("Strassert2021","1KP", "Vanderpool2020")
   datasets_apply_AU_test = c()
   
   # Parameters to perform AU test - needed if one or more dataset names included in datasets_apply_AU_test
@@ -159,7 +144,6 @@ if (run_location == "local"){
   # If want to run all of the datasets, assign all names i.e. datasets_to_run <- input_names
   create_information_dataframe <- TRUE
   datasets_to_run <- c("Vanderpool2020","Strassert2021","1KP")
-  datasets_to_collate <- c("Vanderpool2020","Strassert2021","1KP")
   datasets_to_collect_trees <- c("Vanderpool2020","Strassert2021","1KP")
   datasets_apply_AU_test = c()
   
@@ -186,7 +170,6 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   create_information_dataframe <- TRUE
   datasets_to_run <- c("Strassert2021","1KP")
-  datasets_to_collate <- c("Strassert2021","1KP")
   datasets_to_collect_trees <- c("Strassert2021","1KP")
   datasets_apply_AU_test <- c()
 }
@@ -194,14 +177,19 @@ if (run_location == "local"){
 
 
 
-##### Step 3: Source files for functions #####
-# Source the functions using the filepaths from Step 2
+##### Step 2: Source packages and files for functions #####
+print("opening packages")
+library(ape) # analyses of phylogenetics and evolution
+library(parallel) # support for parallel computation
+library(phangorn) # phylogenetic reconstruction and analysis
+library(seqinr) # data analysis and visualisation for biological sequence data
+print("sourcing functions")
 source(paste0(maindir,"code/func_recombination_detection.R"))
 source(paste0(maindir,"code/func_empirical.R"))
 
 
 
-##### Step 4: Extract names and locations of loci #####
+##### Step 3: Extract names and locations of loci #####
 # Attach the input_names to the input_files and model paths
 names(input_dir) <- input_names
 names(best_model_paths) <- input_names
@@ -271,40 +259,17 @@ if (create_information_dataframe == TRUE){
 
 
 
-##### Step 5: Calculate the test statistics and run the parametric bootstraps  #####
+##### Step 4: Apply the recombination detection methods  #####
 print("run recombination detection methods")
-# Parameter choice explanation:
-#       ~ iqtree_num_threads = 1: allows parallelisation higher up in the workflow
-#                              - i.e. program will run parametric bootstrap for test statistics with multiple threads
-#                              - (number of simulatenous bootstraps set by choice of cores_to_use value)
-
-for (dataset in datasets_to_run){
-  dataset_ids <- which(loci_df$dataset == dataset)
-  mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads)
-}
+dataset_ids <- which(loci_df$dataset %in% datasets_to_run)
+run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads)
+run_df <- as.data.frame(do.call(rbind, run_list))
+results_file <- paste0(output_dir,"empiricalTreelikeness_",dataset,"_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
+write.csv(run_df, file = results_file, row.names = FALSE)
 
 
 
-##### Step 6: Collate test statistic results #####
-print("collate results")
-# Check if there are any datasets to collate
-if (length(datasets_to_collate) > 0){
-  # Iterate through each dataset
-  for (dataset in datasets_to_collate){
-    # Want to go through each loci and add info from parameter values into p-value folder
-    # Start by getting each loci folder
-    all_ds_folder <- paste0(output_dirs[[dataset]], list.dirs(output_dirs[[dataset]], recursive = FALSE, full.names = FALSE))
-    # Extract information about the alignment/model for each loci
-    lapply(all_ds_folder,add.alignment.information)
-    # collate all the data from this dataset together
-    results_file <- paste0(output_dir,"empiricalTreelikeness_",dataset,"_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
-    results_df <- collate.bootstraps(directory = output_dirs[[dataset]], file.name = "_results", id = "", output.file.name = results_file)
-  }
-}
-
-
-
-##### Step 7: Collate trees #####
+##### Step 5: Collate trees #####
 print("collate trees")
 # Check if there are any trees to collate
 if (length(datasets_to_collect_trees) > 0){
@@ -324,7 +289,7 @@ if (length(datasets_to_collect_trees) > 0){
 
 
 
-##### Step 8: Apply the AU test to each alignment #####
+##### Step 6: Apply the AU test to each locus #####
 # Run the AU test
 if (length(datasets_apply_AU_test) > 0){
   # Assign each variable names based on which datasets will be run
