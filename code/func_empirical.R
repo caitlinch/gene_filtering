@@ -615,6 +615,20 @@ call.IQTREE.empirical <- function(alignment_path, iqtree_path, alignment_model, 
 
 
 
+# Function to call IQ-tree and estimate a maximum likelihood tree with 1000 ultrafast bootstraps
+call.IQTREE.empirical.UFB <- function(alignment_path, iqtree_path, alignment_model, num_bootstraps = 1000,num_threads = "AUTO"){
+  # Check if the tree file already exists and if it doesn't, run IQ-tree and create it
+  if (file.exists(paste0(alignment_path,".treefile")) == FALSE){
+    # Given an alignment, estimate the maximum likelihood tree
+    # to estimate: iqtree -s ALN_FILE -p PARTITION_FILE --prefix concat -bb 1000 -nt AUTO
+    call <- paste0(iqtree_path, " -s ", alignment_path, " -m ", alignment_model, " -bb ", num_bootstraps, " -nt ", num_threads," -redo -safe")
+    system(call)
+  }
+}
+
+
+
+
 
 # Function to call IQ-tree, and estimate a maximum likelihood tree and corresponding the site concordance factors
 # Site concordance factors (sCF) are the fraction of decisive alignmen sites supporting that branch
