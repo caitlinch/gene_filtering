@@ -169,8 +169,8 @@ if (run_location == "local"){
   
   # Select datasets to run analysis and collect results
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("Strassert2021","1KP")
-  datasets_to_collect_trees <- c("Strassert2021","1KP")
+  datasets_to_run <- c("Vanderpool2020","Strassert2021","1KP")
+  datasets_to_collect_trees <- c("Vanderpool2020","Strassert2021","1KP")
   datasets_apply_AU_test <- c()
 }
 ### End Caitlin's paths ###
@@ -262,7 +262,9 @@ if (create_information_dataframe == TRUE){
 ##### Step 4: Apply the recombination detection methods  #####
 print("run recombination detection methods")
 dataset_ids <- which(loci_df$dataset %in% datasets_to_run)
-run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads)
+test_dataset_ids <- c(which(loci_df$dataset == "Vanderpool2020")[1:30])
+run_list <- lapply(test_dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads)
+#run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
 run_df <- as.data.frame(do.call(rbind, run_list))
 results_file <- paste0(output_dir,"empiricalTreelikeness_",dataset,"_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
 write.csv(run_df, file = results_file, row.names = FALSE)
