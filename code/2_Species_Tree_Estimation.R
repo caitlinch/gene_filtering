@@ -6,22 +6,10 @@
 ##     - IQTREE (Nguyen et al 2015) (http://www.iqtree.org/) (need version 2.0 or later)
 # Caitlin Cherryh 2021
 
-
-
-##### Step 1: Open packages #####
-print("opening packages")
-library(ape) # analyses of phylogenetics and evolution
-library(parallel) # support for parallel computation
-library(phangorn) # phylogenetic reconstruction and analysis
-library(phytools) # tools for comparative biology and phylogenetics
-
-
-
-##### Step 2: Set file paths and run variables #####
+##### Step 1: Set file paths and run variables #####
 print("set filepaths")
-# input_dir         <- the folder(s) containing the estimated trees from each loci
 # alignment_dir     <- the folder(s) containing the alignments for each loci
-# input_names       <- set name(s) for the dataset(s) - make sure input_names is in same order as input_dir and alignment_dir 
+# input_names       <- set name(s) for the dataset(s) - make sure input_names is in same order as alignment_dir 
 #                      (e.g. for 2 datasets, put same dataset first in all three and same dataset last in all three)
 # loci_to_remove    <- If there are any loci to exclude from the analysis, specify them here. 
 #                   <- This parameter is a list containing a vector for each dataset from input_names. The vector names each loci to exclude from that dataset
@@ -29,7 +17,6 @@ print("set filepaths")
 #                   <- This parameter is a list containing a vector for each dataset from input_names. The vector contains the allowable number of taxa for that dataset
 # treelikeness_df   <- csv file containing collated treelikeness test statistics for each loci (created by running the code/1_TestStatistics_EmpiricalData.R file) 
 # output_dir        <- where the coalescent/concatenated trees and tree comparisons will be stored 
-# treedir           <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # cores_to_use      <- the number of cores to use for parametric bootstrap. 1 for a single core (wholly sequential), or higher if using parallelisation.
 # exec_folder       <- the folder containing the software executables needed for analysis (ASTRAL and IQTREE)
@@ -45,11 +32,9 @@ print("set filepaths")
 #       - in Linux, after installing and navigating into the folder it's simply "SplitsTree"
 
 # # UNCOMMENT THE FOLLOWING LINES AND ENTER YOUR FILE PATHS/VARIABLES
-# input_dir <- ""
 # input_names <- ""
 # treelikeness_df <- ""
 # output_dir <- ""
-# treedir <- ""
 # maindir <- ""
 # cores_to_use <- 1
 # # Create a vector with all of the executable file paths using the following lines as a template:
@@ -67,8 +52,7 @@ print("set filepaths")
 # loci_windows     <- c(10, 50, 100, 250, 500)
 
 ### Caitlin's paths ###
-# run_location = "local"
-run_location = "server"
+run_location = "local"
 
 if (run_location == "local"){
   # Datasets/dataset information
@@ -77,13 +61,12 @@ if (run_location == "local"){
   number_of_taxa <- list("Vanderpool2020" = NA)
   
   # File and directory locations
-  input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_trees")
-  alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/")
+  alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
+                     "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Strassert2021/02_trimAL_Divvier_filtered_genes_only/",
+                     "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/")
   csv_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
-  treelikeness_df_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/empiricalTreelikeness_Vanderpool2020_collated_results_20210120.csv"
+  treelikeness_df_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/empiricalTreelikeness_Vanderpool2020_collated_results_20210526.csv"
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/")
-  
-  treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
   # Create a vector with all of the executable file paths  in this order: 3SEQ, IQ-Tree, SplitsTree
@@ -113,15 +96,13 @@ if (run_location == "local"){
   number_of_taxa <- list("Vanderpool2020" = NA)
   
   # File and directory locations
-  input_dir <- "/data/caitlin/empirical_treelikeness/Output/Vanderpool2020_trees/"
   alignment_dir <- "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/"
   csv_data_dir <- "/data/caitlin/empirical_treelikeness/Output/"
   treelikeness_df_file <- "/data/caitlin/empirical_treelikeness/Output/empiricalTreelikeness_Vanderpool2020_collated_results_20210120.csv"
   output_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
   
   treedir <- "/data/caitlin/treelikeness/" # where the treelikeness repository/folder is
-  maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness repository/folder is 
-  
+
   # Create a vector with all of the executable file paths in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("/data/caitlin/executables/ASTRAL/astral.5.7.5.jar","/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
@@ -143,16 +124,20 @@ if (run_location == "local"){
 
 
 
-##### Step 3: Source files for functions #####
+##### Step 2: Open packages and source files for functions #####
+print("opening packages")
+library(ape) # analyses of phylogenetics and evolution
+library(parallel) # support for parallel computation
+library(phangorn) # phylogenetic reconstruction and analysis
+library(phytools) # tools for comparative biology and phylogenetics
 # Source the functions using the filepaths from Step 2
 source(paste0(maindir,"code/func_empirical.R"))
 source(paste0(maindir,"code/func_analysis.R"))
 
 
 
-##### Step 4: Set up dataframes for analyses #####
-# Add dataset names the input_dir and alignment_dir variables so you can index by dataset name
-names(input_dir) <- input_names
+##### Step 3: Set up dataframes for analyses #####
+# Add dataset names to the alignment_dir variable so you can index by dataset name
 names(alignment_dir) <- input_names
 # Create output folders for each data set if they don't exist
 output_dirs <- paste0(output_dir,input_names,"/")
@@ -189,10 +174,12 @@ treelikeness_df <- read.csv(treelikeness_df_file, stringsAsFactors = FALSE)
 # Remove loci to remove
 rm_inds <- c()
 for (dataset in input_names){
-  if (!is.na(loci_to_remove[[dataset]])){
-    rm_loci_ds <- loci_to_remove[[dataset]]
-    rm_inds_ds <- which(treelikeness_df$dataset == dataset & treelikeness_df$loci %in% rm_loci_ds)
-    rm_inds <- c(rm_inds, rm_inds_ds)
+  if (dataset %in% names(loci_to_remove)){ 
+    if (!is.na(loci_to_remove[[dataset]])){
+      rm_loci_ds <- loci_to_remove[[dataset]]
+      rm_inds_ds <- which(treelikeness_df$dataset == dataset & treelikeness_df$loci %in% rm_loci_ds)
+      rm_inds <- c(rm_inds, rm_inds_ds)
+    }
   }
 }
 keep_rows <- setdiff(c(1:nrow(treelikeness_df)),rm_inds)
@@ -200,22 +187,29 @@ treelikeness_df <- treelikeness_df[keep_rows,]
 # Remove loci with the wrong number of taxa
 keep_inds <- c()
 for (dataset in input_names){
-  if (is.na(number_of_taxa[[dataset]])){
-    # If you want all the loci regardless of how many taxa they have, keep all of the loci in that dataset
-    # e.g. if you want all the loci for Vanderpool 2020: number_of_taxa <- list("Vanderpool2020" = NA)
+  if (dataset %in% names(number_of_taxa)){
+    if (is.na(number_of_taxa[[dataset]])){
+      # If you want all the loci regardless of how many taxa they have, keep all of the loci in that dataset
+      # e.g. if you want all the loci for Vanderpool 2020: number_of_taxa <- list("Vanderpool2020" = NA)
+      keep_taxa_num_ds <- number_of_taxa[[dataset]]
+      keep_inds_ds <- which(treelikeness_df$dataset == dataset)
+      keep_inds <- c(keep_inds, keep_inds_ds)
+    } else if (class(number_of_taxa[[dataset]]) == "numeric") {
+      # If you only want to keep loci with certain numbers of loci, extract all the loci with that number of taxa
+      # e.g. if you want all the loci with all 29 taxa for Vanderpool 2020: number_of_taxa <- list("Vanderpool2020" = 29)
+      # e.g if only allowing up to 2 missing taxa for Vanderpool 2020: number_of_taxa <- list("Vanderpool2020" = c(27, 28, 29))
+      keep_taxa_num_ds <- number_of_taxa[[dataset]]
+      keep_inds_ds <- which(treelikeness_df$dataset == dataset & treelikeness_df$n_taxa %in% keep_taxa_num_ds)
+      keep_inds <- c(keep_inds, keep_inds_ds)
+    }
+  } else {
+    # If this dataset is not included in the number_of_taxa list, the default assumption is to keep all loci regardless of how many taxa are in that alignment
+    # Keep all the loci
     keep_taxa_num_ds <- number_of_taxa[[dataset]]
     keep_inds_ds <- which(treelikeness_df$dataset == dataset)
     keep_inds <- c(keep_inds, keep_inds_ds)
-  } else if (class(number_of_taxa[[dataset]]) == "numeric") {
-    # If you only want to keep loci with certain numbers of loci, extract all the loci with that number of taxa
-    # e.g. if you want all the loci with all 29 taxa for Vanderpool 2020: number_of_taxa <- list("Vanderpool2020" = 29)
-    # e.g if only allowing up to 2 missing taxa for Vanderpool 2020: number_of_taxa <- list("Vanderpool2020" = c(27, 28, 29))
-    keep_taxa_num_ds <- number_of_taxa[[dataset]]
-    keep_inds_ds <- which(treelikeness_df$dataset == dataset & treelikeness_df$n_taxa %in% keep_taxa_num_ds)
-    keep_inds <- c(keep_inds, keep_inds_ds)
   }
 }
-
 treelikeness_df <- treelikeness_df[keep_inds,]
 # Save trimmed treelikeness_df
 trimmed_treelikeness_df_file <- gsub(".csv", paste0("_trimmedLoci_trimmedTaxa_",format(Sys.Date(),"%Y%m%d"),".csv"), treelikeness_df_file)
@@ -223,7 +217,7 @@ write.csv(treelikeness_df, file = trimmed_treelikeness_df_file)
 
 
 
-##### Step 5: Categorise loci by treelikeness test p-values (3seq and tree proportion) #####
+##### Step 4: Categorise loci by treelikeness test p-values (3seq and tree proportion) #####
 # Iterate through each of the datasets
 # Sort loci into four categories based on treelikeness p-values
 #     * both 3seq and tree proportion significant
@@ -376,7 +370,7 @@ for (dataset in datasets_to_estimate_trees){
 
 
 
-##### Step 6: Species tree with all loci #####
+##### Step 5: Species tree with all loci #####
 for (dataset in datasets_to_copy_loci){
   # Subset dataframe to only this dataset
   dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
