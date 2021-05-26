@@ -83,10 +83,10 @@ if (run_location == "local"){
   number_of_category_replicates = 999
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
-  datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020")
+  datasets_to_copy_loci <-  c("Vanderpool2020")
+  datasets_to_estimate_trees <- c("Vanderpool2020")
   check.for.warnings = FALSE # check IQ-Tree .log file and .iqtree file output for each gene tree for warnings
-  estimate.trees.in.IQTREE = FALSE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
+  estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = TRUE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
   
 } else if (run_location=="server"){
@@ -102,7 +102,7 @@ if (run_location == "local"){
   output_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
   
   treedir <- "/data/caitlin/treelikeness/" # where the treelikeness repository/folder is
-
+  
   # Create a vector with all of the executable file paths in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("/data/caitlin/executables/ASTRAL/astral.5.7.5.jar","/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
@@ -118,7 +118,7 @@ if (run_location == "local"){
   datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
   datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020")
   check.for.warnings = FALSE # check IQ-Tree .log file and .iqtree file output for each gene tree for warnings
-  estimate.trees.in.IQTREE = FALSE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
+  estimate.species.trees.in.IQTREE = FALSE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = TRUE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
 }
 
@@ -171,6 +171,7 @@ if (check.for.warnings == TRUE){
 
 # Open the treelikeness results dataframe
 treelikeness_df <- read.csv(treelikeness_df_file, stringsAsFactors = FALSE)
+# Trim treelikeness df to remove loci with IQ-Tree warnings and loci with too few taxa
 # Remove loci to remove
 rm_inds <- c()
 for (dataset in input_names){
@@ -211,206 +212,164 @@ for (dataset in input_names){
   }
 }
 treelikeness_df <- treelikeness_df[keep_inds,]
-# Save trimmed treelikeness_df
+# Save the trimmed treelikeness_df
 trimmed_treelikeness_df_file <- gsub(".csv", paste0("_trimmedLoci_trimmedTaxa_",format(Sys.Date(),"%Y%m%d"),".csv"), treelikeness_df_file)
 write.csv(treelikeness_df, file = trimmed_treelikeness_df_file)
 
 
 
-##### Step 4: Categorise loci by treelikeness test p-values (3seq and tree proportion) #####
+##### Step 4: Categorize loci by test results and estimate species trees #####
 # Iterate through each of the datasets
-# Sort loci into four categories based on treelikeness p-values
-#     * both 3seq and tree proportion significant
-#     * neither 3seq nor tree proportion significant
-#     * only 3seq significant
-#     * only tree proportion significant
-# Save the trees from a category into a separate folder and collect all trees from a category into a collated text file
+# For each recombination detection test, record which loci pass the test
+# For each recombination detection test, estimate a species tree from the loci that pass the test
+# Estimate a species tree from all loci
+# Estimate a species tree from loci that pass every recombination detection test
+
+# Save the loci trees (for ASTRAL) and the loci alignment (for IQ-Tree) 
 for (dataset in datasets_to_copy_loci){
-  # Create a new folder to put these 400 text files (per dataset) in
-  category_output_folder <- paste0(output_dirs[dataset], "ASTRAL_category_trees/")
+  # Create a row to store information about all the different variables
+  summary_row <- c(dataset)
+  # Create new folders to put these tree files/loci files and records in
+  category_output_folder <- paste0(output_dirs[dataset], "species_trees/")
   if (dir.exists(category_output_folder) == FALSE){
     dir.create(category_output_folder)
   }
-  # filter treelikeness_df by dataset
+  text_records_dir <- paste0(output_dirs[dataset], "species_tree_records/")
+  if (dir.exists(text_records_dir) == FALSE){
+    dir.create(text_records_dir)
+  }
+  
+  ## filter treelikeness_df by dataset
   dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
-  ### split loci into four groups (neither, 3seq, tp or both), then copy all loci alignments from each group into a new folder and all trees from each group into a new collated text file
-  ### Note that these categories are based on the number of statistical tests that are statistically significant
-  ### e.g. none = no loci in this category have a statistically significant p-value, which means we accept the null hypotheses of treelikeness and clonal evolution)
-  # 3seq p-value and tree proportion p-value both >0.05 (not significant = do not reject null hypothesis of treelikeness/clonal evolution)
-  # none = NO SIGNIFICANT P-VALUES
-  cat_none <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
-  copy.loci.trees(cat_none, dataset_df[dataset_df$loci %in% cat_none,]$tree, category_output_folder, 
-                  "p-value_categories_none_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
-  # 3seq p-value and tree proportion p-value both <=0.05 (significant = reject null hypothesis of treelikeness/clonal evolution)
-  # both = BOTH SIGNIFICANT P-VALUES
-  cat_both <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
-  copy.loci.trees(cat_both, dataset_df[dataset_df$loci %in% cat_both,]$tree, category_output_folder, 
-                  "p-value_categories_both_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
-  # Only 3SEQ p-value <=0.05 and significant, tree proportion p-value not significant  (reject null hypothesis of clonal evolution but do not reject null hypothesis of treelikeness)
-  # 3seq only = treelike, not clonal
-  cat_3seq <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
-  copy.loci.trees(cat_3seq, dataset_df[dataset_df$loci %in% cat_3seq,]$tree, category_output_folder, 
-                  "p-value_categories_3seq_only_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
-  # Only tree proportion p-value <=0.05 and significant, 3seq p-value not significant (reject null hypothesis of treelikeness but do not reject null hypothesis of clonal evolution)
-  # tree_proportion_only = not-treelike, clonal
-  cat_tp   <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
-  copy.loci.trees(cat_tp, dataset_df[dataset_df$loci %in% cat_tp,]$tree, category_output_folder, 
-                  "p-value_categories_tree_proportion_only_ASTRAL", copy.all.individually = FALSE, copy.and.collate = TRUE)
   
-  # Write out the loci from each category
-  write(cat_none, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_none_loci_list.txt"))
-  write(cat_both, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_both_loci_list.txt"))
-  write(cat_3seq, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_3seq_only_loci_list.txt"))
-  write(cat_tp, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_tree_proportion_only_loci_list.txt"))
-  cat_op_df <- data.frame("dataset" = dataset, "n_loci_none" = length(cat_none), "n_plot_name_none" = "Treelike",
-                          "n_loci_both" = length(cat_both), "n_plot_name_both" = "Non-treelike 1",
-                          "n_loci_3seq_only" = length(cat_3seq), "n_plot_name_3seq_only" = "Non-treelike 3",
-                          "n_loci_tree_proportion_only" = length(cat_tp), "n_plot_name_tree_proportion_only" = "Non-treelike 2")
-  write.csv(cat_op_df, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_info.csv"))
-  
-  # Perform 99 replicates of each category with randomly sampled loci
-  # Set information about categories
-  category_name <- c("cat_none","cat_both","cat_3seq","cat_tp")
-  category_list <- list("cat_none" = cat_none, "cat_both" = cat_both, "cat_3seq" = cat_3seq, "cat_tp" = cat_tp)
-  category_output_names <- c("none","both","3seq_only","tree_proportion_only")
-  # Iterate through the conditions
-  for (c in 1:length(category_name)){
-    # Select information about this category by index
-    c_name <- category_name[c]
-    c_loci <- category_list[[c]]
-    c_op_name <- category_output_names[c]
-    # Initialise list to store loci replicates
-    rep_list <- list()
-    # Perform 99 replicates of this condition
-    for (i in 1:number_of_category_replicates){
-      # Identify the number of loci included in this category
-      n_loci <- length(c_loci)
-      # Randomly sample the list of loci in the dataset_df
-      replicate_loci <- sample(dataset_df$loci, n_loci)
-      # Pad out the number for a nice output name
-      rep_id <- sprintf("%04d",i)
-      # Copy the trees into a separate file
-      copy.loci.trees(replicate_loci, dataset_df[dataset_df$loci %in% replicate_loci,]$tree, category_output_folder, 
-                      paste0("p-value_categories_", c_op_name,"_ASTRAL" ,"_replicate", rep_id), copy.all.individually = FALSE, copy.and.collate = TRUE)
-      # Add loci selected for this replicate to the rep_list
-      rep_list[[as.character(rep_id)]] <- replicate_loci
+  ## Iterate through each var and save the loci/trees for a tree made from only loci that pass the test
+  # make a list of the variables on which to filter the loci - should be columns from the treelikeness_df
+  vars <- c("X3SEQ_p_value", "PHI_normal_p_value", "max_chi_squared_p_value", "geneconv_inner_fragment_simulated_p_value")
+  # Assign output names for each of the variables in vars
+  vars_names <- c("3SEQ", "PHI", "maxchi", "geneconv")
+  names(vars_names) <- vars
+  # Iterate through each var: 
+  for (v in vars){
+    # Get short version of name for output files
+    v_name <- vars_names[v]
+    # Make names for output files
+    v_text_name <- paste0(text_records_dir, dataset, "_", v_name, "_loci_record.txt")
+    v_ASTRAL_name <- paste0(dataset,"_",v_name,"_ASTRAL")
+    if (estimate.species.trees.in.IQTREE == TRUE){
+      if (partition.by.codon.position == TRUE){
+        v_IQTree_name <- paste0(dataset,"_",v_name,"_IQTREE_partitioned")
+      } else if (partition.by.codon.position == FALSE){
+        v_IQTree_name <- paste0(dataset,"_",v_name,"_IQTREE") 
+      }
     }
-    rep_df <- as.data.frame(do.call(rbind, rep_list))
-    names(rep_df) <- paste0("sampled_loci_",sprintf("%04d", 1:ncol(rep_df)))
-    write.csv(rep_df, file = paste0(output_dirs[dataset], dataset, "_p-value_categories_", c_op_name, "_ASTRAL_SampledReplicatesLoci.csv"))
+    # Break up dataframe into only loci that pass the test
+    v_inds <- which(dataset_df[,c(v)] >= 0.05)
+    v_df <- dataset_df[v_inds,]
+    # Copy trees of all loci that pass the test into one file that can be fed into ASTRAL
+    copy.loci.trees(v_df$loci_name, v_df$tree, category_output_folder, v_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
+    # If running IQ-Tree analysis, copy all loci into a separate folder that can be fed into IQ-Tree
+    if (estimate.species.trees.in.IQTREE == TRUE){
+      # copy.loci.alignment(loci_name, dataset_loci_folder, new_alignment_location)
+      lapply(v_df$loci_name, copy.loci.alignment, alignment_dir[[dataset]], paste0(category_output_folder, v_IQTree_name, "/"))
+    }
+    # Create a record of which loci went into which analysis
+    output_text <- v_df$loci_name
+    write(output_text, file = v_text_name)
+    # Add the number of loci in this category to the summary row
+    summary_row <- c(summary_row, length(v_df$loci_name))
   }
   
-  # If estimating trees in IQ-Tree, copy the information you need into a new folder for each analysis
-  if (estimate.trees.in.IQTREE == TRUE){
-    if (partition.by.codon.position == FALSE){
-      mclapply(cat_none, copy.loci.alignment, alignment_dir[dataset], paste0(category_output_folder,"p-value_categories_none_IQ-Tree/"), mc.cores = cores_to_use)
-      mclapply(cat_both, copy.loci.alignment, alignment_dir[dataset], paste0(category_output_folder,"p-value_categories_both_IQ-Tree/"), mc.cores = cores_to_use)
-      mclapply(cat_3seq, copy.loci.alignment, alignment_dir[dataset], paste0(category_output_folder,"p-value_categories_3seq_only_IQ-Tree/"), mc.cores = cores_to_use)
-      mclapply(cat_tp, copy.loci.alignment, alignment_dir[dataset], paste0(category_output_folder,"p-value_categories_tree_proportion_only_IQ-Tree/"), mc.cores = cores_to_use)
-      # If partitioning by codon position, repeat the IQ-Tree set-up
-    } else if (partition.by.codon.position == TRUE){
-      # filter treelikeness_df by dataset
-      dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
-      # split loci into four groups (neither, 3seq, tp or both), then copy all loci alignments from each group into a new folder and all trees from each group into a new collated text file
-      # 3seq p-value and tree proportion p-value both >0.05 (not significant)
-      cat_none <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
-      mclapply(cat_none, copy.loci.alignment, alignment_dir[dataset], paste0(category_output_folder,"p-value_categories_none_IQ-Tree_partition/"), mc.cores = cores_to_use)
-      # 3seq p-value and tree proportion p-value both <=0.05 (significant)
-      cat_both <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
-      mclapply(cat_both, copy.loci.alignment, alignment_dir[dataset], paste0(category_output_folder,"p-value_categories_both_IQ-Tree_partition/"), mc.cores = cores_to_use)
-      # Only 3seq p-value <=0.05 and significant, tree proportion p-value not significant
-      cat_3seq <- dataset_df[dataset_df$X3SEQ_p_value <= 0.05 & dataset_df$tree_proportion_p_value > 0.05,]$loci
-      mclapply(cat_3seq, copy.loci.alignment, alignment_dir[dataset], paste0(category_output_folder,"p-value_categories_3seq_only_IQ-Tree_partition/"), mc.cores = cores_to_use)
-      # Only tree proportion p-value <=0.05 and significant, 3seq p-value not significant
-      cat_tp   <- dataset_df[dataset_df$X3SEQ_p_value > 0.05 & dataset_df$tree_proportion_p_value <= 0.05,]$loci
-      mclapply(cat_tp, copy.loci.alignment, alignment_dir[dataset], paste0(category_output_folder,"p-value_categories_tree_proportion_only_IQ-Tree_partition/"), mc.cores = cores_to_use)
+  # Apply all four tests
+  # Create output names
+  all_text_name <- paste0(text_records_dir, dataset, "_all_loci_record.txt")
+  all_ASTRAL_name <- paste0(dataset,"_all_ASTRAL")
+  if (estimate.species.trees.in.IQTREE == TRUE){
+    if (partition.by.codon.position == TRUE){
+      all_IQTree_name <- paste0(dataset,"_all_IQTREE_partitioned")
+    } else if (partition.by.codon.position == FALSE){
+      all_IQTree_name <- paste0(dataset,"_all_IQTREE") 
     }
   }
+  
+  ## Subset the dataframe_df to loci that pass all four tests
+  all_df <- dataset_df[((dataset_df$X3SEQ_p_value > 0.05) & (dataset_df$PHI_normal_p_value > 0.05) & (dataset_df$max_chi_squared_p_value > 0.05) & (dataset_df$geneconv_inner_fragment_simulated_p_value > 0.05)) ,]
+  # Copy loci trees for ASTRAL
+  copy.loci.trees(all_df$loci_name, all_df$tree, category_output_folder, all_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
+  # Copy loci alignments for IQ-Tree
+  if (estimate.species.trees.in.IQTREE == TRUE){
+    # copy.loci.alignment(loci_name, dataset_loci_folder, new_alignment_location)
+    lapply(all_df$loci_name, copy.loci.alignment, alignment_dir[[dataset]], paste0(category_output_folder, all_IQTree_name, "/"))
+  }
+  # Create a record of which loci went into which analysis
+  output_text <- all_df$loci_name
+  write(output_text, file = all_text_name)
+  # Add the number of loci in this category to the summary row
+  summary_row <- c(summary_row, length(all_df$loci_name))
+  
+  
+  ## Apply no tests
+  NoTest_text_name <- paste0(text_records_dir, dataset, "_NoTest_loci_record.txt")
+  NoTest_ASTRAL_name <- paste0(dataset,"_NoTest_ASTRAL")
+  if (estimate.species.trees.in.IQTREE == TRUE){
+    if (partition.by.codon.position == TRUE){
+      NoTest_IQTree_name <- paste0(dataset,"_NoTest_IQTREE_partitioned")
+    } else if (partition.by.codon.position == FALSE){
+      NoTest_IQTree_name <- paste0(dataset,"_NoTest_IQTREE") 
+    }
+  }
+  # Copy loci trees for ASTRAL
+  copy.loci.trees(dataset_df$loci_name, dataset_df$tree, category_output_folder, NoTest_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
+  # Copy loci alignments for IQ-Tree
+  if (estimate.species.trees.in.IQTREE == TRUE){
+    # copy.loci.alignment(loci_name, dataset_loci_folder, new_alignment_location)
+    lapply(dataset_df$loci_name, copy.loci.alignment, alignment_dir[[dataset]], paste0(category_output_folder, NoTest_IQTree_name, "/"))
+  }
+  # Create a record of which loci went into which analysis
+  output_text <- dataset_df$loci_name
+  write(output_text, file = NoTest_text_name)
+  # Add the number of loci in this category to the summary row
+  summary_row <- c(summary_row, length(dataset_df$loci_name))
+  
+  
+  ## Write out the summary row as a dataframe
+  names(summary_row) <- c("dataset", "n_pass_3SEQ", "n_pass_PHI", "n_pass_maxchi", "n_pass_geneconv", "n_pass_all", "n_NoTest")
+  summary_df <- data.frame(as.list(summary_row))
+  summary_op_file <- paste0(output_dirs[dataset], dataset, "_species_tree_summary.csv")
+  write.csv(summary_df, file = summary_op_file, row.names = FALSE)
 }
 
 # Estimate a species tree for each of the four categories
 for (dataset in datasets_to_estimate_trees){
-  # Create a new folder to put these 400 text files (per dataset) in
-  category_output_folder <- paste0(output_dirs[dataset], "ASTRAL_category_trees/")
+  # Ensure the folder for species trees data exists
+  category_output_folder <- paste0(output_dirs[dataset], "species_trees/")
   if (dir.exists(category_output_folder) == FALSE){
     dir.create(category_output_folder)
   }
   # Get list of all files in that folder
   all_category_folder_files <- list.files(category_output_folder)
-  # Filter by text files
-  text_category_folder_files <- grep(".txt", all_category_folder_files, value = TRUE)
-  tree_category_folder_files <- grep("p-value_categories", text_category_folder_files, value = TRUE)
-  run_astral_files <- paste0(category_output_folder, grep("ASTRAL", tree_category_folder_files, value = TRUE))
-  # Calculate the species tree using ASTRAL for each of the four categories
-  # estimate.ASTRAL.species.tree(astral_inputs[1], gsub(".txt","_ASTRAL_species.tre",astral_inputs[1]), gsub(".txt","_ASTRAL_species.log",astral_inputs[1]), exec_paths["ASTRAL"]
-  lapply(run_astral_files, ASTRAL.wrapper, exec_paths["ASTRAL"])
+  # Filter into ASTRAL text files and IQ-Tree folders
+  astral_files <- grep("\\.txt", grep("ASTRAL", all_category_folder_files, value = TRUE), value = TRUE)
+  iqtree_files <- grep("\\.", grep("IQTREE", all_category_folder_files, value = TRUE), value = TRUE, invert = TRUE)
+  # Contruct names of finished treefiles
+  astral_files_finished_names <- paste0(category_output_folder, gsub(".txt", ".tre", astral_files))
+  iqtree_files_finished_names <- paste0(category_output_folder, iqtree_files, ".contree")
+  # Identify which alignments have not been run
+  astral_files_to_run <- paste0(category_output_folder, astral_files[!file.exists(astral_files_finished_names)])
+  iqtree_files_to_run <- paste0(category_output_folder, iqtree_files[!file.exists(iqtree_files_finished_names)])
   
-  if (estimate.trees.in.IQTREE == TRUE){
-    # Get list of all files in that folder
-    all_category_folder_files <- list.files(category_output_folder)
-    iqtree_files <- grep("IQ-Tree", all_category_folder_files, value = TRUE)
-    partition_files <- grep("partition", iqtree_files, value = TRUE)
-    unpartitioned_files <- grep("partition", iqtree_files, value = TRUE, invert = TRUE)
-    if (partition.by.codon.position == FALSE){
-      # Calculate the species tree using IQ-Tree for each of the four categories
-      run_iqtree_files <- paste0(category_output_folder, unpartitioned_files, "/")
-      lapply(run_iqtree_files, estimate.IQTREE.species.tree, exec_paths["IQTree"])
-      # If partitioning by codon position, create a partition file for each folder and then estimate the tree using IQ-Tree
-    } else if (partition.by.codon.position == TRUE){
-      # Make list of folders for partition analysis
-      run_iqtree_files <- paste0(category_output_folder, partition_files, "/")
-      # Create the partition files
-      mclapply(run_iqtree_files, make.partition.file, mc.cores = cores_to_use)
-      # Run the analysis
-      partitions_to_run <- paste0(run_iqtree_files, "partitions.nex")
+  # Estimate the species trees using ASTRAL
+  lapply(astral_files_to_run, ASTRAL.wrapper, exec_paths["ASTRAL"])
+  # Estimate the species trees using IQ-Tree
+  if (estimate.species.trees.in.IQTREE == TRUE){
+    if (partition.by.codon.position == TRUE){
+      # If partitioning by codon position, start by writing a partition file for each folder of alignments
+      lapply(iqtree_files_to_run, make.partition.file)
+      # Estimate the species tree on each folder of alignments using the partition file
+      partitions_to_run <- paste0(iqtree_files_to_run, "partitions.nex")
       lapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"])
+    } else (partition.by.codon.position == FALSE){
+      # If not partitioning data by codon position, simply call IQ-Tree on the folder of alignments to estimate a tree
+      lapply(iqtree_files_to_run, estimate.IQTREE.species.tree, exec_paths["IQTree"])
     }
   }
 }
-
-
-
-##### Step 5: Species tree with all loci #####
-for (dataset in datasets_to_copy_loci){
-  # Subset dataframe to only this dataset
-  dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
-  # Create name for ASTRAL run
-  astral_name <- "all_loci_ASTRAL"
-  # Copy all loci and all trees 
-  all_loci <- dataset_df$loci
-  all_trees <- dataset_df$tree
-  copy.loci.trees(all_loci, all_trees, output_dirs[dataset], astral_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
-  
-  if (estimate.trees.in.IQTREE == TRUE){
-    if (partition.by.codon.position == FALSE){
-      # Create name for IQ-Tree run
-      iqtree_name <- "all_loci_IQ-Tree/"
-      # Copy all loci
-      mclapply(all_loci, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset], iqtree_name), mc.cores = cores_to_use)
-    } else if (partition.by.codon.position == TRUE){
-      # Create name for IQ-Tree run
-      partition_name <- "all_loci_IQ-Tree_partition/"
-      # Copy all loci
-      mclapply(all_loci, copy.loci.alignment, alignment_dir[dataset], paste0(output_dirs[dataset], partition_name), mc.cores = cores_to_use)
-    }
-  }
-}
-
-for (dataset in datasets_to_estimate_trees){
-  # Calculate the species trees for all loci
-  # estimate.ASTRAL.species.tree(astral_inputs[1], gsub(".txt","_ASTRAL_species.tre",astral_inputs[1]), gsub(".txt","_ASTRAL_species.log",astral_inputs[1]), exec_paths["ASTRAL"]
-  ASTRAL.wrapper(paste0(output_dirs[[dataset]], astral_name,".txt"), exec_paths[["ASTRAL"]])
-  
-  if (estimate.trees.in.IQTREE == TRUE){
-    if (partition.by.codon.position == FALSE){
-      # Calculate the species tree using IQ-Tree for each of the four categories
-      estimate.IQTREE.species.tree(paste0(output_dirs[dataset],iqtree_name), exec_paths[["IQTree"]])
-    } else if (partition.by.codon.position == TRUE){
-      partition_name <- "all_loci_IQTree_partition/"
-      make.partition.file(paste0(output_dirs[dataset], partition_name))
-      estimate.partitioned.IQTREE.species.tree(paste0(output_dirs[[dataset]], partition_name, "partitions.nex"), exec_paths[["IQTree"]])
-    } 
-  }
-}
-
-
