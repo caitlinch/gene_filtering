@@ -270,7 +270,7 @@ run.geneconv <- function(alignment_path, alignment_folder, geneconv_path, seqtyp
   }
   
   # Open geneconv outputted terminal text file to extract results
-  geneconv_file_path <- paste0(alignment_folder, grep("_terminal_text.fas", list.files(alignment_folder), value = TRUE))
+  geneconv_file_path <- paste0(alignment_folder, grep("_terminal.txt", list.files(alignment_folder), value = TRUE))
   geneconv_file <- readLines(geneconv_file_path)
   # Check whether geneconv ran successfully
   check_ind <- grep("Only one polymorphism: Too few to analyze!", geneconv_file)
