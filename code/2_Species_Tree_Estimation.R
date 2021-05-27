@@ -264,6 +264,11 @@ for (dataset in datasets_to_copy_loci){
     }
     # Break up dataframe into only loci that pass the test
     v_inds <- which(dataset_df[,c(v)] >= 0.05)
+    if (v == "geneconv_inner_fragment_simulated_p_value"){
+      geneconv_NA_inds <- length(which(is.na(dataset_df[,c(v)])))
+      summary_row <- c(summary_row, geneconv_NA_inds)
+    }
+    v_inds <- which(dataset_df[,c(v)] >= 0.05)
     v_df <- dataset_df[v_inds,]
     # Copy trees of all loci that pass the test into one file that can be fed into ASTRAL
     copy.loci.trees(v_df$loci_name, v_df$tree, category_output_folder, v_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
@@ -332,7 +337,7 @@ for (dataset in datasets_to_copy_loci){
   
   
   ## Write out the summary row as a dataframe
-  names(summary_row) <- c("dataset", "n_pass_3SEQ", "n_pass_PHI", "n_pass_maxchi", "n_pass_geneconv", "n_pass_all", "n_NoTest")
+  names(summary_row) <- c("dataset", "n_pass_3SEQ", "n_pass_PHI", "n_pass_maxchi", "n_NA_geneconv", "n_pass_geneconv", "n_pass_all", "n_NoTest")
   summary_df <- data.frame(as.list(summary_row))
   summary_op_file <- paste0(output_dirs[dataset], dataset, "_species_tree_summary.csv")
   write.csv(summary_df, file = summary_op_file, row.names = FALSE)
