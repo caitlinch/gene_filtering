@@ -8,9 +8,8 @@
 # Caitlin Cherryh 2021
 
 ##### Step 1: Set file paths and run variables #####
-print("set filepaths")
-# input_dir         <- the folder(s) containing the empirical data
 # input_names       <- set name(s) for the dataset(s)
+# input_dir         <- the folder(s) containing the empirical data
 # best_model_paths  <- set path to file containing the best model of substitution for each loci
 # output_dir        <- for collated output and results. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
@@ -42,10 +41,10 @@ print("set filepaths")
 # AU_results_folder <- A folder to output the results of the AU test - for each loci, there will be a csv file containing the log likelihood for each tree topology
 # three_trees_path <- A file containing the tree topologies to test using the AU test (called three_trees_path because our analysis compared three three topologies)
 
-# # To run this program: delete lines 83 to 183 inclusive, which include Caitlin's paths/variables
-# # Uncomment lines 58 to 81 inclusive and fill the following with your own variable names
-# input_dir <- ""
+# # To run this program: delete the lines below that include Caitlin's paths/variables
+# # Uncomment lines 44 to 71 inclusive and fill with your own variable names
 # input_names <- ""
+# input_dir <- ""
 # best_model_paths <- ""
 # output_dir <- ""
 # maindir <- ""
@@ -72,16 +71,16 @@ print("set filepaths")
 # three_trees_path <- ""
 
 ### Caitlin's paths ###
-run_location = "local"
+run_location = "macbook"
 
 if (run_location == "local"){
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Strassert2021/02_trimAL_Divvier_filtered_genes_only/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/")
   best_model_paths <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/OKP_loci_bestmodel.txt",
                         NA,
                         NA)
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/")
   treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
@@ -116,10 +115,10 @@ if (run_location == "local"){
   
   
 } else if (run_location == "macbook"){
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   input_dir <- c("/Users/caitlin/Documents/PhD/Ch01/Data_OKP_sample/",
                  "/Users/caitlin/Documents/PhD/Ch01/Data_Strassert_sample/",
                  "/Users/caitlin/Documents/PhD/Ch01/Data_Vanderpool_sample/")
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   best_model_paths <- c("/Users/caitlin/Documents/PhD/Ch01/OKP_loci_bestmodel.txt",
                         NA,
                         NA)
@@ -148,10 +147,10 @@ if (run_location == "local"){
   datasets_apply_AU_test = c()
   
 } else if (run_location=="server"){
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
                  "/data/caitlin/empirical_treelikeness/Data_Strassert2021/",
                  "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/")
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   best_model_paths <- c("/data/caitlin/empirical_treelikeness/Data_inputFiles/OKP_loci_bestmodel.txt",
                         NA,
                         NA)
@@ -262,9 +261,7 @@ if (create_information_dataframe == TRUE){
 ##### Step 4: Apply the recombination detection methods  #####
 print("run recombination detection methods")
 dataset_ids <- which(loci_df$dataset %in% datasets_to_run)
-test_dataset_ids <- c(which(loci_df$dataset == "Vanderpool2020")[1:30])
-run_list <- lapply(test_dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads)
-#run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
+run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
 run_df <- as.data.frame(do.call(rbind, run_list))
 results_file <- paste0(output_dir,"empiricalTreelikeness_",dataset,"_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
 write.csv(run_df, file = results_file, row.names = FALSE)

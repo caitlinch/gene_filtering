@@ -225,7 +225,7 @@ write.csv(treelikeness_df, file = trimmed_treelikeness_df_file)
 # Estimate a species tree from all loci
 # Estimate a species tree from loci that pass every recombination detection test
 
-# Save the loci trees (for ASTRAL) and the loci alignment (for IQ-Tree) 
+### Save the loci trees (for ASTRAL) and the loci alignment (for IQ-Tree) 
 for (dataset in datasets_to_copy_loci){
   # Create a row to store information about all the different variables
   summary_row <- c(dataset)
@@ -338,13 +338,15 @@ for (dataset in datasets_to_copy_loci){
   write.csv(summary_df, file = summary_op_file, row.names = FALSE)
 }
 
-# Estimate a species tree for each of the four categories
+
+### Estimate a species tree for each of the four categories
 for (dataset in datasets_to_estimate_trees){
   # Ensure the folder for species trees data exists
   category_output_folder <- paste0(output_dirs[dataset], "species_trees/")
   if (dir.exists(category_output_folder) == FALSE){
     dir.create(category_output_folder)
   }
+  
   # Get list of all files in that folder
   all_category_folder_files <- list.files(category_output_folder)
   # Filter into ASTRAL text files and IQ-Tree folders
@@ -353,23 +355,36 @@ for (dataset in datasets_to_estimate_trees){
   # Contruct names of finished treefiles
   astral_files_finished_names <- paste0(category_output_folder, gsub(".txt", ".tre", astral_files))
   iqtree_files_finished_names <- paste0(category_output_folder, iqtree_files, ".contree")
-  # Identify which alignments have not been run
-  astral_files_to_run <- paste0(category_output_folder, astral_files[!file.exists(astral_files_finished_names)])
-  iqtree_files_to_run <- paste0(category_output_folder, iqtree_files[!file.exists(iqtree_files_finished_names)])
   
-  # Estimate the species trees using ASTRAL
-  lapply(astral_files_to_run, ASTRAL.wrapper, exec_paths["ASTRAL"])
-  # Estimate the species trees using IQ-Tree
-  if (estimate.species.trees.in.IQTREE == TRUE){
-    if (partition.by.codon.position == TRUE){
-      # If partitioning by codon position, start by writing a partition file for each folder of alignments
-      lapply(iqtree_files_to_run, make.partition.file)
-      # Estimate the species tree on each folder of alignments using the partition file
-      partitions_to_run <- paste0(iqtree_files_to_run, "partitions.nex")
-      lapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"])
-    } else (partition.by.codon.position == FALSE){
-      # If not partitioning data by codon position, simply call IQ-Tree on the folder of alignments to estimate a tree
-      lapply(iqtree_files_to_run, estimate.IQTREE.species.tree, exec_paths["IQTree"])
+  # Identify which ASTRAL analyses have not been run
+  astral_files_to_run <- astral_files[!file.exists(astral_files_finished_names)]
+  # Run remaining ASTRAL analyses
+  if (length(astral_files_to_run) > 0){
+    # Construct full file path
+    astral_files_to_run <- paste0(category_output_folder, astral_files[!file.exists(astral_files_finished_names)])
+    # Estimate the species trees using ASTRAL
+    lapply(astral_files_to_run, ASTRAL.wrapper, exec_paths["ASTRAL"])
+  }
+  
+  # Identify which IQTREE analyses have not been run
+  iqtree_files_to_run <- iqtree_files[!file.exists(iqtree_files_finished_names)]
+  # Run remaining IQ-Tree analyses
+  if (length(iqtree_files_to_run) > 0){
+    # Construct full file path
+    iqtree_files_to_run <- paste0(category_output_folder, iqtree_files[!file.exists(iqtree_files_finished_names)])
+    # Estimate the species trees using IQ-Tree
+    if (estimate.species.trees.in.IQTREE == TRUE){
+      if (partition.by.codon.position == TRUE){
+        # If partitioning by codon position, start by writing a partition file for each folder of alignments
+        lapply(iqtree_files_to_run, make.partition.file)
+        # Estimate the species tree on each folder of alignments using the partition file
+        partitions_to_run <- paste0(iqtree_files_to_run, "partitions.nex")
+        lapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"])
+      } else if (partition.by.codon.position == FALSE){
+        # If not partitioning data by codon position, simply call IQ-Tree on the folder of alignments to estimate a tree
+        lapply(iqtree_files_to_run, estimate.IQTREE.species.tree, exec_paths["IQTree"])
+      }
     }
   }
+  
 }
