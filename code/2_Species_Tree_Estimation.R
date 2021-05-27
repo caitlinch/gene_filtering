@@ -212,9 +212,34 @@ for (dataset in input_names){
   }
 }
 treelikeness_df <- treelikeness_df[keep_inds,]
+# Create new columns with pass/fail for each test
+treelikeness_df$pass_3seq <- treelikeness_df$X3SEQ_p_value
+treelikeness_df$pass_3seq[treelikeness_df$X3SEQ_p_value > 0.05] <- "TRUE"
+treelikeness_df$pass_3seq[treelikeness_df$X3SEQ_p_value <= 0.05] <- "FALSE"
+treelikeness_df$pass_3seq <- as.logical(treelikeness_df$pass_3seq)
+
+treelikeness_df$pass_phi<- treelikeness_df$PHI_normal_p_value
+treelikeness_df$pass_phi[treelikeness_df$PHI_normal_p_value > 0.05] <- "TRUE"
+treelikeness_df$pass_phi[treelikeness_df$PHI_normal_p_value <= 0.05] <- "FALSE"
+treelikeness_df$pass_phi <- as.logical(treelikeness_df$pass_phi)
+
+treelikeness_df$pass_maxchi <- treelikeness_df$max_chi_squared_p_value
+treelikeness_df$pass_maxchi[treelikeness_df$max_chi_squared_p_value > 0.05] <- "TRUE"
+treelikeness_df$pass_maxchi[treelikeness_df$max_chi_squared_p_value <= 0.05] <- "FALSE"
+treelikeness_df$pass_maxchi <- as.logical(treelikeness_df$pass_maxchi)
+
+treelikeness_df$pass_geneconv <- treelikeness_df$geneconv_inner_fragment_simulated_p_value
+treelikeness_df$pass_geneconv[treelikeness_df$geneconv_inner_fragment_simulated_p_value > 0.05] <- "TRUE"
+treelikeness_df$pass_geneconv[treelikeness_df$geneconv_inner_fragment_simulated_p_value <= 0.05] <- "FALSE"
+treelikeness_df$pass_geneconv <- as.logical(treelikeness_df$pass_geneconv)
+
 # Save the trimmed treelikeness_df
 trimmed_treelikeness_df_file <- gsub(".csv", paste0("_trimmedLoci_trimmedTaxa_",format(Sys.Date(),"%Y%m%d"),".csv"), treelikeness_df_file)
 write.csv(treelikeness_df, file = trimmed_treelikeness_df_file)
+# Save a df of just the pass/fail info
+pass_df <- treelikeness_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", "pass_geneconv")]
+pass_df_file <- gsub(".csv", paste0("_PassFail_record",".csv"), treelikeness_df_file)
+write.csv(pass_df, file = pass_df_file)
 
 
 
@@ -263,7 +288,7 @@ for (dataset in datasets_to_copy_loci){
       }
     }
     # Break up dataframe into only loci that pass the test
-    v_inds <- which(dataset_df[,c(v)] >= 0.05)
+    v_inds <- which(dataset_df[,c(v)] > 0.05)
     if (v == "geneconv_inner_fragment_simulated_p_value"){
       geneconv_NA_inds <- length(which(is.na(dataset_df[,c(v)])))
       summary_row <- c(summary_row, geneconv_NA_inds)
