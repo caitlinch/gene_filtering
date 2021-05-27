@@ -71,7 +71,7 @@
 # three_trees_path <- ""
 
 ### Caitlin's paths ###
-run_location = "macbook"
+run_location = "local"
 
 if (run_location == "local"){
   input_names <- c("1KP", "Strassert2021","Vanderpool2020")
