@@ -59,7 +59,7 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
     # Extract basic information about the alignment for the output csv file
     # Check file extension of alignment
     if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | 
-        file_extension == "faa" | file_extension == "frn"){
+        file_extension == "faa" | file_extension == "frn" | file_extension == "fas"){
       # open alignment
       if (loci_row$alphabet == "dna"){
         seqtype = "DNA"
@@ -118,7 +118,7 @@ run.3seq <- function(alignment_path, alignment_folder, threeseq_path){
   # Check if 3SEQ has already been run. Only run 3SEQ if the log file doesn't exist
   if (file.exists(paste0(alignment_folder,"3s.log")) == FALSE){
     if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | 
-        file_extension == "faa" | file_extension == "frn"){
+        file_extension == "faa" | file_extension == "frn" | file_extension == "fas"){
       # 3SEQ only reads in phylip or fasta format - if the alignment is already in that format, call 3SEQ on the alignment
       seq_command <- paste0(threeseq_path," -f ", alignment_path)
       system(seq_command) #call 3SEQ
@@ -177,7 +177,7 @@ run.phipack <- function(alignment_path, alignment_folder, phipack_path){
     
     # Check file extension of alignment
     if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | 
-        file_extension == "faa" | file_extension == "frn"){
+        file_extension == "faa" | file_extension == "frn" | file_extension == "fas"){
       # 3SEQ only reads in phylip or fasta format - if the alignment is already in that format, call 3SEQ on the alignment
       phi_command <- paste0(phipack_path, " -f ", alignment_path, " -v -o -p") # assemble system command
       system(phi_command) #call PHIPack
