@@ -7,8 +7,7 @@
 ##     - Splitstree (Huson and Bryant 2006) (http://www.splitstree.org/) (need SplitsTree 4)
 # Caitlin Cherryh 2021
 
-##### Step 1: Set file paths and run variables #####
-print("set filepaths")
+##### Step 1: Set file paths and run variables #####s
 # input_dir         <- the folder(s) containing the empirical data
 # input_names       <- set name(s) for the dataset(s)
 # best_model_paths  <- set path to file containing the best model of substitution for each loci
@@ -72,16 +71,16 @@ print("set filepaths")
 # three_trees_path <- ""
 
 ### Caitlin's paths ###
-run_location = "local"
+run_location = "macbook"
 
 if (run_location == "local"){
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Strassert2021/02_trimAL_Divvier_filtered_genes_only/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/")
   best_model_paths <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/OKP_loci_bestmodel.txt",
                         NA,
                         NA)
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/")
   treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
@@ -116,10 +115,10 @@ if (run_location == "local"){
   
   
 } else if (run_location == "macbook"){
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   input_dir <- c("/Users/caitlin/Documents/PhD/Ch01/Data_OKP_sample/",
                  "/Users/caitlin/Documents/PhD/Ch01/Data_Strassert_sample/",
                  "/Users/caitlin/Documents/PhD/Ch01/Data_Vanderpool_sample/")
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   best_model_paths <- c("/Users/caitlin/Documents/PhD/Ch01/OKP_loci_bestmodel.txt",
                         NA,
                         NA)
@@ -148,10 +147,10 @@ if (run_location == "local"){
   datasets_apply_AU_test = c()
   
 } else if (run_location=="server"){
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
                  "/data/caitlin/empirical_treelikeness/Data_Strassert2021/",
                  "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/")
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
   best_model_paths <- c("/data/caitlin/empirical_treelikeness/Data_inputFiles/OKP_loci_bestmodel.txt",
                         NA,
                         NA)
