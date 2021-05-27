@@ -7,9 +7,9 @@
 ##     - Splitstree (Huson and Bryant 2006) (http://www.splitstree.org/) (need SplitsTree 4)
 # Caitlin Cherryh 2021
 
-##### Step 1: Set file paths and run variables #####s
-# input_dir         <- the folder(s) containing the empirical data
+##### Step 1: Set file paths and run variables #####
 # input_names       <- set name(s) for the dataset(s)
+# input_dir         <- the folder(s) containing the empirical data
 # best_model_paths  <- set path to file containing the best model of substitution for each loci
 # output_dir        <- for collated output and results. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
@@ -41,10 +41,10 @@
 # AU_results_folder <- A folder to output the results of the AU test - for each loci, there will be a csv file containing the log likelihood for each tree topology
 # three_trees_path <- A file containing the tree topologies to test using the AU test (called three_trees_path because our analysis compared three three topologies)
 
-# # To run this program: delete lines 83 to 183 inclusive, which include Caitlin's paths/variables
-# # Uncomment lines 58 to 81 inclusive and fill the following with your own variable names
-# input_dir <- ""
+# # To run this program: delete the lines below that include Caitlin's paths/variables
+# # Uncomment lines 44 to 71 inclusive and fill with your own variable names
 # input_names <- ""
+# input_dir <- ""
 # best_model_paths <- ""
 # output_dir <- ""
 # maindir <- ""
