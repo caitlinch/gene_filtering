@@ -46,13 +46,13 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
       # The pruning function will remove any sequences where the proportion of missing sites is GREATER than the allowable proportion of missing sites
       prune.taxa.by.length(alignment_path, loci_row$allowable_proportion_missing_sites, loci_row$alphabet, write_output_text = TRUE, alignment_folder)
     }
-  
+    
     # Run 3seq
     threeseq_results <- run.3seq(alignment_path, alignment_folder, threeseq_path = executable_paths[["3seq"]])
     # Run PhiPack
-    phipack_results <- run.phipack(alignment_path, alignment_folder, phipack_path = executable_paths[["PHIPack"]])
+    phipack_results <- run.phipack(alignment_path, alignment_folder, phipack_path = executable_paths[["PHIPack"]], loci_row$alphabet)
     # Run GeneConv
-    geneconv_results <- run.geneconv(alignment_path, alignment_folder, geneconv_path = executable_paths[["GeneConv"]])
+    geneconv_results <- run.geneconv(alignment_path, alignment_folder, geneconv_path = executable_paths[["GeneConv"]], loci_row$alphabet)
     # Run IQ-Tree
     call.IQTREE.empirical.UFB(alignment_path, executable_paths[["IQTree"]], loci_row$best_model, num_bootstraps = 1000, num_threads = iqtree_num_threads)
     
@@ -165,7 +165,7 @@ run.3seq <- function(alignment_path, alignment_folder, threeseq_path){
 
 
 # Run the PhiPack program on one alignment and return the key variables calculated by the program
-run.phipack <- function(alignment_path, alignment_folder, phipack_path){
+run.phipack <- function(alignment_path, alignment_folder, phipack_path, seqtype){
   # Set working directory to alignment folder, so that PHI output files are saved correctly
   setwd(alignment_folder)
   
@@ -179,7 +179,11 @@ run.phipack <- function(alignment_path, alignment_folder, phipack_path){
     if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | 
         file_extension == "faa" | file_extension == "frn" | file_extension == "fas"){
       # 3SEQ only reads in phylip or fasta format - if the alignment is already in that format, call 3SEQ on the alignment
-      phi_command <- paste0(phipack_path, " -f ", alignment_path, " -v -o -p") # assemble system command
+      if (seqtype == "dna"){
+        phi_command <- paste0(phipack_path, " -f ", alignment_path, " -v -o -p") # assemble system command
+      } else if (seqtype == "protein"){
+        phi_command <- paste0(phipack_path, " -f ", alignment_path, " -v -o -p -t A") # assemble system command
+      }
       system(phi_command) #call PHIPack
     } else if (file_extension == "nex" | file_extension == "nexus"){
       # PHIPack only reads in Phylip or fasta format - need to convert if the alignment is a nexus file (using the nexus data opened above)
@@ -193,7 +197,11 @@ run.phipack <- function(alignment_path, alignment_folder, phipack_path){
       }
       # There is now a definitely a fasta format version of this alignment
       # Assemble the 3SEQ command using the new fasta alignment
-      phi_command <- paste0(phipack_path, " -f ", fasta.name, " -v -o -p") # assemble system command
+      if (seqtype == "dna"){
+        phi_command <- paste0(phipack_path, " -f ", alignment_path, " -v -o -p") # assemble system command
+      } else if (seqtype == "protein"){
+        phi_command <- paste0(phipack_path, " -f ", alignment_path, " -v -o -p -t A") # assemble system command
+      }
       # Call 3SEQ
       system(phi_command)
     }
@@ -239,7 +247,7 @@ run.phipack <- function(alignment_path, alignment_folder, phipack_path){
 
 
 # Run the GeneConv program on one alignment and return the key variables calculated by the program
-run.geneconv <- function(alignment_path, alignment_folder, geneconv_path){
+run.geneconv <- function(alignment_path, alignment_folder, geneconv_path, seqtype){
   # Set working directory to alignment folder, so that PHI output files are saved correctly
   setwd(alignment_folder)
   
@@ -251,48 +259,70 @@ run.geneconv <- function(alignment_path, alignment_folder, geneconv_path){
     #generate seed by taking the numbers from today's date
     seed <- gsub("-", "", Sys.Date())
     # Assemble and call the system command
-    geneconv_command <- paste0(geneconv_path, " ", basename(alignment_path), " /w", seed, " /lp /sp /sb -ExpFormat -Nolog > ",
-                gsub(paste0(".", file_extension), "_geneconv_terminal.txt", basename(alignment_path)))
+    if (seqtype == "dna"){
+      geneconv_command <- paste0(geneconv_path, " ", basename(alignment_path), " /w", seed, " /lp /sp /sb -ExpFormat -Nolog > ",
+                                 gsub(paste0(".", file_extension), "_geneconv_terminal.txt", basename(alignment_path)))
+    } else if (seqtype == "protein"){
+      geneconv_command <- paste0(geneconv_path, " -Seqfile=", basename(alignment_path), " /w", seed, " /p /lp /sp /sb -ExpFormat -Nolog > ",
+                                 gsub(paste0(".", file_extension), "_geneconv_terminal.txt", basename(alignment_path)))
+    }
     system(geneconv_command)
   }
   
-  # Open geneconv .frag file to extract results
-  geneconv_file_path <- paste0(alignment_folder, grep(".frag", list.files(alignment_folder), value = TRUE))
+  # Open geneconv outputted terminal text file to extract results
+  geneconv_file_path <- paste0(alignment_folder, grep("_terminal_text.fas", list.files(alignment_folder), value = TRUE))
   geneconv_file <- readLines(geneconv_file_path)
-  # Extract seed
-  ind <- grep("# The starting random number seed is", geneconv_file)
-  seed_line <- geneconv_file[ind]
-  starting_seed <- gsub(" ", "", gsub("\\.", "", gsub("# The starting random number seed is", "", seed_line)))
-  # Extract number of significant fragments
-  ind <- grep("Global lists:", geneconv_file)
-  global_line <- geneconv_file[ind]
-  global_line <- strsplit(gsub(" significant fragments", "", gsub("# Global lists:", "", global_line)), " and ")[[1]]
-  global_inner_pair <- gsub(" ", "", gsub(" I", "", global_line[1]))
-  if (global_inner_pair == "no"){global_inner_pair = 0}
-  global_outer_seq <- gsub(" ", "", gsub(" O", "", global_line[2]))
-  if (global_outer_seq == "no"){global_outer_seq = 0}
-  pairwise_line <- geneconv_file[ind+1]
-  pairwise_line <- strsplit(gsub(" significant fragments", "", gsub("# Pairwise lists:", "", pairwise_line)), " and ")[[1]]
-  pairwise_inner_pair <- gsub(" ", "", gsub(" I", "", pairwise_line[1]))
-  if (pairwise_inner_pair == "no"){pairwise_inner_pair = 0}
-  pairwise_outer_seq <- gsub(" ", "", gsub(" O", "", pairwise_line[2]))
-  if (pairwise_outer_seq == "no"){pairwise_outer_seq = 0}
-  # Extract minimum p-values
-  ind <- grep("# Simulated P-values are based on ", geneconv_file)
-  inner_line <- geneconv_file[ind+4]
-  inner_line_split <- strsplit(inner_line, "    ")[[1]]
-  inner_line_split <- inner_line_split[inner_line_split != ""]
-  inner_line_vars <- gsub(" ", "", inner_line_split[2:5])
-  inner_line_var_names <- c("geneconv_inner_fragment_maximum_blast-like_score", "geneconv_inner_fragment_simulated_p_value", "geneconv_inner_fragment_sd_above_sim_mean", "geneconv_inner_fragment_sd_of_sim")
-  outer_line <- geneconv_file[ind+6]
-  outer_line_split <- strsplit(outer_line, "    ")[[1]]
-  outer_line_split <- outer_line_split[outer_line_split != ""]
-  outer_line_vars <- gsub(" ", "", outer_line_split[2:5])
-  outer_line_var_names <- c("geneconv_outer_fragment_maximum_blast-like_score", "geneconv_outer_fragment_simulated_p_value", "geneconv_outer_fragment_sd_above_sim_mean", "geneconv_outer_fragment_sd_of_sim")
-  # Assemble geneconv results
-  geneconv_results <- c(starting_seed, global_inner_pair, global_outer_seq, pairwise_inner_pair, pairwise_outer_seq, inner_line_vars, outer_line_vars)
-  names(geneconv_results) <- c("geneconv_seed", "geneconv_num_global_inner_fragments", "geneconv_num_global_outer-sequence_fragments", "geneconv_num_pairwise_inner_fragments", 
-                               "geneconv_num_pairwise_outer-sequence_fragments", inner_line_var_names, outer_line_var_names) 
+  # Check whether geneconv ran successfully
+  check_ind <- grep("Only one polymorphism: Too few to analyze!", geneconv_file)
+  # If check_ind returns as integer(0), that means geneconv could not run (due to too few polymorphisms)
+  # If check_ind returns as a number, that means geneconv ran successfully
+  if (identical(integer(0), check_ind) == TRUE){
+    # Open geneconv .frag file to extract results
+    geneconv_file_path <- paste0(alignment_folder, grep(".frag", list.files(alignment_folder), value = TRUE))
+    geneconv_file <- readLines(geneconv_file_path)
+    # Extract seed
+    ind <- grep("# The starting random number seed is", geneconv_file)
+    seed_line <- geneconv_file[ind]
+    starting_seed <- gsub(" ", "", gsub("\\.", "", gsub("# The starting random number seed is", "", seed_line)))
+    # Extract number of significant fragments
+    ind <- grep("Global lists:", geneconv_file)
+    global_line <- geneconv_file[ind]
+    global_line <- strsplit(gsub(" significant fragments", "", gsub("# Global lists:", "", global_line)), " and ")[[1]]
+    global_inner_pair <- gsub(" ", "", gsub(" I", "", global_line[1]))
+    if (global_inner_pair == "no"){global_inner_pair = 0}
+    global_outer_seq <- gsub(" ", "", gsub(" O", "", global_line[2]))
+    if (global_outer_seq == "no"){global_outer_seq = 0}
+    pairwise_line <- geneconv_file[ind+1]
+    pairwise_line <- strsplit(gsub(" significant fragments", "", gsub("# Pairwise lists:", "", pairwise_line)), " and ")[[1]]
+    pairwise_inner_pair <- gsub(" ", "", gsub(" I", "", pairwise_line[1]))
+    if (pairwise_inner_pair == "no"){pairwise_inner_pair = 0}
+    pairwise_outer_seq <- gsub(" ", "", gsub(" O", "", pairwise_line[2]))
+    if (pairwise_outer_seq == "no"){pairwise_outer_seq = 0}
+    # Extract minimum p-values
+    ind <- grep("# Simulated P-values are based on ", geneconv_file)
+    inner_line <- geneconv_file[ind+4]
+    inner_line_split <- strsplit(inner_line, "    ")[[1]]
+    inner_line_split <- inner_line_split[inner_line_split != ""]
+    inner_line_vars <- gsub(" ", "", inner_line_split[2:5])
+    inner_line_var_names <- c("geneconv_inner_fragment_maximum_blast-like_score", "geneconv_inner_fragment_simulated_p_value", "geneconv_inner_fragment_sd_above_sim_mean", "geneconv_inner_fragment_sd_of_sim")
+    outer_line <- geneconv_file[ind+6]
+    outer_line_split <- strsplit(outer_line, "    ")[[1]]
+    outer_line_split <- outer_line_split[outer_line_split != ""]
+    outer_line_vars <- gsub(" ", "", outer_line_split[2:5])
+    outer_line_var_names <- c("geneconv_outer_fragment_maximum_blast-like_score", "geneconv_outer_fragment_simulated_p_value", "geneconv_outer_fragment_sd_above_sim_mean", "geneconv_outer_fragment_sd_of_sim")
+    # Assemble geneconv results
+    geneconv_results <- c(starting_seed, global_inner_pair, global_outer_seq, pairwise_inner_pair, pairwise_outer_seq, inner_line_vars, outer_line_vars)
+    names(geneconv_results) <- c("geneconv_seed", "geneconv_num_global_inner_fragments", "geneconv_num_global_outer-sequence_fragments", "geneconv_num_pairwise_inner_fragments", 
+                                 "geneconv_num_pairwise_outer-sequence_fragments", inner_line_var_names, outer_line_var_names) 
+  } else if (identical(integer(0), check_ind) == FALSE){
+    # Geneconv could not run - return NA for all variables
+    geneconv_results <- rep(NA, 13)
+    # Assemble names
+    inner_line_var_names <- c("geneconv_inner_fragment_maximum_blast-like_score", "geneconv_inner_fragment_simulated_p_value", "geneconv_inner_fragment_sd_above_sim_mean", "geneconv_inner_fragment_sd_of_sim")
+    outer_line_var_names <- c("geneconv_outer_fragment_maximum_blast-like_score", "geneconv_outer_fragment_simulated_p_value", "geneconv_outer_fragment_sd_above_sim_mean", "geneconv_outer_fragment_sd_of_sim")
+    names(geneconv_results) <- c("geneconv_seed", "geneconv_num_global_inner_fragments", "geneconv_num_global_outer-sequence_fragments", "geneconv_num_pairwise_inner_fragments", 
+                                 "geneconv_num_pairwise_outer-sequence_fragments", inner_line_var_names, outer_line_var_names)
+  }
   # Return geneconv results
   return(geneconv_results)
 }
