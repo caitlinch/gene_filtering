@@ -1,0 +1,13 @@
+name: empirical_treelikeness
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - r=4.0.3
+  - r-base=4.0.3
+  - r-parallel
+  - r-ape
+  - r-phangorn
+  - r-seqinr
+  - r-phytools
