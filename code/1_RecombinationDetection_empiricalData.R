@@ -41,8 +41,9 @@
 # AU_results_folder <- A folder to output the results of the AU test - for each loci, there will be a csv file containing the log likelihood for each tree topology
 # three_trees_path <- A file containing the tree topologies to test using the AU test (called three_trees_path because our analysis compared three three topologies)
 
-# # To run this program: delete the lines below that include Caitlin's paths/variables
-# # Uncomment lines 44 to 71 inclusive and fill with your own variable names
+# # To run this program: 
+# # 1. Delete the lines below that include Caitlin's paths/variables
+# # 2. Uncomment lines 44 to 72 inclusive and fill with your own variable names
 # input_names <- ""
 # input_dir <- ""
 # best_model_paths <- ""
@@ -71,7 +72,7 @@
 # three_trees_path <- ""
 
 ### Caitlin's paths ###
-run_location = "local"
+run_location = "server"
 
 if (run_location == "local"){
   input_names <- c("1KP", "Strassert2021","Vanderpool2020")
