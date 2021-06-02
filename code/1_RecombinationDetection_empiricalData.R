@@ -167,7 +167,7 @@ if (run_location == "local"){
   names(exec_paths) <- c("3seq","PHIPack","GeneConv","IQTree")
   
   # set number of cores for parallelisation
-  cores_to_use = 1
+  cores_to_use = 30
   iqtree_num_threads = "AUTO"
   
   # Select datasets to run analysis and collect results
