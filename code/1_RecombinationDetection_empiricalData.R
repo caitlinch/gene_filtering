@@ -161,13 +161,13 @@ if (run_location == "local"){
   # Create a vector with all of the executable file paths in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("/data/caitlin/linux_executables/3seq/3seq",
-                  "/data/caitlin/executables/Phi",
+                  "/data/caitlin/linux_executables/PhiPack/Phi",
                   "/data/caitlin/executables/GENECONV_v1.81_unix.source/geneconv", 
                   "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
   names(exec_paths) <- c("3seq","PHIPack","GeneConv","IQTree")
   
   # set number of cores for parallelisation
-  cores_to_use = 30
+  cores_to_use = 1
   iqtree_num_threads = "AUTO"
   
   # Select datasets to run analysis and collect results
