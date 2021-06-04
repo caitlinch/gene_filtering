@@ -210,30 +210,56 @@ run.phipack <- function(alignment_path, alignment_folder, phipack_path, seqtype)
   # Extract significance from Phi Pack output
   phi_file <- paste0(alignment_folder,"Phi.log")
   phi_file <- readLines(phi_file)
-  # Collect p-values
-  ind      <- grep("p-Value",phi_file)
-  NSS_ind <- ind + 3
-  NSS_sig <- as.numeric(strsplit(strsplit(phi_file[NSS_ind], ":")[[1]][2], "\\(")[[1]][1])
-  maxchi_ind <- ind + 4
-  maxchi_sig <- as.numeric(strsplit(strsplit(phi_file[maxchi_ind], ":")[[1]][2], "\\(")[[1]][1])
-  phi_permutation_ind <- ind + 5
-  phi_permutation_sig <- as.numeric(strsplit(strsplit(phi_file[phi_permutation_ind], ":")[[1]][2], "\\(")[[1]][1])
-  phi_normal_ind <- ind + 6
-  phi_normal_sig <- as.numeric(strsplit(phi_file[phi_normal_ind], ":")[[1]][2])
-  # Collect PHI values
-  ind <- grep("PHI Values", phi_file)
-  mean_ind <- ind + 4
-  mean_vals <- strsplit(strsplit(phi_file[mean_ind],":")[[1]][2], "      ")[[1]]
-  mean_vals <- as.numeric(mean_vals[mean_vals != ""])
-  var_ind <- ind + 5
-  var_vals <- strsplit(strsplit(phi_file[var_ind],":")[[1]][2], "      ")[[1]]
-  var_vals <- as.numeric(var_vals[var_vals != ""])
-  obs_ind <- ind + 6
-  obs_vals <- strsplit(strsplit(phi_file[obs_ind],":")[[1]][2], "      ")[[1]]
-  obs_vals <- as.numeric(obs_vals[obs_vals != ""])
+  # Check whether the test statistics were able to run correctly
+  check_run <- grep("PHI Values", phi_file)
+  # If the PHI values exist, the check_run will NOT be identical with integer(0). If the PHI values exist, collect them!
+  if (identical(check_run, integer(0)) == FALSE){
+    # Check whether the p-values were calculated for the analytical PHI or just the permutation PHI
+    
+    
+    # Collect PHI values
+    ind <- grep("PHI Values", phi_file)
+    mean_ind <- ind + 4
+    mean_vals <- strsplit(strsplit(phi_file[mean_ind],":")[[1]][2], "      ")[[1]]
+    mean_vals <- gsub(" ", "", mean_vals[mean_vals != ""])
+    mean_vals <- gsub("--", "NA", mean_vals)
+    var_ind <- ind + 5
+    var_vals <- strsplit(strsplit(phi_file[var_ind],":")[[1]][2], "      ")[[1]]
+    var_vals <- gsub(" ", "", var_vals[var_vals != ""])
+    var_vals <- gsub("--", "NA", var_vals)
+    obs_ind <- ind + 6
+    obs_vals <- strsplit(strsplit(phi_file[obs_ind],":")[[1]][2], "      ")[[1]]
+    obs_vals <- gsub(" ", "", obs_vals[obs_vals != ""])
+    obs_vals <- gsub("--", "NA", obs_vals)
+    # Collect p-values
+    ind      <- grep("p-Value",phi_file)
+    NSS_ind <- ind + 3
+    NSS_sig <- gsub(" ", "", strsplit(strsplit(phi_file[NSS_ind], ":")[[1]][2], "\\(")[[1]][1])
+    maxchi_ind <- ind + 4
+    maxchi_sig <- gsub(" ", "", strsplit(strsplit(phi_file[maxchi_ind], ":")[[1]][2], "\\(")[[1]][1])
+    phi_permutation_ind <- ind + 5
+    phi_permutation_sig <- gsub(" ", "", strsplit(strsplit(phi_file[phi_permutation_ind], ":")[[1]][2], "\\(")[[1]][1])
+    phi_normal_ind <- ind + 6
+    phi_normal_sig <- gsub(" ", "", strsplit(phi_file[phi_normal_ind], ":")[[1]][2])
+    # Collate p-values and check that each has a numeric value - if not, set it as "NA"
+    p_vals <- c(NSS_sig, maxchi_sig, phi_permutation_sig, phi_normal_sig)
+    for (i in 1:length(p_vals)){
+      p_val <- p_vals[i]
+      if (p_val == "--"){
+        replaced_p_val <- NA
+        p_vals[i] <- NA
+      }
+    }
+  } else if (identical(check_run, integer(0)) == TRUE){
+    # Tests were unable to run so assign each PHI output variable to NA
+    mean_vals = c(NA, NA)
+    var_vals = c(NA, NA)
+    obs_vals = c(NA, NA)
+    p_vals = c(NA, NA, NA, NA)
+  }
   
   # Collate output 
-  phi_results <- c(mean_vals, var_vals, obs_vals, NSS_sig, maxchi_sig, phi_permutation_sig, phi_normal_sig)
+  phi_results <- c(mean_vals, var_vals, obs_vals, p_vals)
   names(phi_results) <- c("analytical_PHI_mean_value", "permutation_PHI_mean_value",
                           "analytical_PHI_variance_value", "permutation_PHI_variance_value",
                           "analytical_PHI_observed_value", "permutation_PHI_observed_value",
@@ -273,7 +299,7 @@ run.geneconv <- function(alignment_path, alignment_folder, geneconv_path, seqtyp
   geneconv_file_path <- paste0(alignment_folder, grep("_terminal.txt", list.files(alignment_folder), value = TRUE))
   geneconv_file <- readLines(geneconv_file_path)
   # Check whether geneconv ran successfully
-  check_ind <- grep("Only one polymorphism: Too few to analyze!", geneconv_file)
+  check_ind <- grep("Too few to analyze!", geneconv_file)
   # If check_ind returns as integer(0), that means geneconv could not run (due to too few polymorphisms)
   # If check_ind returns as a number, that means geneconv ran successfully
   if (identical(integer(0), check_ind) == TRUE){
