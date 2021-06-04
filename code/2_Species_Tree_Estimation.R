@@ -97,6 +97,7 @@ if (run_location == "local"){
   # File and directory locations
   alignment_dir <- "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/"
   csv_data_dir <- "/data/caitlin/empirical_treelikeness/Output/"
+  
   treelikeness_df_file <- "/data/caitlin/empirical_treelikeness/Output/empiricalTreelikeness_Vanderpool2020_collated_results_20210120.csv"
   output_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
   
@@ -298,8 +299,10 @@ for (dataset in datasets_to_copy_loci){
     copy.loci.trees(v_df$loci_name, v_df$tree, category_output_folder, v_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
     # If running IQ-Tree analysis, copy all loci into a separate folder that can be fed into IQ-Tree
     if (estimate.species.trees.in.IQTREE == TRUE){
-      # copy.loci.alignment(loci_name, dataset_loci_folder, new_alignment_location)
-      lapply(v_df$loci_name, copy.loci.alignment, alignment_dir[[dataset]], paste0(category_output_folder, v_IQTree_name, "/"))
+      # create the partition file required to run this IQ-Tree analysis
+      # partition.file.from.loci.list(loci_list, directory, original_alignment_folder, add.charpartition = FALSE)
+      partition.file.from.loci.list(loci_list = v_df$loci_name, directory = paste0(category_output_folder, v_IQTree_name, "/"),
+                                    original_alignment_folder = alignment_dir[[dataset]], add.charpartition = FALSE)
     }
     # Create a record of which loci went into which analysis
     output_text <- v_df$loci_name
@@ -326,8 +329,10 @@ for (dataset in datasets_to_copy_loci){
   copy.loci.trees(all_df$loci_name, all_df$tree, category_output_folder, all_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
   # Copy loci alignments for IQ-Tree
   if (estimate.species.trees.in.IQTREE == TRUE){
-    # copy.loci.alignment(loci_name, dataset_loci_folder, new_alignment_location)
-    lapply(all_df$loci_name, copy.loci.alignment, alignment_dir[[dataset]], paste0(category_output_folder, all_IQTree_name, "/"))
+    # create the partition file required to run this IQ-Tree analysis
+    # partition.file.from.loci.list(loci_list, directory, original_alignment_folder, add.charpartition = FALSE)
+    partition.file.from.loci.list(loci_list = all_df$loci_name, directory = paste0(category_output_folder, all_IQTree_name, "/"),
+                                  original_alignment_folder = alignment_dir[[dataset]], add.charpartition = FALSE)
   }
   # Create a record of which loci went into which analysis
   output_text <- all_df$loci_name
@@ -350,8 +355,10 @@ for (dataset in datasets_to_copy_loci){
   copy.loci.trees(dataset_df$loci_name, dataset_df$tree, category_output_folder, NoTest_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
   # Copy loci alignments for IQ-Tree
   if (estimate.species.trees.in.IQTREE == TRUE){
-    # copy.loci.alignment(loci_name, dataset_loci_folder, new_alignment_location)
-    lapply(dataset_df$loci_name, copy.loci.alignment, alignment_dir[[dataset]], paste0(category_output_folder, NoTest_IQTree_name, "/"))
+    # create the partition file required to run this IQ-Tree analysis
+    # partition.file.from.loci.list(loci_list, directory, original_alignment_folder, add.charpartition = FALSE)
+    partition.file.from.loci.list(loci_list = dataset_df$loci_name, directory = paste0(category_output_folder, NoTest_IQTree_name, "/"),
+                                  original_alignment_folder = alignment_dir[[dataset]], add.charpartition = FALSE)
   }
   # Create a record of which loci went into which analysis
   output_text <- dataset_df$loci_name
@@ -404,8 +411,6 @@ for (dataset in datasets_to_estimate_trees){
     # Estimate the species trees using IQ-Tree
     if (estimate.species.trees.in.IQTREE == TRUE){
       if (partition.by.codon.position == TRUE){
-        # If partitioning by codon position, start by writing a partition file for each folder of alignments
-        lapply(iqtree_files_to_run, make.partition.file)
         # Estimate the species tree on each folder of alignments using the partition file
         partitions_to_run <- paste0(dirname(iqtree_files_to_run), "/", basename(iqtree_files_to_run), "/", "partitions.nex")
         lapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"])
