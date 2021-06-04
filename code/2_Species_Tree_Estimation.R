@@ -7,7 +7,6 @@
 # Caitlin Cherryh 2021
 
 ##### Step 1: Set file paths and run variables #####
-print("set filepaths")
 # alignment_dir     <- the folder(s) containing the alignments for each loci
 # input_names       <- set name(s) for the dataset(s) - make sure input_names is in same order as alignment_dir 
 #                      (e.g. for 2 datasets, put same dataset first in all three and same dataset last in all three)
@@ -238,7 +237,7 @@ trimmed_treelikeness_df_file <- gsub(".csv", paste0("_trimmedLoci_trimmedTaxa_",
 write.csv(treelikeness_df, file = trimmed_treelikeness_df_file)
 # Save a df of just the pass/fail info
 pass_df <- treelikeness_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", "pass_geneconv")]
-pass_df_file <- gsub(".csv", paste0("_PassFail_record",".csv"), treelikeness_df_file)
+pass_df_file <- gsub(".csv", paste0("_PassFail_record_", format(Sys.Date(),"%Y%m%d"),".csv"), treelikeness_df_file)
 write.csv(pass_df, file = pass_df_file)
 
 
@@ -380,10 +379,10 @@ for (dataset in datasets_to_estimate_trees){
   # Get list of all files in that folder
   all_category_folder_files <- list.files(category_output_folder)
   # Filter into ASTRAL text files and IQ-Tree folders
-  astral_files <- grep("\\.txt", grep("ASTRAL", all_category_folder_files, value = TRUE), value = TRUE)
-  iqtree_files <- grep("\\.", grep("IQTREE", all_category_folder_files, value = TRUE), value = TRUE, invert = TRUE)
+  astral_files <- paste0(grep("\\.txt", grep("ASTRAL", all_category_folder_files, value = TRUE), value = TRUE))
+  iqtree_files <- paste0(grep("\\.", grep("IQTREE", all_category_folder_files, value = TRUE), value = TRUE, invert = TRUE))
   # Contruct names of finished treefiles
-  astral_files_finished_names <- paste0(category_output_folder, gsub(".txt", ".tre", astral_files))
+  astral_files_finished_names <- paste0(category_output_folder, gsub(".txt", "_species.tre", astral_files))
   iqtree_files_finished_names <- paste0(category_output_folder, iqtree_files, ".contree")
   
   # Identify which ASTRAL analyses have not been run
@@ -391,7 +390,7 @@ for (dataset in datasets_to_estimate_trees){
   # Run remaining ASTRAL analyses
   if (length(astral_files_to_run) > 0){
     # Construct full file path
-    astral_files_to_run <- paste0(category_output_folder, astral_files[!file.exists(astral_files_finished_names)])
+    astral_files_to_run <- paste0(category_output_folder, astral_files_to_run)
     # Estimate the species trees using ASTRAL
     lapply(astral_files_to_run, ASTRAL.wrapper, exec_paths["ASTRAL"])
   }
@@ -401,14 +400,14 @@ for (dataset in datasets_to_estimate_trees){
   # Run remaining IQ-Tree analyses
   if (length(iqtree_files_to_run) > 0){
     # Construct full file path
-    iqtree_files_to_run <- paste0(category_output_folder, iqtree_files[!file.exists(iqtree_files_finished_names)])
+    iqtree_files_to_run <- paste0(category_output_folder, iqtree_files_to_run)
     # Estimate the species trees using IQ-Tree
     if (estimate.species.trees.in.IQTREE == TRUE){
       if (partition.by.codon.position == TRUE){
         # If partitioning by codon position, start by writing a partition file for each folder of alignments
         lapply(iqtree_files_to_run, make.partition.file)
         # Estimate the species tree on each folder of alignments using the partition file
-        partitions_to_run <- paste0(iqtree_files_to_run, "partitions.nex")
+        partitions_to_run <- paste0(dirname(iqtree_files_to_run), "/", basename(iqtree_files_to_run), "/", "partitions.nex")
         lapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"])
       } else if (partition.by.codon.position == FALSE){
         # If not partitioning data by codon position, simply call IQ-Tree on the folder of alignments to estimate a tree
