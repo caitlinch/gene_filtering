@@ -1459,6 +1459,7 @@ copy.loci.alignment <- function(loci_name, dataset_loci_folder, new_alignment_lo
 
 
 
+# Writing a partition file in a directory, referring to the loci in that directory
 make.partition.file <- function(directory, add.charpartition = FALSE){
   # make sure the directory name is properly formatted and ends in a slash
   directory <- paste0(dirname(directory), "/", basename(directory), "/")
@@ -1493,6 +1494,47 @@ make.partition.file <- function(directory, add.charpartition = FALSE){
 
 
 
+# Writing a partition file in one directory from a loci list, referring to loci in their original locations
+partition.file.from.loci.list <- function(loci_list, directory, original_alignment_folder, add.charpartition = FALSE){
+  # make sure the directory name is properly formatted and ends in a slash
+  directory <- paste0(dirname(directory), "/", basename(directory), "/")
+  original_alignment_folder <- paste0(dirname(original_alignment_folder), "/", basename(original_alignment_folder), "/")
+  # generate directory file if it doesn't already exist
+  if (dir.exists(directory) == FALSE){
+    dir.create(directory)
+  }
+  # make start and end of partition files
+  header <- c("#nexus","begin sets;","[loci]")
+  footer <- c("end;")
+  # Get the list of loci for this dataset 
+  original_alignments <- list.files(original_alignment_folder, recursive = TRUE)
+  # Find which file names refer to the original alignments
+  inds <- unlist(lapply(loci_list, grep, original_alignments))
+  loci_list_locations <- paste0(original_alignment_folder, original_alignments[inds])
+  # make charset for each loci - split by codon position
+  all_charsets <- unlist(lapply(1:length(loci_list), make.codon.position.charset.from.filepath, loci_list, loci_list_locations))
+  # make the charpartition
+  all_loci_labels <- unlist(lapply(loci_list, make.charpartition.labels))
+  all_inds <- 1:length(all_loci_labels)
+  loci_order <- paste0(all_inds,":",all_loci_labels,", ")
+  loci_order[length(loci_order)] <- gsub(", ",";",loci_order[length(loci_order)])
+  if (add.charpartition == TRUE){
+    # generate charpartition
+    charpartitions_vec <- c("\tcharpartition loci = ",loci_order)
+    charpartitions <- paste(charpartitions_vec, collapse = "")
+    # attach all the information together
+    op_lines <- c(header, all_charsets, "", charpartitions, footer)
+  } else {
+    # attach all the information together
+    op_lines <- c(header, all_charsets, footer)
+  }
+  # output partition file
+  output_file <- paste0(directory, "partitions.nex")
+  writeLines(op_lines, output_file)
+}
+
+
+
 make.codon.position.charset <- function(filename, directory){
   loci_name <- remove.suffix(filename)
   firstpos <- paste0("\tcharset ", loci_name, "_1stpos = ", directory, filename, ": 1-.\\3;")
@@ -1501,6 +1543,19 @@ make.codon.position.charset <- function(filename, directory){
   file_charset <- c(firstpos, secondpos, thirdpos)
   return(file_charset)
 }
+
+
+
+make.codon.position.charset.from.filepath <- function(index, loci_names, file_names){
+  loci_name <- loci_names[index]
+  file_name <- file_names[index]
+  firstpos <- paste0("\tcharset ", loci_name, "_1stpos = ", file_name, ": 1-.\\3;")
+  secondpos <- paste0("\tcharset ", loci_name, "_2ndpos = ", file_name, ": 2-.\\3;")
+  thirdpos <- paste0("\tcharset ", loci_name, "_3rdpos = ", file_name, ": 3-.\\3;")
+  file_charset <- c(firstpos, secondpos, thirdpos)
+  return(file_charset)
+}
+
 
 
 
