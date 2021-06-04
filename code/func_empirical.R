@@ -1460,6 +1460,8 @@ copy.loci.alignment <- function(loci_name, dataset_loci_folder, new_alignment_lo
 
 
 make.partition.file <- function(directory, add.charpartition = FALSE){
+  # make sure the directory name is properly formatted and ends in a slash
+  directory <- paste0(dirname(directory), "/", basename(directory), "/")
   # get all loci in directory
   all_loci <- list.files(directory)
   # remove any partition files
@@ -1480,8 +1482,7 @@ make.partition.file <- function(directory, add.charpartition = FALSE){
     charpartitions <- paste(charpartitions_vec, collapse = "")
     # attach all the information together
     op_lines <- c(header, all_charsets, "", charpartitions, footer)
-  } else
-  {
+  } else {
     # attach all the information together
     op_lines <- c(header, all_charsets, footer)
   }
