@@ -115,4 +115,4 @@ length(which(windows > 20000)) # 3118
 # So if the threshold was 20,000 then we would end up with 3118 gene trees
 
 
-
+csv <- read.csv("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/DataDryad_data/Pease_etal_TomatoPhylo_GeneTrees/Pease_etal_TomatoPhylo_100kbTrees.txt")
