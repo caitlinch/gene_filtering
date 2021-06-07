@@ -267,9 +267,31 @@ print("run recombination detection methods")
 dataset_ids <- which(loci_df$dataset %in% datasets_to_run)
 run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
 run_df <- as.data.frame(do.call(rbind, run_list))
-results_file <- paste0(output_dir,"empiricalTreelikeness_",dataset,"_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
+results_file <- paste0(output_dir,"empiricalTreelikeness_",dataset,"_collated_results_FirstRun_",format(Sys.time(), "%Y%m%d"),".csv")
 write.csv(run_df, file = results_file, row.names = FALSE)
 
+# Check whether any loci did not run properly
+# Make an output name for each csv file of results
+finished_results_files <- paste0(loci_df$dataset[dataset_ids], "/", loci_df$loci_name[dataset_ids], "/", 
+                                 loci_df$dataset[dataset_ids], "_", loci_df$loci_name[dataset_ids], "_RecombinationDetection_results.csv")
+# Get the list of results files that ran successfully
+all_output_files <- list.files(output_dir, recursive = TRUE)
+csv_output_files <- grep("_RecombinationDetection_results.csv", all_output_files, value = TRUE)
+# Check each loci ran successfully by seeing if that output file exists
+# With setdiff(), put the vector containing all the elements first and the subset second to return the list of elements that are missing
+missing_loci <- setdiff(finished_results_files, csv_output_files)
+# Extract the indexes of the missing loci from the finished results files
+missing_inds <- which(finished_results_files %in%  missing_loci)
+# These are the ones that didn't work properly in the first soma run - check them 
+# missing_inds <- 876,906,936,966,996,1026,1056,1086,1116,1146,1176,1206,1236,1266,1296,1326,1356,1386,1416,1446,1476,1506,1536,1566,1596,1626,1656,1686,1716
+# Run all loci that didn't run successfully previously
+run_list <- mclapply(missing_inds, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
+
+# Rerun recombination.detection.wrapper to iterate through and extract all RecombinationDetection_results files, and save the output
+run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
+run_df <- as.data.frame(do.call(rbind, run_list))
+results_file <- paste0(output_dir,"empiricalTreelikeness_",dataset,"_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
+write.csv(run_df, file = results_file, row.names = FALSE)
 
 
 ##### Step 5: Collate trees #####
