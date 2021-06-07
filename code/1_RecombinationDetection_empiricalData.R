@@ -83,7 +83,6 @@ if (run_location == "local"){
                         NA,
                         NA)
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/")
-  treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
   exec_folder <- "/Users/caitlincherryh/Documents/Executables/"
