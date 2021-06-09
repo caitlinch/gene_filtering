@@ -76,6 +76,10 @@ process.one.Pease2016.window <- function(index, df, alignment_files, raxml_files
   # Check whether the trees are identical
   t1 <- read.tree(text = row$tree) # tree from 100kb.text
   t2 <- read.tree(file = temp_tree_file) # tree from RAxML_bestTree.mvftree.datetime
+  print(paste0("t1: ", length(t1$tip.label)))
+  print(sort(t1$tip.label))
+  print(paste0("t2: ", length(t2$tip.label)))
+  print(sort(t2$tip.label))
   rf <- RF.dist(t1,t2)
   wrf <- wRF.dist(t1,t2)
   SPR <- SPR.dist(t1,t2)
@@ -134,6 +138,8 @@ nrow(c1_df) == nrow(missing_rows) + nrow(kept_rows)
 
 
 
-
+# WHat if you assemble the information from the files and then cross check which window it belongs to? There's only 4000 windows so it can't be too bad
+# Narrow by number of sites and number of taxa
+# Compare tree to get it right
 
 
