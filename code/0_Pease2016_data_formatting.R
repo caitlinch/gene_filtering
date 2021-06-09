@@ -3,116 +3,129 @@
 
 # Caitlin Cherryh, 2021
 
-# Before you can run this code, you must have used mvftools to convert the HQ alignment from the DataDryad into fasta format
-# 1. Download the DataDryad (https://datadryad.org/stash/dataset/doi:10.5061/dryad.182dv)
-# 2. Unzip the HQ Alignment in Multisample Variant Format file: Pease_etal_Tomato29acc_HQ.mvf.gz
-# 3. Download mvftools (https://github.com/jbpease/mvftools)
-# 4. Use mvftools to convert the HQ alignment MVF file to a fasta file for each chromosome by using the following commands in the terminal:
-#    cd  ~/Documents/Executables/mvftools/Pease_alignments
-#    python3 mvftools.py ConvertMVF2FastaGene --mvf Pease_alignments/Pease_etal_Tomato29acc_HQ.mvf  --output-dir Pease_alignments/Tomato29acc_HQ/ --output-data "dna" 
-# There are more instructions in the mvftools documentation if you need more help with this step
+## Open packages
+library(ape)
+library(phangorn)
 
-# Open libraries
-library("ape")
+## Specify parameters
+raxml_path <- "/Users/caitlincherryh/Documents/Executables/standard-RAxML/raxmlHPC-AVX2"
+mvftools_path <- "/Users/caitlincherryh/Documents/Executables/mvftools/mvftools.py"
+Pease2016_100kb_windows_path <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/Pease_etal_TomatoPhylo_100kbTrees.txt"
+Pease2016_HQ_mvf.gz <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/Pease_alignments/Pease_etal_Tomato29acc_HQ.mvf.gz"
+Pease2016_alignments_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/Pease_alignments/ch01/" #location of the alignment mvf.gz file, where mvftools will be run
+my_100kb_windows_path <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/Pease_alignments/ch01/trees100k.txt"
+alignment_output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/"
+summary_output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/"
 
-tsv_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/DataDryad_data/Pease_etal_TomatoPhylo_GeneTrees/Pease_etal_TomatoPhylo_100kbTrees.txt"
-tsv_100kb <- read.delim(tsv_file)
-tsv_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/DataDryad_data/Pease_etal_TomatoPhylo_GeneTrees/Pease_etal_TomatoPhylo_1MbTrees.txt"
-tsv_1Mb <- read.delim(tsv_file)
+# Set working directory to Pease2016 alignment folder so that the windows will be unfolded there
+setwd(Pease2016_alignments_folder) 
+mvftools_command <- paste0("python3 ", mvftools_path,
+                           " InferTree --mvf ",Pease2016_HQ_mvf.gz,
+                           " --windowsize 100000 --out trees100k.txt --contig-ids 1", 
+                           "--sample-indices 0,1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29",
+                           " --raxml-path ", raxml_path)
+# # Uncomment the following line to run InferTrees from mvftools, generating the 100kb window alignments
+# system(mvftools_command)
 
-# Specify the lineages that are allowed in the alignments
-# These are the lineages that appear in Supplementary Figure 2E of Pease et al (2016) - the lineages included in the window trees
-allowed_lineages <- c('LA3475','SL2.50','LA3124','LA0429','LA0436','LA3909','LA2933','LA1269','LA1589','LA1028','LA1316','LA2172',
-                      'LA1322','LA2133','LA1782','LA4117','LA1364','LA2744','LA0107','LA2964','LA0444','LA1358','LA0407','LA1777',
-                      'LA0716','LA3778','LA4116','LA2951','LA4126')
+# Open the table with information about the windows
+tree_df <- read.table(paste0(Pease2016_alignments_folder, "trees100k.txt"))
+names(tree_df) <- c("#contig", "windowstart", "windowsize", "tree", "topology", "topoid", "alignlength", "aligndepth", "status")
 
-# Specify the input folder - the location of the fasta format chromosome files
-input_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/Pease_alignments/Tomato29acc_HQ/"
-# Specify the output folder - where to store the window alignments
-output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/Pease_alignments/Tomato29acc_HQ_100kb_windows/"
+# Open the table with information about the windows from your run
+my_tree_df <- read.table(my_100kb_windows_path)
+names(my_tree_df) <- c("#contig", "windowstart", "windowsize", "tree", "topology", "topoid", "alignlength", "aligndepth", "status")
 
-# Collect all the chromosome files
-c_fastas <- list.files(input_folder)
-# Remove the Sl2.50ch00.fa file - the unplaced scaffolds were not used for the phylogenetic analysis
-c_fastas <- grep("ch00", c_fastas, invert = TRUE, value = TRUE)
+# Get a list of all the temporary files of the 100kb windows
+#all_temp_files <- list.files(paste0(Pease2016_alignments_folder, "raxmltemp/"))
+all_temp_files <- list.files(paste0(Pease2016_alignments_folder))
+tree_files <- paste0(Pease2016_alignments_folder, sort(grep("RAxML_bestTree", all_temp_files, value = TRUE)))
+phy_files <- paste0(Pease2016_alignments_folder, sort(grep(".phy", all_temp_files, value = TRUE)))
+raxml_info_files <- paste0(Pease2016_alignments_folder, sort(grep("RAxML_info", all_temp_files, value = TRUE)))
 
-# Write a function to save the alignment for each window
-# Iterate through the dataframe and save one window at a time
-write.one.window <- function(index, window_df, chromosome, allowed_lineages){
-  # Select row with information for this window using the index
-  row <- window_df[index,]
-  # Get the portion of the DNAbin chromosome contained by the window
-  chromosome_portion <- as.list(as.matrix(chromosome)[,row$window_start:row$window_end])
-  # Extract only the lineages you want to keep
-  chromosome_portion <- chromosome_portion[c(allowed_lineages)]
-  # Create the output file name
-  output_fasta_name <- paste0(row$output_folder, row$window_name, ".fa")
-  # Save chromosome portion as a fasta file
-  write.dna(chromosome_portion, file = output_fasta_name, format = "fasta", colsep = "", nbcol = 10, colw = 10, append = FALSE)
+# For each window:
+# 1. determine which file contains the window information. Check this file has the right parameters (cross-check against tree_df)
+# 2. Name this loci based on the window details
+# 3. Rename and copy the file to the output folder
+# 4. Open the RAxML info file and extract information about the model 
+# 5. Return a row with the window location, window information, whether the cross-check was correct, loci location, model info
+process.one.Pease2016.window <- function(index, df, alignment_files, raxml_files, tree_files, output_directory, copy.alignment = TRUE){
+  # Use index to select correct files
+  row <- df[index,]
+  temp_al_file <- alignment_files[index]
+  temp_raxml_file <- raxml_files[index]
+  temp_tree_file <- tree_files[index]
+  ## 1. Check whether this alignment is correct for this window
+  # Check whether the filepaths match up
+  al_datetime <- gsub("_temp.phy", "", gsub("mvftree.", "", basename(temp_al_file)))
+  raxml_datetime <- gsub("RAxML_info.mvftree.", "", basename(temp_raxml_file))
+  does.datetime.match <- as.character(identical(al_datetime, raxml_datetime))
+  # Open the alignment
+  p <- read.dna(temp_al_file, format = "sequential")
+  # Check whether the alignment information matches up
+  does.n_taxa.match <- identical(row$aligndepth, dim(p)[1])
+  does.n_sites.match <- identical(row$alignlength, dim(p)[2])
+  did.raxml.work <- row$status
+  # Check whether the trees are identical
+  t1 <- read.tree(text = row$tree) # tree from 100kb.text
+  t2 <- read.tree(file = temp_tree_file) # tree from RAxML_bestTree.mvftree.datetime
+  rf <- RF.dist(t1,t2)
+  wrf <- wRF.dist(t1,t2)
+  SPR <- SPR.dist(t1,t2)
+  KF <- KF.dist(t1,t2)
+  path <- path.dist(t1,t2)
+  is.tree.identical <- as.character(all.equal(rf, 0))
+  ## 2. Name this loci based on the window details
+  # New name = contig_windowStart_windowSize.fasta
+  loci_name <-  paste0(gsub("SL2.50","",row$`#contig`), "_s", row$windowstart, "_", "100kb_windows")
+  new_al_file <- paste0(output_directory, loci_name, ".fasta")
+  ## 3. Output alignment as a fasta file
+  if (copy.alignment == TRUE){
+    write.dna(p, file = new_al_file, format = "fasta", colsep = "", nbcol = 10, colw = 10)
+  }
+  ## 4. Open the RAxML info file and extract information about the model
+  lines <- readLines(temp_raxml_file)
+  ind <- grep("Substitution Matrix", lines)
+  substitution_matrix <- gsub(" ", "", strsplit(lines[ind],":")[[1]][2])
+  ind <- grep("RAxML was called as follows:", lines)
+  system_call <- lines[ind+2]
+  system_call_vector <- strsplit(system_call, " ")[[1]]
+  system_model <- system_call_vector[grep("-m", system_call_vector) + 1]
+  ## 5. Return a row with information about the alignment
+  op_row <- c(loci_name, "Pease2016", as.numeric(gsub("SL2.50ch", "", row$`#contig`)), row$`#contig`, row$windowstart, row$windowsize, row$alignlength, row$aligndepth, 
+              substitution_matrix, system_model, al_datetime, does.datetime.match, does.n_taxa.match, does.n_sites.match, is.tree.identical, did.raxml.work, 
+              rf, wrf, SPR, KF, path, new_al_file)
+  names(op_row) <- c("loci_name", "dataset", "contig", "chromosome", "windowstart", "windowsize", "alignlength", "aligndepth", 
+                     "substitution_matrix", "RAxML_model_input", "alignment_datetime", "datetime_match", "n_taxa_match","n_sites_match", "tree_match", "raxml_status",
+                     "RF_distance", "wRF_distance", "SPR_distance", "KR_distance", "path_distance", "alignment_path")
+  return(op_row)
 }
 
-# Iterate through the chromosome files and save non-overlapping 100kb windows as alignments in fasta format
-for (c in c_fastas){
-  # Open the fasta chromosome file
-  chromosome <- read.FASTA(file = paste0(input_folder, c), type = "DNA")
-  # Extract the name of this chromosome
-  c_name <- gsub("\\.fa","",gsub("SL2.50","",c))
-  # Create a dataframe of information about the windows
-  chromosome_length <- length(chromosome[[1]])
-  n_windows <- length(seq(0, chromosome_length, 100000))
-  c_df <- data.frame(window_name = paste0(c_name, "_", sprintf("%04d", 1:n_windows)),
-                     window_start = seq(0, chromosome_length, 100000), 
-                     window_end = c(seq(100000, chromosome_length, 100000), chromosome_length),
-                     chromosome_location = paste0(input_folder, c),
-                     output_folder = output_folder
-                     )
-  # Iterate through one window at a time and save the genetic information from that window as a fasta file
-  #lapply(1:nrow(c_df), write.one.window, window_df = c_df, chromosome = chromosome, allowed_lineages = allowed_lineages)
-  # Write the window df out as a csv
-  window_df_output_name <- paste0(dirname(output_folder),"/", "Pease2016_genomicWindows_100kb_", c_name, ".csv")
-  write.csv(c_df, file = window_df_output_name)
-}
+# Iterate through the rows of the tree_df and apply the function, then convert results to a dataframe
+# To run one alignment: process.one.Pease2016.window(1, tree_df, phy_files, raxml_info_files, tree_files, alignment_output_folder, copy.alignment = TRUE)
+list <- lapply(1:nrow(my_tree_df), process.one.Pease2016.window, df = my_tree_df, alignment_files = phy_files, raxml_files = raxml_info_files, tree_files = tree_files, output_directory = alignment_output_folder, copy.alignment = TRUE)
+df <- as.data.frame(do.call(rbind,list))
+# Output dataframe
+df_file <- paste0(summary_output_folder, "Pease2016_DataSummary_100kb_windows_all.csv")
+write.csv(df, file = df_file)
+
+# Identify which windows were included in the original study
+Pease2016_windows_df <- read.table(Pease2016_100kb_windows_path)
+names(Pease2016_windows_df) <- c("#contig", "windowstart", "windowsize", "tree", "topology", "topoid", "alignlength", "aligndepth", "status")
+Pease2016_windows_df$loci_name <- paste0(Pease2016_windows_df$`#contig`, "_s", Pease2016_windows_df$windowstart, "_", "100kb_windows")
+Pease2016_windows_df$compare <- paste0(Pease2016_windows_df$`#contig`, "_", Pease2016_windows_df$windowstart)
+df$compare <- paste0(df$contig, "_", df$windowstart)
+# limit to 1st chromosome
+Pease_c1_df <- Pease2016_windows_df[Pease2016_windows_df$`#contig` == "1",] 
+c1_df <- df[df$contig == "1",]
+# Find out which windows are missing
+missing_in_Pease <- setdiff(c1_df$compare, Pease_c1_df$compare)
+missing_rows <- c1_df[(c1_df$compare %in% missing_in_Pease),]
+kept_rows <- c1_df[!(c1_df$compare %in% missing_in_Pease),]
+nrow(c1_df) == nrow(missing_rows) + nrow(kept_rows)
 
 
-# Investigate how many windows
-all_files <- list.files(paste0(dirname(output_folder),"/"))
-csv_files <- grep("\\.csv", all_files, value = TRUE)
-csv_files <- paste0(dirname(output_folder), "/", csv_files)
-csv_list <- lapply(csv_files, read.csv)
-windows_df <- as.data.frame(do.call(rbind, csv_list))
-
-# Check how many sites specified in mvf for chromosome 1
-mvf_file <- "/Users/caitlincherryh/Downloads/doi_10.5061_dryad.182dv__v1/Pease_etal_Tomato29acc_HQ_ch01.mvf"
-mvf <- readLines(mvf_file)
-mvf_trimmed <- mvf[grep("1:", mvf)]
-mvf_nums <- unlist(strsplit(mvf_trimmed, " "))[c(TRUE,FALSE)]
-mvf_nums <- gsub("1:","",mvf_nums)
-mvf_nums <- as.numeric(mvf_nums)
-# Compare to how many sites there should be based on the alignment length for chromosome 1
-all_nums <- seq(924, 98543114, 1)
-all_nums[!(all_nums %in% mvf_nums)]
-
-# Try and recreate the windows based on the lengths of the alignments in the 100kb tsv
-ch01_tsv_100kb <- tsv_100kb[tsv_100kb$X.contig == 1,]
-
-# This is how long all the alignments from chromosome 1 added up are: 
-sum(ch01_tsv_100kb$alignlength) # 19396432
-
-# This is how long chromosome 1 is
-chromosome_length # 21918490
-
-# There's an inconsistency between the length of the chromosome and the length of all the alignments
-# Can't just take 100kb windows because there isn't every base present - windows will be incorrect lengths
-# Need to map back onto reference I suppose...
-# Leave this here for now - this is a complex problem to solve
-
-windows <- tsv_100kb$alignlength
-windows <- sort(windows, decreasing = TRUE)
-windows[2744:2746] # 24629 24603 24564
-length(which(windows > 24600)) # 2745
-# So if the threshold was 24,600 then we would end up with 2745 gene trees
-length(which(windows > 20000)) # 3118
-# So if the threshold was 20,000 then we would end up with 3118 gene trees
 
 
-csv <- read.csv("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/DataDryad_data/Pease_etal_TomatoPhylo_GeneTrees/Pease_etal_TomatoPhylo_100kbTrees.txt")
+
+
+
