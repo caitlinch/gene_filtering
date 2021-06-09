@@ -59,11 +59,19 @@ process.one.Pease2016.window <- function(index, df, alignment_files, raxml_files
   al_datetime <- gsub("_temp.phy", "", gsub("mvftree.", "", basename(temp_al_file)))
   raxml_datetime <- gsub("RAxML_info.mvftree.", "", basename(temp_raxml_file))
   does.datetime.match <- as.character(identical(al_datetime, raxml_datetime))
+  print("Next alignment")
+  print(index)
+  print(al_datetime)
+  print(raxml_datetime)
+  print(temp_al_file)
+  print(temp_raxml_file)
+  print(temp_tree_file)
   # Open the alignment
   p <- read.dna(temp_al_file, format = "sequential")
   # Check whether the alignment information matches up
   does.n_taxa.match <- identical(row$aligndepth, dim(p)[1])
   does.n_sites.match <- identical(row$alignlength, dim(p)[2])
+  print(dim(p))
   did.raxml.work <- row$status
   # Check whether the trees are identical
   t1 <- read.tree(text = row$tree) # tree from 100kb.text
