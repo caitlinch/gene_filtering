@@ -35,6 +35,35 @@ w_c1_df <- w_df[w_df$`#contig` == 1,]
 complete_windows_df <- w_c1_df[w_c1_df$aligndepth == 29,]
 
 #### Functions ####
+# For one temp .phy file, open it and extract information about the alignment and corresponding tree
+Pease.extract.info <- function(datetime, mvftools_output_files){
+  # Extract files using datetime
+  all_dt_files <- grep(datetime, mvftools_output_files, value = TRUE)
+  alignment_file <- grep("_temp.phy",all_dt_files, value = TRUE)
+  raxml_info <- grep("RAxML_info", all_dt_files, value = TRUE)
+  best_tree_file <- grep("RAxML_bestTree", all_dt_files, value = TRUE)
+  # Extract information about alignment
+  p <- read.dna(alignment_file, format = "sequential")
+  aligndepth <- dim(p)[1]
+  alignlength <- dim(p)[2]
+  # Extract trees
+  best_tree_text <- readLines(best_tree_file)
+  # Open the RAxML info file and extract information about the model
+  lines <- readLines(raxml_info)
+  ind <- grep("Substitution Matrix", lines)
+  substitution_matrix <- gsub(" ", "", strsplit(lines[ind],":")[[1]][2])
+  ind <- grep("RAxML was called as follows:", lines)
+  system_call <- lines[ind+2]
+  system_call_vector <- strsplit(system_call, " ")[[1]]
+  system_model <- system_call_vector[grep("-m", system_call_vector) + 1]
+  # Return a row with information about the alignment
+  op_row <- c(datetime, alignlength, aligndepth, substitution_matrix, system_model, best_tree_text, 
+              alignment_file, raxml_info, best_tree_file)
+  names(op_row) <- c("alignment_datetime", "alignlength", "aligndepth",  "substitution_matrix", "RAxML_model_input", "best_ML_tree", 
+                     "alignment_file", "raxml_info_file", "treefile")
+  return(op_row)
+}
+
 # Match up one window used in Pease 2016 for the ASTRAL study with one temporary .phy alignment
 Pease.get.astral.window <- function(index, complete_windows_df, infertree_df, alignment_info_df){
   # Get one window from the Pease2016 run from the set of windows with all 29 species
@@ -42,8 +71,8 @@ Pease.get.astral.window <- function(index, complete_windows_df, infertree_df, al
   print(paste0("Window: Contig = ", complete_windows_row$`#contig`, ", Window start = ", complete_windows_row$windowstart))
   # Get the equivalent row from the local run
   local_run_row <- infertree_df[((infertree_df$`#contig` == as.integer(complete_windows_row$`#contig`)) &
-                                  (as.integer(infertree_df$windowstart) == as.integer(complete_windows_row$windowstart)) &
-                                  (as.integer(infertree_df$windowsize) == as.integer(complete_windows_row$windowsize))),]
+                                   (as.integer(infertree_df$windowstart) == as.integer(complete_windows_row$windowstart)) &
+                                   (as.integer(infertree_df$windowsize) == as.integer(complete_windows_row$windowsize))),]
   local_run_tree <- read.tree(text = local_run_row$tree)
   # Compare trees until you get the right tree
   match_tree_ind <- NA
@@ -84,36 +113,6 @@ Pease.get.astral.window <- function(index, complete_windows_df, infertree_df, al
                      "alignment_file", "raxml_info_file", "treefile")
   return(op_row)
 }
-
-# For one temp .phy file, open it and extract information about the alignment and corresponding tree
-Pease.extract.info <- function(datetime, mvftools_output_files){
-  # Extract files using datetime
-  all_dt_files <- grep(datetime, mvftools_output_files, value = TRUE)
-  alignment_file <- grep("_temp.phy",all_dt_files, value = TRUE)
-  raxml_info <- grep("RAxML_info", all_dt_files, value = TRUE)
-  best_tree_file <- grep("RAxML_bestTree", all_dt_files, value = TRUE)
-  # Extract information about alignment
-  p <- read.dna(alignment_file, format = "sequential")
-  aligndepth <- dim(p)[1]
-  alignlength <- dim(p)[2]
-  # Extract trees
-  best_tree_text <- readLines(best_tree_file)
-  # Open the RAxML info file and extract information about the model
-  lines <- readLines(raxml_info)
-  ind <- grep("Substitution Matrix", lines)
-  substitution_matrix <- gsub(" ", "", strsplit(lines[ind],":")[[1]][2])
-  ind <- grep("RAxML was called as follows:", lines)
-  system_call <- lines[ind+2]
-  system_call_vector <- strsplit(system_call, " ")[[1]]
-  system_model <- system_call_vector[grep("-m", system_call_vector) + 1]
-  # Return a row with information about the alignment
-  op_row <- c(datetime, alignlength, aligndepth, substitution_matrix, system_model, best_tree_text, 
-              alignment_file, raxml_info, best_tree_file)
-  names(op_row) <- c("alignment_datetime", "alignlength", "aligndepth",  "substitution_matrix", "RAxML_model_input", "best_ML_tree", 
-                     "alignment_file", "raxml_info_file", "treefile")
-  return(op_row)
-}
-
 
 ##### Code body ####
 ## Extract information about the alignment
