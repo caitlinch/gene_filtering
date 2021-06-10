@@ -98,19 +98,20 @@ Pease.get.astral.window <- function(index, complete_windows_df, infertree_df, al
     # If there was a match, that means that the tree was found and therefore the alignment was found!
     # Associate the window and the datetime together
     w_aln_row <- alignment_info_df[match_tree_ind, ]
-    op_row <- c("Pease2016", w_aln_row$alignment_datetime, local_run_row$`#contig`, local_run_row$windowstart, local_run_row$windowsize, 
+    loci_name <- paste0("c", local_run_row$`#contig`, "_s", local_run_row$windowstart, "_100kb_windows")
+    op_row <- c("Pease2016", w_aln_row$alignment_datetime, loci_name, local_run_row$`#contig`, local_run_row$windowstart, local_run_row$windowsize, 
                 local_run_row$alignlength, local_run_row$aligndepth, w_aln_row$substitution_matrix, w_aln_row$RAxML_model_input, 
-                w_aln_row$alignment_file, w_aln_row$raxml_info_file, w_aln_row$treefile)
+                w_aln_row$alignment_file, w_aln_row$raxml_info_file, w_aln_row$treefile, match_tree_ind, TRUE)
   } else if (is.na(match_tree_ind) == TRUE){
     # If match_tree_ind is na, it means there was no match for this tree
     # Return "NA" where the match information would be
-    op_row <- c("Pease2016", NA, local_run_row$`#contig`, local_run_row$windowstart, local_run_row$windowsize, 
+    op_row <- c("Pease2016", NA, NA, local_run_row$`#contig`, local_run_row$windowstart, local_run_row$windowsize, 
                 local_run_row$alignlength, local_run_row$aligndepth, NA, NA, 
-                NA, NA, NA)
+                NA, NA, NA, match_tree_ind, FALSE)
   }
-  names(op_row) <- c("dataset", "datetime", "#contig", "windowstart", "windowsize",
+  names(op_row) <- c("dataset", "datetime", "loci_name", "#contig", "windowstart", "windowsize",
                      "alignlength", "aligndepth", "substitution_matrix", "RAxML_model_input", 
-                     "alignment_file", "raxml_info_file", "treefile")
+                     "alignment_file", "raxml_info_file", "treefile", "InferTree_info_row_number", "matched")
   return(op_row)
 }
 
