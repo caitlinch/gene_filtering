@@ -28,120 +28,64 @@ mvftools_command <- paste0("python3 ", mvftools_path,
 # system(mvftools_command)
 
 # Open the table with information about the windows
-tree_df <- read.table("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/Pease_etal_TomatoPhylo_100kbTrees.txt")
-names(tree_df) <- c("#contig", "windowstart", "windowsize", "tree", "topology", "topoid", "alignlength", "aligndepth", "status")
-tree_df <- tree_df[tree_df$`#contig` == 1,]
+w_df <- read.table("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/Pease_etal_TomatoPhylo_100kbTrees.txt")
+names(w_df)  <- c("#contig", "windowstart", "windowsize", "tree", "topology", "topoid", "alignlength", "aligndepth", "status")
+w_c1_df <- w_df[w_df$`#contig` == 1,]
+# Get the list of windows used for ASTRAL in Pease 2016 (all alignments with 29 taxa)
+complete_windows_df <- w_c1_df[w_c1_df$aligndepth == 29,]
 
-# Open the table with information about the windows from your run
-my_tree_df <- read.table(my_100kb_windows_path)
-names(my_tree_df) <- c("#contig", "windowstart", "windowsize", "tree", "topology", "topoid", "alignlength", "aligndepth", "status")
-
-# Get a list of all the temporary files of the 100kb windows
-#all_temp_files <- list.files(paste0(Pease2016_alignments_folder, "raxmltemp/"))
-all_temp_files <- list.files(paste0(Pease2016_alignments_folder))
-tree_files <- paste0(Pease2016_alignments_folder, sort(grep("RAxML_bestTree", all_temp_files, value = TRUE)))
-phy_files <- paste0(Pease2016_alignments_folder, sort(grep(".phy", all_temp_files, value = TRUE)))
-raxml_info_files <- paste0(Pease2016_alignments_folder, sort(grep("RAxML_info", all_temp_files, value = TRUE)))
-
-# For each window:
-# 1. determine which file contains the window information. Check this file has the right parameters (cross-check against tree_df)
-# 2. Name this loci based on the window details
-# 3. Rename and copy the file to the output folder
-# 4. Open the RAxML info file and extract information about the model 
-# 5. Return a row with the window location, window information, whether the cross-check was correct, loci location, model info
-process.one.Pease2016.window <- function(index, df, alignment_files, raxml_files, tree_files, output_directory, copy.alignment = TRUE){
-  # Use index to select correct files
-  row <- df[index,]
-  temp_al_file <- alignment_files[index]
-  temp_raxml_file <- raxml_files[index]
-  temp_tree_file <- tree_files[index]
-  ## 1. Check whether this alignment is correct for this window
-  # Check whether the filepaths match up
-  al_datetime <- gsub("_temp.phy", "", gsub("mvftree.", "", basename(temp_al_file)))
-  raxml_datetime <- gsub("RAxML_info.mvftree.", "", basename(temp_raxml_file))
-  does.datetime.match <- as.character(identical(al_datetime, raxml_datetime))
-  print("Next alignment")
-  print(index)
-  print(al_datetime)
-  print(raxml_datetime)
-  print(temp_al_file)
-  print(temp_raxml_file)
-  print(temp_tree_file)
-  # Open the alignment
-  p <- read.dna(temp_al_file, format = "sequential")
-  # Check whether the alignment information matches up
-  does.n_taxa.match <- identical(row$aligndepth, dim(p)[1])
-  does.n_sites.match <- identical(row$alignlength, dim(p)[2])
-  print(dim(p))
-  did.raxml.work <- row$status
-  # Check whether the trees are identical
-  t1 <- read.tree(text = row$tree) # tree from 100kb.text
-  t2 <- read.tree(file = temp_tree_file) # tree from RAxML_bestTree.mvftree.datetime
-  print(paste0("t1: ", length(t1$tip.label)))
-  print(sort(t1$tip.label))
-  print(paste0("t2: ", length(t2$tip.label)))
-  print(sort(t2$tip.label))
-  rf <- RF.dist(t1,t2)
-  wrf <- wRF.dist(t1,t2)
-  SPR <- SPR.dist(t1,t2)
-  KF <- KF.dist(t1,t2)
-  path <- path.dist(t1,t2)
-  is.tree.identical <- as.character(all.equal(rf, 0))
-  ## 2. Name this loci based on the window details
-  # New name = contig_windowStart_windowSize.fasta
-  loci_name <-  paste0(gsub("SL2.50","",row$`#contig`), "_s", row$windowstart, "_", "100kb_windows")
-  new_al_file <- paste0(output_directory, loci_name, ".fasta")
-  ## 3. Output alignment as a fasta file
-  if (copy.alignment == TRUE){
-    write.dna(p, file = new_al_file, format = "fasta", colsep = "", nbcol = 10, colw = 10)
+#### Functions ####
+# Match up one window used in Pease 2016 for the ASTRAL study with one temporary .phy alignment
+Pease.get.astral.window <- function(index, complete_windows_df, infertree_df, alignment_info_df){
+  # Get one window from the Pease2016 run from the set of windows with all 29 species
+  complete_windows_row <- complete_windows_df[index,]
+  print(paste0("Window: Contig = ", complete_windows_row$`#contig`, ", Window start = ", complete_windows_row$windowstart))
+  # Get the equivalent row from the local run
+  local_run_row <- infertree_df[((infertree_df$`#contig` == as.integer(complete_windows_row$`#contig`)) &
+                                  (as.integer(infertree_df$windowstart) == as.integer(complete_windows_row$windowstart)) &
+                                  (as.integer(infertree_df$windowsize) == as.integer(complete_windows_row$windowsize))),]
+  local_run_tree <- read.tree(text = local_run_row$tree)
+  # Compare trees until you get the right tree
+  match_tree_ind <- NA
+  for (i in 1:nrow(alignment_info_df)){
+    # Pick one row from the alignment info and read the tree in
+    aln_row <- alignment_info_df[i,]
+    temp_tree <- read.tree(text = aln_row$best_ML_tree)
+    # If the trees have the same number of tips, compare them
+    if (Ntip(local_run_tree) == Ntip(temp_tree)){
+      tree_distances <- treedist(local_run_tree, temp_tree)
+      spr <- SPR.dist(local_run_tree, temp_tree)
+      compare_tree <- all(c(tree_distances["symmetric.difference"], tree_distances["path.difference"], spr) == 0)
+      # If the trees match, store this location
+      if (compare_tree == TRUE){
+        match_tree_ind <- i
+        print(paste0("Found tree match in alignment_info_df row = ", i))
+      } 
+    }
   }
-  ## 4. Open the RAxML info file and extract information about the model
-  lines <- readLines(temp_raxml_file)
-  ind <- grep("Substitution Matrix", lines)
-  substitution_matrix <- gsub(" ", "", strsplit(lines[ind],":")[[1]][2])
-  ind <- grep("RAxML was called as follows:", lines)
-  system_call <- lines[ind+2]
-  system_call_vector <- strsplit(system_call, " ")[[1]]
-  system_model <- system_call_vector[grep("-m", system_call_vector) + 1]
-  ## 5. Return a row with information about the alignment
-  op_row <- c(loci_name, "Pease2016", as.numeric(gsub("SL2.50ch", "", row$`#contig`)), row$`#contig`, row$windowstart, row$windowsize, row$alignlength, row$aligndepth, 
-              substitution_matrix, system_model, al_datetime, does.datetime.match, does.n_taxa.match, does.n_sites.match, is.tree.identical, did.raxml.work, 
-              rf, wrf, SPR, KF, path, new_al_file)
-  names(op_row) <- c("loci_name", "dataset", "contig", "chromosome", "windowstart", "windowsize", "alignlength", "aligndepth", 
-                     "substitution_matrix", "RAxML_model_input", "alignment_datetime", "datetime_match", "n_taxa_match","n_sites_match", "tree_match", "raxml_status",
-                     "RF_distance", "wRF_distance", "SPR_distance", "KR_distance", "path_distance", "alignment_path")
+  
+  # Now each alignment has been tested (by checking to identify the correct tree)
+  if (is.na(match_tree_ind) == FALSE){
+    # If there was a match, that means that the tree was found and therefore the alignment was found!
+    # Associate the window and the datetime together
+    w_aln_row <- alignment_info_df[match_tree_ind, ]
+    op_row <- c("Pease2016", w_aln_row$alignment_datetime, local_run_row$`#contig`, local_run_row$windowstart, local_run_row$windowsize, 
+                local_run_row$alignlength, local_run_row$aligndepth, w_aln_row$substitution_matrix, w_aln_row$RAxML_model_input, 
+                w_aln_row$alignment_file, w_aln_row$raxml_info_file, w_aln_row$treefile)
+  } else if (is.na(match_tree_ind) == TRUE){
+    # If match_tree_ind is na, it means there was no match for this tree
+    # Return "NA" where the match information would be
+    op_row <- c("Pease2016", NA, local_run_row$`#contig`, local_run_row$windowstart, local_run_row$windowsize, 
+                local_run_row$alignlength, local_run_row$aligndepth, NA, NA, 
+                NA, NA, NA)
+  }
+  names(op_row) <- c("dataset", "datetime", "#contig", "windowstart", "windowsize",
+                     "alignlength", "aligndepth", "substitution_matrix", "RAxML_model_input", 
+                     "alignment_file", "raxml_info_file", "treefile")
   return(op_row)
 }
 
-# # Iterate through the rows of the tree_df and apply the function, then convert results to a dataframe
-# # To run one alignment: process.one.Pease2016.window(1, tree_df, phy_files, raxml_info_files, tree_files, alignment_output_folder, copy.alignment = TRUE)
-# list <- lapply(1:nrow(my_tree_df), process.one.Pease2016.window, df = my_tree_df, alignment_files = phy_files, raxml_files = raxml_info_files, tree_files = tree_files, output_directory = alignment_output_folder, copy.alignment = TRUE)
-# df <- as.data.frame(do.call(rbind,list))
-# # Output dataframe
-# df_file <- paste0(summary_output_folder, "Pease2016_DataSummary_100kb_windows_all.csv")
-# write.csv(df, file = df_file)
-# 
-# # Identify which windows were included in the original study
-# Pease2016_windows_df <- read.table(Pease2016_100kb_windows_path)
-# names(Pease2016_windows_df) <- c("#contig", "windowstart", "windowsize", "tree", "topology", "topoid", "alignlength", "aligndepth", "status")
-# Pease2016_windows_df$loci_name <- paste0(Pease2016_windows_df$`#contig`, "_s", Pease2016_windows_df$windowstart, "_", "100kb_windows")
-# Pease2016_windows_df$compare <- paste0(Pease2016_windows_df$`#contig`, "_", Pease2016_windows_df$windowstart)
-# df$compare <- paste0(df$contig, "_", df$windowstart)
-# # limit to 1st chromosome
-# Pease_c1_df <- Pease2016_windows_df[Pease2016_windows_df$`#contig` == "1",] 
-# c1_df <- df[df$contig == "1",]
-# # Find out which windows are missing
-# missing_in_Pease <- setdiff(c1_df$compare, Pease_c1_df$compare)
-# missing_rows <- c1_df[(c1_df$compare %in% missing_in_Pease),]
-# kept_rows <- c1_df[!(c1_df$compare %in% missing_in_Pease),]
-# nrow(c1_df) == nrow(missing_rows) + nrow(kept_rows)
-
-
-
-
-# What if you assemble the information from the files and then cross check which window it belongs to? There's only 4000 windows so it can't be too bad
-# Narrow by number of sites and number of taxa
-# Compare tree to get it right
+# For one temp .phy file, open it and extract information about the alignment and corresponding tree
 Pease.extract.info <- function(datetime, mvftools_output_files){
   # Extract files using datetime
   all_dt_files <- grep(datetime, mvftools_output_files, value = TRUE)
@@ -171,87 +115,22 @@ Pease.extract.info <- function(datetime, mvftools_output_files){
 }
 
 
-Pease.find.window <- function(datetime, alignment_information_dataframe, mvftools_output_dataframe, Pease_100kb_df, copy.alignment = FALSE, output_directory = NA){
-  # Find the row that contains alignment details for that datetime
-  aln_info_row <- alignment_information_dataframe[(alignment_information_dataframe$alignment_datetime == datetime),]
-  # Identify the windows that could be from that datetime
-  trimmed_mvftools_df <- mvftools_output_dataframe[( (mvftools_output_dataframe$alignlength == as.numeric(aln_info_row$alignlength)) &
-                                                      (mvftools_output_dataframe$aligndepth == as.numeric(aln_info_row$aligndepth)) ),]
-  # Compare the trees to find the matching window
-  aln_tree <- read.tree(text = aln_info_row$best_ML_tree)
-  record_list <- c()
-  for (i in 1:nrow(trimmed_mvftools_df)){
-    temp_df <- trimmed_mvftools_df[i,]
-    temp_tree <- read.tree(text = temp_df$tree)
-    tree_distances <- treedist(aln_tree, temp_tree)
-    spr <- SPR.dist(aln_tree, temp_tree)
-    compare_tree <- all(c(tree_distances["symmetric.difference"], tree_distances["path.difference"], spr) == 0)
-    temp_record <- c(i, tree_distances, spr, compare_tree)
-    names(temp_record) <- c("index", "RF_distance", "branch_score_difference", "path_difference", "weighted_path_difference", "spr_distance", "tree_comparison")
-    record_list[[i]] <- temp_record
-  }
-  record_df <- as.data.frame(do.call(rbind, record_list))
-  record_df$tree_comparison <- as.logical(record_df$tree_comparison)
-  # Identify which of the possible candidates has an identical tree
-  window_index <- which(record_df$tree_comparison == TRUE)
-  window_mvftools_row <- trimmed_mvftools_df[window_index,]
-  # Generate a loci name
-  loci_name <- paste0(gsub("SL2.50","",window_mvftools_row$`#contig`), "_s", window_mvftools_row$windowstart, "_", datetime, "_", "100kb_windows")
-  # If copy.alignment == TRUE, copy the alignment to the output_directory
-  if (copy.alignment == TRUE){
-    old_alignment_location <- aln_info_row$alignment_file
-    new_alignment_location <- paste0(output_directory, loci_name, ".fasta")
-    p <- read.dna(old_alignment_location, format = "sequential")
-    write.dna(p, file = new_alignment_location, format = "fasta", colsep = "", nbcol = 10, colw = 10)
-  }
-  # Check whether this alignment was in Pease_100kb_df
-  contig_check <- as.integer(gsub("SL2.50ch", "", window_mvftools_row$`#contig`))
-  Pease_100kb_df$`#contig` <- as.integer(Pease_100kb_df$`#contig`)
-  Pease_100kb_df$windowstart <- as.integer(Pease_100kb_df$windowstart)
-  Pease_100kb_df$windowsize <- as.integer(Pease_100kb_df$windowsize)
-  check_Pease_df <- Pease_100kb_df[((Pease_100kb_df$`#contig` == contig_check) &
-                                      (Pease_100kb_df$windowstart == as.integer(window_mvftools_row$windowstart)) &
-                                      (Pease_100kb_df$windowsize == as.integer(window_mvftools_row$windowsize))),]
-  if (nrow(check_Pease_df) == 0){
-    window_in_Pease <- "FALSE"
-  } else if (nrow(check_Pease_df) == 1){
-    window_in_Pease <- "TRUE"
-  } else if (nrow(check_Pease_df) > 1){
-    window_in_Pease <- "ERROR:2+ windows"
-  }
-  
-  # Fill out the row with the other information you have
-  op_row <- c("Pease2016", datetime, loci_name, window_mvftools_row$`#contig`, window_mvftools_row$windowstart, window_mvftools_row$windowsize, 
-              window_mvftools_row$alignlength, window_mvftools_row$aligndepth, aln_info_row$substitution_matrix, aln_info_row$RAxML_model_input,
-              window_in_Pease, aln_info_row$best_ML_tree, aln_info_row$alignment_file, aln_info_row$raxml_info_file, aln_info_row$treefile,
-              as.vector(record_df[window_index,])[2:7])
-  names(op_row) <- c("dataset", "datetime", "loci_name", "#contig", "windowstart", "windowsize", 
-                     "alignlength", "aligndepth", "substitution_matrix", "raxml_model_input",
-                     "Pease2016_includes_window", "best_ML_tree", "alignment_file", "raxml_info_file", "treefile",
-                     names(record_df[window_index,])[2:7])
-  return(op_row)
-}
-
-# Params for testing
-Pease_100kb_df <- tree_df
-alignment_information_dataframe <- aln_info_df
-mvftools_output_dataframe <- my_tree_df
-output_directory <- alignment_output_folder
-datetime <- all_datetimes[1]
-
-# Identify all the output files from mvftools InferTree
-# Iterate through the datetimes and collect information about each alignment
-# Collect information into a dataframe
-# Output the file
-all_datetimes <- gsub("_temp.phy","",gsub("mvftree.","",basename(phy_files)))
-mvftools_output_files <- paste0(Pease2016_alignments_folder, all_temp_files)
+##### Code body ####
+## Extract information about the alignment
+# Iterate through the alignment files and extract information
+mvftools_output_files <- paste0(Pease2016_alignments_folder, list.files(paste0(Pease2016_alignments_folder)))
+alignment_files <- paste0(Pease2016_alignments_folder, sort(grep(".phy", mvftools_output_files, value = TRUE)))
+all_datetimes <- gsub("_temp.phy","",gsub("mvftree.","",basename(alignment_files)))
+# Run the function using lapply and compile information
 aln_info_list <- lapply(all_datetimes, Pease.extract.info, mvftools_output_files)
 aln_info_df <- as.data.frame(do.call(rbind, aln_info_list))
+alignment_info_df <- aln_info_df
 write.csv(aln_info_df, file = paste0(summary_output_folder, "Pease2016_mvftools_InferTree_alignment_information.csv"))
 
-# Iterate through each of the datetimes again, and determine which window aligns with which datetime alignment.
-# Check whether each window was included in the original Pease2016 run
-window_list <- lapply(all_datetimes, Pease.find.window, alignment_information_dataframe = aln_info_df, mvftools_output_dataframe = my_tree_df, 
-                  Pease_100kb_df = tree_df, copy.alignment = FALSE, output_directory = alignment_output_folder)
-window_df <- as.data.frame(do.call(rbind, window_list))
+## Match up the windows with the temporary .phy alignmment files
+match_list <- lapply(1:nrow(complete_windows_df), Pease.get.astral.window, complete_windows_df, infertree_df, alignment_info_df)
+match_df <- as.data.frame(do.call(rbind, match_list))
+
+
+
 
