@@ -127,7 +127,7 @@ Pease.get.astral.window <- function(index, complete_windows_df, infertree_df, al
     
     op_row <- c("Pease2016", w_aln_row$alignment_datetime, loci_name, local_run_row$`#contig`, local_run_row$windowstart, local_run_row$windowsize, 
                 local_run_row$alignlength, local_run_row$aligndepth, w_aln_row$substitution_matrix, w_aln_row$RAxML_model_input, 
-                w_aln_row$alignment_file, w_aln_row$raxml_info_file, w_aln_row$treefile, match_tree_ind, Ntips(local_run_tree), TRUE,
+                w_aln_row$alignment_file, w_aln_row$raxml_info_file, w_aln_row$treefile, match_tree_ind, Ntip(local_run_tree), TRUE,
                 copied, new_alignment_path)
     
     
