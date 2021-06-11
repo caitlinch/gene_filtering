@@ -161,6 +161,10 @@ if (run.mvf.tools == TRUE){
 
 # Construct the name of the trees100k.txt file that the mvftools InferTree run created 
 my_100kb_windows_path <- paste0(Pease2016_alignments_folder, "trees100k.txt")
+# Open that path - this is the output from mvftools about the windows/trees from the InferTree run
+infertree_df <- read.table(my_100kb_windows_path)
+names(infertree_df) <- c("#contig", "windowstart", "windowsize", "tree", "topology", "topoid", "alignlength", "aligndepth", "status")
+
 
 # Open the table with information about the windows
 w_df <- read.table(Pease2016_100kb_windows_path)
@@ -175,14 +179,23 @@ mvftools_output_files <- paste0(raxml_temp_file, list.files(raxml_temp_file))
 alignment_files <- paste0(Pease2016_alignments_folder, sort(grep(".phy", mvftools_output_files, value = TRUE)))
 all_datetimes <- gsub("_temp.phy","",gsub("mvftree.","",basename(alignment_files)))
 # Run the function using lapply and compile information
-aln_info_list <- lapply(all_datetimes, Pease.extract.info, mvftools_output_files)
-aln_info_df <- as.data.frame(do.call(rbind, aln_info_list))
-alignment_info_df <- aln_info_df
-write.csv(aln_info_df, file = paste0(summary_output_folder, "Pease2016_mvftools_InferTree_alignment_information.csv"))
+aln_info_op_folder <- paste0(summary_output_folder, "Pease2016_mvftools_InferTree_alignment_information.csv")
+if (file.exists(aln_info_op_folder) == FALSE){ 
+  # If the information about the temp .phy files hasn't been collected, collect it
+  aln_info_list <- lapply(all_datetimes, Pease.extract.info, mvftools_output_files)
+  aln_info_df <- as.data.frame(do.call(rbind, aln_info_list))
+  write.csv(aln_info_df, file = aln_info_op_folder, row.names = FALSE)
+} else if (file.exists(aln_info_op_folder) == TRUE){
+  # If the information about the temp .phy files has been collected, open the file as a dataframe
+  aln_info_df <- read.csv(aln_info_op_folder, stringsAsFactors = FALSE)
+  aln_info_df$alignlength <- as.integer(aln_info_df$alignlength)
+  aln_info_df$aligndepth <- as.integer(aln_info_df$aligndepth)
+  
+}
 
 ## Match up the windows with the temporary .phy alignmment files
 match_list <- lapply(1:nrow(complete_windows_df), Pease.get.astral.window, complete_windows_df = complete_windows_df, infertree_df = infertree_df,
-                     alignment_info_df = alignment_info_df, copy.alignment = FALSE, output_directory = alignment_output_folder)
+                     alignment_info_df = aln_info_df, copy.alignment = FALSE, output_directory = alignment_output_folder)
 match_df <- as.data.frame(do.call(rbind, match_list))
 write.csv(aln_info_df, file = paste0(summary_output_folder, "Pease2016_data_recreation_100kb_windows.csv"))
 
