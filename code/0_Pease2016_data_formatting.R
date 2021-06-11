@@ -194,10 +194,15 @@ if (file.exists(aln_info_op_folder) == FALSE){
 }
 
 ## Match up the windows with the temporary .phy alignmment files
-match_list <- lapply(1:nrow(complete_windows_df), Pease.get.astral.window, complete_windows_df = complete_windows_df, infertree_df = infertree_df,
-                     alignment_info_df = aln_info_df, copy.alignment = FALSE, output_directory = alignment_output_folder)
-match_df <- as.data.frame(do.call(rbind, match_list))
-write.csv(aln_info_df, file = paste0(summary_output_folder, "Pease2016_data_recreation_100kb_windows.csv"))
+match_op_file <- paste0(summary_output_folder, "Pease2016_data_recreation_100kb_windows.csv")
+if (file.exists(match_op_file) == FALSE){
+  match_list <- lapply(1:nrow(complete_windows_df), Pease.get.astral.window, complete_windows_df = complete_windows_df, infertree_df = infertree_df,
+                       alignment_info_df = aln_info_df, copy.alignment = FALSE, output_directory = alignment_output_folder)
+  match_df <- as.data.frame(do.call(rbind, match_list))
+  write.csv(aln_info_df, file = match_op_file, row.names = FALSE)
+} else if (file.exists(match_op_file) == TRUE){
+  match_df <- read.csv(match_op_file, stringsAsFactors = FALSE)
+}
 
 
 
