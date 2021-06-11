@@ -152,7 +152,7 @@ Pease.get.astral.window <- function(index, complete_windows_df, infertree_df, al
 setwd(Pease2016_alignments_folder) 
 mvftools_command <- paste0("python3 ", mvftools_path,
                            " InferTree --mvf ",Pease2016_HQ_mvf.gz,
-                           " --windowsize 100000 --out trees100k.txt --contig-ids 1", 
+                           " --windowsize 100000 --out trees100k.txt --contig-ids 1,2,3,4,5,6,7,8,9,10,11,12", 
                            "--sample-indices 0,1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29",
                            " --raxml-path ", raxml_path)
 if (run.mvf.tools == TRUE){
