@@ -17,7 +17,7 @@
 #     - RAxML: https://github.com/stamatak/standard-RAxML
 #     - mvftools: https://github.com/peaselab/mvftools
 #     - the Pease_etal_Tomato29acc_HQ.mvf.gz file from the datadryad for Pease et al (2016): https://datadryad.org/stash/dataset/doi:10.5061/dryad.182dv
-#     - the Pease_etal_TomatoPhylo_100kbTrees.txt file from the datadryad for Pease et al (2016): https://datadryad.org/stash/dataset/doi:10.5061/dryad.182dv
+#     - the Pease_etal_TomatoPhylo_100kbTrees.txt file from the datadryad for Pease et al (2016), inside the Pease_etal_TomatoPhylo_GeneTrees folder
 
 #### Specify parameters ####
 # raxml_path                    <- path to RAxML executable
@@ -153,7 +153,7 @@ setwd(Pease2016_alignments_folder)
 mvftools_command <- paste0("python3 ", mvftools_path,
                            " InferTree --mvf ",Pease2016_HQ_mvf.gz,
                            " --windowsize 100000 --out trees100k.txt --contig-ids 1,2,3,4,5,6,7,8,9,10,11,12", 
-                           "--sample-indices 0,1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29",
+                           " --sample-indices 0,1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29",
                            " --raxml-path ", raxml_path)
 if (run.mvf.tools == TRUE){
   system(mvftools_command)
@@ -170,7 +170,8 @@ complete_windows_df <- w_df[w_df$aligndepth == 29,]
 
 # Extract information about the alignment
 # Iterate through the alignment files and extract information
-mvftools_output_files <- paste0(Pease2016_alignments_folder, list.files(paste0(Pease2016_alignments_folder)))
+raxml_temp_file <- paste0(Pease2016_alignments_folder, "raxmltemp/")
+mvftools_output_files <- paste0(raxml_temp_file, list.files(raxml_temp_file))
 alignment_files <- paste0(Pease2016_alignments_folder, sort(grep(".phy", mvftools_output_files, value = TRUE)))
 all_datetimes <- gsub("_temp.phy","",gsub("mvftree.","",basename(alignment_files)))
 # Run the function using lapply and compile information
