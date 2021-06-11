@@ -79,7 +79,7 @@ Pease.get.astral.window <- function(index, complete_windows_df, infertree_df, al
   complete_windows_row <- complete_windows_df[index,]
   print(paste0("Window: Contig = ", complete_windows_row$`#contig`, ", Window start = ", complete_windows_row$windowstart))
   # Get the equivalent row from the local run
-  local_run_row <- infertree_df[((infertree_df$`#contig` == as.integer(complete_windows_row$`#contig`)) &
+  local_run_row <- infertree_df[((as.integer(gsub("SL2.50ch", "", infertree_df$`#contig`)) == as.integer(complete_windows_row$`#contig`)) &
                                    (as.integer(infertree_df$windowstart) == as.integer(complete_windows_row$windowstart)) &
                                    (as.integer(infertree_df$windowsize) == as.integer(complete_windows_row$windowsize))),]
   loci_name <- paste0("c", local_run_row$`#contig`, "_s", local_run_row$windowstart, "_100kb_windows")
