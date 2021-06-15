@@ -160,7 +160,7 @@ if (check.for.warnings == TRUE){
     # Collect warnings and write out as a csv file
     warning_df <- as.data.frame(do.call(rbind, (lapply(all_alignments, check.for.IQTree.warnings))))
     warning_df_file <- paste0(csv_data_dir, dataset, "_collated_IQ-Tree_warnings.csv")
-    write.csv(warning_df, file = warning_df_file)
+    write.csv(warning_df, file = warning_df_file, row.names = FALSE)
   }
 }
 
@@ -242,12 +242,12 @@ treelikeness_df$pass_geneconv <- as.logical(treelikeness_df$pass_geneconv)
 
 # Save the trimmed treelikeness_df
 trimmed_treelikeness_df_file <- gsub(".csv", paste0("_trimmedLoci_trimmedTaxa.csv"), treelikeness_df_file)
-write.csv(treelikeness_df, file = trimmed_treelikeness_df_file)
+write.csv(treelikeness_df, file = trimmed_treelikeness_df_file, row.names = FALSE)
 # Save a df of just the pass/fail info
 pass_df <- treelikeness_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", 
                               "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
 pass_df_file <- gsub(".csv", paste0("_PassFail_record_.csv"), treelikeness_df_file)
-write.csv(pass_df, file = pass_df_file)
+write.csv(pass_df, file = pass_df_file, row.names = FALSE)
 
 
 
