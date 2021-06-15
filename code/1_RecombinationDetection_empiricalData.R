@@ -11,7 +11,6 @@
 # input_names       <- set name(s) for the dataset(s)
 # input_dir         <- the folder(s) containing the empirical data
 # best_model_paths  <- set path to file containing the best model of substitution for each loci. Set to NA to allow ModelFinder in IQ-Tree to choose best model.
-# info_paths        <- set path to file containing any additional information about the loci. Not required for any dataset, set to NA if not using.
 # output_dir        <- for collated output and results. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # cores_to_use      <- the number of cores to use for parallelisation. 1 for a single core (wholly sequential), or higher if using parallelisation.
@@ -48,7 +47,6 @@
 # input_names <- ""
 # input_dir <- ""
 # best_model_paths <- ""
-# info_paths <- ""
 # output_dir <- ""
 # maindir <- ""
 # cores_to_use <- 1
@@ -83,7 +81,6 @@ if (run_location == "local"){
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   best_model_paths <- c(NA, NA, NA, NA)
-  info_paths <- c(NA, NA, NA, "/data/caitlin/empirical_treelikeness/Data_inputFiles/Pease2016_data_recreation_100kb_windows.csv")
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/")
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
@@ -123,7 +120,6 @@ if (run_location == "local"){
                  "/Users/caitlin/Documents/PhD/Ch01/Data_Vanderpool_sample/",
                  "")
   best_model_paths <- c(NA, NA, NA, NA)
-  info_paths <- c(NA, NA, NA, "/data/caitlin/empirical_treelikeness/Data_inputFiles/Pease2016_data_recreation_100kb_windows.csv")
   output_dir <- c("/Users/caitlin/Documents/PhD/Ch01/Output/")
   maindir <- "/Users/caitlin/Repositories/empirical_treelikeness/" # location of repository
   
@@ -155,7 +151,6 @@ if (run_location == "local"){
                  "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/",
                  "/data/caitlin/empirical_treelikeness/Data_Pease2016/")
   best_model_paths <- c(NA, NA, NA, NA)
-  info_paths <- c(NA, NA, NA, "/data/caitlin/empirical_treelikeness/Data_inputFiles/Pease2016_data_recreation_100kb_windows.csv")
   output_dir <- "/data/caitlin/empirical_treelikeness/Output/"
   maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness repository/folder is 
   
