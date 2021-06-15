@@ -10,7 +10,8 @@
 ##### Step 1: Set file paths and run variables #####
 # input_names       <- set name(s) for the dataset(s)
 # input_dir         <- the folder(s) containing the empirical data
-# best_model_paths  <- set path to file containing the best model of substitution for each loci
+# best_model_paths  <- set path to file containing the best model of substitution for each loci. Set to NA to allow ModelFinder in IQ-Tree to choose best model.
+# info_paths        <- set path to file containing any additional information about the loci. Not required for any dataset, set to NA if not using.
 # output_dir        <- for collated output and results. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # cores_to_use      <- the number of cores to use for parallelisation. 1 for a single core (wholly sequential), or higher if using parallelisation.
@@ -43,10 +44,11 @@
 
 # # To run this program: 
 # # 1. Delete the lines below that include Caitlin's paths/variables
-# # 2. Uncomment lines 44 to 72 inclusive and fill with your own variable names
+# # 2. Uncomment lines 44 to 73 inclusive and fill with your own variable names
 # input_names <- ""
 # input_dir <- ""
 # best_model_paths <- ""
+# info_paths <- ""
 # output_dir <- ""
 # maindir <- ""
 # cores_to_use <- 1
@@ -81,6 +83,7 @@ if (run_location == "local"){
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   best_model_paths <- c(NA, NA, NA, NA)
+  info_paths <- c(NA, NA, NA, "/data/caitlin/empirical_treelikeness/Data_inputFiles/Pease2016_data_recreation_100kb_windows.csv")
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/")
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
@@ -120,6 +123,7 @@ if (run_location == "local"){
                  "/Users/caitlin/Documents/PhD/Ch01/Data_Vanderpool_sample/",
                  "")
   best_model_paths <- c(NA, NA, NA, NA)
+  info_paths <- c(NA, NA, NA, "/data/caitlin/empirical_treelikeness/Data_inputFiles/Pease2016_data_recreation_100kb_windows.csv")
   output_dir <- c("/Users/caitlin/Documents/PhD/Ch01/Output/")
   maindir <- "/Users/caitlin/Repositories/empirical_treelikeness/" # location of repository
   
@@ -151,6 +155,7 @@ if (run_location == "local"){
                  "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/",
                  "/data/caitlin/empirical_treelikeness/Data_Pease2016/")
   best_model_paths <- c(NA, NA, NA, NA)
+  info_paths <- c(NA, NA, NA, "/data/caitlin/empirical_treelikeness/Data_inputFiles/Pease2016_data_recreation_100kb_windows.csv")
   output_dir <- "/data/caitlin/empirical_treelikeness/Output/"
   maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness repository/folder is 
   
@@ -208,8 +213,10 @@ if (create_information_dataframe == TRUE){
   OKP_paths <- paste0(input_dir[["1KP"]], list.files(input_dir[["1KP"]], recursive = TRUE, full.names = FALSE))
   OKP_names <- list.files(input_dir[["1KP"]], full.names = FALSE)
   if (is.na(best_model_paths[["1KP"]])){
+    # Select the same models as used for the original 1000 Plants runs (in the original paper)
     OKP_model <- rep("MFP", length(OKP_paths))
   } else {
+    # Allow ModelFinder in IQ-Tree to select the best model
     OKP_model <- model.from.partition.scheme(OKP_names,best_model_paths[["1KP"]],"1KP")
   }
   OKP_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
@@ -236,15 +243,15 @@ if (create_information_dataframe == TRUE){
   Vanderpool2020_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
   
   ### Pease 2016 dataset
-  # Open the best_model_paths[["Pease2016"]] file
-  Pease2016_info <- read.csv(file = best_model_paths[["Pease2016"]])
-  # The Pease2016_paths refer to the local path - need to recreate the path specific to whichever location the script is being run on
-  Pease2016_paths <- paste0(input_dir[["Pease2016"]], basename(Pease2016_info$alignment_copy_location))
-  # Extract other details about the Pease2016 alignments from the Pease2016_info dataframe
-  Pease2016_names <- gsub("_", "-", gsub("_100kb_windows", "", Pease2016_info$loci_name))
+  Pease2016_paths <- paste0(input_dir[["Pease2016"]], list.files(input_dir[["Pease2016"]], full.names = FALSE))
+  Pease2016_names <- gsub("_", "-", gsub("cSL2.50", "", gsub("_100kb_windows.fasta", "", basename(Pease2016_paths))))
   if (is.na(best_model_paths[["Pease2016"]])){
+    # Allow ModelFinder in IQ-Tree to select the best model
     Pease2016_model <- rep("MFP", length(Pease2016_paths))
   } else {
+    # Select the same model used for the original Pease 2016 runs.
+    # Open the info_paths[["Pease2016"]] file that contains extra information about the Pease 2016 loci
+    Pease2016_info <- read.csv(file = info_paths[["Pease2016"]])
     Pease2016_model <- Pease2016_info$RAxML_model_input
     # The models taken from the RAxML info file are "GTRGAMMA", which is not a recognised input for model specification in IQ-Tree
     # The models are renamed "GTR+G", which is the terminology for the same model in IQ-Tree 
@@ -271,10 +278,7 @@ if (create_information_dataframe == TRUE){
   
   # output loci_df <- save a record of the input parameters you used!
   loci_df_name <- paste0(output_dir,"empiricalTreelikeness_input_loci_parameters.csv")
-  # If the loci_df hasn't been saved, save it now
-  if (file.exists(loci_df_name) == FALSE){
-    write.csv(loci_df, file = loci_df_name) 
-  }
+  write.csv(loci_df, file = loci_df_name)
 }
 
 
