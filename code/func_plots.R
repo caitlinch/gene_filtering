@@ -42,3 +42,19 @@ classify.treelikeness.statistics <- function(df, tree_proportion_threshold){
   
   return(df)
 }
+
+# Open an alignment and return the number of phylogenetically informative sites and number of segregating sites in that alignment
+get.DNA.site.info <- function(loci_name, alignment_dir){
+  all_als <- list.files(alignment_dir)
+  aln <- paste0(alignment_dir, grep(loci_name, all_als, value = TRUE))
+  f <- read.dna(aln, format = "fasta")
+  ss <- seg.sites(f)
+  n_ss <- length(ss)
+  n_pis <- ips::pis(f, what = "absolute")
+  n_sites <- dim(f)[2]
+  op <- c(n_ss, n_pis, n_sites)
+  names(op) <- c("n_seg_sites", "n_pis", "n_sites")
+  return(op)
+}
+
+
