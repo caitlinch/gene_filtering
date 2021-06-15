@@ -8,7 +8,8 @@ library(ape)
 # Wrapper to take a dataframe row and feed it into the apply.recombination.detection.methods function
 recombination.detection.wrapper <- function(index, df, executable_paths, iqtree_num_threads){
   loci_row <- df[index,]
-  apply.recombination.detection.methods(loci_row = loci_row, executable_paths, iqtree_num_threads)
+  loci_results <- apply.recombination.detection.methods(loci_row = loci_row, executable_paths, iqtree_num_threads)
+  return(loci_results)
 }
 
 
