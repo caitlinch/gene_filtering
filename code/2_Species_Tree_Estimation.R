@@ -296,12 +296,19 @@ for (dataset in datasets_to_copy_loci){
       }
     }
     # Break up dataframe into only loci that pass the test
-    v_inds <- which(dataset_df[,c(v)] > 0.05)
     if (v == "geneconv_inner_fragment_simulated_p_value"){
-      geneconv_NA_inds <- length(which(is.na(dataset_df[,c(v)])))
+      # For GeneConv results, want to get rows that have a non-significant p-value for both the inner and outer fragment simulated p-values
+      v_inds <- which((dataset_df$geneconv_inner_fragment_simulated_p_value > 0.05) & (dataset_df$geneconv_outer_fragment_simulated_p_value > 0.05))
+      # For geneconv, also record number of NA values (number of loci that did not run in GeneConv)
+      geneconv_NA_inds <- length(which((is.na(dataset_df$geneconv_inner_fragment_simulated_p_value) | 
+                                          is.na(dataset_df$geneconv_outer_fragment_simulated_p_value > 0.05))))
       summary_row <- c(summary_row, geneconv_NA_inds)
+    } else {
+      # For any other variable, get all rows with a non-significant p-value
+      v_inds <- which(dataset_df[,c(v)] > 0.05)
     }
-    v_inds <- which(dataset_df[,c(v)] >= 0.05)
+    # Use the indexes to subset the dataframe to just loci that pass the test 
+    # (i.e. have a non significant p-value, meaning the null hypothesis of treelikeness cannot be rejected)
     v_df <- dataset_df[v_inds,]
     # Copy trees of all loci that pass the test into one file that can be fed into ASTRAL
     copy.loci.trees(v_df$loci_name, v_df$tree, category_output_folder, v_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
@@ -383,7 +390,7 @@ for (dataset in datasets_to_copy_loci){
 }
 
 
-### Estimate a species tree for each of the four categories
+### Estimate a species tree for each of the five categories
 for (dataset in datasets_to_estimate_trees){
   # Ensure the folder for species trees data exists
   category_output_folder <- paste0(output_dirs[dataset], "species_trees/")
