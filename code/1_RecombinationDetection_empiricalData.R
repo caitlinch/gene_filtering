@@ -248,6 +248,10 @@ if (create_information_dataframe == TRUE){
   # Open the best_model_paths[["Pease2016"]] file
   Pease2016_info <- read.csv(file = best_model_paths[["Pease2016"]])
   Pease2016_paths <- Pease2016_info$alignment_copy_location
+  if (run_location == "server"){
+    # The Pease2016_paths refer to the local path - if running on soma, need to fix the location of the files
+    Pease2016_paths <- paste0(input_dir[["Pease2016"]], basename(Pease2016_paths[1]))
+  }
   Pease2016_names <- gsub("_", "-", gsub("_100kb_windows", "", Pease2016_info$loci_name))
   if (is.na(best_model_paths[["Pease2016"]])){
     Pease2016_model <- rep("MFP", length(Pease2016_paths))
