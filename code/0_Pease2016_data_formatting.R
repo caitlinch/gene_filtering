@@ -199,11 +199,23 @@ if (file.exists(match_op_file) == FALSE){
   match_list <- lapply(1:nrow(complete_windows_df), Pease.get.astral.window, complete_windows_df = complete_windows_df, infertree_df = infertree_df,
                        alignment_info_df = aln_info_df, copy.alignment = TRUE, output_directory = alignment_output_folder)
   match_df <- as.data.frame(do.call(rbind, match_list))
-  write.csv(aln_info_df, file = match_op_file, row.names = FALSE)
+  write.csv(match_df, file = match_op_file, row.names = FALSE)
 } else if (file.exists(match_op_file) == TRUE){
   match_df <- read.csv(match_op_file, stringsAsFactors = FALSE)
 }
 
-
+# Sanity check - do the window starts and chromosomes match?
+are.windows.equal <- setequal(which((as.numeric(gsub("SL2.50ch","",match_df$`#contig`)) == as.numeric(complete_windows_df$`#contig`)) & 
+                 (as.numeric(match_df$windowstart) == as.numeric(complete_windows_df$windowstart))), 1:2745)
+if (are.windows.equal == TRUE){
+  print(paste0("SUCCESS: ALL ", length(match_df$windowstart), " WINDOWS RECOVERED"))
+} else if (are.windows.equal == FALSE){
+  length_equal <- length(which((as.numeric(gsub("SL2.50ch","",match_df$`#contig`)) == as.numeric(complete_windows_df$`#contig`)) & 
+                         (as.numeric(match_df$windowstart) == as.numeric(complete_windows_df$windowstart))))
+  length_not_equal <- length(match_df$windowstart) - length_equal
+  print("ERROR: did not recover identical windows from Pease et al (2016) data")
+  print(paste0("Correct windows recovered = ", length_equal))
+  print(paste0("Number of incorrect windows = ", length_not_equal))
+}
 
 
