@@ -55,16 +55,17 @@ run_location = "local"
 
 if (run_location == "local"){
   # Datasets/dataset information
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
   loci_to_remove <- list("Vanderpool2020" = "ORTHOMCL14552")
   number_of_taxa <- list("Vanderpool2020" = NA)
   
   # File and directory locations
   alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Strassert2021/02_trimAL_Divvier_filtered_genes_only/",
-                     "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/")
+                     "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
+                     "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   csv_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
-  treelikeness_df_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/empiricalTreelikeness_Vanderpool2020_collated_results_20210526.csv"
+  treelikeness_df_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/RecombinationDetection_Vanderpool2020_collated_results_complete.csv"
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/")
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
@@ -78,15 +79,12 @@ if (run_location == "local"){
   # set number of cores for parallel processing
   cores_to_use = 1
   
-  # Set number of replicates to do for the treelikeness category analysis
-  number_of_category_replicates = 999
-  
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("Vanderpool2020")
   datasets_to_estimate_trees <- c("Vanderpool2020")
   check.for.warnings = FALSE # check IQ-Tree .log file and .iqtree file output for each gene tree for warnings
   estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
-  partition.by.codon.position = TRUE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
+  partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
   
 } else if (run_location=="server"){
   # Datasets/dataset information
@@ -111,15 +109,12 @@ if (run_location == "local"){
   # set number of cores  for parallel processing
   cores_to_use = 15
   
-  # Set number of replicates to do for the treelikeness category analysis
-  number_of_category_replicates = 999
-  
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
   datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020")
   check.for.warnings = FALSE # check IQ-Tree .log file and .iqtree file output for each gene tree for warnings
   estimate.species.trees.in.IQTREE = FALSE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
-  partition.by.codon.position = TRUE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
+  partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
 }
 
 
@@ -213,32 +208,45 @@ for (dataset in input_names){
 }
 treelikeness_df <- treelikeness_df[keep_inds,]
 # Create new columns with pass/fail for each test
+# 3SEQ p-value
 treelikeness_df$pass_3seq <- treelikeness_df$X3SEQ_p_value
 treelikeness_df$pass_3seq[treelikeness_df$X3SEQ_p_value > 0.05] <- "TRUE"
 treelikeness_df$pass_3seq[treelikeness_df$X3SEQ_p_value <= 0.05] <- "FALSE"
 treelikeness_df$pass_3seq <- as.logical(treelikeness_df$pass_3seq)
-
+# PHI test p-value
 treelikeness_df$pass_phi<- treelikeness_df$PHI_normal_p_value
 treelikeness_df$pass_phi[treelikeness_df$PHI_normal_p_value > 0.05] <- "TRUE"
 treelikeness_df$pass_phi[treelikeness_df$PHI_normal_p_value <= 0.05] <- "FALSE"
 treelikeness_df$pass_phi <- as.logical(treelikeness_df$pass_phi)
-
+# MaxChi test p-value
 treelikeness_df$pass_maxchi <- treelikeness_df$max_chi_squared_p_value
 treelikeness_df$pass_maxchi[treelikeness_df$max_chi_squared_p_value > 0.05] <- "TRUE"
 treelikeness_df$pass_maxchi[treelikeness_df$max_chi_squared_p_value <= 0.05] <- "FALSE"
 treelikeness_df$pass_maxchi <- as.logical(treelikeness_df$pass_maxchi)
-
-treelikeness_df$pass_geneconv <- treelikeness_df$geneconv_inner_fragment_simulated_p_value
-treelikeness_df$pass_geneconv[treelikeness_df$geneconv_inner_fragment_simulated_p_value > 0.05] <- "TRUE"
-treelikeness_df$pass_geneconv[treelikeness_df$geneconv_inner_fragment_simulated_p_value <= 0.05] <- "FALSE"
+# GeneConv inner fragments simulated p-value
+treelikeness_df$pass_geneconv_inner <- treelikeness_df$geneconv_inner_fragment_simulated_p_value
+treelikeness_df$pass_geneconv_inner[treelikeness_df$geneconv_inner_fragment_simulated_p_value > 0.05] <- "TRUE"
+treelikeness_df$pass_geneconv_inner[treelikeness_df$geneconv_inner_fragment_simulated_p_value <= 0.05] <- "FALSE"
+treelikeness_df$pass_geneconv_inner <- as.logical(treelikeness_df$pass_geneconv_inner)
+# GeneConv outer fragments simulated p-value
+treelikeness_df$pass_geneconv_outer <- treelikeness_df$geneconv_outer_fragment_simulated_p_value
+treelikeness_df$pass_geneconv_outer[treelikeness_df$geneconv_outer_fragment_simulated_p_value > 0.05] <- "TRUE"
+treelikeness_df$pass_geneconv_outer[treelikeness_df$geneconv_outer_fragment_simulated_p_value <= 0.05] <- "FALSE"
+treelikeness_df$pass_geneconv_outer <- as.logical(treelikeness_df$pass_geneconv_outer)
+# GeneConv both p-value (TRUE if both inner and outer > 0.05, FALSE if one or both <= 0.05)
+treelikeness_df$pass_geneconv <- "FALSE"
+treelikeness_df$pass_geneconv[((treelikeness_df$geneconv_outer_fragment_simulated_p_value > 0.05) & 
+                                 (treelikeness_df$geneconv_inner_fragment_simulated_p_value > 0.05))] <- "TRUE"
 treelikeness_df$pass_geneconv <- as.logical(treelikeness_df$pass_geneconv)
 
+
 # Save the trimmed treelikeness_df
-trimmed_treelikeness_df_file <- gsub(".csv", paste0("_trimmedLoci_trimmedTaxa_",format(Sys.Date(),"%Y%m%d"),".csv"), treelikeness_df_file)
+trimmed_treelikeness_df_file <- gsub(".csv", paste0("_trimmedLoci_trimmedTaxa.csv"), treelikeness_df_file)
 write.csv(treelikeness_df, file = trimmed_treelikeness_df_file)
 # Save a df of just the pass/fail info
-pass_df <- treelikeness_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", "pass_geneconv")]
-pass_df_file <- gsub(".csv", paste0("_PassFail_record_", format(Sys.Date(),"%Y%m%d"),".csv"), treelikeness_df_file)
+pass_df <- treelikeness_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", 
+                              "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
+pass_df_file <- gsub(".csv", paste0("_PassFail_record_.csv"), treelikeness_df_file)
 write.csv(pass_df, file = pass_df_file)
 
 
