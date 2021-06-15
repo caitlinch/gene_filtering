@@ -292,7 +292,7 @@ print("run recombination detection methods")
 dataset_ids <- which(loci_df$dataset == "Pease2016")
 run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
 run_df <- as.data.frame(do.call(rbind, run_list))
-results_file <- paste0(output_dir,"empiricalTreelikeness_",dataset,"_collated_results_FirstRun_",format(Sys.time(), "%Y%m%d"),".csv")
+results_file <- paste0(output_dir,"empiricalTreelikeness_collated_results_FirstRun_",format(Sys.time(), "%Y%m%d"),".csv")
 write.csv(run_df, file = results_file, row.names = FALSE)
 
 # Check whether any loci did not run properly
@@ -316,7 +316,7 @@ run_list <- mclapply(missing_inds, recombination.detection.wrapper, df = loci_df
 # Rerun recombination.detection.wrapper to iterate through and extract all RecombinationDetection_results files, and save the output
 run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
 run_df <- as.data.frame(do.call(rbind, run_list))
-results_file <- paste0(output_dir,"empiricalTreelikeness_",dataset,"_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
+results_file <- paste0(output_dir,"empiricalTreelikeness_complete_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
 write.csv(run_df, file = results_file, row.names = FALSE)
 
 
