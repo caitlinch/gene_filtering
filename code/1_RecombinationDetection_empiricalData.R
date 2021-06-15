@@ -292,11 +292,13 @@ print("run recombination detection methods")
 dataset_ids <- which(loci_df$dataset == "Pease2016")
 run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
 run_df <- as.data.frame(do.call(rbind, run_list))
+print("output collated results as a .csv")
 results_file <- paste0(output_dir,"empiricalTreelikeness_collated_results_FirstRun_",format(Sys.time(), "%Y%m%d"),".csv")
 write.csv(run_df, file = results_file, row.names = FALSE)
 
 # Check whether any loci did not run properly
 # Make an output name for each csv file of results
+print("Find which loci are missing results files")
 dataset_ids <- which(loci_df$dataset %in% datasets_to_run)
 finished_results_files <- paste0(loci_df$dataset[dataset_ids], "/", loci_df$loci_name[dataset_ids], "/", 
                                  loci_df$dataset[dataset_ids], "_", loci_df$loci_name[dataset_ids], "_RecombinationDetection_results.csv")
@@ -311,11 +313,14 @@ missing_inds <- which(finished_results_files %in%  missing_loci)
 # These are the ones that didn't work properly in the first soma run - check them 
 # missing_inds <- 876,906,936,966,996,1026,1056,1086,1116,1146,1176,1206,1236,1266,1296,1326,1356,1386,1416,1446,1476,1506,1536,1566,1596,1626,1656,1686,1716
 # Run all loci that didn't run successfully previously
+print("run missing loci through recombination detection datasets")
 run_list <- mclapply(missing_inds, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
 
 # Rerun recombination.detection.wrapper to iterate through and extract all RecombinationDetection_results files, and save the output
+print("run recombination detection wrapper to collect all output csv files")
 run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
 run_df <- as.data.frame(do.call(rbind, run_list))
+print("save results file as a .csv")
 results_file <- paste0(output_dir,"empiricalTreelikeness_complete_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
 write.csv(run_df, file = results_file, row.names = FALSE)
 
