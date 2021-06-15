@@ -102,15 +102,18 @@ facet_labels <- c("3SEQ", "PHI", "MaxChi", "NSS", "GeneConv")
 names(facet_labels) <- c("X3SEQ_p_value", "PHI_permutation_p_value", "max_chi_squared_p_value", "NSS_p_value", "geneconv")
 formula = y~x
 
-ggplot(data = pis_df, aes(x = window_start, y = proportion_significant_p_values)) +
+p <- ggplot(data = pis_df, aes(x = window_start, y = proportion_significant_p_values)) +
   geom_point(na.rm = TRUE, cex = 3) +
   geom_smooth(method = "lm", formula = formula) +
   ggpmisc::stat_poly_eq(formula = formula, parse = TRUE) +
   facet_grid(var~., labeller = labeller(var = facet_labels)) +
   scale_x_continuous(name = "Number of parsimony informative sites", breaks = pis_df$window_start[1:9], labels = pis_df$plot_labels[1:9]) +
   scale_y_continuous(name = "Proportion of statistically significant p-values (per window)") +
+  labs(title = "P-values against number of parsimony informative sites", subtitle = "Vanderpool (2020) primate data") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+p_filename <- paste0(plot_dir, "all_tests_vs_informative_site_plots/all_tests_vs_num_parsimony_informative_sites.png")
+ggsave(filename = p_filename, plot = p)
 
 
 
