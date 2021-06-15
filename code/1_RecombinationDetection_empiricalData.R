@@ -282,7 +282,7 @@ if (create_information_dataframe == TRUE){
 ##### Step 4: Apply the recombination detection methods  #####
 print("run recombination detection methods")
 #dataset_ids <- which(loci_df$dataset %in% datasets_to_run)
-dataset_ids <- which(loci_df$dataset == "Pease2016")
+dataset_ids <- which(loci_df$dataset %in% c("Pease2016", "1KP"))
 run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
 run_df <- as.data.frame(do.call(rbind, run_list))
 print("output collated results as a .csv")
