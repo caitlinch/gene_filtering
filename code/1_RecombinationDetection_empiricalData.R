@@ -80,10 +80,7 @@ if (run_location == "local"){
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Strassert2021/02_trimAL_Divvier_filtered_genes_only/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
-  best_model_paths <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/OKP_loci_bestmodel.txt",
-                        NA,
-                        NA,
-                        "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/Pease2016_data_recreation_100kb_windows.csv")
+  best_model_paths <- c(NA, NA, NA, NA)
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/")
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
@@ -122,10 +119,7 @@ if (run_location == "local"){
                  "/Users/caitlin/Documents/PhD/Ch01/Data_Strassert_sample/",
                  "/Users/caitlin/Documents/PhD/Ch01/Data_Vanderpool_sample/",
                  "")
-  best_model_paths <- c("/Users/caitlin/Documents/PhD/Ch01/OKP_loci_bestmodel.txt",
-                        NA,
-                        NA,
-                        "")
+  best_model_paths <- c(NA, NA, NA, NA)
   output_dir <- c("/Users/caitlin/Documents/PhD/Ch01/Output/")
   maindir <- "/Users/caitlin/Repositories/empirical_treelikeness/" # location of repository
   
@@ -156,10 +150,7 @@ if (run_location == "local"){
                  "/data/caitlin/empirical_treelikeness/Data_Strassert2021/",
                  "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/",
                  "/data/caitlin/empirical_treelikeness/Data_Pease2016/")
-  best_model_paths <- c("/data/caitlin/empirical_treelikeness/Data_inputFiles/OKP_loci_bestmodel.txt",
-                        NA,
-                        NA,
-                        "/data/caitlin/empirical_treelikeness/Data_inputFiles/Pease2016_data_recreation_100kb_windows.csv")
+  best_model_paths <- c(NA, NA, NA, NA)
   output_dir <- "/data/caitlin/empirical_treelikeness/Output/"
   maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness repository/folder is 
   
