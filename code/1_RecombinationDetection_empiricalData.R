@@ -75,13 +75,15 @@
 run_location = "server"
 
 if (run_location == "local"){
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Strassert2021/02_trimAL_Divvier_filtered_genes_only/",
-                 "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/")
+                 "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
+                 "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   best_model_paths <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/OKP_loci_bestmodel.txt",
                         NA,
-                        NA)
+                        NA,
+                        "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/Pease2016_data_recreation_100kb_windows.csv")
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/")
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
@@ -102,8 +104,8 @@ if (run_location == "local"){
   #     want to run only "Trees" and "Fungi": datasets_to_run <- c("Trees", "Fungi")
   # If want to run all of the datasets, assign all names i.e. datasets_to_run <- input_names
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("Strassert2021","1KP", "Vanderpool2020")
-  datasets_to_collect_trees <- c("Strassert2021","1KP", "Vanderpool2020")
+  datasets_to_run <- c("Strassert2021","1KP", "Vanderpool2020", "Pease2016")
+  datasets_to_collect_trees <- c("Strassert2021","1KP", "Vanderpool2020", "Pease2016")
   datasets_apply_AU_test = c()
   
   # Parameters to perform AU test - needed if one or more dataset names included in datasets_apply_AU_test
@@ -115,13 +117,15 @@ if (run_location == "local"){
   
   
 } else if (run_location == "macbook"){
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
   input_dir <- c("/Users/caitlin/Documents/PhD/Ch01/Data_OKP_sample/",
                  "/Users/caitlin/Documents/PhD/Ch01/Data_Strassert_sample/",
-                 "/Users/caitlin/Documents/PhD/Ch01/Data_Vanderpool_sample/")
+                 "/Users/caitlin/Documents/PhD/Ch01/Data_Vanderpool_sample/",
+                 "")
   best_model_paths <- c("/Users/caitlin/Documents/PhD/Ch01/OKP_loci_bestmodel.txt",
                         NA,
-                        NA)
+                        NA,
+                        "")
   output_dir <- c("/Users/caitlin/Documents/PhD/Ch01/Output/")
   maindir <- "/Users/caitlin/Repositories/empirical_treelikeness/" # location of repository
   
@@ -142,18 +146,20 @@ if (run_location == "local"){
   #     want to run only "Trees" and "Fungi": datasets_to_run <- c("Trees", "Fungi")
   # If want to run all of the datasets, assign all names i.e. datasets_to_run <- input_names
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("Vanderpool2020","Strassert2021","1KP")
-  datasets_to_collect_trees <- c("Vanderpool2020","Strassert2021","1KP")
+  datasets_to_run <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
+  datasets_to_collect_trees <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
   datasets_apply_AU_test = c()
   
 } else if (run_location=="server"){
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
   input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
                  "/data/caitlin/empirical_treelikeness/Data_Strassert2021/",
-                 "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/")
+                 "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/",
+                 "")
   best_model_paths <- c("/data/caitlin/empirical_treelikeness/Data_inputFiles/OKP_loci_bestmodel.txt",
                         NA,
-                        NA)
+                        NA,
+                        "")
   output_dir <- "/data/caitlin/empirical_treelikeness/Output/"
   maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness repository/folder is 
   
@@ -171,8 +177,8 @@ if (run_location == "local"){
   
   # Select datasets to run analysis and collect results
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("Vanderpool2020","Strassert2021","1KP")
-  datasets_to_collect_trees <- c("Vanderpool2020","Strassert2021","1KP")
+  datasets_to_run <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
+  datasets_to_collect_trees <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
   datasets_apply_AU_test <- c()
 }
 ### End Caitlin's paths ###
@@ -238,17 +244,36 @@ if (create_information_dataframe == TRUE){
   }
   Vanderpool2020_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
   
+  ### Pease 2016 dataset
+  # Open the best_model_paths[["Pease2016"]] file
+  Pease2016_info <- read.csv(file = best_model_paths[["Pease2016"]])
+  Pease2016_paths <- Pease2016_info$alignment_copy_location
+  Pease2016_names <- Pease2016_info$loci_name
+  if (is.na(best_model_paths[["Pease2016"]])){
+    Pease2016_model <- rep("MFP", length(Pease2016_paths))
+  } else {
+    Pease2016_model <- Pease2016_info$RAxML_model_input
+    # The models taken from the RAxML info file are "GTRGAMMA", which is not a recognised input for model specification in IQ-Tree
+    # The models are renamed "GTR+G", which is the terminology for the same model in IQ-Tree 
+    Pease2016_model <- gsub("GTRGAMMA","GTR+G", Pease2016_model)
+  }
+  Pease2016_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
+  
   ### Compile datasets into one dataframe
   # Create a dataframe of loci information for all three datasets: loci name, alphabet type, model, dataset, path, output path
-  loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Strassert2021_names, OKP_names),
-                        alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Strassert2021_paths)), rep("protein",length(OKP_paths))),
-                        best_model = c(Vanderpool2020_model, Strassert2021_model, OKP_model),
-                        dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Strassert2021",length(Strassert2021_paths)), rep("1KP",length(OKP_paths))),
-                        loci_path = c(Vanderpool2020_paths, Strassert2021_paths, OKP_paths),
-                        output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Strassert2021"]], length(Strassert2021_paths)), rep(output_dirs[["1KP"]],length(OKP_paths))),
+  loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Strassert2021_names, OKP_names, Pease2016_names),
+                        alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Strassert2021_paths)), 
+                                     rep("protein",length(OKP_paths)), rep("dna", length(Pease2016_paths))),
+                        best_model = c(Vanderpool2020_model, Strassert2021_model, OKP_model, Pease2016_model),
+                        dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Strassert2021",length(Strassert2021_paths)), 
+                                    rep("1KP",length(OKP_paths)), rep("Pease2016", length(Pease2016_paths))),
+                        loci_path = c(Vanderpool2020_paths, Strassert2021_paths, OKP_paths, Pease2016_paths),
+                        output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Strassert2021"]], length(Strassert2021_paths)), 
+                                          rep(output_dirs[["1KP"]],length(OKP_paths)), rep(output_dirs[["Pease2016"]], length(Pease2016_paths))),
                         allowable_proportion_missing_sites = c(rep(Vanderpool2020_allowed_missing_sites, length(Vanderpool2020_paths)),
                                                                rep(Strassert2021_allowed_missing_sites, length(Strassert2021_paths)),
-                                                               rep(OKP_allowed_missing_sites,length(OKP_paths))),
+                                                               rep(OKP_allowed_missing_sites,length(OKP_paths)),
+                                                               rep(Pease2016_allowed_missing_sites, length(Pease2016_paths))),
                         stringsAsFactors = FALSE)
   
   # output loci_df <- save a record of the input parameters you used!
@@ -263,7 +288,8 @@ if (create_information_dataframe == TRUE){
 
 ##### Step 4: Apply the recombination detection methods  #####
 print("run recombination detection methods")
-dataset_ids <- which(loci_df$dataset %in% datasets_to_run)
+#dataset_ids <- which(loci_df$dataset %in% datasets_to_run)
+dataset_ids <- which(loci_df$dataset == "Pease2016")
 run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
 run_df <- as.data.frame(do.call(rbind, run_list))
 results_file <- paste0(output_dir,"empiricalTreelikeness_",dataset,"_collated_results_FirstRun_",format(Sys.time(), "%Y%m%d"),".csv")
