@@ -248,7 +248,7 @@ if (create_information_dataframe == TRUE){
   # Open the best_model_paths[["Pease2016"]] file
   Pease2016_info <- read.csv(file = best_model_paths[["Pease2016"]])
   Pease2016_paths <- Pease2016_info$alignment_copy_location
-  Pease2016_names <- gsub("_", "-", Pease2016_info$loci_name)
+  Pease2016_names <- gsub("_", "-", gsub("_100kb_windows", "", Pease2016_info$loci_name))
   if (is.na(best_model_paths[["Pease2016"]])){
     Pease2016_model <- rep("MFP", length(Pease2016_paths))
   } else {
