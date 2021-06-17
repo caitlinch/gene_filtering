@@ -4,9 +4,8 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - r=4.0.3
+  - r=4.0
   - r-base=4.0.3
-  - r-parallel
   - r-ape
   - r-phangorn
   - r-seqinr
