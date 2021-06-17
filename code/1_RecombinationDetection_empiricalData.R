@@ -72,7 +72,7 @@
 # three_trees_path <- ""
 
 ### Caitlin's paths ###
-run_location = "server"
+run_location = "local"
 
 if (run_location == "local"){
   input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
@@ -101,8 +101,8 @@ if (run_location == "local"){
   #     want to run only "Trees" and "Fungi": datasets_to_run <- c("Trees", "Fungi")
   # If want to run all of the datasets, assign all names i.e. datasets_to_run <- input_names
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("Strassert2021","1KP", "Vanderpool2020", "Pease2016")
-  datasets_to_collect_trees <- c("Strassert2021","1KP", "Vanderpool2020", "Pease2016")
+  datasets_to_run <- c("Pease2016")
+  datasets_to_collect_trees <- c("Pease2016")
   datasets_apply_AU_test = c()
   
   # Parameters to perform AU test - needed if one or more dataset names included in datasets_apply_AU_test
@@ -280,8 +280,7 @@ if (create_information_dataframe == TRUE){
 
 ##### Step 4: Apply the recombination detection methods  #####
 print("run recombination detection methods")
-#dataset_ids <- which(loci_df$dataset %in% datasets_to_run)
-dataset_ids <- which(loci_df$dataset %in% c("Pease2016", "1KP"))
+dataset_ids <- which(loci_df$dataset %in% datasets_to_run)
 run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
 run_df <- as.data.frame(do.call(rbind, run_list))
 print("output collated results as a .csv")
