@@ -65,6 +65,25 @@ check.folder.for.IQTree.warnings <- function(folder){
 
 
 
+# Function to take in a column and create a second pass/fail column based on the results of the first column
+make.pass.fail.column <- function(pass_column_name, starting_column_name, dataframe){
+  # Copy the original column over to the new name
+  dataframe[pass_column_name] <- dataframe[starting_column_name]
+  # Find which rows pass (p-value larger than 0.05) and which rows fail (p-value smaller than 0.05)
+  pass_inds <- which(dataframe[starting_column_name] > 0.05)
+  fail_inds <- which(dataframe[starting_column_name] <= 0.05)
+  # Label all the rows that passed "TRUE"
+  dataframe[pass_inds, pass_column_name] <- "TRUE"
+  # Label all the rows that passed "FALSE"
+  dataframe[fail_inds, pass_column_name] <- "FALSE"
+  # Convert the new column to logical 
+  dataframe[[pass_column_name]] <- as.logical(dataframe[[pass_column_name]])
+  # Return the dataframe with this new column attached
+  return(dataframe)
+}
+
+
+
 # This function looks in a single folder filled with loci for a concatenated IQ-Tree tree estimation 
 # and makes a list as a text file of the names of the loci that are present
 get.loci.from.analysis <- function(folder, output_folder){
