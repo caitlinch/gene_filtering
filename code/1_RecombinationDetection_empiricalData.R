@@ -30,7 +30,7 @@
 
 # # To run this program: 
 # # 1. Delete the lines that include Caitlin's paths/variables
-# # 2. Uncomment lines 35 to 58 inclusive and fill with your own variable names
+# # 2. Uncomment lines 31 to 54 inclusive and fill with your own variable names
 # input_names <- ""
 # input_dir <- ""
 # best_model_paths <- ""
@@ -327,5 +327,31 @@ if (length(datasets_to_check)>0){
     write.csv(warning_df, file = warning_df_file, row.names = FALSE)
   }
 }
+
+
+
+##### Step : Identify loci to exclude
+# Select the csv files from datasets run through datasets_to_check
+all_csvs <- list.files(output_dir)
+dataset_warning_csvs <- paste0(output_dir, grep("IQ-Tree_warnings.csv", all_csvs, value = TRUE))
+# Iterate through the datasets one at a time
+for (dataset in datasets_to_check){
+  # Open IQ-Tree warnings record for this dataset
+  w_df_file <- grep(dataset, dataset_warning_csvs, value = TRUE)
+  w_df <- read.csv(w_df_file, stringsAsFactors = FALSE)
+  # Remove duplicate rows from the dataframe
+  w_df <- w_df[!duplicated(w_df),]
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
