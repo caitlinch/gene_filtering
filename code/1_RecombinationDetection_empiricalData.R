@@ -159,7 +159,7 @@ library(seqinr) # data analysis and visualisation for biological sequence data
 print("sourcing functions")
 source(paste0(maindir,"code/func_recombination_detection.R"))
 source(paste0(maindir,"code/func_empirical.R"))
-
+source(paste0(maindir,"code/func_analysis.R"))
 
 
 ##### Step 3: Extract names and locations of loci #####
@@ -315,18 +315,15 @@ if (length(datasets_to_check)>0){
   # Identify any warnings from the IQ-Tree loci tree estimation
   # Use these warnings to select which loci to exclude
   for (dataset in datasets_to_check){
-    # Open this dataset's raw output file from the treelikeness analysis 
-    all_csv_files <- grep(".csv",list.files(csv_data_dir), value = TRUE)
-    all_untrimmed_csv_files <- grep("trimmed",all_csv_files, value = TRUE, invert = TRUE)
-    dataset_csv_file <- grep(dataset, all_untrimmed_csv_files, value = TRUE)
-    dataset_df <- read.csv(paste0(csv_data_dir,dataset_csv_file), stringsAsFactors = FALSE)
-    
-    # Take list of alignments from the raw output file
-    all_alignments <- dataset_df$alignment_file
-    
-    # Collect warnings and write out as a csv file
-    warning_df <- as.data.frame(do.call(rbind, (lapply(all_alignments, check.for.IQTree.warnings))))
-    warning_df_file <- paste0(csv_data_dir, dataset, "_collated_IQ-Tree_warnings.csv")
+    # Collect alignment folders
+    all_folders <- list.dirs(output_dirs[[dataset]])
+    all_al_folders <- setdiff(all_folders, output_dirs[[dataset]])
+    # Remove double slash in folder names
+    all_al_folders <- gsub("//", "/", all_al_folders)
+    # Check each folder for warnings
+    warning_df <- as.data.frame(do.call(rbind, (lapply(all_al_folders, check.folder.for.IQTree.warnings))))
+    # Save the warnings as a dataframe
+    warning_df_file <- paste0(output_dir, dataset, "_collated_IQ-Tree_warnings.csv")
     write.csv(warning_df, file = warning_df_file, row.names = FALSE)
   }
 }
