@@ -335,4 +335,26 @@ if (length(datasets_to_collect_trees) > 0){
 }
 
 
+##### Step 6: Identify warnings from IQ-Tree runs #####
+# Iterate through the warning files from estimating each gene tree and record all IQ-Tree warnings
+if (check.for.warnings == TRUE){
+  # Identify any warnings from the IQ-Tree loci tree estimation
+  # Use these warnings to select which loci to exclude
+  for (dataset in datasets){
+    # Open this dataset's raw output file from the treelikeness analysis 
+    all_csv_files <- grep(".csv",list.files(csv_data_dir), value = TRUE)
+    all_untrimmed_csv_files <- grep("trimmed",all_csv_files, value = TRUE, invert = TRUE)
+    dataset_csv_file <- grep(dataset, all_untrimmed_csv_files, value = TRUE)
+    dataset_df <- read.csv(paste0(csv_data_dir,dataset_csv_file), stringsAsFactors = FALSE)
+    
+    # Take list of alignments from the raw output file
+    all_alignments <- dataset_df$alignment_file
+    
+    # Collect warnings and write out as a csv file
+    warning_df <- as.data.frame(do.call(rbind, (lapply(all_alignments, check.for.IQTree.warnings))))
+    warning_df_file <- paste0(csv_data_dir, dataset, "_collated_IQ-Tree_warnings.csv")
+    write.csv(warning_df, file = warning_df_file, row.names = FALSE)
+  }
+}
+
 
