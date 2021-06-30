@@ -330,7 +330,7 @@ if (length(datasets_to_check)>0){
 
 
 
-##### Step : Identify loci to exclude from species tree estimation #####
+##### Step 7: Identify loci to exclude from species tree estimation #####
 # Select the csv files from datasets run through datasets_to_check
 all_csvs <- list.files(output_dir)
 dataset_warning_csvs <- paste0(output_dir, grep("IQ-Tree_warnings.csv", all_csvs, value = TRUE))
