@@ -1,10 +1,6 @@
 ### empirical_treelikeness/code/1_TestStatistics_EmpiricalData.R
-## R program to apply treelikeness statistics to transcriptomes from empirical data
-## BenchmarkAlignments and metadata have CC0 or CCBY licenses and are available here: https://github.com/roblanf/BenchmarkAlignments
-## A number of additional software packages are required, specifically:
-##     - IQTREE (Nguyen et al 2015) (http://www.iqtree.org/) (need version 2.0 or later)
-##     - 3SEQ (Lam et al 2018) (http://mol.ax/software/3seq/)
-##     - Splitstree (Huson and Bryant 2006) (http://www.splitstree.org/) (need SplitsTree 4)
+## R program to apply recombination detection methods to transcriptomes from empirical data
+## A number of additional software packages are required: IQ-Tree2, 3SEQ, PH and GeneConv
 # Caitlin Cherryh 2021
 
 ##### Step 1: Set file paths and run variables #####
