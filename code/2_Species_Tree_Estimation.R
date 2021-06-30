@@ -1,42 +1,34 @@
 ### empirical_treelikeness/code/2_TreeEstimation_EmpiricalData.R
-## R program to estimate trees from loci with varying treelikeness
-## BenchmarkAlignments and metadata have CC0 or CCBY licenses and are available here: https://github.com/roblanf/BenchmarkAlignments
-## A number of additional software packages are required, specifically:
+## R program to estimate trees from treelike or non-treelike loci
+## Additional software packages are required:
 ##     - ASTRAL (Zhang et al 2019) (https://github.com/smirarab/ASTRAL)
 ##     - IQTREE (Nguyen et al 2015) (http://www.iqtree.org/) (need version 2.0 or later)
 # Caitlin Cherryh 2021
 
 ##### Step 1: Set file paths and run variables #####
-# alignment_dir     <- the folder(s) containing the alignments for each loci
 # input_names       <- set name(s) for the dataset(s) - make sure input_names is in same order as alignment_dir 
-#                      (e.g. for 2 datasets, put same dataset first in all three and same dataset last in all three)
-# loci_to_remove    <- If there are any loci to exclude from the analysis, specify them here. 
-#                   <- This parameter is a list containing a vector for each dataset from input_names. The vector names each loci to exclude from that dataset
-# number_of_taxa    <- If there is a certain number of taxa required for your analysis, specify that here.
-#                   <- This parameter is a list containing a vector for each dataset from input_names. The vector contains the allowable number of taxa for that dataset
-# treelikeness_df   <- csv file containing collated treelikeness test statistics for each loci (created by running the code/1_TestStatistics_EmpiricalData.R file) 
+#                      (e.g. for 2 datasets, put same dataset first and same dataset last)
+# alignment_dir     <- the folder(s) containing the alignments for each loci
+# csv_data_dir      <- directory containing the .csv file results from script 1_RecombinationDetection_empiricalTreelikeness.R
 # output_dir        <- where the coalescent/concatenated trees and tree comparisons will be stored 
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
-# cores_to_use      <- the number of cores to use for parametric bootstrap. 1 for a single core (wholly sequential), or higher if using parallelisation.
+# cores_to_use      <- the number of cores to use for parallelisation. 1 for a single core (wholly sequential), or higher if using parallelisation.
 # exec_folder       <- the folder containing the software executables needed for analysis (ASTRAL and IQTREE)
 # exec_paths        <- location to each executable within the folder
 # datasets_to_copy_loci   <- Out of the input names, select which datasets to copy loci trees for tree estimation
 # datasets_to_estimate_trees <- Out of the input names, select which datasets to estimate species trees based on treelikeness results
-# partition.by.codon.position <- Whether to run analysis partitioing by codon position
+# partition.by.codon.position <- Whether to run analysis partitioning by codon position
 #                             <- set TRUE if you want to estimate species trees partitioning by codon position, and FALSE if you don't
-# loci_windows     <- select how many loci to include in each species tree estimate when ranking loci by treelikeness
+#                             <- codon position simply counts every third base starting from 1st, 2nd, or 3rd base, and does not account for frame shift
 
-# The SplitsTree executable path can be tricky to find: 
-#       - in MacOS, the path is "SplitsTree.app/Contents/MacOS/JavaApplicationStub" (assuming you are in the same directory as the application)
-#       - in Linux, after installing and navigating into the folder it's simply "SplitsTree"
-
-# # UNCOMMENT THE FOLLOWING LINES AND ENTER YOUR FILE PATHS/VARIABLES
+# # To run this program: 
+# # 1. Delete the lines that include Caitlin's paths/variables
+# # 2. Uncomment lines 24 to 43 inclusive and fill with your own variable names
 # input_names <- ""
-# treelikeness_df <- ""
 # output_dir <- ""
 # maindir <- ""
 # cores_to_use <- 1
-# # Create a vector with all of the executable file paths using the following lines as a template:
+# # Create a vector with all of the executable file paths using the following 5 lines as a template:
 # # exec_folder <- "/path/to/executables/folder/"
 # # exec_paths <- c("ASTRAL_executable","IQ-Tree_executable")
 # # exec_paths <- paste0(exec_folder,exec_paths)
@@ -47,8 +39,8 @@
 # exec_paths <- paste0(exec_folder, exec_paths)
 # datasets_to_copy_loci <-  c()
 # datasets_to_estimate_trees <- c()
-# partition.by.codon.position = TRUE
-# loci_windows     <- c(10, 50, 100, 250, 500)
+# estimate.species.trees.in.IQTREE = TRUE
+# partition.by.codon.position = FALSE
 
 ### Caitlin's paths ###
 run_location = "local"
@@ -56,8 +48,6 @@ run_location = "local"
 if (run_location == "local"){
   # Datasets/dataset information
   input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
-  loci_to_remove <- list("Vanderpool2020" = "ORTHOMCL14552")
-  number_of_taxa <- list("Vanderpool2020" = NA)
   
   # File and directory locations
   alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
@@ -65,7 +55,6 @@ if (run_location == "local"){
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   csv_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
-  treelikeness_df_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/RecombinationDetection_Vanderpool2020_collated_results_complete.csv"
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/")
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
@@ -82,24 +71,21 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("Vanderpool2020")
   datasets_to_estimate_trees <- c("Vanderpool2020")
-  check.for.warnings = FALSE # check IQ-Tree .log file and .iqtree file output for each gene tree for warnings
   estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
   
 } else if (run_location=="server"){
   # Datasets/dataset information
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020")
-  loci_to_remove <- list("Vanderpool2020" = c("ORTHOMCL14552"))
-  number_of_taxa <- list("Vanderpool2020" = NA)
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
   
   # File and directory locations
-  alignment_dir <- "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/"
+  alignment_dir <- c("",
+                     "",
+                     "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/",
+                     "")
   csv_data_dir <- "/data/caitlin/empirical_treelikeness/Output/"
-  
-  treelikeness_df_file <- "/data/caitlin/empirical_treelikeness/Output/empiricalTreelikeness_Vanderpool2020_collated_results_20210120.csv"
   output_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
-  
-  treedir <- "/data/caitlin/treelikeness/" # where the treelikeness repository/folder is
+  maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness code is
   
   # Create a vector with all of the executable file paths in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
@@ -110,10 +96,9 @@ if (run_location == "local"){
   cores_to_use = 15
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020")
-  datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020")
-  check.for.warnings = FALSE # check IQ-Tree .log file and .iqtree file output for each gene tree for warnings
-  estimate.species.trees.in.IQTREE = FALSE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
+  datasets_to_copy_loci <-  c("1KP", "Strassert2021", "Vanderpool2020", "Pease2016")
+  datasets_to_estimate_trees <- c("1KP", "Strassert2021", "Vanderpool2020", "Pease2016")
+  estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
 }
 
