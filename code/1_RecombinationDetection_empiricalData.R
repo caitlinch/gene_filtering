@@ -30,20 +30,11 @@
 # datasets_to_run   <- Out of the input names, select which datasets will have the treelikeness analysis run and the results collated. If running all, set datasets_to_run <- input_names
 # datasets_to_collect_trees <- Out of the input names, select which datasets will have the maximum likelihood trees from IQ-Tree collected and saved in a separate folder for easy downloading. 
 #                             If saving all, set datasets_to_run <- input_names
-# datasets_apply_AU_test <- Out of the input names, which datasets will you apply the AU test (https://doi.org/10.1080/10635150290069913). If running all, set datasets_to_run <- input_names
-
-# If you are running the AU test, you need to include some extra file paths
-# If you are running multiple datasets on the AU test, provide a path for each dataset (i.e. AU_output_folder <- c("/path/to/op1", "/path/to/op2")) in the SAME ORDER
-#   as the datasets are in `datasets_apply_AU_test`
-# AU_test_id <- phrase to include in output .csv file (so you can easily identify it)
-# AU_test_loci_csv <- a csv file containing the a column called `loci_name` that contains the list of all loci to test with the AU test
-# AU_output_folder <- A folder to put the output from the AU test (IQ-Tree log files, copy of alignment)
-# AU_results_folder <- A folder to output the results of the AU test - for each loci, there will be a csv file containing the log likelihood for each tree topology
-# three_trees_path <- A file containing the tree topologies to test using the AU test (called three_trees_path because our analysis compared three three topologies)
+# datasets_to_check <- Out of the input names, select whuich datasets to collect the warnings from the IQ-Tree gene tree estimation log files
 
 # # To run this program: 
-# # 1. Delete the lines below that include Caitlin's paths/variables
-# # 2. Uncomment lines 44 to 73 inclusive and fill with your own variable names
+# # 1. Delete the lines that include Caitlin's paths/variables
+# # 2. Uncomment lines 35 to 58 inclusive and fill with your own variable names
 # input_names <- ""
 # input_dir <- ""
 # best_model_paths <- ""
@@ -64,12 +55,7 @@
 # datasets_to_run <- ""
 # datasets_to_collate <- ""
 # datasets_to_collect_trees <- ""
-# datasets_apply_AU_test <- ""
-# # If running AU test, add parameters for AU test here 
-# AU_test_loci_csv <- ""
-# AU_output_folder <- ""
-# AU_results_folder <- ""
-# three_trees_path <- ""
+# datasets_to_check <- ""
 
 ### Caitlin's paths ###
 run_location = "local"
@@ -103,16 +89,8 @@ if (run_location == "local"){
   create_information_dataframe <- TRUE
   datasets_to_run <- c("Pease2016")
   datasets_to_collect_trees <- c("Pease2016")
-  datasets_apply_AU_test = c()
-  
-  # Parameters to perform AU test - needed if one or more dataset names included in datasets_apply_AU_test
-  AU_test_id <- "ComparisonTrees"
-  AU_test_loci_csv <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/all_species_trees/all_loci_loci.csv"
-  AU_output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_ComparisonTrees_AU_tests/"
-  AU_results_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_ComparisonTrees_AU_test_results/"
-  three_trees_path <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/possible_trees/ComparisonTrees_three_possible_topologies.txt"
-  
-  
+  datasets_to_check <- c("Pease2016")
+
 } else if (run_location == "macbook"){
   input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
   input_dir <- c("/Users/caitlin/Documents/PhD/Ch01/Data_OKP_sample/",
@@ -142,7 +120,7 @@ if (run_location == "local"){
   create_information_dataframe <- TRUE
   datasets_to_run <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
   datasets_to_collect_trees <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
-  datasets_apply_AU_test = c()
+  datasets_to_check <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
   
 } else if (run_location=="server"){
   input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
@@ -170,7 +148,7 @@ if (run_location == "local"){
   create_information_dataframe <- TRUE
   datasets_to_run <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
   datasets_to_collect_trees <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
-  datasets_apply_AU_test <- c()
+  datasets_to_check <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
 }
 ### End Caitlin's paths ###
 
@@ -340,7 +318,7 @@ if (length(datasets_to_collect_trees) > 0){
 if (check.for.warnings == TRUE){
   # Identify any warnings from the IQ-Tree loci tree estimation
   # Use these warnings to select which loci to exclude
-  for (dataset in datasets){
+  for (dataset in datasets_to_check){
     # Open this dataset's raw output file from the treelikeness analysis 
     all_csv_files <- grep(".csv",list.files(csv_data_dir), value = TRUE)
     all_untrimmed_csv_files <- grep("trimmed",all_csv_files, value = TRUE, invert = TRUE)
