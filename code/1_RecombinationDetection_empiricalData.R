@@ -311,7 +311,7 @@ if (length(datasets_to_collect_trees) > 0){
 
 ##### Step 6: Identify warnings from IQ-Tree runs #####
 # Iterate through the warning files from estimating each gene tree and record all IQ-Tree warnings
-if (check.for.warnings == TRUE){
+if (length(datasets_to_check)>0){
   # Identify any warnings from the IQ-Tree loci tree estimation
   # Use these warnings to select which loci to exclude
   for (dataset in datasets_to_check){
