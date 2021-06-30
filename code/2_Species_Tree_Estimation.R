@@ -162,45 +162,25 @@ include_loci <- setdiff(1:nrow(treelikeness_df), exclude_loci)
 treelikeness_df <- treelikeness_df[include_loci,]
 
 # Create new columns with pass/fail for each test
-# 3SEQ p-value
-treelikeness_df$pass_3seq <- treelikeness_df$X3SEQ_p_value
-treelikeness_df$pass_3seq[treelikeness_df$X3SEQ_p_value > 0.05] <- "TRUE"
-treelikeness_df$pass_3seq[treelikeness_df$X3SEQ_p_value <= 0.05] <- "FALSE"
-treelikeness_df$pass_3seq <- as.logical(treelikeness_df$pass_3seq)
-# PHI test p-value
-treelikeness_df$pass_phi<- treelikeness_df$PHI_normal_p_value
-treelikeness_df$pass_phi[treelikeness_df$PHI_normal_p_value > 0.05] <- "TRUE"
-treelikeness_df$pass_phi[treelikeness_df$PHI_normal_p_value <= 0.05] <- "FALSE"
-treelikeness_df$pass_phi <- as.logical(treelikeness_df$pass_phi)
-# MaxChi test p-value
-treelikeness_df$pass_maxchi <- treelikeness_df$max_chi_squared_p_value
-treelikeness_df$pass_maxchi[treelikeness_df$max_chi_squared_p_value > 0.05] <- "TRUE"
-treelikeness_df$pass_maxchi[treelikeness_df$max_chi_squared_p_value <= 0.05] <- "FALSE"
-treelikeness_df$pass_maxchi <- as.logical(treelikeness_df$pass_maxchi)
-# GeneConv inner fragments simulated p-value
-treelikeness_df$pass_geneconv_inner <- treelikeness_df$geneconv_inner_fragment_simulated_p_value
-treelikeness_df$pass_geneconv_inner[treelikeness_df$geneconv_inner_fragment_simulated_p_value > 0.05] <- "TRUE"
-treelikeness_df$pass_geneconv_inner[treelikeness_df$geneconv_inner_fragment_simulated_p_value <= 0.05] <- "FALSE"
-treelikeness_df$pass_geneconv_inner <- as.logical(treelikeness_df$pass_geneconv_inner)
-# GeneConv outer fragments simulated p-value
-treelikeness_df$pass_geneconv_outer <- treelikeness_df$geneconv_outer_fragment_simulated_p_value
-treelikeness_df$pass_geneconv_outer[treelikeness_df$geneconv_outer_fragment_simulated_p_value > 0.05] <- "TRUE"
-treelikeness_df$pass_geneconv_outer[treelikeness_df$geneconv_outer_fragment_simulated_p_value <= 0.05] <- "FALSE"
-treelikeness_df$pass_geneconv_outer <- as.logical(treelikeness_df$pass_geneconv_outer)
-# GeneConv both p-value (TRUE if both inner and outer > 0.05, FALSE if one or both <= 0.05)
+treelikeness_df <- make.pass.fail.column("pass_3seq", "X3SEQ_p_value", treelikeness_df)
+treelikeness_df <- make.pass.fail.column("pass_phi", "PHI_normal_p_value", treelikeness_df)
+treelikeness_df <- make.pass.fail.column("pass_maxchi", "max_chi_squared_p_value", treelikeness_df)
+treelikeness_df <- make.pass.fail.column("pass_NSS", "NSS_p_value", treelikeness_df)
+treelikeness_df <- make.pass.fail.column("pass_geneconv_inner", "geneconv_inner_fragment_simulated_p_value", treelikeness_df)
+treelikeness_df <- make.pass.fail.column("pass_geneconv_outer", "geneconv_outer_fragment_simulated_p_value", treelikeness_df)
+# Create a column for GeneConv where both inner and outer fragment p-value must be >0.05 to pass
 treelikeness_df$pass_geneconv <- "FALSE"
 treelikeness_df$pass_geneconv[((treelikeness_df$geneconv_outer_fragment_simulated_p_value > 0.05) & 
                                  (treelikeness_df$geneconv_inner_fragment_simulated_p_value > 0.05))] <- "TRUE"
 treelikeness_df$pass_geneconv <- as.logical(treelikeness_df$pass_geneconv)
 
-
 # Save the trimmed treelikeness_df
-trimmed_treelikeness_df_file <- gsub(".csv", paste0("_trimmedLoci_trimmedTaxa.csv"), treelikeness_df_file)
+trimmed_treelikeness_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
 write.csv(treelikeness_df, file = trimmed_treelikeness_df_file, row.names = FALSE)
 # Save a df of just the pass/fail info
 pass_df <- treelikeness_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", 
-                              "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
-pass_df_file <- gsub(".csv", paste0("_PassFail_record_.csv"), treelikeness_df_file)
+                              "pass_NSS", "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
+pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
 write.csv(pass_df, file = pass_df_file, row.names = FALSE)
 
 
