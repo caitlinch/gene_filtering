@@ -69,8 +69,8 @@ if (run_location == "local"){
   cores_to_use = 1
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c("Vanderpool2020")
-  datasets_to_estimate_trees <- c("Vanderpool2020")
+  datasets_to_copy_loci <-  c("Vanderpool2020", "Pease2016")
+  datasets_to_estimate_trees <- c("Vanderpool2020", "Pease2016")
   estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
   
@@ -116,7 +116,7 @@ source(paste0(maindir,"code/func_analysis.R"))
 
 
 
-##### Step 3: Set up dataframes for analyses #####
+##### Step 3: Set up input and output folders #####
 # Add dataset names to the alignment_dir variable so you can index by dataset name
 names(alignment_dir) <- input_names
 # Create output folders for each data set if they don't exist
@@ -128,49 +128,39 @@ for (d in output_dirs){
   }
 }
 
-# Open the treelikeness results dataframe
-treelikeness_df <- read.csv(treelikeness_df_file, stringsAsFactors = FALSE)
-# Trim treelikeness df to remove loci with IQ-Tree warnings and loci with too few taxa
-# Remove loci to remove
-rm_inds <- c()
-for (dataset in input_names){
-  if (dataset %in% names(loci_to_remove)){ 
-    if (!is.na(loci_to_remove[[dataset]])){
-      rm_loci_ds <- loci_to_remove[[dataset]]
-      rm_inds_ds <- which(treelikeness_df$dataset == dataset & treelikeness_df$loci %in% rm_loci_ds)
-      rm_inds <- c(rm_inds, rm_inds_ds)
-    }
-  }
+
+
+##### Step 4: Assemble the treelikeness dataframe #####
+# Get a list of all the csv files in the csv_data_directory
+all_files <- list.files(csv_data_dir)
+# Get the results filenames for the datasets of interest
+all_results <- grep("collated_RecombinationDetection_results", all_files, value = TRUE)
+all_results <- paste0(csv_data_dir, all_results)
+results <- c()
+for (dataset in datasets_to_copy_loci){
+  f <- grep(dataset, all_results, value = TRUE)
+  results <- c(results, f)
 }
-keep_rows <- setdiff(c(1:nrow(treelikeness_df)),rm_inds)
-treelikeness_df <- treelikeness_df[keep_rows,]
-# Remove loci with the wrong number of taxa
-keep_inds <- c()
-for (dataset in input_names){
-  if (dataset %in% names(number_of_taxa)){
-    if (is.na(number_of_taxa[[dataset]])){
-      # If you want all the loci regardless of how many taxa they have, keep all of the loci in that dataset
-      # e.g. if you want all the loci for Vanderpool 2020: number_of_taxa <- list("Vanderpool2020" = NA)
-      keep_taxa_num_ds <- number_of_taxa[[dataset]]
-      keep_inds_ds <- which(treelikeness_df$dataset == dataset)
-      keep_inds <- c(keep_inds, keep_inds_ds)
-    } else if (class(number_of_taxa[[dataset]]) == "numeric") {
-      # If you only want to keep loci with certain numbers of loci, extract all the loci with that number of taxa
-      # e.g. if you want all the loci with all 29 taxa for Vanderpool 2020: number_of_taxa <- list("Vanderpool2020" = 29)
-      # e.g if only allowing up to 2 missing taxa for Vanderpool 2020: number_of_taxa <- list("Vanderpool2020" = c(27, 28, 29))
-      keep_taxa_num_ds <- number_of_taxa[[dataset]]
-      keep_inds_ds <- which(treelikeness_df$dataset == dataset & treelikeness_df$n_taxa %in% keep_taxa_num_ds)
-      keep_inds <- c(keep_inds, keep_inds_ds)
-    }
-  } else {
-    # If this dataset is not included in the number_of_taxa list, the default assumption is to keep all loci regardless of how many taxa are in that alignment
-    # Keep all the loci
-    keep_taxa_num_ds <- number_of_taxa[[dataset]]
-    keep_inds_ds <- which(treelikeness_df$dataset == dataset)
-    keep_inds <- c(keep_inds, keep_inds_ds)
-  }
-}
-treelikeness_df <- treelikeness_df[keep_inds,]
+# Open and attach the datasets
+treelikeness_df <- as.data.frame(do.call(rbind, lapply(results, read.csv)))
+treelikeness_df$match <- paste0(treelikeness_df$dataset, ":", treelikeness_df$loci_name)
+
+# Open the csv containing the list of loci to exclude from species tree analysis
+exclude_file <- paste0(csv_data_dir, grep("LociToExclude.csv", all_files, value = TRUE))
+# Open the csv and reduce down to the unique dataset/loci pairs to exclude from treelikeness_df
+exclude_df <- read.csv(exclude_file, stringsAsFactors = FALSE)
+exclude_df <- exclude_df[,c("dataset", "loci")]
+exclude_df <- exclude_df[!duplicated(exclude_df),]
+exclude_df$match <- paste0(exclude_df$dataset, ":", exclude_df$loci)
+
+# Identify the row numbers of the loci to exclude
+exclude_loci <- which(treelikeness_df$match %in% exclude_df$match)
+# Compare with the set of all loci in all datasets to get the loci to keep
+include_loci <- setdiff(1:nrow(treelikeness_df), exclude_loci)
+
+# Trim the treelikeness_df to remove the loci to be excluded
+treelikeness_df <- treelikeness_df[include_loci,]
+
 # Create new columns with pass/fail for each test
 # 3SEQ p-value
 treelikeness_df$pass_3seq <- treelikeness_df$X3SEQ_p_value
