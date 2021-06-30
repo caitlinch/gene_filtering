@@ -246,7 +246,7 @@ if (create_information_dataframe == TRUE){
                         stringsAsFactors = FALSE)
   
   # output loci_df <- save a record of the input parameters you used!
-  loci_df_name <- paste0(output_dir,"empiricalTreelikeness_input_loci_parameters.csv")
+  loci_df_name <- paste0(output_dir,"01_RecombinationDetection_input_loci_parameters.csv")
   write.csv(loci_df, file = loci_df_name)
 }
 
@@ -258,7 +258,7 @@ dataset_ids <- which(loci_df$dataset %in% datasets_to_run)
 run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
 run_df <- as.data.frame(do.call(rbind, run_list))
 print("output collated results as a .csv")
-results_file <- paste0(output_dir,"empiricalTreelikeness_collated_results_FirstRun_",format(Sys.time(), "%Y%m%d"),".csv")
+results_file <- paste0(output_dir,"01_RecombinationDetection_collated_results_FirstRun_",format(Sys.time(), "%Y%m%d"),".csv")
 write.csv(run_df, file = results_file, row.names = FALSE)
 
 # Check whether any loci did not run properly
@@ -286,7 +286,7 @@ print("run recombination detection wrapper to collect all output csv files")
 run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
 run_df <- as.data.frame(do.call(rbind, run_list))
 print("save results file as a .csv")
-results_file <- paste0(output_dir,"empiricalTreelikeness_complete_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
+results_file <- paste0(output_dir,"01_RecombinationDetection_complete_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
 write.csv(run_df, file = results_file, row.names = FALSE)
 
 
@@ -323,7 +323,7 @@ if (length(datasets_to_check)>0){
     # Check each folder for warnings
     warning_df <- as.data.frame(do.call(rbind, (lapply(all_al_folders, check.folder.for.IQTree.warnings))))
     # Save the warnings as a dataframe
-    warning_df_file <- paste0(output_dir, dataset, "_collated_IQ-Tree_warnings.csv")
+    warning_df_file <- paste0(output_dir,"01_", dataset, "_collated_IQ-Tree_warnings.csv")
     write.csv(warning_df, file = warning_df_file, row.names = FALSE)
   }
 }
