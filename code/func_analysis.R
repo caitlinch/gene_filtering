@@ -33,6 +33,38 @@ check.for.IQTree.warnings <- function(alignment_path){
 
 
 
+# Given an alignment, this function will check the IQ-Tree .log file and .iqtree file for warnings and return all warnings and the corresponding alignment
+check.folder.for.IQTree.warnings <- function(folder){
+  # Get list of files in the folder
+  files_list <- list.files(folder, full.names = TRUE)
+  # Find the .iqtree files
+  dotiqtree_path <- grep(".iqtree", files_list, value = TRUE)
+  # Find the log file path by substituting the file extension on the iqtree file path
+  dotlog_path <- gsub("iqtree", "log", dotiqtree_path)
+  # Open the .iqtree and .log files
+  dotiqtree_file <- readLines(dotiqtree_path)
+  dotlog_file <- readLines(dotlog_path)
+  
+  # Check for any warnings
+  dotiqtree_warnings <- dotiqtree_file[grep("WARNING", dotiqtree_file)]
+  dotlog_warnings <- dotlog_file[grep("WARNING", dotlog_file)]
+  
+  # Extract information about loci from folder name
+  loci_name <- basename(folder)
+  alignment_path <- gsub(".iqtree", "", dotiqtree_path)
+  dataset <- basename(dirname(folder))
+  
+  # If one or more warnings was found, output a dataframe of the warnings
+  if ((length(dotiqtree_warnings) + length(dotlog_warnings)) > 0){
+    # Output warnings
+    warning_df <- data.frame(dataset = dataset, loci = loci_name, file = c(rep(".iqtree", length(dotiqtree_warnings)), rep(".log", length(dotlog_warnings))),
+                             warnings = c(dotiqtree_warnings, dotlog_warnings), loci_path = alignment_path)
+    return(warning_df)
+  }
+}
+
+
+
 # This function looks in a single folder filled with loci for a concatenated IQ-Tree tree estimation 
 # and makes a list as a text file of the names of the loci that are present
 get.loci.from.analysis <- function(folder, output_folder){
