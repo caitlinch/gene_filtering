@@ -374,7 +374,7 @@ exclusion_df <- data.frame(dataset = exclusion_loci_dataset,
                            loci = exclusion_loci_name,
                            warning = exclusion_warning)
 exclusion_op_name <- paste0(output_dir, "01_IQ-Tree_warnings_LociToExclude.csv")
-write.csv(exclusion_df, exclusion_op_name)
+write.csv(exclusion_df, exclusion_op_name, row.names = FALSE)
 
 
 
