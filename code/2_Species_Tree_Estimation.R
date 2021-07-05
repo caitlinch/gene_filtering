@@ -69,7 +69,7 @@ if (run_location == "local"){
   cores_to_use = 1
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c("Vanderpool2020", "Pease2016")
+  datasets_to_copy_loci <-  c()
   datasets_to_estimate_trees <- c("Vanderpool2020", "Pease2016")
   estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
@@ -131,62 +131,74 @@ for (d in output_dirs){
 
 
 ##### Step 4: Assemble the treelikeness dataframe #####
-# Get a list of all the csv files in the csv_data_directory
-all_files <- list.files(csv_data_dir)
-# Get the results filenames for the datasets of interest
-all_results <- grep("collated_RecombinationDetection_results", all_files, value = TRUE)
-all_results <- paste0(csv_data_dir, all_results)
-results <- c()
-for (dataset in datasets_to_copy_loci){
-  f <- grep(dataset, all_results, value = TRUE)
-  results <- c(results, f)
+if (length(datasets_to_copy_loci) > 0){
+  # Check whether a collated, trimmed recombination detection results file exists
+  trimmed_treelikeness_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
+  pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
+  
+  if (file.exists(trimmed_treelikeness_df_file) & file.exists(pass_df_file)){
+    treelikeness_df <- read.csv(trimmed_treelikeness_df_file, stringsAsFactors = TRUE)
+    pass_df <- read.csv(pass_df_file, stringsAsFactors = TRUE)
+  } else{
+    # If the file doesn't exist, create it
+    # Get a list of all the csv files in the csv_data_directory
+    all_files <- list.files(csv_data_dir)
+    # Get the results filenames for the datasets of interest
+    all_results <- grep("collated_RecombinationDetection_results", all_files, value = TRUE)
+    all_results <- paste0(csv_data_dir, all_results)
+    results <- c()
+    for (dataset in datasets_to_copy_loci){
+      f <- grep(dataset, all_results, value = TRUE)
+      results <- c(results, f)
+    }
+    # Open and attach the datasets
+    treelikeness_df <- as.data.frame(do.call(rbind, lapply(results, read.csv)))
+    treelikeness_df$match <- paste0(treelikeness_df$dataset, ":", treelikeness_df$loci_name)
+    
+    # Open the csv containing the list of loci to exclude from species tree analysis
+    exclude_file <- paste0(csv_data_dir, grep("LociToExclude.csv", all_files, value = TRUE))
+    # Open the csv and reduce down to the unique dataset/loci pairs to exclude from treelikeness_df
+    exclude_df <- read.csv(exclude_file, stringsAsFactors = FALSE)
+    exclude_df <- exclude_df[,c("dataset", "loci")]
+    exclude_df <- exclude_df[!duplicated(exclude_df),]
+    exclude_df$match <- paste0(exclude_df$dataset, ":", exclude_df$loci)
+    
+    # Identify the row numbers of the loci to exclude
+    exclude_loci <- which(treelikeness_df$match %in% exclude_df$match)
+    # Compare with the set of all loci in all datasets to get the loci to keep
+    include_loci <- setdiff(1:nrow(treelikeness_df), exclude_loci)
+    
+    # Trim the treelikeness_df to remove the loci to be excluded
+    treelikeness_df <- treelikeness_df[include_loci,]
+    
+    # Create new columns with pass/fail for each test
+    treelikeness_df <- make.pass.fail.column("pass_3seq", "X3SEQ_p_value", treelikeness_df)
+    treelikeness_df <- make.pass.fail.column("pass_phi", "PHI_normal_p_value", treelikeness_df)
+    treelikeness_df <- make.pass.fail.column("pass_phi_permute", "PHI_permutation_p_value", treelikeness_df)
+    treelikeness_df <- make.pass.fail.column("pass_maxchi", "max_chi_squared_p_value", treelikeness_df)
+    treelikeness_df <- make.pass.fail.column("pass_NSS", "NSS_p_value", treelikeness_df)
+    treelikeness_df <- make.pass.fail.column("pass_geneconv_inner", "geneconv_inner_fragment_simulated_p_value", treelikeness_df)
+    treelikeness_df <- make.pass.fail.column("pass_geneconv_outer", "geneconv_outer_fragment_simulated_p_value", treelikeness_df)
+    # Create a column for GeneConv where both inner and outer fragment p-value must be >0.05 to pass
+    treelikeness_df$pass_geneconv <- "FALSE"
+    treelikeness_df$pass_geneconv[((treelikeness_df$geneconv_outer_fragment_simulated_p_value > 0.05) & 
+                                     (treelikeness_df$geneconv_inner_fragment_simulated_p_value > 0.05))] <- "TRUE"
+    treelikeness_df$pass_geneconv <- as.logical(treelikeness_df$pass_geneconv)
+    
+    # Save the trimmed treelikeness_df
+    trimmed_treelikeness_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
+    write.csv(treelikeness_df, file = trimmed_treelikeness_df_file, row.names = FALSE)
+    # Save a df of just the pass/fail info
+    pass_df <- treelikeness_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", 
+                                  "pass_NSS", "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
+    pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
+    write.csv(pass_df, file = pass_df_file, row.names = FALSE)
+  }
 }
-# Open and attach the datasets
-treelikeness_df <- as.data.frame(do.call(rbind, lapply(results, read.csv)))
-treelikeness_df$match <- paste0(treelikeness_df$dataset, ":", treelikeness_df$loci_name)
-
-# Open the csv containing the list of loci to exclude from species tree analysis
-exclude_file <- paste0(csv_data_dir, grep("LociToExclude.csv", all_files, value = TRUE))
-# Open the csv and reduce down to the unique dataset/loci pairs to exclude from treelikeness_df
-exclude_df <- read.csv(exclude_file, stringsAsFactors = FALSE)
-exclude_df <- exclude_df[,c("dataset", "loci")]
-exclude_df <- exclude_df[!duplicated(exclude_df),]
-exclude_df$match <- paste0(exclude_df$dataset, ":", exclude_df$loci)
-
-# Identify the row numbers of the loci to exclude
-exclude_loci <- which(treelikeness_df$match %in% exclude_df$match)
-# Compare with the set of all loci in all datasets to get the loci to keep
-include_loci <- setdiff(1:nrow(treelikeness_df), exclude_loci)
-
-# Trim the treelikeness_df to remove the loci to be excluded
-treelikeness_df <- treelikeness_df[include_loci,]
-
-# Create new columns with pass/fail for each test
-treelikeness_df <- make.pass.fail.column("pass_3seq", "X3SEQ_p_value", treelikeness_df)
-treelikeness_df <- make.pass.fail.column("pass_phi", "PHI_normal_p_value", treelikeness_df)
-treelikeness_df <- make.pass.fail.column("pass_phi_permute", "PHI_permutation_p_value", treelikeness_df)
-treelikeness_df <- make.pass.fail.column("pass_maxchi", "max_chi_squared_p_value", treelikeness_df)
-treelikeness_df <- make.pass.fail.column("pass_NSS", "NSS_p_value", treelikeness_df)
-treelikeness_df <- make.pass.fail.column("pass_geneconv_inner", "geneconv_inner_fragment_simulated_p_value", treelikeness_df)
-treelikeness_df <- make.pass.fail.column("pass_geneconv_outer", "geneconv_outer_fragment_simulated_p_value", treelikeness_df)
-# Create a column for GeneConv where both inner and outer fragment p-value must be >0.05 to pass
-treelikeness_df$pass_geneconv <- "FALSE"
-treelikeness_df$pass_geneconv[((treelikeness_df$geneconv_outer_fragment_simulated_p_value > 0.05) & 
-                                 (treelikeness_df$geneconv_inner_fragment_simulated_p_value > 0.05))] <- "TRUE"
-treelikeness_df$pass_geneconv <- as.logical(treelikeness_df$pass_geneconv)
-
-# Save the trimmed treelikeness_df
-trimmed_treelikeness_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
-write.csv(treelikeness_df, file = trimmed_treelikeness_df_file, row.names = FALSE)
-# Save a df of just the pass/fail info
-pass_df <- treelikeness_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", 
-                              "pass_NSS", "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
-pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
-write.csv(pass_df, file = pass_df_file, row.names = FALSE)
 
 
 
-##### Step 4: Categorize loci by test results and estimate species trees #####
+##### Step 5: Categorize loci by test results and prepare subsets of data for tree estimation #####
 # Iterate through each of the datasets
 # For each recombination detection test, record which loci pass the test
 # For each recombination detection test, estimate a species tree from the loci that pass the test
@@ -209,6 +221,17 @@ for (dataset in datasets_to_copy_loci){
   
   ## filter treelikeness_df by dataset
   dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
+  
+  ## Remove loci that have an NA result for any test - do not include these in any analysis for comparative purposes
+  # identify loci that have an NA for any one test
+  na_phi_inds <- which(is.na(dataset_df$pass_phi))
+  na_maxchi_inds <- which(is.na(dataset_df$pass_maxchi))
+  na_geneconv_inds <- which(is.na(dataset_df$pass_geneconv))
+  na_dataset_inds <- sort(unique(c(na_phi_inds, na_maxchi_inds, na_geneconv_inds)))
+  dataset_inds <- 1:nrow(dataset_df)
+  allTest_inds <- setdiff(dataset_inds, na_dataset_inds)
+  # Reduce allTest_df to loci without na for any test
+  dataset_df <- dataset_df[allTest_inds, ]
   
   ## Iterate through each var and save the loci/trees for a tree made from only loci that pass the test
   # make a list of the variables on which to filter the loci - should be columns from the treelikeness_df
@@ -269,26 +292,26 @@ for (dataset in datasets_to_copy_loci){
   # Apply all three tests - get loci that pass all and those that fail all
   tree_type <- c("pass", "fail")
   for (tt in tree_type){
-    # Set boolean to collect either loci that passed or failed the test
-    if (tt == "pass"){
-      bool = TRUE
-    } else if (tt = "fail"){
-      bool = FALSE
-    }
+    print(paste0(dataset, " : all tests : ", tt))
     
     # Create output names
-    all_text_name <- paste0(text_records_dir, dataset, "_all_",tt ,"_loci_record.txt")
-    all_ASTRAL_name <- paste0(dataset,"_all_ASTRAL")
+    all_text_name <- paste0(text_records_dir, dataset, "_allTests_",tt ,"_loci_record.txt")
+    all_ASTRAL_name <- paste0(dataset,"_allTests_", tt, "_ASTRAL")
     if (estimate.species.trees.in.IQTREE == TRUE){
       if (partition.by.codon.position == TRUE){
-        all_IQTree_name <- paste0(dataset,"_all_", tt, "_IQTREE_partitioned")
+        all_IQTree_name <- paste0(dataset,"_allTests_", tt, "_IQTREE_partitioned")
       } else if (partition.by.codon.position == FALSE){
-        all_IQTree_name <- paste0(dataset,"_all_", tt, "_IQTREE") 
+        all_IQTree_name <- paste0(dataset,"_allTests_", tt, "_IQTREE") 
       }
     }
     
-    ## Subset the dataframe_df to loci that pass all four tests
-    all_df <- dataset_df[((dataset_df$pass_phi == bool) & (dataset_df$pass_maxchi == bool) & (dataset_df$pass_geneconv == bool)), ]
+    ## Subset the dataframe_df to loci that pass all three tests
+    # Select loci that pass/fail all three tests
+    if (tt == "pass"){
+      all_df <- dataset_df[((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE)), ]
+    } else if (tt == "fail"){
+      all_df <- dataset_df[((dataset_df$pass_phi == FALSE) & (dataset_df$pass_maxchi == FALSE) & (dataset_df$pass_geneconv == FALSE)), ] 
+    }
     # Copy loci trees for ASTRAL
     copy.loci.trees(all_df$loci_name, all_df$tree, category_output_folder, all_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
     # Copy loci alignments for IQ-Tree
@@ -296,7 +319,8 @@ for (dataset in datasets_to_copy_loci){
       # create the partition file required to run this IQ-Tree analysis
       # partition.file.from.loci.list(loci_list, directory, original_alignment_folder, add.charpartition = FALSE)
       partition.file.from.loci.list(loci_list = all_df$loci_name, directory = paste0(category_output_folder, all_IQTree_name, "/"),
-                                    original_alignment_folder = alignment_dir[[dataset]], add.charpartition = FALSE)
+                                    original_alignment_folder = alignment_dir[[dataset]], add.charpartition = FALSE,
+                                    add.codon.positions = partition.by.codon.position)
     }
     # Create a record of which loci went into which analysis
     output_text <- all_df$loci_name
@@ -305,8 +329,8 @@ for (dataset in datasets_to_copy_loci){
     summary_row <- c(summary_row, length(all_df$loci_name))
   }
   
-  
   ## Apply no tests
+  print(paste0(dataset, " : No tests -- include all loci from modified dataset_df"))
   NoTest_text_name <- paste0(text_records_dir, dataset, "_NoTest_loci_record.txt")
   NoTest_ASTRAL_name <- paste0(dataset,"_NoTest_ASTRAL")
   if (estimate.species.trees.in.IQTREE == TRUE){
@@ -323,7 +347,8 @@ for (dataset in datasets_to_copy_loci){
     # create the partition file required to run this IQ-Tree analysis
     # partition.file.from.loci.list(loci_list, directory, original_alignment_folder, add.charpartition = FALSE)
     partition.file.from.loci.list(loci_list = dataset_df$loci_name, directory = paste0(category_output_folder, NoTest_IQTree_name, "/"),
-                                  original_alignment_folder = alignment_dir[[dataset]], add.charpartition = FALSE)
+                                  original_alignment_folder = alignment_dir[[dataset]], add.charpartition = FALSE,
+                                  add.codon.positions = partition.by.codon.position)
   }
   # Create a record of which loci went into which analysis
   output_text <- dataset_df$loci_name
@@ -331,16 +356,28 @@ for (dataset in datasets_to_copy_loci){
   # Add the number of loci in this category to the summary row
   summary_row <- c(summary_row, length(dataset_df$loci_name))
   
+  # Expand the summary row to identify the number of loci that pass or fail the same tests
+  n_pass_PHI_maxchi <- nrow(dataset_df[((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE)), ])
+  n_fail_PHI_maxchi <- nrow(dataset_df[((dataset_df$pass_phi == FALSE) & (dataset_df$pass_maxchi == FALSE)), ])
+  n_pass_PHI_geneconv <- nrow(dataset_df[((dataset_df$pass_phi == TRUE) & (dataset_df$pass_geneconv == TRUE)), ])
+  n_fail_PHI_geneconv <- nrow(dataset_df[((dataset_df$pass_phi == FALSE) & (dataset_df$pass_geneconv == FALSE)), ])
+  n_pass_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE)), ])
+  n_fail_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == FALSE) & (dataset_df$pass_geneconv == FALSE)), ])
+  summary_row <- c(summary_row, n_pass_PHI_maxchi, n_fail_PHI_maxchi, n_pass_PHI_geneconv, n_fail_PHI_geneconv, n_pass_maxchi_geneconv, n_fail_maxchi_geneconv)
   
   ## Write out the summary row as a dataframe
   names(summary_row) <- c("dataset", "n_pass_PHI", "n_fail_PHI", "n_pass_maxchi", "n_fail_maxchi", "n_pass_geneconv", "n_fail_geneconv",
-                          "n_pass_all", "n_fail_all", "n_NoTest")
+                          "n_pass_allTests", "n_fail_allTests", "n_NoTest", "n_pass_PHI_maxchi", "n_fail_PHI_maxchi", "n_pass_PHI_geneconv", 
+                          "n_fail_PHI_geneconv", "n_pass_maxchi_geneconv", "n_fail_maxchi_geneconv")
   summary_df <- data.frame(as.list(summary_row))
   summary_op_file <- paste0(output_dirs[dataset], dataset, "_species_tree_summary.csv")
   write.csv(summary_df, file = summary_op_file, row.names = FALSE)
 }
 
 
+
+
+##### Step 6: Estimate species trees #####
 ### Estimate a species tree for each of the five categories
 for (dataset in datasets_to_estimate_trees){
   # Ensure the folder for species trees data exists
