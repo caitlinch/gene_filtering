@@ -87,37 +87,6 @@ if (run_location == "local"){
   datasets_to_collect_trees <- c("Pease2016")
   datasets_to_check <- c("Pease2016")
 
-} else if (run_location == "macbook"){
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
-  input_dir <- c("/Users/caitlin/Documents/PhD/Ch01/Data_OKP_sample/",
-                 "/Users/caitlin/Documents/PhD/Ch01/Data_Strassert_sample/",
-                 "/Users/caitlin/Documents/PhD/Ch01/Data_Vanderpool_sample/",
-                 "")
-  best_model_paths <- c(NA, NA, NA, NA)
-  output_dir <- c("/Users/caitlin/Documents/PhD/Ch01/Output/")
-  maindir <- "/Users/caitlin/Repositories/empirical_treelikeness/" # location of repository
-  
-  exec_folder <- "/Users/caitlin/Documents/PhD/Executables/"
-  # Create a vector with all of the executable file paths  in this order: 3SEQ, IQ-Tree, SplitsTree
-  # To access a path: exec_paths[["name"]]
-  exec_paths <- c("3seq","Phi","geneconv/geneconv","iqtree-2.1.3/bin/iqtree2")
-  exec_paths <- paste0(exec_folder,exec_paths)
-  names(exec_paths) <- c("3seq","PHIPack","GeneConv","IQTree")
-  
-  # set number of cores for parallelisation
-  cores_to_use = 1
-  iqtree_num_threads = "AUTO"
-  
-  # Select datasets to run analysis and collect results
-  # If do not want to run that part of the analysis, assign empty vector i.e. datasets_to_run <- c()
-  # If want to run specific datasets, assign only those. E.g. if you have datasets "Trees", "Animals" and "Fungi" and
-  #     want to run only "Trees" and "Fungi": datasets_to_run <- c("Trees", "Fungi")
-  # If want to run all of the datasets, assign all names i.e. datasets_to_run <- input_names
-  create_information_dataframe <- TRUE
-  datasets_to_run <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
-  datasets_to_collect_trees <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
-  datasets_to_check <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
-  
 } else if (run_location=="server"){
   input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
   input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
@@ -142,9 +111,9 @@ if (run_location == "local"){
   
   # Select datasets to run analysis and collect results
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
-  datasets_to_collect_trees <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
-  datasets_to_check <- c("Vanderpool2020","Strassert2021","1KP", "Pease2016")
+  datasets_to_run <- c("Strassert2021","1KP")
+  datasets_to_collect_trees <- c("Strassert2021","1KP")
+  datasets_to_check <- c("Strassert2021","1KP")
 }
 ### End Caitlin's paths ###
 
