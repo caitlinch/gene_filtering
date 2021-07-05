@@ -83,9 +83,9 @@ if (run_location == "local"){
   #     want to run only "Trees" and "Fungi": datasets_to_run <- c("Trees", "Fungi")
   # If want to run all of the datasets, assign all names i.e. datasets_to_run <- input_names
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("Pease2016")
-  datasets_to_collect_trees <- c("Pease2016")
-  datasets_to_check <- c("Pease2016")
+  datasets_to_run <- c()
+  datasets_to_collect_trees <- c()
+  datasets_to_check <- c()
 
 } else if (run_location=="server"){
   input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
