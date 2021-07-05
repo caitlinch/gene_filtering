@@ -1512,8 +1512,20 @@ partition.file.from.loci.list <- function(loci_list, directory, original_alignme
   # Get the list of loci for this dataset 
   original_alignments <- list.files(original_alignment_folder, recursive = TRUE)
   # Find which file names refer to the original alignments
-  inds <- unlist(lapply(loci_list, grep, original_alignments))
-  loci_list_locations <- paste0(original_alignment_folder, original_alignments[inds])
+  if (grepl("Pease2016", original_alignment_folder) == TRUE){
+    # The form for the Pease2016 alignment files is "cSL2.50chXX_sYYYYYY_100kb_windows.fasta" where XX = chromosome number and YYYYY = site for start of 100kb window
+    # The Pease2016 loci names have the form chXX-sXXXXXXX, but the alignment names have an underscore i.e.chXX_sXXXXXXX
+    # To identify the matching alignments, substitute the second form for the first when searching within the alignment folders
+    # Add an "_" after the modified loci name, because otherwise multiple loci with the same starting site number will be identified
+    # e.g. ch01-100 and ch01-1000 will both be found when looking for the first
+    loci_list_underscore <- paste0(gsub("-", "_", loci_list), "_")
+    inds <- unlist(lapply(loci_list_underscore, grep, original_alignments))
+    loci_list_locations <- paste0(original_alignment_folder, original_alignments[inds])
+  } else {
+    # For other datasets, the loci name is directly included in the alignment name
+    inds <- unlist(lapply(loci_list, grep, original_alignments))
+    loci_list_locations <- paste0(original_alignment_folder, original_alignments[inds])
+  }
   if (add.codon.positions == TRUE){
     # make charset for each loci - split by codon position
     all_charsets <- unlist(lapply(1:length(loci_list), make.codon.position.charset.from.filepath, loci_list, loci_list_locations))
