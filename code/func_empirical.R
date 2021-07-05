@@ -282,7 +282,7 @@ do1.empirical.parametric.bootstrap <- function(bootstrap_id, empirical_alignment
       }
       
     } else if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | 
-                file_extension == "ffn" | file_extension == "faa" | file_extension == "frn"){
+               file_extension == "ffn" | file_extension == "faa" | file_extension == "frn"){
       if (empirical_alignment_row$alphabet == "dna"){
         new_aln_shuffled <- as.phyDat(new_aln_df, type = "DNA")
         #write the shuffled alignment to disk
@@ -1495,7 +1495,7 @@ make.partition.file <- function(directory, add.charpartition = FALSE){
 
 
 # Writing a partition file in one directory from a loci list, referring to loci in their original locations
-partition.file.from.loci.list <- function(loci_list, directory, original_alignment_folder, add.charpartition = FALSE){
+partition.file.from.loci.list <- function(loci_list, directory, original_alignment_folder, add.charpartition = FALSE, add.codon.positions = FALSE){
   # make sure the directory name is properly formatted and ends in a slash
   directory <- paste0(dirname(directory), "/", basename(directory), "/")
   original_alignment_folder <- paste0(dirname(original_alignment_folder), "/", basename(original_alignment_folder), "/")
@@ -1511,14 +1511,18 @@ partition.file.from.loci.list <- function(loci_list, directory, original_alignme
   # Find which file names refer to the original alignments
   inds <- unlist(lapply(loci_list, grep, original_alignments))
   loci_list_locations <- paste0(original_alignment_folder, original_alignments[inds])
-  # make charset for each loci - split by codon position
-  all_charsets <- unlist(lapply(1:length(loci_list), make.codon.position.charset.from.filepath, loci_list, loci_list_locations))
-  # make the charpartition
-  all_loci_labels <- unlist(lapply(loci_list, make.charpartition.labels))
-  all_inds <- 1:length(all_loci_labels)
-  loci_order <- paste0(all_inds,":",all_loci_labels,", ")
-  loci_order[length(loci_order)] <- gsub(", ",";",loci_order[length(loci_order)])
+  if (add.codon.positions == TRUE){
+    # make charset for each loci - split by codon position
+    all_charsets <- unlist(lapply(1:length(loci_list), make.codon.position.charset.from.filepath, loci_list, loci_list_locations))
+  } else if (add.codon.positions == FALSE){
+    all_charsets <- unlist(lapply(1:length(loci_list), make.charset.from.filepath, loci_list, loci_list_locations))
+  }
   if (add.charpartition == TRUE){
+    # make the charpartition
+    all_loci_labels <- unlist(lapply(loci_list, make.charpartition.labels))
+    all_inds <- 1:length(all_loci_labels)
+    loci_order <- paste0(all_inds,":",all_loci_labels,", ")
+    loci_order[length(loci_order)] <- gsub(", ",";",loci_order[length(loci_order)])
     # generate charpartition
     charpartitions_vec <- c("\tcharpartition loci = ",loci_order)
     charpartitions <- paste(charpartitions_vec, collapse = "")
@@ -1535,12 +1539,23 @@ partition.file.from.loci.list <- function(loci_list, directory, original_alignme
 
 
 
-make.codon.position.charset <- function(filename, directory){
-  loci_name <- remove.suffix(filename)
-  firstpos <- paste0("\tcharset ", loci_name, "_1stpos = ", directory, filename, ": 1-.\\3;")
-  secondpos <- paste0("\tcharset ", loci_name, "_2ndpos = ", directory, filename, ": 2-.\\3;")
-  thirdpos <- paste0("\tcharset ", loci_name, "_3rdpos = ", directory, filename, ": 3-.\\3;")
+# Return charset partitioned by codon position (e.g. 1stpos = 1-.\3, 2ndpos = 2-.\3). Note: does not account for frame shift!
+make.codon.position.charset <- function(file_name, directory){
+  loci_name <- remove.suffix(file_name)
+  firstpos <- paste0("\tcharset ", loci_name, "_1stpos = ", directory, file_name, ": 1-.\\3;")
+  secondpos <- paste0("\tcharset ", loci_name, "_2ndpos = ", directory, file_name, ": 2-.\\3;")
+  thirdpos <- paste0("\tcharset ", loci_name, "_3rdpos = ", directory, file_name, ": 3-.\\3;")
   file_charset <- c(firstpos, secondpos, thirdpos)
+  return(file_charset)
+}
+
+
+
+# Return each loci as a single charset
+make.charset.from.filepath <- function(index, loci_names, file_names){
+  loci_name <- loci_names[index]
+  file_name <- file_names[index]
+  file_charset <- paste0("\tcharset ", loci_name, " = ", file_name)
   return(file_charset)
 }
 
