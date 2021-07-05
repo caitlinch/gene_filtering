@@ -413,14 +413,9 @@ for (dataset in datasets_to_estimate_trees){
     iqtree_files_to_run <- paste0(category_output_folder, iqtree_files_to_run)
     # Estimate the species trees using IQ-Tree
     if (estimate.species.trees.in.IQTREE == TRUE){
-      if (partition.by.codon.position == TRUE){
-        # Estimate the species tree on each folder of alignments using the partition file
-        partitions_to_run <- paste0(dirname(iqtree_files_to_run), "/", basename(iqtree_files_to_run), "/", "partitions.nex")
-        lapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"])
-      } else if (partition.by.codon.position == FALSE){
-        # If not partitioning data by codon position, simply call IQ-Tree on the folder of alignments to estimate a tree
-        lapply(iqtree_files_to_run, estimate.IQTREE.species.tree, exec_paths["IQTree"])
-      }
+      # Estimate the species tree on each folder of alignments using the partition file
+      partitions_to_run <- paste0(dirname(iqtree_files_to_run), "/", basename(iqtree_files_to_run), "/", "partitions.nex")
+      lapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"])
     }
   }
   
