@@ -1558,7 +1558,7 @@ make.codon.position.charset <- function(file_name, directory){
 make.charset.from.filepath <- function(index, loci_names, file_names){
   loci_name <- loci_names[index]
   file_name <- file_names[index]
-  file_charset <- paste0("\tcharset ", loci_name, " = ", file_name)
+  file_charset <- paste0("\tcharset ", loci_name, " = ", file_name, " : 1-.;")
   return(file_charset)
 }
 
