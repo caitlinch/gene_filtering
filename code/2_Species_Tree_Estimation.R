@@ -12,7 +12,6 @@
 # csv_data_dir      <- directory containing the .csv file results from script 1_RecombinationDetection_empiricalTreelikeness.R
 # output_dir        <- where the coalescent/concatenated trees and tree comparisons will be stored 
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
-# cores_to_use      <- the number of cores to use for parallelisation. 1 for a single core (wholly sequential), or higher if using parallelisation.
 # exec_folder       <- the folder containing the software executables needed for analysis (ASTRAL and IQTREE)
 # exec_paths        <- location to each executable within the folder
 # datasets_to_copy_loci   <- Out of the input names, select which datasets to copy loci trees for tree estimation
@@ -27,7 +26,6 @@
 # input_names <- ""
 # output_dir <- ""
 # maindir <- ""
-# cores_to_use <- 1
 # # Create a vector with all of the executable file paths using the following 5 lines as a template:
 # # exec_folder <- "/path/to/executables/folder/"
 # # exec_paths <- c("ASTRAL_executable","IQ-Tree_executable")
@@ -65,9 +63,6 @@ if (run_location == "local"){
   exec_paths <- paste0(exec_folder,exec_paths)
   names(exec_paths) <- c("ASTRAL","IQTree")
   
-  # set number of cores for parallel processing
-  cores_to_use = 1
-  
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c()
   datasets_to_estimate_trees <- c("Vanderpool2020", "Pease2016")
@@ -91,10 +86,7 @@ if (run_location == "local"){
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("/data/caitlin/executables/ASTRAL/astral.5.7.5.jar","/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
   names(exec_paths) <- c("ASTRAL","IQTree")
-  
-  # set number of cores  for parallel processing
-  cores_to_use = 15
-  
+
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("1KP", "Strassert2021", "Vanderpool2020", "Pease2016")
   datasets_to_estimate_trees <- c("1KP", "Strassert2021", "Vanderpool2020", "Pease2016")
