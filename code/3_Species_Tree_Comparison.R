@@ -28,6 +28,8 @@ if (run == "local"){
 ##### Step 2: Open packages and functions #####
 # Open packages
 library(ape)
+# Source the functions using the filepaths
+source(paste0(maindir,"code/func_comparison.R"))
 
 
 

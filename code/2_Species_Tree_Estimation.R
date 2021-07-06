@@ -102,7 +102,7 @@ library(ape) # analyses of phylogenetics and evolution
 library(parallel) # support for parallel computation
 library(phangorn) # phylogenetic reconstruction and analysis
 library(phytools) # tools for comparative biology and phylogenetics
-# Source the functions using the filepaths from Step 2
+# Source the functions using the filepaths
 source(paste0(maindir,"code/func_empirical.R"))
 source(paste0(maindir,"code/func_analysis.R"))
 
