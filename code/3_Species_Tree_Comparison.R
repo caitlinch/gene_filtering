@@ -59,21 +59,27 @@ all_astral_files <- c(all_astral_trees, all_astral_gene_trees)
 tests_to_run <- c("allTests", "PHI", "maxchi", "geneconv")
 t = "PHI"
 for (t in tests_to_run){
-  # Collect files for this test
-  files <- c(grep(t, all_astral_trees, value = TRUE), grep("NoTest", all_astral_trees, value = TRUE), 
-             grep("pass", grep(t, all_astral_gene_trees, value = TRUE), value = TRUE))
   # Name the new folder for running this test
   new_folder <- paste0(dataset_folder, "quarnetGoFtest_", t, "/")
   if (dir.exists(new_folder) == FALSE){dir.create(new_folder)}
-  # Move files into this folder
-  for (i in files){
-    file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))
-  }
   
-  # Give files their new full filepath
-  files <- paste0(new_folder, files)
-  # Rewrite ASTRAL trees to match format for quarnetGoFtest
-  lapply(files[1:3], reformat.ASTRAL.tree.for.Julia)
+  # Check whether the results file for this test exists already
+  quarnet_results_file <- paste0(new_folder, dataset, "_quarnetGoFtest_", t, "_results.csv")
+  # If the file does not exist, run the tests
+  if (file.exists(quarnet_results_file) == FALSE){
+    # Collect files for this test
+    files <- c(grep(t, all_astral_trees, value = TRUE), grep("NoTest", all_astral_trees, value = TRUE), 
+               grep("pass", grep(t, all_astral_gene_trees, value = TRUE), value = TRUE))
+    # Move files into the new folder
+    for (i in files){file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))}
+    
+    # Give files their new full file paths
+    files <- paste0(new_folder, files)
+    # Rewrite ASTRAL trees to match format for quarnetGoFtest (will all have .tre extension)
+    lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia)
+    # Rewrite ASTRAL gene trees to match format for quarnetGoFTest (will have .txt extension)
+    lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia)
+  }
   
 }
 
