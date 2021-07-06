@@ -33,7 +33,7 @@ reformat.gene.tree.list.for.Julia <- function(trees_path, gene.tree.source = "IQ
     ts[[i]] <- temp_tree
   }
   # Write these trees back out
-  write.tree(ts, gsub(".txt", "_test.txt", trees_path))
+  write.tree(ts, trees_path)
 }
 
 # Function to take one tree from a multiphylo object, format it for QuartetNetworkGoodnessOfFit Julia package, and return it
