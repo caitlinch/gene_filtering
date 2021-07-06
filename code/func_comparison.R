@@ -51,3 +51,20 @@ reformat.phylo.for.Julia <- function(tree, gene.tree.source = "IQ-TREE"){
   tree$node.label <- NULL
   return(tree)
 }
+
+
+
+
+# This function takes in the locations of multiple files and writes a Julia script to apply the 
+# quarnetGoFtest from the QuartetNetworkGoodnessOfFit Julia package
+write.Julia.GoF.script <- function(test, directory, pass_tree, fail_tree, all_tree, gene_trees){
+  script_file <- paste0(directory, "apply_GoF_test.jl")
+  
+}
+
+
+
+
+
+
+

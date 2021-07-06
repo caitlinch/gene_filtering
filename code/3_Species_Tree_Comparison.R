@@ -63,6 +63,8 @@ for (t in tests_to_run){
   new_folder <- paste0(dataset_folder, "quarnetGoFtest_", t, "/")
   if (dir.exists(new_folder) == FALSE){dir.create(new_folder)}
   
+  # Check whether the quartet CFs have been estimated for the NoTest gene trees file and if not, convert them
+  
   # Check whether the results file for this test exists already
   quarnet_results_file <- paste0(new_folder, dataset, "_quarnetGoFtest_", t, "_results.csv")
   # If the file does not exist, run the tests
@@ -78,7 +80,21 @@ for (t in tests_to_run){
     # Rewrite ASTRAL trees to match format for quarnetGoFtest (will all have .tre extension)
     lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia)
     # Rewrite ASTRAL gene trees to match format for quarnetGoFTest (will have .txt extension)
-    lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia)
+    lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia, gene.tree.source = "IQ-TREE")
+    # Name the files
+    noTest_tree_file <- grep("NoTest", grep("tre", files, value = TRUE), value = TRUE)
+    pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
+    fail_tree_file <- grep("fail", grep("tre", files, value = TRUE), value = TRUE)
+    gene_trees_file <- grep(".txt", files, value = TRUE)
+    # Write the Julia code into a file
+    test = t
+    directory = new_folder
+    pass_tree = pass_tree_file
+    fail_tree = fail_tree_file
+    all_tree = noTest_tree_file
+    gene_trees = gene_trees_file
+    write.Julia.GoF.script(test = t, directory = new_folder, pass_tree = pass_tree_file, fail_tree = fail_tree_file, 
+                           all_tree = noTest_tree_file, gene_trees = gene_trees_file)
   }
   
 }
