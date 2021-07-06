@@ -298,49 +298,71 @@ run.geneconv <- function(alignment_path, alignment_folder, geneconv_path, seqtyp
   
   # Open geneconv outputted terminal text file to extract results
   geneconv_file_path <- paste0(alignment_folder, grep("_terminal.txt", list.files(alignment_folder), value = TRUE))
-  geneconv_file <- readLines(geneconv_file_path)
+  geneconv_file <- readLines(geneconv_file_path, warn = FALSE)
+  
   # Check whether geneconv ran successfully
   check_ind <- grep("Too few to analyze!", geneconv_file)
   # If check_ind returns as integer(0), that means geneconv could not run (due to too few polymorphisms)
   # If check_ind returns as a number, that means geneconv ran successfully
   if (identical(integer(0), check_ind) == TRUE){
+    # Either the alignment ran successfully, or the alignment caused a stack smashing error and caused the program to break
+    # For the former, the geneconv fragments will be present. For the latter, they won't be. 
     # Open geneconv .frag file to extract results
     geneconv_file_path <- paste0(alignment_folder, grep(".frag", list.files(alignment_folder), value = TRUE))
-    geneconv_file <- readLines(geneconv_file_path)
-    # Extract seed
-    ind <- grep("# The starting random number seed is", geneconv_file)
-    seed_line <- geneconv_file[ind]
-    starting_seed <- gsub(" ", "", gsub("\\.", "", gsub("# The starting random number seed is", "", seed_line)))
-    # Extract number of significant fragments
-    ind <- grep("Global lists:", geneconv_file)
-    global_line <- geneconv_file[ind]
-    global_line <- strsplit(gsub(" significant fragments", "", gsub("# Global lists:", "", global_line)), " and ")[[1]]
-    global_inner_pair <- gsub(" ", "", gsub(" I", "", global_line[1]))
-    if (global_inner_pair == "no"){global_inner_pair = 0}
-    global_outer_seq <- gsub(" ", "", gsub(" O", "", global_line[2]))
-    if (global_outer_seq == "no"){global_outer_seq = 0}
-    pairwise_line <- geneconv_file[ind+1]
-    pairwise_line <- strsplit(gsub(" significant fragments", "", gsub("# Pairwise lists:", "", pairwise_line)), " and ")[[1]]
-    pairwise_inner_pair <- gsub(" ", "", gsub(" I", "", pairwise_line[1]))
-    if (pairwise_inner_pair == "no"){pairwise_inner_pair = 0}
-    pairwise_outer_seq <- gsub(" ", "", gsub(" O", "", pairwise_line[2]))
-    if (pairwise_outer_seq == "no"){pairwise_outer_seq = 0}
-    # Extract minimum p-values
-    ind <- grep("# Simulated P-values are based on ", geneconv_file)
-    inner_line <- geneconv_file[ind+4]
-    inner_line_split <- strsplit(inner_line, "    ")[[1]]
-    inner_line_split <- inner_line_split[inner_line_split != ""]
-    inner_line_vars <- gsub(" ", "", inner_line_split[2:5])
-    inner_line_var_names <- c("geneconv_inner_fragment_maximum_blast-like_score", "geneconv_inner_fragment_simulated_p_value", "geneconv_inner_fragment_sd_above_sim_mean", "geneconv_inner_fragment_sd_of_sim")
-    outer_line <- geneconv_file[ind+6]
-    outer_line_split <- strsplit(outer_line, "    ")[[1]]
-    outer_line_split <- outer_line_split[outer_line_split != ""]
-    outer_line_vars <- gsub(" ", "", outer_line_split[2:5])
-    outer_line_var_names <- c("geneconv_outer_fragment_maximum_blast-like_score", "geneconv_outer_fragment_simulated_p_value", "geneconv_outer_fragment_sd_above_sim_mean", "geneconv_outer_fragment_sd_of_sim")
-    # Assemble geneconv results
-    geneconv_results <- c(starting_seed, global_inner_pair, global_outer_seq, pairwise_inner_pair, pairwise_outer_seq, inner_line_vars, outer_line_vars)
-    names(geneconv_results) <- c("geneconv_seed", "geneconv_num_global_inner_fragments", "geneconv_num_global_outer-sequence_fragments", "geneconv_num_pairwise_inner_fragments", 
-                                 "geneconv_num_pairwise_outer-sequence_fragments", inner_line_var_names, outer_line_var_names) 
+    geneconv_file <- readLines(geneconv_file_path, warn = FALSE)
+    # Extract the indexes of the lines for extracting information from the file
+    seed_ind <- grep("# The starting random number seed is", geneconv_file)
+    frag_ind <- grep("Global lists:", geneconv_file)
+    p_val_ind <- grep("# Simulated P-values are based on ", geneconv_file)
+    # Check all the lines that will be extracted from the file
+    info_lines <- c(geneconv_file[seed_ind], geneconv_file[frag_ind], geneconv_file[frag_ind+1], 
+                    geneconv_file[p_val_ind], geneconv_file[p_val_ind+4], geneconv_file[p_val_ind+6])
+    if ((length(info_lines) == 6) & (anyNA(info_lines) == FALSE)){
+      ## If all 6 lines are present, all the information required is present in the file and can be extracted
+      # Extract seed
+      seed_ind <- grep("# The starting random number seed is", geneconv_file)
+      seed_line <- geneconv_file[seed_ind]
+      starting_seed <- gsub(" ", "", gsub("\\.", "", gsub("# The starting random number seed is", "", seed_line)))
+      # Extract number of significant fragments
+      frag_ind <- grep("Global lists:", geneconv_file)
+      global_line <- geneconv_file[frag_ind]
+      global_line <- strsplit(gsub(" significant fragments", "", gsub("# Global lists:", "", global_line)), " and ")[[1]]
+      global_inner_pair <- gsub(" ", "", gsub(" I", "", global_line[1]))
+      if (global_inner_pair == "no"){global_inner_pair = 0}
+      global_outer_seq <- gsub(" ", "", gsub(" O", "", global_line[2]))
+      if (global_outer_seq == "no"){global_outer_seq = 0}
+      pairwise_line <- geneconv_file[frag_ind+1]
+      pairwise_line <- strsplit(gsub(" significant fragments", "", gsub("# Pairwise lists:", "", pairwise_line)), " and ")[[1]]
+      pairwise_inner_pair <- gsub(" ", "", gsub(" I", "", pairwise_line[1]))
+      if (pairwise_inner_pair == "no"){pairwise_inner_pair = 0}
+      pairwise_outer_seq <- gsub(" ", "", gsub(" O", "", pairwise_line[2]))
+      if (pairwise_outer_seq == "no"){pairwise_outer_seq = 0}
+      # Extract minimum p-values
+      p_val_ind <- grep("# Simulated P-values are based on ", geneconv_file)
+      inner_line <- geneconv_file[p_val_ind+4]
+      inner_line_split <- strsplit(inner_line, "    ")[[1]]
+      inner_line_split <- inner_line_split[inner_line_split != ""]
+      inner_line_vars <- gsub(" ", "", inner_line_split[2:5])
+      inner_line_var_names <- c("geneconv_inner_fragment_maximum_blast-like_score", "geneconv_inner_fragment_simulated_p_value", "geneconv_inner_fragment_sd_above_sim_mean", "geneconv_inner_fragment_sd_of_sim")
+      outer_line <- geneconv_file[p_val_ind+6]
+      outer_line_split <- strsplit(outer_line, "    ")[[1]]
+      outer_line_split <- outer_line_split[outer_line_split != ""]
+      outer_line_vars <- gsub(" ", "", outer_line_split[2:5])
+      outer_line_var_names <- c("geneconv_outer_fragment_maximum_blast-like_score", "geneconv_outer_fragment_simulated_p_value", "geneconv_outer_fragment_sd_above_sim_mean", "geneconv_outer_fragment_sd_of_sim")
+      # Assemble geneconv results
+      geneconv_results <- c(starting_seed, global_inner_pair, global_outer_seq, pairwise_inner_pair, pairwise_outer_seq, inner_line_vars, outer_line_vars)
+      names(geneconv_results) <- c("geneconv_seed", "geneconv_num_global_inner_fragments", "geneconv_num_global_outer-sequence_fragments", "geneconv_num_pairwise_inner_fragments", 
+                                   "geneconv_num_pairwise_outer-sequence_fragments", inner_line_var_names, outer_line_var_names)
+    } else if ((length(info_lines) != 6) | (anyNA(info_lines) == TRUE)){
+      # There are some results lines missing or incomplete
+      # Geneconv could not run - return "DNF" for all variables
+      geneconv_results <- rep("Error:DidNotFinish", 13)
+      # Assemble names
+      inner_line_var_names <- c("geneconv_inner_fragment_maximum_blast-like_score", "geneconv_inner_fragment_simulated_p_value", "geneconv_inner_fragment_sd_above_sim_mean", "geneconv_inner_fragment_sd_of_sim")
+      outer_line_var_names <- c("geneconv_outer_fragment_maximum_blast-like_score", "geneconv_outer_fragment_simulated_p_value", "geneconv_outer_fragment_sd_above_sim_mean", "geneconv_outer_fragment_sd_of_sim")
+      names(geneconv_results) <- c("geneconv_seed", "geneconv_num_global_inner_fragments", "geneconv_num_global_outer-sequence_fragments", "geneconv_num_pairwise_inner_fragments", 
+                                   "geneconv_num_pairwise_outer-sequence_fragments", inner_line_var_names, outer_line_var_names)
+    }
   } else if (identical(integer(0), check_ind) == FALSE){
     # Geneconv could not run - return NA for all variables
     geneconv_results <- rep(NA, 13)
