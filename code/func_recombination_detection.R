@@ -83,7 +83,11 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
     # Extract tree from iqtree file
     alignment_files <- list.files(alignment_folder)
     tree_file <- paste0(alignment_folder, grep("treefile", alignment_files, value = TRUE))
-    newick_tree <- readLines(tree_file)
+    if (file.exists(tree_file)){
+      newick_tree <- readLines(tree_file)
+    } else {
+      newick_tree <- NA
+    }
     
     # Combine results into a nice row for output csv file
     results_vec <- c(loci_row$dataset, loci_row$loci_name, loci_row$alphabet, loci_row$best_model,

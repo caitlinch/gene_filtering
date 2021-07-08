@@ -1180,11 +1180,17 @@ save.tree <- function(alignment_folder,trees_folder){
   treefile_files <- grep(".treefile",alignment_files, value = TRUE)
   # Extract the real tree - the only ".treefile" that isn't a ".treefile."
   treefile <- grep(".treefile.", treefile_files, invert = TRUE, value = TRUE)
-  # Create variables for full name of file in current and new location
-  old_treefile <- paste0(alignment_folder,"/", treefile)
-  new_treefile <- paste0(trees_folder, treefile)
-  # Save the file into the trees_folder
-  file.copy(from = old_treefile, to = new_treefile, overwrite = TRUE, recursive = FALSE)
+  if (identical(treefile, character(0))){
+    # The treefile does not exist. Return the name of the alignment folder
+    return(alignment_folder)
+  } else {
+    # The treefile does exist: copy it into the new file
+    # Create variables for full name of file in current and new location
+    old_treefile <- paste0(alignment_folder,"/", treefile)
+    new_treefile <- paste0(trees_folder, treefile)
+    # Save the file into the trees_folder
+    file.copy(from = old_treefile, to = new_treefile, overwrite = TRUE, recursive = FALSE)
+  }
 }
 
 
