@@ -77,11 +77,7 @@ if (run_location == "local"){
   cores_to_use = 1
   iqtree_num_threads = "AUTO"
   
-  # Select datasets to run analysis and collect results
-  # If do not want to run that part of the analysis, assign empty vector i.e. datasets_to_run <- c()
-  # If want to run specific datasets, assign only those. E.g. if you have datasets "Trees", "Animals" and "Fungi" and
-  #     want to run only "Trees" and "Fungi": datasets_to_run <- c("Trees", "Fungi")
-  # If want to run all of the datasets, assign all names i.e. datasets_to_run <- input_names
+  # Select which analyses to apply to each dataset
   create_information_dataframe <- TRUE
   datasets_to_run <- c()
   datasets_to_collect_trees <- c()
@@ -109,11 +105,11 @@ if (run_location == "local"){
   cores_to_use = 30
   iqtree_num_threads = "AUTO"
   
-  # Select datasets to run analysis and collect results
+  # Select which analyses to apply to each dataset
   create_information_dataframe <- FALSE
   datasets_to_run <- c()
-  datasets_to_collect_trees <- c("Strassert2021","1KP")
-  datasets_to_check <- c("Strassert2021","1KP")
+  datasets_to_collect_trees <- c()
+  datasets_to_check <- c()
 }
 ### End Caitlin's paths ###
 
