@@ -290,7 +290,7 @@ for (dataset in datasets_to_check){
   w_df <- w_df[!duplicated(w_df),]
   # Check for the different kinds of common warnings
   # Check for WARNING: Number of threads seems too high/low for the alignment given the length
-  # Recommends using -nt AUTO to select the best number of threads, which I did
+  # Recommends using -nt AUTO to select the best number of threads
   nt_auto_ids <- grep("Number of threads seems too",w_df$warnings)
   # Check for WARNING: x near-zero internal branches - appears when some internal branches are very small
   near_zero_ids <- grep("near-zero internal branches", w_df$warnings)
@@ -301,12 +301,26 @@ for (dataset in datasets_to_check){
   logl_val_ids <- grep("WARNING: Log-likelihood ", w_df$warnings) 
   # Check for WARNING: x sequences contain more than 50% gaps/ambiguity
   gaps_ids <- grep("sequences contain more than 50% gaps/ambiguity", w_df$warnings)
+  # Check for long strings of "****************************" - these indicate start and end of warnings 
+  star_ids <- grep("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", w_df$warnings)
+  # Check for different sequence names
+  seq_name_inds <- grep("Some sequence names are changed as follows", w_df$warnings)
   # If any other type of warning exists, exclude that loci from further analysis
   # The kinds of warnings that remain are:
   #     - Estimated model parameters are boundary that can cause numerical instability
   #     - NNI search need unusually large number of steps to converge
   #     - Some pairwise ML distances are too long (saturated)
-  remaining_ids <- setdiff(1:nrow(w_df), sort(c(nt_auto_ids, near_zero_ids, bs_ids, logl_val_ids, gaps_ids)))
+  # Exceptions:
+  #     - Ignore "some pairwise ML distances too long (saturated)" when the vast majority of loci alignments have this warning
+  #         - 1KP dataset: 378/410 loci have this warning
+  #         - Strassert2021 dataset: 286/320 loci have this warning
+  if ((dataset == "1KP") | (dataset == "Strassert2021")){
+    sat_inds <- grep("WARNING: Some pairwise ML distances are too long", w_df$warnings)
+  } else {
+    sat_inds <- c()
+  }
+  remaining_ids <- setdiff(1:nrow(w_df), sort(c(nt_auto_ids, near_zero_ids, bs_ids, logl_val_ids, 
+                                                gaps_ids, star_ids, seq_name_inds, sat_inds)) )
   remaining_warnings_df <- w_df[remaining_ids,]
   # Add to vectors for outputting as a csv
   exclusion_loci_name <- c(exclusion_loci_name, remaining_warnings_df$loci)
@@ -316,7 +330,7 @@ for (dataset in datasets_to_check){
 exclusion_df <- data.frame(dataset = exclusion_loci_dataset,
                            loci = exclusion_loci_name,
                            warning = exclusion_warning)
-exclusion_op_name <- paste0(output_dir, "01_IQ-Tree_warnings_LociToExclude.csv")
+exclusion_op_name <- paste0(output_dir, "01_IQ-Tree_warnings_", paste(datasets_to_check, collapse = "_"), "_LociToExclude.csv")
 write.csv(exclusion_df, exclusion_op_name, row.names = FALSE)
 
 
