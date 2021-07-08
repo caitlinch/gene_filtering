@@ -63,6 +63,9 @@ if (run_location == "local"){
   exec_paths <- paste0(exec_folder,exec_paths)
   names(exec_paths) <- c("ASTRAL","IQTree")
   
+  # Select number of cores for parallelisation
+  cores.to.use = 1
+  
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c()
   datasets_to_estimate_trees <- c("Vanderpool2020", "Pease2016")
@@ -87,6 +90,9 @@ if (run_location == "local"){
   exec_paths <- c("/data/caitlin/executables/ASTRAL/astral.5.7.5.jar",
                   "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
   names(exec_paths) <- c("ASTRAL","IQTree")
+  
+  # Select number of cores for parallelisation
+  cores.to.use = 30
 
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c("1KP", "Strassert2021")
@@ -397,7 +403,7 @@ for (dataset in datasets_to_estimate_trees){
     # Construct full file path
     astral_files_to_run <- paste0(category_output_folder, astral_files_to_run)
     # Estimate the species trees using ASTRAL
-    lapply(astral_files_to_run, ASTRAL.wrapper, exec_paths["ASTRAL"])
+    mclapply(astral_files_to_run, ASTRAL.wrapper, exec_paths["ASTRAL"], mc.cores = cores.to.use)
   }
   
   # Identify which IQTREE analyses have not been run
@@ -410,7 +416,7 @@ for (dataset in datasets_to_estimate_trees){
     if (estimate.species.trees.in.IQTREE == TRUE){
       # Estimate the species tree on each folder of alignments using the partition file
       partitions_to_run <- paste0(dirname(iqtree_files_to_run), "/", basename(iqtree_files_to_run), "/", "partitions.nex")
-      lapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"])
+      mclapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"], mc.cores = cores.to.use)
     }
   }
   
