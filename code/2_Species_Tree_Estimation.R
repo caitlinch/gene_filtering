@@ -74,22 +74,23 @@ if (run_location == "local"){
   input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
   
   # File and directory locations
-  alignment_dir <- c("",
-                     "",
+  alignment_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
+                     "/data/caitlin/empirical_treelikeness/Data_Strassert2021/",
                      "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/",
-                     "")
+                     "/data/caitlin/empirical_treelikeness/Data_Pease2016/")
   csv_data_dir <- "/data/caitlin/empirical_treelikeness/Output/"
   output_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
   maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness code is
   
   # Create a vector with all of the executable file paths in this order: 3SEQ, IQ-Tree, SplitsTree
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("/data/caitlin/executables/ASTRAL/astral.5.7.5.jar","/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
+  exec_paths <- c("/data/caitlin/executables/ASTRAL/astral.5.7.5.jar",
+                  "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
   names(exec_paths) <- c("ASTRAL","IQTree")
 
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c("1KP", "Strassert2021", "Vanderpool2020", "Pease2016")
-  datasets_to_estimate_trees <- c("1KP", "Strassert2021", "Vanderpool2020", "Pease2016")
+  datasets_to_copy_loci <-  c("1KP", "Strassert2021")
+  datasets_to_estimate_trees <- c("1KP", "Strassert2021")
   estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
 }
@@ -143,6 +144,8 @@ if (length(datasets_to_copy_loci) > 0){
       f <- grep(dataset, all_results, value = TRUE)
       results <- c(results, f)
     }
+    # Remove duplicates
+    results <- unique(results)
     # Open and attach the datasets
     treelikeness_df <- as.data.frame(do.call(rbind, lapply(results, read.csv)))
     treelikeness_df$match <- paste0(treelikeness_df$dataset, ":", treelikeness_df$loci_name)
