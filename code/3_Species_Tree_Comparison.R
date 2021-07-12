@@ -57,21 +57,21 @@ all_astral_files <- c(all_astral_trees, all_astral_gene_trees)
 
 # For each test, create a new folder and copy the relevant files into that folder
 tests_to_run <- c("allTests", "PHI", "maxchi", "geneconv")
-t = "PHI"
-for (t in tests_to_run){
+test = "PHI"
+for (test in tests_to_run){
   # Name the new folder for running this test
-  new_folder <- paste0(dataset_folder, "quarnetGoFtest_", t, "/")
+  new_folder <- paste0(dataset_folder, "quarnetGoFtest_", test, "/")
   if (dir.exists(new_folder) == FALSE){dir.create(new_folder)}
   
   # Check whether the quartet CFs have been estimated for the NoTest gene trees file and if not, convert them
   
   # Check whether the results file for this test exists already
-  quarnet_results_file <- paste0(new_folder, dataset, "_quarnetGoFtest_", t, "_results.csv")
+  quarnet_results_file <- paste0(new_folder, dataset, "_quarnetGoFtest_", test, "_results.csv")
   # If the file does not exist, run the tests
   if (file.exists(quarnet_results_file) == FALSE){
     # Collect files for this test
-    files <- c(grep(t, all_astral_trees, value = TRUE), grep("NoTest", all_astral_trees, value = TRUE), 
-               grep("pass", grep(t, all_astral_gene_trees, value = TRUE), value = TRUE))
+    files <- c(grep(test, all_astral_trees, value = TRUE), grep("NoTest", all_astral_trees, value = TRUE), 
+               grep("pass", grep(test, all_astral_gene_trees, value = TRUE), value = TRUE))
     # Move files into the new folder
     for (i in files){file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))}
     
@@ -87,14 +87,16 @@ for (t in tests_to_run){
     fail_tree_file <- grep("fail", grep("tre", files, value = TRUE), value = TRUE)
     gene_trees_file <- grep(".txt", files, value = TRUE)
     # Write the Julia code into a file
-    test = t
-    directory = new_folder
-    pass_tree = pass_tree_file
-    fail_tree = fail_tree_file
-    all_tree = noTest_tree_file
-    gene_trees = gene_trees_file
-    write.Julia.GoF.script(test = t, directory = new_folder, pass_tree = pass_tree_file, fail_tree = fail_tree_file, 
-                           all_tree = noTest_tree_file, gene_trees = gene_trees_file)
+    test = "PHI"
+    dataset = "Vanderpool2020"
+    new_folder = "/Users/caitlin/Downloads/"
+    pass_tree_file = "pass_tree_file.tre"
+    fail_tree_file = "fail_tree_file.tre"
+    noTest_tree_file = "noTest_tree_file.tre"
+    gene_trees_file = "gene_trees_file.txt"
+    tree_root = "Mus_musculus"
+    write.Julia.GoF.script(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, fail_tree = fail_tree_file, 
+                           all_tree = noTest_tree_file, gene_trees = gene_trees_file, tree_root = tree_root)
   }
   
 }
