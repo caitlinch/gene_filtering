@@ -66,7 +66,7 @@ for (test in tests_to_run){
   # Check whether the quartet CFs have been estimated for the NoTest gene trees file and if not, convert them
   
   # Check whether the results file for this test exists already
-  quarnet_results_file <- paste0(new_folder, dataset, "_quarnetGoFtest_", test, "_results.csv")
+  quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
   # If the file does not exist, run the tests
   if (file.exists(quarnet_results_file) == FALSE){
     # Collect files for this test
@@ -86,17 +86,11 @@ for (test in tests_to_run){
     pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
     fail_tree_file <- grep("fail", grep("tre", files, value = TRUE), value = TRUE)
     gene_trees_file <- grep(".txt", files, value = TRUE)
-    # Write the Julia code into a file
-    test = "PHI"
-    dataset = "Vanderpool2020"
-    new_folder = "/Users/caitlin/Downloads/"
-    pass_tree_file = "pass_tree_file.tre"
-    fail_tree_file = "fail_tree_file.tre"
-    noTest_tree_file = "noTest_tree_file.tre"
-    gene_trees_file = "gene_trees_file.txt"
+    # Provide extra parameters for the function
     tree_root = "Mus_musculus"
+    # Write the Julia code into a file
     write.Julia.GoF.script(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, fail_tree = fail_tree_file, 
-                           all_tree = noTest_tree_file, gene_trees = gene_trees_file, tree_root = tree_root)
+                           all_tree = noTest_tree_file, gene_trees = gene_trees_file, tree_root = tree_root, output_csv_file_path = quarnet_results_file)
   }
   
 }

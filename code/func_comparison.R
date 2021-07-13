@@ -26,7 +26,7 @@ reformat.ASTRAL.tree.for.Julia <- function(tree_path){
 # ASTRAL includes posterior probabilities: these are stripped (the Julia function cannot handle extra node values)
 reformat.gene.tree.list.for.Julia <- function(trees_path, gene.tree.source = "IQ-TREE"){
   # Open trees
-  ts <- read.tree(trees_file)
+  ts <- read.tree(trees_path)
   for (i in 1:length(ts)){
     temp_tree <- ts[[i]]
     temp_tree <- reformat.phylo.for.Julia(temp_tree, gene.tree.source)
@@ -57,17 +57,17 @@ reformat.phylo.for.Julia <- function(tree, gene.tree.source = "IQ-TREE"){
 
 # This function takes in the locations of multiple files and writes a Julia script to apply the 
 # quarnetGoFtest from the QuartetNetworkGoodnessOfFit Julia package
-write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fail_tree, all_tree, gene_trees, tree_root){
+write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fail_tree, all_tree, gene_trees, tree_root, output_csv_file_path){
   # Make name of output files
-  script_file <- paste0(directory, "apply_GoF_test.txt")
+  script_file <- paste0(directory, "apply_GoF_test.jl")
   gene_cf_file <- gsub(".txt", "_geneCF.txt", gene_trees)
-  op_df_file <- paste0(dirname(directory), "/", basename(directory), "/", dataset, "_", test_name, "_QuarNetGoF_test_results.csv")
+  op_df_file <- output_csv_file_path
   # Select a random seed
   seed <- round(as.numeric(Sys.time()))
   # Add code lines 
   lines <- c("# Code to take in a list of species trees, estimate concordance factors, and compare them to three trees",
              "# One tree estimated with all the data, one tree estimated with the 'good' data and one with the 'bad' data",
-             "Open packages",
+             "# Open packages",
              "using PhyloNetworks",
              "using PhyloPlots",
              "using QuartetNetworkGoodnessFit",
