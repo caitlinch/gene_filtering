@@ -282,10 +282,11 @@ perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, t
 
 # This function takes a partition file and calculates the AU test using IQ-Tree
 perform.partition.AU.test <- function(partition_path, three_trees_path, iqtree_path){
-  # Assemble the path for the IQ-Tree log file
+  # Assemble the path for the IQ-Tree log file and iqtree file
   log_file <- paste0(partition_path, ".log")
+  iq_file <- paste0(partition_path, ".iqtree")
   # If the log file doesn't exist, run IQ-Tree
-  if (file.exists(log_file) == FALSE){
+  if (file.exists(log_file) == FALSE | file.exists(iq_file) == FALSE){
     # Assemble the IQ-Tree command
     # Parameters:
     #   * -p means all partitions share same set of branch lengths but each partition has its own evolutionary rate
@@ -337,7 +338,6 @@ perform.partition.AU.test <- function(partition_path, three_trees_path, iqtree_p
   c <- c(tree1_list[5], tree2_list[5], tree3_list[5])
   
   # Open .iqtree file to get results of other tests
-  iq_file <- paste0(partition_path, ".iqtree")
   iq_lines <- readLines(iq_file)
   # Find the table of test results
   ind <- grep("deltaL", iq_lines)[1]

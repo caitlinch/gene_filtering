@@ -131,6 +131,12 @@ for (test in tests_to_run){
       
       # Apply the AU test
       au_test_df <- perform.partition.AU.test(partition_path, three_trees_path, iqtree_path)
+      # Assemble the output dataframe
+      au_results_df <- data.frame(dataset = rep(dataset, 3), test = rep(test, 3), tree = c("test_pass", "test_fail", "no_test"))
+      au_results_df <- cbind(au_results_df, au_test_df)
+      # Save the output dataframe
+      write.csv(au_results_df, file = au_results_file, row.names = FALSE)
+      
     }
 
   }

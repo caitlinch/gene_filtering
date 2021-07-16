@@ -121,7 +121,6 @@ write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fai
              '               p_value_overall_GoF_test = [gof_test_pass[1], gof_test_fail[1], gof_test_all[1]],',
              '               uncorrected_z_value_test_statistic = [gof_test_pass[2], gof_test_fail[2], gof_test_all[2]],',
              '               estimated_sigma_for_test_statistic_correction = [gof_test_pass[3], gof_test_fail[3], gof_test_all[3]]',
-             '               ]',
              ')',
              '')
   # Save the output dataframe
