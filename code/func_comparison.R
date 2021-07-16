@@ -77,13 +77,13 @@ write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fai
   # Add working directory
   lines <- c(lines, paste0('cd("', directory, '")'), '')
   # Add code for converting trees to quartet concordance factors
-  if (file.exists(gene_cf_file == TRUE)){
+  if (file.exists(gene_cf_file) == TRUE){
     # If the gene trees have already been converted into concordance factors, open the concordance factors csv file
     lines <- c(lines,
                '# Open quartet concordance factors file',
                paste0('genetrees_cf = readTableCF("', gene_cf_file, '")'), 
                '')
-  } else if (file.exists(gene_cf_file == FALSE)){
+  } else if (file.exists(gene_cf_file) == FALSE){
     # If the quartet concordance factors have not been calculated, calculate them from the gene trees
     lines <- c(lines,
                '# Convert list of gene trees to concordance factors - using trees with bootstraps works fine',
