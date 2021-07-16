@@ -24,6 +24,9 @@ if (run == "local"){
   tree_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/")
   output_dir <-c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/")
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
+  
+  # Software locations
+  iqtree_path <- "/Users/caitlincherryh/Documents/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
 }
 
 
@@ -33,6 +36,7 @@ if (run == "local"){
 library(ape)
 # Source the functions using the filepaths
 source(paste0(maindir,"code/func_comparison.R"))
+source(paste0(maindir,"code/func_analysis.R"))
 
 
 
@@ -126,7 +130,7 @@ for (test in tests_to_run){
       file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path)
       
       # Apply the AU test
-      
+      au_test_df <- perform.partition.AU.test(partition_path, three_trees_path, iqtree_path)
     }
 
   }
