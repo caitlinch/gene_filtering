@@ -291,11 +291,12 @@ perform.partition.AU.test <- function(partition_path, three_trees_path, iqtree_p
     # Parameters:
     #   * -p means all partitions share same set of branch lengths but each partition has its own evolutionary rate
     #   * -z passes the file containing the set of trees
+    #   * -m MFP+MERGE uses PartitionFinder to select the best evolutionary model/best partitioning scheme
     #   * -n 0 sets the number of search iterations to 0 (model parameters estimated from parsimony tree), so ML tree is not estimated. Allows just evaluation of input trees.
     #   * -zb 1000 sets 1000 RELL replicates for topology tests: bootstrap proportion, Kishino-Hasegawa test, Shimodaira-Hasegawa test and expected likelihood weights
     #   * -zw performs weighted KH and weighted SH tests
     #   * -au option allows AU test
-    iqtree_command <- paste0(iqtree_path, " -p ", partition_path, " -z ", three_trees_path, " -n 0 -zb 10000 -zw -au -safe")
+    iqtree_command <- paste0(iqtree_path, " -p ", partition_path, " -z ", three_trees_path, " -m MFP+MERGE -n 0 -zb 10000 -zw -au -safe")
     # Run IQ-Tree to calculate the AU test
     system(iqtree_command)
   }
