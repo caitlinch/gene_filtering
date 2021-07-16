@@ -41,7 +41,7 @@
 # partition.by.codon.position = FALSE
 
 ### Caitlin's paths ###
-run_location = "local"
+run_location = "server"
 
 if (run_location == "local"){
   # Datasets/dataset information
@@ -92,11 +92,11 @@ if (run_location == "local"){
   names(exec_paths) <- c("ASTRAL","IQTree")
   
   # Select number of cores for parallelisation
-  cores.to.use = 30
+  cores.to.use = 40
 
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c("1KP", "Strassert2021")
-  datasets_to_estimate_trees <- c("1KP", "Strassert2021")
+  datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
+  datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
   estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
 }
