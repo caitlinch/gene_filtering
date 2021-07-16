@@ -303,6 +303,9 @@ for (dataset in datasets_to_check){
   gaps_ids <- grep("sequences contain more than 50% gaps/ambiguity", w_df$warnings)
   # Check for long strings of "****************************" - these indicate start and end of warnings 
   star_ids <- grep("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", w_df$warnings)
+  # Check for difficult datasets (by looking for situations where the number of NNIs does not converge)
+  # This indicates that it's a diffcult dataset with low phylogenetic information, but doesn't necessarily indicate low quality gene trees
+  nni_inds <- grep("NNI search needs unusual large number of steps", w_df$warnings)
   # Check for different sequence names
   seq_name_inds <- grep("Some sequence names are changed as follows", w_df$warnings)
   # If any other type of warning exists, exclude that loci from further analysis
@@ -320,7 +323,7 @@ for (dataset in datasets_to_check){
     sat_inds <- c()
   }
   remaining_ids <- setdiff(1:nrow(w_df), sort(c(nt_auto_ids, near_zero_ids, bs_ids, logl_val_ids, 
-                                                gaps_ids, star_ids, seq_name_inds, sat_inds)) )
+                                                gaps_ids, star_ids, nni_inds, seq_name_inds, sat_inds)) )
   remaining_warnings_df <- w_df[remaining_ids,]
   # Add to vectors for outputting as a csv
   exclusion_loci_name <- c(exclusion_loci_name, remaining_warnings_df$loci)
