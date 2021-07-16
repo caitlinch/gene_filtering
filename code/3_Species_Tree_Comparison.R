@@ -21,7 +21,7 @@ if (run == "local"){
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   
   # Set which datasets and which tests to run
-  datasets_to_run <- c("Vanderpool2020")
+  datasets_to_run <- c("Vanderpool2020", "Pease2016")
   tests_to_run <- c("allTests", "PHI", "maxchi", "geneconv")
   
   # File and directory locations
