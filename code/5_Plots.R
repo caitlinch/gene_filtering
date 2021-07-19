@@ -77,6 +77,8 @@ for (dataset in datasets){
     pass_trees <- root(pass_trees, outgroup = roots[[dataset]], resolve.root = TRUE)
     fail_trees <- root(fail_trees, outgroup = roots[[dataset]], resolve.root = TRUE)
     
+    # Remove any trees with missing tips
+    
     # Plot trees that passed as a densiTree
     densiTree(pass_trees, col = "blue", type = "cladogram")
     densiTree(fail_trees, col = "blue", type = "cladogram")
