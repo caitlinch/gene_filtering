@@ -31,6 +31,9 @@ datasets_for_densitree <- c("Pease2016", "Vanderpool2020")
 datasets_for_boxplots <- c("Pease2016", "Vanderpool2020")
 datasets_to_compare_tree_topologies <- c("Pease2016", "Vanderpool2020")
 
+# Software
+densitree_path <- "/Users/caitlincherryh/Documents/Executables/Densitree/DensiTree.v2.2.7.jar"
+
 
 
 #### Step 2: Open files and packages ####
@@ -61,6 +64,10 @@ treelikeness_df <- read.csv(treelikeness_file, stringsAsFactors = FALSE)
 
 
 #### Step 4: Constructing cloudograms from the filtered loci sets ####
+# Make a folder to store the cloudograms in 
+cloudogram_folder <- paste0(plot_dir, "cloudograms/")
+if (dir.exists(cloudogram_folder) == FALSE){dir.create(cloudogram_folder)}
+
 # Iterate through the datasets 
 for (dataset in datasets[datasets %in% datasets_for_densitree]){
   # Find the folder for this dataset
@@ -102,20 +109,23 @@ for (dataset in datasets[datasets %in% datasets_for_densitree]){
     fail_trees <- rescale.multiphylo(fail_trees, 1)
     
     # Plot trees that passed as a densiTree
-    p1 <- densiTree(pass_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
-                    direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.01, )
-    p2 <- densiTree(fail_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
-                    direction = "leftwards", scaleX = TRUE)
+    png(filename = paste0(cloudogram_folder, dataset, "_", test, "_passTrees_cloudogram.png"), width = 500, height = 500)
+    densiTree(pass_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
+              direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.02, cex = 1)
+    dev.off()
+    cairo_pdf(filename = paste0(cloudogram_folder, dataset, "_", test, "_passTrees_cloudogram.pdf"))
+    densiTree(pass_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
+              direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.02, cex = 1)
+    dev.off()
     
-    # Plot trees as densitrees
-    p3 <- ggdensitree(pass_trees[1:10], colour = "steelblue", tip.order = taxa_order[[dataset]], alpha = 0.3, align.tips = TRUE) + geom_tiplab(colour = "black")
-    p4 <- ggdensitree(fail_trees[1:10], colour = "steelblue", tip.order = taxa_order[[dataset]], alpha = 0.3)
-    # reverse x-axis for p2 and set offset to make the trees face each other
-    d4 <- p4$data
-    d4$x <- max(d4$x) - d4$x + 1
-    p4$data <- d4
-    # plot trees next to each other
-    trees_plot <- p3 + p4
-    multiplot(p3, p4, ncol = 2)
+    png(filename = paste0(cloudogram_folder, dataset, "_", test, "_failTrees_cloudogram.png"), width = 500, height = 500)
+    densiTree(fail_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
+              direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.02, cex = 1)
+    dev.off()
+    cairo_pdf(filename = paste0(cloudogram_folder, dataset, "_", test, "_failTrees_cloudogram.pdf"))
+    densiTree(fail_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
+              direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.02, cex = 1)
+    dev.off()
+
   }
 }
