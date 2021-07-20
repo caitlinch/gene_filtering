@@ -22,6 +22,9 @@ datasets <- c("Vanderpool2020", "Pease2016", "Strassert2021", "1KP")
 datasets = c("Vanderpool2020", "Pease2016")
 dataset = "Pease2016"
 roots <- c("Pease2016" = "LA4116", "Vanderpool2020" = "Mus_musculus")
+n_tips <- c("Pease2016" = 29, "Vanderpool2020" = 29)
+taxa_order <- list("Pease2016" = c("LA4116", "LA4126", "LA2951", "LA3778", "LA0716", "LA1777", "LA0407", "LA4117", "LA1782", "LA2964", "LA0444", "LA0107", "LA1358", "LA2744",
+                                   "LA1364", "LA1316", "LA1028", "LA2172", "LA2133", "LA1322", "LA1589", "LA1269", "LA2933", "SL2.50", "LA3475", "LA3124", "LA0429", "LA3909", "LA0436"))
 
 # Software packages
 
@@ -31,10 +34,11 @@ roots <- c("Pease2016" = "LA4116", "Vanderpool2020" = "Mus_musculus")
 # Open packages
 print("Open packages ")
 library(ggplot2)
-library(reshape2)
-library(ape)
-library(phangorn) # treedist, densiTree
-library(ggtree)
+library(ggtree) # functions: ggdensitree
+library(reshape2) # functions: melt, recast
+library(ape) # functions: read.tree, Ntip, root
+library(phangorn) # functions: treedist, densiTree
+library(phytools) # functions: nodeHeights (to rescale tree height)
 
 #library(ips)
 #library(treespace) # phylogenetic tree exploration
@@ -73,17 +77,32 @@ for (dataset in datasets){
     pass_trees <- read.tree(pass_test_file)
     fail_trees <- read.tree(fail_test_file)
     
+    # Remove trees that do not include every taxa
+    # Identify number of tips on tree
+    pass_tree_tips <- unlist(lapply(1:length(pass_trees), function(i,pass_trees){Ntip(pass_trees[[i]])}, pass_trees = pass_trees))
+    fail_tree_tips <- unlist(lapply(1:length(fail_trees), function(i,fail_trees){Ntip(fail_trees[[i]])}, fail_trees = fail_trees))
+    # Find trees with missing tips
+    pass_trees_to_remove <- which(pass_tree_tips != n_tips[[dataset]])
+    fail_trees_to_remove <- which(fail_tree_tips != n_tips[[dataset]])
+    # Remove trees with missing tips
+    pass_trees_to_keep <- setdiff(1:length(pass_trees), pass_trees_to_remove)
+    pass_trees <- pass_trees[pass_trees_to_keep]
+    fail_trees_to_keep <- setdiff(1:length(fail_trees), fail_trees_to_remove)
+    fail_trees <- fail_trees[fail_trees_to_keep]
+    
     # Root all trees
     pass_trees <- root(pass_trees, outgroup = roots[[dataset]], resolve.root = TRUE)
     fail_trees <- root(fail_trees, outgroup = roots[[dataset]], resolve.root = TRUE)
     
-    # Remove any trees with missing tips
+    # Scale trees to have the same length
+    pass_trees <- rescale.multiphylo(pass_trees, 1)
+    fail_trees <- rescale.multiphylo(fail_trees, 1)
     
     # Plot trees that passed as a densiTree
-    densiTree(pass_trees, col = "blue", type = "cladogram")
-    densiTree(fail_trees, col = "blue", type = "cladogram")
-    ggdensitree(pass_trees)
-    
+    densiTree(pass_trees, col = "blue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], direction = "rightwards")
+    densiTree(fail_trees, col = "blue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], direction = "leftwards")
+
+
   }
   
   }

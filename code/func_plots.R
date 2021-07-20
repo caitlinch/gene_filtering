@@ -2,6 +2,8 @@
 ## R functions to facilitate nice plotting
 # Caitlin Cherryh 2021
 
+library(phytools) # Functions: nodeHeights
+
 # Given a dataframe containing columns with treelikeness test statistic/statistical test values, this function creates a new column
 #     for each test statistic/statistical test stating whether each value is treelike or non-treelike
 classify.treelikeness.statistics <- function(df, tree_proportion_threshold){
@@ -43,6 +45,9 @@ classify.treelikeness.statistics <- function(df, tree_proportion_threshold){
   return(df)
 }
 
+
+
+
 # Open an alignment and return the number of phylogenetically informative sites and number of segregating sites in that alignment
 get.DNA.site.info <- function(loci_name, alignment_dir){
   all_als <- list.files(alignment_dir)
@@ -56,5 +61,25 @@ get.DNA.site.info <- function(loci_name, alignment_dir){
   names(op) <- c("n_seg_sites", "n_pis", "n_sites")
   return(op)
 }
+
+
+
+
+# Rescale the total length (i.e. height) of a tree
+rescale.tree.length <- function(tree, scaled_length){
+  tree$edge.length <- tree$edge.length / max(nodeHeights(tree)[,2]) * scaled_length
+  return(tree)
+}
+
+
+# Wrapper for feeding list of trees into rescale.tree.length using lapply
+rescale.multiphylo <- function(trees, scaled_length){
+  for (i in 1:length(trees)){
+    trees[[i]] <- rescale.tree.length(trees[[i]], scaled_length)
+  }
+  return(trees)
+}
+
+
 
 
