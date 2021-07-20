@@ -126,6 +126,5 @@ for (dataset in datasets[datasets %in% datasets_for_densitree]){
     densiTree(fail_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
               direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.02, cex = 1)
     dev.off()
-
   }
 }
