@@ -26,7 +26,10 @@ n_tips <- c("Pease2016" = 29, "Vanderpool2020" = 29)
 taxa_order <- list("Pease2016" = c("LA4116", "LA4126", "LA2951", "LA3778", "LA0716", "LA1777", "LA0407", "LA4117", "LA1782", "LA2964", "LA0444", "LA0107", "LA1358", "LA2744",
                                    "LA1364", "LA1316", "LA1028", "LA2172", "LA2133", "LA1322", "LA1589", "LA1269", "LA2933", "SL2.50", "LA3475", "LA3124", "LA0429", "LA3909", "LA0436"))
 
-# Software packages
+# Determine which plots to create
+datasets_for_densitree <- c("Pease2016", "Vanderpool2020")
+datasets_for_boxplots <- c("Pease2016", "Vanderpool2020")
+datasets_to_compare_tree_topologies <- c("Pease2016", "Vanderpool2020")
 
 
 
@@ -34,7 +37,7 @@ taxa_order <- list("Pease2016" = c("LA4116", "LA4126", "LA2951", "LA3778", "LA07
 # Open packages
 print("Open packages ")
 library(ggplot2)
-library(ggtree) # functions: ggdensitree
+library(cowplot)
 library(reshape2) # functions: melt, recast
 library(ape) # functions: read.tree, Ntip, root
 library(phangorn) # functions: treedist, densiTree
@@ -59,7 +62,7 @@ treelikeness_df <- read.csv(treelikeness_file, stringsAsFactors = FALSE)
 
 #### Step 4: Constructing cloudograms from the filtered loci sets ####
 # Iterate through the datasets 
-for (dataset in datasets){
+for (dataset in datasets[datasets %in% datasets_for_densitree]){
   # Find the folder for this dataset
   dataset_trees_folder <- paste0(species_tree_folder, dataset, "/species_trees/")
   dataset_files <- list.files(dataset_trees_folder)
@@ -99,10 +102,20 @@ for (dataset in datasets){
     fail_trees <- rescale.multiphylo(fail_trees, 1)
     
     # Plot trees that passed as a densiTree
-    densiTree(pass_trees, col = "blue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], direction = "rightwards")
-    densiTree(fail_trees, col = "blue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], direction = "leftwards")
-
-
+    p1 <- densiTree(pass_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
+                    direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.01, )
+    p2 <- densiTree(fail_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
+                    direction = "leftwards", scaleX = TRUE)
+    
+    # Plot trees as densitrees
+    p3 <- ggdensitree(pass_trees[1:10], colour = "steelblue", tip.order = taxa_order[[dataset]], alpha = 0.3, align.tips = TRUE) + geom_tiplab(colour = "black")
+    p4 <- ggdensitree(fail_trees[1:10], colour = "steelblue", tip.order = taxa_order[[dataset]], alpha = 0.3)
+    # reverse x-axis for p2 and set offset to make the trees face each other
+    d4 <- p4$data
+    d4$x <- max(d4$x) - d4$x + 1
+    p4$data <- d4
+    # plot trees next to each other
+    trees_plot <- p3 + p4
+    multiplot(p3, p4, ncol = 2)
   }
-  
-  }
+}
