@@ -12,8 +12,7 @@
 # csv_data_dir      <- directory containing the .csv file results from script 1_RecombinationDetection_empiricalTreelikeness.R
 # output_dir        <- where the coalescent/concatenated trees and tree comparisons will be stored 
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
-# exec_folder       <- the folder containing the software executables needed for analysis (ASTRAL and IQTREE)
-# exec_paths        <- location to each executable within the folder
+# exec_paths        <- location to the software executables needed for analysis (ASTRAL and IQTREE)
 # datasets_to_copy_loci   <- Out of the input names, select which datasets to copy loci trees for tree estimation
 # datasets_to_estimate_trees <- Out of the input names, select which datasets to estimate species trees based on treelikeness results
 # partition.by.codon.position <- Whether to run analysis partitioning by codon position
@@ -21,20 +20,19 @@
 #                             <- codon position simply counts every third base starting from 1st, 2nd, or 3rd base, and does not account for frame shift
 
 # # To run this program: 
-# # 1. Delete the lines that include Caitlin's paths/variables
-# # 2. Uncomment lines 24 to 43 inclusive and fill with your own variable names
+# # 1. Delete the lines below that include Caitlin's paths/variables
+# # 2. Uncomment lines 22 to 39 inclusive and fill with your own variable names
 # input_names <- ""
+# alignment_dir <- ""
+# csv_data_dir <- ""
 # output_dir <- ""
 # maindir <- ""
-# # Create a vector with all of the executable file paths using the following 5 lines as a template:
-# # exec_folder <- "/path/to/executables/folder/"
-# # exec_paths <- c("ASTRAL_executable","IQ-Tree_executable")
-# # exec_paths <- paste0(exec_folder,exec_paths)
+# # Create a vector with all of the executable file paths:
+# # exec_paths <- c("/path/to/ASTRAL_executable","/path/to/IQ-Tree_executable")
 # # names(exec_paths) <- c("ASTRAL","IQTree")
 # # To access a path: exec_paths[["name"]]
-# exec_folder <- ""
 # exec_paths <- c()
-# exec_paths <- paste0(exec_folder, exec_paths)
+# names(exec_paths) <- c("ASTRAL","IQTree")
 # datasets_to_copy_loci <-  c()
 # datasets_to_estimate_trees <- c()
 # estimate.species.trees.in.IQTREE = TRUE
@@ -45,7 +43,7 @@ run_location = "server"
 
 if (run_location == "local"){
   # Datasets/dataset information
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
+  input_names <- c( "1KP", "Strassert2021", "Vanderpool2020", "Pease2016")
   
   # File and directory locations
   alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
@@ -56,7 +54,7 @@ if (run_location == "local"){
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/")
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
-  # Create a vector with all of the executable file paths  in this order: 3SEQ, IQ-Tree, SplitsTree
+  # Create a vector with all of the executable file paths  in this order: ASTRAL, IQ-Tree
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("Astral/astral.5.7.5.jar","iqtree-2.0-rc1-MacOSX/bin/iqtree")
   exec_folder <- "/Users/caitlincherryh/Documents/Executables/"
@@ -67,14 +65,14 @@ if (run_location == "local"){
   cores.to.use = 1
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
-  datasets_to_estimate_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
+  datasets_to_copy_loci <-  c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
+  datasets_to_estimate_trees <- c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
   estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
   
 } else if (run_location=="server"){
   # Datasets/dataset information
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
+  input_names <- c( "1KP", "Strassert2021", "Vanderpool2020", "Pease2016")
   
   # File and directory locations
   alignment_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
@@ -85,21 +83,22 @@ if (run_location == "local"){
   output_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
   maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness code is
   
-  # Create a vector with all of the executable file paths in this order: 3SEQ, IQ-Tree, SplitsTree
+  # Create a vector with all of the executable file paths in this order: ASTRAL, IQ-Tree
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("/data/caitlin/executables/ASTRAL/astral.5.7.5.jar",
                   "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
   names(exec_paths) <- c("ASTRAL","IQTree")
   
   # Select number of cores for parallelisation
-  cores.to.use = 40
+  cores.to.use = 45
 
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
-  datasets_to_estimate_trees <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
+  datasets_to_copy_loci <-  c()
+  datasets_to_estimate_trees <- c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021",)
   estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
 }
+### End of Caitlin's paths ###
 
 
 
