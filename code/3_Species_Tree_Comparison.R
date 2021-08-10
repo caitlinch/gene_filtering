@@ -9,12 +9,49 @@
 
 
 ##### Step 1: Set file paths and run variables #####
+# input_names               <- set name(s) for the dataset(s) - make sure input_names is in same order as alignment_dir and dataset_tree_roots
+#                              (e.g. for 2 datasets, put same dataset first and same dataset last for each variable)
+# dataset_tree_roots        <- set which taxa is outgroup for each dataset
+# alignment_dir             <- the folder(s) containing the alignments for each loci
+# datasets_to_run           <- set which datasets you want to apply the AU test and the QuartetNetworkGoF test to
+# tests_to_run              <- set which of the recombination detection methods should be tested (allTests, PHI, maxchi and geneconv)
+# run_Julia_QuarNetGoF_test <- TRUE to run the QuartetNetworkGoF.jl test, FALSE to skip it
+# run_IQTree_AU_test        <- TRUE to run the AU test in IQ-Tree, FALSE to skip it
+# csv_data_dir              <- directory containing the .csv file results from script 1_RecombinationDetection_empiricalTreelikeness.R
+# tree_dir                  <- directory containing species trees output from script 2_Species_Tree_Estimation.R
+# output_dir                <- where the coalescent/concatenated trees and tree comparisons will be stored 
+# main_dir                  <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+# iqtree_path               <- location of IQ-Tree executable 
+
 run = "local"
 
 if (run == "local"){
   # Set datasets, which taxa to root the tree at for each dataset, and the location of alignments for each dataset
   input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
-  dataset_tree_roots <- c("", "", "Mus_musculus", "LA4116")
+  dataset_tree_roots <- c("", "Apusozoa_Apusozoa_N_A_N_A_N_A_Nutomonas_longa_SRR1617398", "Mus_musculus", "LA4116")
+  alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
+                     "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Strassert2021/02_trimAL_Divvier_filtered_genes_only/",
+                     "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
+                     "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
+  
+  # Set which datasets and which tests to run
+  datasets_to_run <- c("Vanderpool2020", "Pease2016", "Strassert2021", "1KP")
+  tests_to_run <- c("allTests", "PHI", "maxchi", "geneconv")
+  run_Julia_QuarNetGoF_test <- TRUE
+  run_IQTree_AU_test <- FALSE
+  
+  # File and directory locations
+  csv_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
+  tree_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
+  output_dir <-"/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
+  maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
+  
+  # Software locations
+  iqtree_path <- "/Users/caitlincherryh/Documents/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
+} else if (run == "server"){
+  # Set datasets, which taxa to root the tree at for each dataset, and the location of alignments for each dataset
+  input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
+  dataset_tree_roots <- c("", "Apusozoa_Apusozoa_N_A_N_A_N_A_Nutomonas_longa_SRR1617398", "Mus_musculus", "LA4116")
   alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Strassert2021/02_trimAL_Divvier_filtered_genes_only/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
@@ -27,13 +64,13 @@ if (run == "local"){
   run_IQTree_AU_test <- FALSE
   
   # File and directory locations
-  csv_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
-  tree_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/")
-  output_dir <-c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/")
-  maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
+  csv_data_dir <- "/data/caitlin/empirical_treelikeness/Output/"
+  tree_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
+  output_dir <- "/data/caitlin/empirical_treelikeness/Output_dataAnalysis/"
+  maindir <- "/data/caitlin/empirical_treelikeness/"
   
   # Software locations
-  iqtree_path <- "/Users/caitlincherryh/Documents/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
+  iqtree_path <- "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree"
 }
 
 
