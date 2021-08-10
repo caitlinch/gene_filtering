@@ -129,32 +129,45 @@ if (run_Julia_QuarNetGoF_test == TRUE){
         # Collect files for this test
         files <- c(grep(test, all_astral_trees, value = TRUE), grep("NoTest", all_astral_trees, value = TRUE), 
                    grep("pass", grep(test, all_astral_gene_trees, value = TRUE), value = TRUE))
-        # Move files into the new folder
-        for (i in files){file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))}
-        # Give files their new full file paths
-        files <- paste0(new_folder, files)
-        
-        # Rewrite ASTRAL trees to match format for quarnetGoFtest (will all have .tre extension)
-        lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = FALSE)
-        # Rewrite ASTRAL gene trees to match format for quarnetGoFTest (will have .txt extension)
-        lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
-        # Name the files
-        noTest_tree_file <- grep("NoTest", grep("tre", files, value = TRUE), value = TRUE)
-        pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
-        fail_tree_file <- grep("fail", grep("tre", files, value = TRUE), value = TRUE)
-        gene_trees_file <- grep(".txt", files, value = TRUE)
-        # Provide extra parameters for the function, depending on dataset
-        tree_root = dataset_tree_roots[[dataset]]
-        
-        ### Apply the Quartet Network Goodness of Fit test in Julia ###
-        # Write the Julia code into a file
-        write.Julia.GoF.script(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, fail_tree = fail_tree_file, 
-                               all_tree = noTest_tree_file, gene_trees = gene_trees_file, tree_root = tree_root, output_csv_file_path = quarnet_results_file,
-                               number_of_simulated_replicates = n_julia_reps)
-        # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
-        julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
-        system(julia_command)
+        # If all four files exist, continue the analysis
+        if (length(files) == 4){
+          # Move files into the new folder
+          for (i in files){file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))}
+          # Give files their new full file paths
+          files <- paste0(new_folder, files)
+          
+          # Rewrite ASTRAL trees to match format for quarnetGoFtest (will all have .tre extension)
+          lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = FALSE)
+          # Rewrite ASTRAL gene trees to match format for quarnetGoFTest (will have .txt extension)
+          lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
+          # Name the files
+          noTest_tree_file <- grep("NoTest", grep("tre", files, value = TRUE), value = TRUE)
+          pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
+          fail_tree_file <- grep("fail", grep("tre", files, value = TRUE), value = TRUE)
+          gene_trees_file <- grep(".txt", files, value = TRUE)
+          # Provide extra parameters for the function, depending on dataset
+          tree_root = dataset_tree_roots[[dataset]]
+          
+          ### Apply the Quartet Network Goodness of Fit test in Julia ###
+          # Write the Julia code into a file
+          write.Julia.GoF.script(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, fail_tree = fail_tree_file, 
+                                 all_tree = noTest_tree_file, gene_trees = gene_trees_file, tree_root = tree_root, output_csv_file_path = quarnet_results_file,
+                                 number_of_simulated_replicates = n_julia_reps)
+          # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
+          julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
+          system(julia_command)
+        } else {
+          # For some tests for some datasets, there were no loci that passed/failed that test and so there are not three trees, meaning this analysis
+          # cannot be carried out as designed
+          # Output a dataframe for this test with NA results
+          df <- data.frame(dataset = rep(dataset, 3), concordance_factors = rep(NA,3), test = rep(test, 3), 
+                           tree = c("test_pass", "test_fail", "no_test"), tree_root = rep(dataset_tree_roots[[dataset]], 3), 
+                           p_value_overall_GoF_test = rep(NA, 3), uncorrected_z_value_test_statistic = rep(NA, 3), 
+                           estimated_sigma_for_test_statistic_correction = rep(NA, 3))
+          write.csv(df, file = quarnet_results_file)
+        }
       }
+      
     }
   }
   
