@@ -16,6 +16,7 @@
 # datasets_to_run           <- set which datasets you want to apply the AU test and the QuartetNetworkGoF test to
 # tests_to_run              <- set which of the recombination detection methods should be tested (allTests, PHI, maxchi and geneconv)
 # run_Julia_QuarNetGoF_test <- TRUE to run the QuartetNetworkGoF.jl test, FALSE to skip it
+# n_julia_reps              <- Number of simulated data sets to generate for the QuartetNetworkGoF test.
 # run_IQTree_AU_test        <- TRUE to run the AU test in IQ-Tree, FALSE to skip it
 # csv_data_dir              <- directory containing the .csv file results from script 1_RecombinationDetection_empiricalTreelikeness.R
 # tree_dir                  <- directory containing species trees output from script 2_Species_Tree_Estimation.R
@@ -38,6 +39,7 @@ if (run == "local"){
   datasets_to_run <- c("Vanderpool2020", "Pease2016", "Strassert2021", "1KP")
   tests_to_run <- c("allTests", "PHI", "maxchi", "geneconv")
   run_Julia_QuarNetGoF_test <- TRUE
+  n_julia_reps <- 100
   run_IQTree_AU_test <- FALSE
   
   # File and directory locations
@@ -61,6 +63,7 @@ if (run == "local"){
   datasets_to_run <- c("Vanderpool2020", "Pease2016")
   tests_to_run <- c("allTests", "PHI", "maxchi", "geneconv")
   run_Julia_QuarNetGoF_test <- FALSE
+  n_julia_reps <- 100
   run_IQTree_AU_test <- FALSE
   
   # File and directory locations
@@ -146,7 +149,8 @@ if (run_Julia_QuarNetGoF_test == TRUE){
         ### Apply the Quartet Network Goodness of Fit test in Julia ###
         # Write the Julia code into a file
         write.Julia.GoF.script(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, fail_tree = fail_tree_file, 
-                               all_tree = noTest_tree_file, gene_trees = gene_trees_file, tree_root = tree_root, output_csv_file_path = quarnet_results_file)
+                               all_tree = noTest_tree_file, gene_trees = gene_trees_file, tree_root = tree_root, output_csv_file_path = quarnet_results_file,
+                               number_of_simulated_replicates = n_julia_reps)
         # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
         julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
         system(julia_command)

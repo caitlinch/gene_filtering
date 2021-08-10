@@ -57,7 +57,8 @@ reformat.phylo.for.Julia <- function(tree, gene.tree.source = "IQ-TREE"){
 
 # This function takes in the locations of multiple files and writes a Julia script to apply the 
 # quarnetGoFtest from the QuartetNetworkGoodnessOfFit Julia package
-write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fail_tree, all_tree, gene_trees, tree_root, output_csv_file_path){
+write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fail_tree, all_tree, gene_trees, tree_root, output_csv_file_path, 
+                                   number_of_simulated_replicates = 1000){
   # Make name of output files
   script_file <- paste0(directory, "apply_GoF_test.jl")
   gene_cf_file <- gsub(".txt", "_geneCF.txt", gene_trees)
@@ -106,9 +107,12 @@ write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fai
   # Apply the QuartetNetwork Goodness of Fit test
   lines <- c(lines,
              "# Apply the QuartetNetworkGoodnessFit test",
-             paste0("gof_test_pass = quarnetGoFtest!(tree_test_pass, genetrees_cf, false; quartetstat=:LRT, correction=:simulation, seed=", seed , ", nsim=1000, verbose=false, keepfiles=false)"),
-             paste0("gof_test_fail = quarnetGoFtest!(tree_test_fail, genetrees_cf, false; quartetstat=:LRT, correction=:simulation, seed=", seed, ", nsim=1000, verbose=false, keepfiles=false)"),
-             paste0("gof_test_all = quarnetGoFtest!(tree_all, genetrees_cf, false; quartetstat=:LRT, correction=:simulation, seed=", seed , ", nsim=1000, verbose=false, keepfiles=false)"),
+             paste0("gof_test_pass = quarnetGoFtest!(tree_test_pass, genetrees_cf, false; quartetstat=:LRT, correction=:simulation, seed=", seed ,
+                    ", nsim=", number_of_simulated_replicates , ", verbose=false, keepfiles=false)"),
+             paste0("gof_test_fail = quarnetGoFtest!(tree_test_fail, genetrees_cf, false; quartetstat=:LRT, correction=:simulation, seed=", seed,
+                    ", nsim=", number_of_simulated_replicates, ", verbose=false, keepfiles=false)"),
+             paste0("gof_test_all = quarnetGoFtest!(tree_all, genetrees_cf, false; quartetstat=:LRT, correction=:simulation, seed=", seed ,
+                   ", nsim=", number_of_simulated_replicates, ", verbose=false, keepfiles=false)"),
              "")
   # Create an output dataframe
   lines <- c(lines,
