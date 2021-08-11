@@ -140,10 +140,10 @@ if (run_Julia_QuarNetGoF_test == TRUE){
           # Give files their new full file paths
           files <- paste0(new_folder, files)
           
-          # Rewrite ASTRAL trees to match format for quarnetGoFtest (will all have .tre extension)
-          lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = FALSE, terminal.branch.length = 0.1)
-          # Rewrite ASTRAL gene trees to match format for quarnetGoFTest (will have .txt extension)
-          lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE, terminal.branch.length = 0.1)
+          # Rewrite ASTRAL species trees to match format for quarnetGoFtest (will all have .tre extension)
+          lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, terminal.branch.length = 0.1)
+          # Rewrite IQ-Tree gene trees to match format for quarnetGoFTest (will have .txt extension)
+          lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
           # Name the files
           noTest_tree_file <- grep("NoTest", grep("tre", files, value = TRUE), value = TRUE)
           pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
