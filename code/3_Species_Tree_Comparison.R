@@ -129,6 +129,10 @@ if (run_Julia_QuarNetGoF_test == TRUE){
         # Collect files for this test
         files <- c(grep(test, all_astral_trees, value = TRUE), grep("NoTest", all_astral_trees, value = TRUE), 
                    grep("pass", grep(test, all_astral_gene_trees, value = TRUE), value = TRUE))
+        
+        # Print the dataset and test details
+        print(paste0(dataset, " - ", test))
+        
         # If all four files exist, continue the analysis
         if (length(files) == 4){
           # Move files into the new folder
