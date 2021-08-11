@@ -2,6 +2,9 @@
 ## R functions for comparing two species trees
 # Caitlin Cherryh 2021
 
+library(phytools)
+library(ape)
+
 # Function to read in tree from ASTRAL and edit it to use in the QuartetNetworkGoodnessOfFit Julia package
 # ASTRAL does not output terminal branch lengths, so these are arbitrarily given the length 1
 # ASTRAL includes posterior probabilities: these are stripped (the Julia function cannot handle extra node values)
@@ -57,10 +60,28 @@ reformat.phylo.for.Julia <- function(tree, add.arbitrary.terminal.branches = FAL
 
 
 
+# Function to take one tree from a file path, read it in, and save it as un ultrametric tree
+make.tree.ultrametric <- function(tree_path, root.tree = FALSE, outgroup = NA){
+  # Read in the tree
+  tree <- read.tree(file = tree_path)
+  # If root.tree == FALSE, then reroot the tree at the provided outgroup
+  if (root.tree == TRUE){
+    # Root the tree at the desired outgroup
+    tree <- root(tree, outgroup)
+  }
+  # Extend the terminal branches to make the tree ultrametric
+  ultrametric_tree <- force.ultrametric(tree, method = "extend")
+  # Write out the ultrametric tree to the same filepath
+  write.tree(ultrametric_tree, file = tree_path, append = FALSE)
+}
+
+
+
+
 # This function takes in the locations of multiple files and writes a Julia script to apply the 
 # quarnetGoFtest from the QuartetNetworkGoodnessOfFit Julia package
-write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fail_tree, all_tree, gene_trees, tree_root, output_csv_file_path, 
-                                   number_of_simulated_replicates = 1000){
+write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fail_tree, all_tree, gene_trees, root.species.trees = FALSE, tree_root = NA, 
+                                   output_csv_file_path, number_of_simulated_replicates = 1000){
   # Make name of output files
   script_file <- paste0(directory, "apply_GoF_test.jl")
   gene_cf_file <- gsub(".txt", "_geneCF.txt", gene_trees)
@@ -94,18 +115,22 @@ write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fai
                       '", writeTab=true, CFfile="', gene_cf_file, '")'), 
                '')
   }
-  # Open trees and root them 
+  # Open trees
   lines <- c(lines, 
              '# Read in the three trees',
              paste0('tree_test_pass = readTopology("', pass_tree, '");'),
              paste0('tree_test_fail = readTopology("', fail_tree, '");'),
              paste0('tree_all = readTopology("', all_tree, '");'),
-             '',
-             '# Root the three trees at the same taxa',
-             paste0('PhyloNetworks.rootatnode!(tree_test_pass, "', tree_root, '");'),
-             paste0('PhyloNetworks.rootatnode!(tree_test_fail, "', tree_root, '");'),
-             paste0('PhyloNetworks.rootatnode!(tree_all, "', tree_root, '");'),
              '')
+  # Optional: root species trees by provided outgroup
+  if (root.species.trees == TRUE){
+    lines <- c(lines,
+               '# Root the three trees at the same taxa',
+               paste0('PhyloNetworks.rootatnode!(tree_test_pass, "', tree_root, '");'),
+               paste0('PhyloNetworks.rootatnode!(tree_test_fail, "', tree_root, '");'),
+               paste0('PhyloNetworks.rootatnode!(tree_all, "', tree_root, '");'),
+               '') 
+  }
   # Apply the QuartetNetwork Goodness of Fit test
   lines <- c(lines,
              "# Apply the QuartetNetworkGoodnessFit test",
