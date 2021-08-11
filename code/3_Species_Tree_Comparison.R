@@ -159,7 +159,7 @@ if (run_Julia_QuarNetGoF_test == TRUE){
           # Write the Julia code into a file
           write.Julia.GoF.script(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
                                  fail_tree = fail_tree_file, all_tree = noTest_tree_file, gene_trees = gene_trees_file, 
-                                 root.species.trees = FALSE, tree_root = NA, output_csv_file_path = quarnet_results_file,
+                                 root.species.trees = FALSE, tree_root = tree_root, output_csv_file_path = quarnet_results_file,
                                  number_of_simulated_replicates = n_julia_reps)
           # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
           julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
