@@ -59,11 +59,11 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
     
     # Open the IQ-Tree file
     all_files <- list.files(alignment_folder)
-    iqtree_file <- grep(".iqtree", all_files)
-    iqtree_lines <- readLines(iqtree_file)
+    iqtree_file <- grep(".iqtree", all_files, value = TRUE)
+    iqtree_lines <- readLines(paste0(alignment_folder, iqtree_file))
     # Extract information about the model of sequence evolution
-    ind         <- grep("Model of substitution: ",iq_file)
-    sub_str     <- iq_file[[ind]] # get the line that contains this info
+    ind         <- grep("Model of substitution: ",iqtree_lines)
+    sub_str     <- iqtree_lines[[ind]] # get the line that contains this info
     sub_ls      <- strsplit(sub_str,":")
     model_sub   <- sub_ls[[1]][2]
     model_sub   <- gsub(" ", "", model_sub)
