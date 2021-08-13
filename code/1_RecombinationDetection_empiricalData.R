@@ -54,7 +54,7 @@
 # datasets_to_check <- ""
 
 ### Caitlin's paths ###
-run_location = "server"
+run_location = "local"
 
 if (run_location == "local"){
   input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
