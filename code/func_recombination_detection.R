@@ -57,6 +57,18 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
     # Run IQ-Tree
     call.IQTREE.empirical.UFB(alignment_path, executable_paths[["IQTree"]], loci_row$best_model, num_bootstraps = 1000, num_threads = iqtree_num_threads)
     
+    # Open the IQ-Tree file
+    all_files <- list.files(alignment_folder)
+    iqtree_file <- grep(".iqtree", all_files)
+    iqtree_lines <- readLines(iqtree_file)
+    # Extract information about the model of sequence evolution
+    ind         <- grep("Model of substitution: ",iq_file)
+    sub_str     <- iq_file[[ind]] # get the line that contains this info
+    sub_ls      <- strsplit(sub_str,":")
+    model_sub   <- sub_ls[[1]][2]
+    model_sub   <- gsub(" ", "", model_sub)
+    
+    
     # Extract basic information about the alignment for the output csv file
     # Check file extension of alignment
     if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | 
@@ -91,10 +103,10 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
     
     # Combine results into a nice row for output csv file
     results_vec <- c(loci_row$dataset, loci_row$loci_name, loci_row$alphabet, loci_row$best_model,
-                     n_taxa, n_char, threeseq_results, prop_recomb_seq, phipack_results,
+                     model_sub, n_taxa, n_char, threeseq_results, prop_recomb_seq, phipack_results,
                      geneconv_results, newick_tree)
     results_df <- data.frame(as.list(results_vec))
-    result_names <- c("dataset", "loci_name", "alphabet", "best_model", "n_taxa", "n_bp",
+    result_names <- c("dataset", "loci_name", "alphabet", "best_model", "ModelFinder_model", "n_taxa", "n_bp",
                       names(threeseq_results), "proportion_recombinant_sequences", names(phipack_results),
                       names(geneconv_results), "tree")
     names(results_vec) <- result_names
