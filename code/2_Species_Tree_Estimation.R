@@ -143,7 +143,7 @@ if (length(datasets_to_copy_loci) > 0){
     # Get a list of all the csv files in the csv_data_directory
     all_files <- list.files(csv_data_dir)
     # Get the results filenames for the datasets of interest
-    all_results <- grep("collated_RecombinationDetection_results", all_files, value = TRUE)
+    all_results <- grep("RecombinationDetection_complete_collated_results", all_files, value = TRUE)
     all_results <- paste0(csv_data_dir, all_results)
     results <- c()
     for (dataset in datasets_to_copy_loci){
@@ -161,7 +161,7 @@ if (length(datasets_to_copy_loci) > 0){
     # Open the csv files and bind into one dataframe
     exclude_df <- as.data.frame(do.call(rbind, lapply(exclude_file, read.csv)))
     # Collate and output if that file doesn't exist
-    if (file.exists(trimmed_loci_file) == FALSE){
+    if (file.exists(collated_exclude_file) == FALSE){
       write.csv(exclude_df, file = collated_exclude_file, row.names = FALSE)
     }
     
