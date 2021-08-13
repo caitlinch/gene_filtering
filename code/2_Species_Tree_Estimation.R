@@ -91,7 +91,7 @@ if (run_location == "local"){
   
   # Select number of cores for parallelisation
   cores.to.use = 45
-
+  
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c()
   datasets_to_estimate_trees <- c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
@@ -164,7 +164,7 @@ if (length(datasets_to_copy_loci) > 0){
     if (file.exists(trimmed_loci_file) == FALSE){
       write.csv(exclude_df, file = collated_exclude_file, row.names = FALSE)
     }
-  
+    
     # Reduce down to the unique dataset/loci pairs to exclude from treelikeness_df
     exclude_df <- exclude_df[,c("dataset", "loci")]
     exclude_df <- exclude_df[!duplicated(exclude_df),]
@@ -434,7 +434,13 @@ for (dataset in datasets_to_estimate_trees){
     if (estimate.species.trees.in.IQTREE == TRUE){
       # Estimate the species tree on each folder of alignments using the partition file
       partitions_to_run <- paste0(dirname(iqtree_files_to_run), "/", basename(iqtree_files_to_run), "/", "partitions.nex")
-      mclapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"], mc.cores = cores.to.use)
+      if (dataset == "Vanderpool2020" | dataset == "Srassert2021"){
+        mclapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"], 
+                 IQTREE_model_command = "MFP+MERGE", mc.cores = cores.to.use)
+      } else if (dataset = "1KP" | dataset = "Pease2016"){
+        mclapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"],
+                 IQTREE_model_command = "MERGE", mc.cores = cores.to.use)
+      }
     }
   }
   
