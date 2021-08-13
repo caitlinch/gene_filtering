@@ -434,7 +434,7 @@ for (dataset in datasets_to_estimate_trees){
     if (estimate.species.trees.in.IQTREE == TRUE){
       # Estimate the species tree on each folder of alignments using the partition file
       partitions_to_run <- paste0(dirname(iqtree_files_to_run), "/", basename(iqtree_files_to_run), "/", "partitions.nex")
-      if (dataset == "Vanderpool2020" | dataset == "Srassert2021"){
+      if (dataset == "Vanderpool2020" | dataset == "Strassert2021"){
         mclapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"], 
                  IQTREE_model_command = "MFP+MERGE", mc.cores = cores.to.use)
       } else if (dataset = "1KP" | dataset = "Pease2016"){
