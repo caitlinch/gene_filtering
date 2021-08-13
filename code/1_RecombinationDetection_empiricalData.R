@@ -54,7 +54,7 @@
 # datasets_to_check <- ""
 
 ### Caitlin's paths ###
-run_location = "local"
+run_location = "server"
 
 if (run_location == "local"){
   input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
@@ -106,10 +106,10 @@ if (run_location == "local"){
   iqtree_num_threads = "AUTO"
   
   # Select which analyses to apply to each dataset
-  create_information_dataframe <- FALSE
-  datasets_to_run <- c()
+  create_information_dataframe <- TRUE
+  datasets_to_run <- c("Strassert2021")
   datasets_to_collect_trees <- c()
-  datasets_to_check <- c()
+  datasets_to_check <- c("Strassert2021")
 }
 ### End Caitlin's paths ###
 
@@ -226,7 +226,7 @@ if (length(datasets_to_run) > 0){
   run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
   run_df <- as.data.frame(do.call(rbind, run_list))
   print("save results file as a .csv")
-  results_file <- paste0(output_dir,"01_RecombinationDetection_complete_collated_results_",format(Sys.time(), "%Y%m%d"),".csv")
+  results_file <- paste0(output_dir,"01_RecombinationDetection_complete_collated_results_", paste(sort(datasets_to_run), collapse = "_"),".csv")
   write.csv(run_df, file = results_file, row.names = FALSE)
 }
 
