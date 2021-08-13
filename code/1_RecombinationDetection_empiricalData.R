@@ -309,7 +309,7 @@ for (dataset in datasets_to_check){
   # Check for different sequence names
   seq_name_inds <- grep("Some sequence names are changed as follows", w_df$warnings)
   # Check for the number of sites that contain only gaps or ambiguous characters
-  only_gaps_inds <- grep("contain only gaps or ambiguous characters", w_df$warnings)
+  only_gap_inds <- grep("contain only gaps or ambiguous characters", w_df$warnings)
   # If any other type of warning exists, exclude that loci from further analysis
   # The kinds of warnings that remain are:
   #     - Estimated model parameters are boundary that can cause numerical instability
@@ -338,7 +338,6 @@ exclusion_df <- data.frame(dataset = exclusion_loci_dataset,
                            warning = exclusion_warning)
 exclusion_op_name <- paste0(output_dir, "01_IQ-Tree_warnings_", paste(datasets_to_check, collapse = "_"), "_LociToExclude.csv")
 write.csv(exclusion_df, exclusion_op_name, row.names = FALSE)
-
 
 
 
