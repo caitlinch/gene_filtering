@@ -1504,7 +1504,8 @@ make.partition.file <- function(directory, add.charpartition = FALSE){
 
 
 # Writing a partition file in one directory from a loci list, referring to loci in their original locations
-partition.file.from.loci.list <- function(loci_list, directory, original_alignment_folder, add.charpartition = FALSE, add.codon.positions = FALSE){
+partition.file.from.loci.list <- function(loci_list, directory, original_alignment_folder, add.charpartition.models = FALSE, 
+                                          substitution_models = NA, add.codon.positions = FALSE){
   # make sure the directory name is properly formatted and ends in a slash
   directory <- paste0(dirname(directory), "/", basename(directory), "/")
   original_alignment_folder <- paste0(dirname(original_alignment_folder), "/", basename(original_alignment_folder), "/")
@@ -1538,17 +1539,15 @@ partition.file.from.loci.list <- function(loci_list, directory, original_alignme
   } else if (add.codon.positions == FALSE){
     all_charsets <- unlist(lapply(1:length(loci_list), make.charset.from.filepath, loci_list, loci_list_locations))
   }
-  if (add.charpartition == TRUE){
-    # make the charpartition
-    all_loci_labels <- unlist(lapply(loci_list, make.charpartition.labels))
-    all_inds <- 1:length(all_loci_labels)
-    loci_order <- paste0(all_inds,":",all_loci_labels,", ")
-    loci_order[length(loci_order)] <- gsub(", ",";",loci_order[length(loci_order)])
-    # generate charpartition
-    charpartitions_vec <- c("\tcharpartition loci = ",loci_order)
-    charpartitions <- paste(charpartitions_vec, collapse = "")
-    # attach all the information together
-    op_lines <- c(header, all_charsets, "", charpartitions, footer)
+  if (add.charpartition.models == TRUE){
+    # Want to add the substitution models into a charpartition section
+    # Structure will be e.g. HKY:part1, GTR+G:part2, ..., GY:part10;
+    loci_model_pairs <- paste0(substitution_models, ":", loci_list)
+    loci_model_vector <- paste(loci_model_pairs, collapse = ", ")
+    # Bring all the pieces for the charpartition section together
+    charpartition <- paste0("\tcharpartition loci = ", loci_model_vector, ";")
+    # Attach all the information for the partition file together
+    op_lines <- c(header, all_charsets, "", charpartition, " ", footer)
   } else {
     # attach all the information together
     op_lines <- c(header, all_charsets, footer)
