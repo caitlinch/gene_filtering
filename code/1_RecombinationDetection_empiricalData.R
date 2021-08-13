@@ -79,9 +79,9 @@ if (run_location == "local"){
   
   # Select which analyses to apply to each dataset
   create_information_dataframe <- TRUE
-  datasets_to_run <- c()
+  datasets_to_run <- c("Pease2016")
   datasets_to_collect_trees <- c()
-  datasets_to_check <- c()
+  datasets_to_check <- c("Pease2016")
   
 } else if (run_location=="server"){
   input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
@@ -107,9 +107,9 @@ if (run_location == "local"){
   
   # Select which analyses to apply to each dataset
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("Strassert2021")
+  datasets_to_run <- c("1KP", "Strassert2021","Vanderpool2020")
   datasets_to_collect_trees <- c()
-  datasets_to_check <- c("Strassert2021")
+  datasets_to_check <- c("1KP", "Strassert2021","Vanderpool2020")
 }
 ### End Caitlin's paths ###
 
