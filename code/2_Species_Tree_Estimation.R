@@ -155,6 +155,11 @@ if (length(datasets_to_copy_loci) > 0){
     # Open and attach the datasets
     treelikeness_df <- as.data.frame(do.call(rbind, lapply(results, read.csv)))
     treelikeness_df$match <- paste0(treelikeness_df$dataset, ":", treelikeness_df$loci_name)
+    # If the collated total file hasn't been saved, save it
+    all_treelikeness_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_collated_RecombinationDetection.csv")
+    if (file.exists(all_treelikeness_file) == FALSE){
+      write.csv(treelikeness_df, all_treelikeness_file)
+    }
     
     # Open the csv containing the list of loci to exclude from species tree analysis
     exclude_file <- paste0(csv_data_dir, grep("LociToExclude.csv", all_files, value = TRUE))
