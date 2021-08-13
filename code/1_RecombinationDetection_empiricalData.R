@@ -308,6 +308,8 @@ for (dataset in datasets_to_check){
   nni_inds <- grep("NNI search needs unusual large number of steps", w_df$warnings)
   # Check for different sequence names
   seq_name_inds <- grep("Some sequence names are changed as follows", w_df$warnings)
+  # Check for the number of sites that contain only gaps or ambiguous characters
+  only_gaps_inds <- grep("contain only gaps or ambiguous characters", w_df$warnings)
   # If any other type of warning exists, exclude that loci from further analysis
   # The kinds of warnings that remain are:
   #     - Estimated model parameters are boundary that can cause numerical instability
@@ -323,7 +325,8 @@ for (dataset in datasets_to_check){
     sat_inds <- c()
   }
   remaining_ids <- setdiff(1:nrow(w_df), sort(c(nt_auto_ids, near_zero_ids, bs_ids, logl_val_ids, 
-                                                gaps_ids, star_ids, nni_inds, seq_name_inds, sat_inds)) )
+                                                gaps_ids, star_ids, nni_inds, seq_name_inds, only_gap_inds,
+                                                sat_inds)) )
   remaining_warnings_df <- w_df[remaining_ids,]
   # Add to vectors for outputting as a csv
   exclusion_loci_name <- c(exclusion_loci_name, remaining_warnings_df$loci)
