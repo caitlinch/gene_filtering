@@ -41,7 +41,7 @@
 # partition.by.codon.position = FALSE
 
 ### Caitlin's paths ###
-run_location = "server"
+run_location = "local"
 
 if (run_location == "local"){
   # Datasets/dataset information
@@ -303,19 +303,8 @@ for (dataset in datasets_to_copy_loci){
   
   
   
-  ### Apply all three tests - get loci that pass all and those that fail all ###
-  ## Remove loci that have an NA result for any test - do not include these in any analysis for comparative purposes
-  # identify loci that have an NA for any one test
-  na_phi_inds <- which(is.na(dataset_df$pass_phi))
-  na_maxchi_inds <- which(is.na(dataset_df$pass_maxchi))
-  na_geneconv_inds <- which(is.na(dataset_df$pass_geneconv))
-  na_dataset_inds <- sort(unique(c(na_phi_inds, na_maxchi_inds, na_geneconv_inds)))
-  dataset_inds <- 1:nrow(dataset_df)
-  allTest_inds <- setdiff(dataset_inds, na_dataset_inds)
-  # Reduce allTest_df to loci without na for any test
-  allTest_df <- dataset_df[allTest_inds, ]
-  
-  # 
+  ### Apply all three tests - get loci that pass all, and those that fail any ###
+  # Make a tree for all the loci that pass all tests and all the loci that fail one or more test
   tree_type <- c("pass", "fail")
   for (tt in tree_type){
     print(paste0(dataset, " : all tests : ", tt))
@@ -331,12 +320,17 @@ for (dataset in datasets_to_copy_loci){
       }
     }
     
-    ## Subset the dataframe_df to loci that pass all three tests
+    ## Subset the dataframe_df to loci that pass all three tests and those that fail one or more test
+    allTest_df <- dataset_df
     # Select loci that pass/fail all three tests
+    pass_inds <- which((allTest_df$pass_phi == TRUE) & (allTest_df$pass_maxchi == TRUE) & (allTest_df$pass_geneconv == TRUE))
+    # setdiff(x,y) = elements in x but not in y
+    fail_inds <- setdiff(1:nrow(allTest_df), pass_inds)
+    # Subset the dataframe
     if (tt == "pass"){
-      all_df <- allTest_df[((allTest_df$pass_phi == TRUE) & (allTest_df$pass_maxchi == TRUE) & (allTest_df$pass_geneconv == TRUE)), ]
+      all_df <- allTest_df[pass_inds, ]
     } else if (tt == "fail"){
-      all_df <- allTest_df[((allTest_df$pass_phi == FALSE) & (allTest_df$pass_maxchi == FALSE) & (allTest_df$pass_geneconv == FALSE)), ] 
+      all_df <- allTest_df[fail_inds, ] 
     }
     # Copy loci trees for ASTRAL
     copy.loci.trees(all_df$loci_name, all_df$tree, category_output_folder, all_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
@@ -355,7 +349,7 @@ for (dataset in datasets_to_copy_loci){
   }
   
   ### Apply no tests ###
-  print(paste0(dataset, " : No tests -- include all loci from modified dataset_df"))
+  print(paste0(dataset, " : No tests -- include all loci"))
   NoTest_text_name <- paste0(text_records_dir, dataset, "_NoTest_loci_record.txt")
   NoTest_ASTRAL_name <- paste0(dataset,"_NoTest_ASTRAL")
   if (estimate.species.trees.in.IQTREE == TRUE){
@@ -388,16 +382,28 @@ for (dataset in datasets_to_copy_loci){
   n_fail_PHI_geneconv <- nrow(dataset_df[((dataset_df$pass_phi == FALSE) & (dataset_df$pass_geneconv == FALSE)), ])
   n_pass_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE)), ])
   n_fail_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == FALSE) & (dataset_df$pass_geneconv == FALSE)), ])
-  summary_row <- c(summary_row, n_pass_PHI_maxchi, n_fail_PHI_maxchi, n_pass_PHI_geneconv, n_fail_PHI_geneconv, n_pass_maxchi_geneconv, n_fail_maxchi_geneconv)
+  n_na_PHI <- length(which(is.na(dataset_df$PHI_normal_p_value)))
+  n_na_maxchi <- length(which(is.na(dataset_df$max_chi_squared_p_value)))
+  n_na_geneconv <- length(unique(c(which(is.na(dataset_df$geneconv_outer_fragment_simulated_p_value)),
+                                   which(is.na(dataset_df$geneconv_inner_fragment_simulated_p_value))) ))
+  summary_row <- c(summary_row, n_pass_PHI_maxchi, n_fail_PHI_maxchi, n_pass_PHI_geneconv, n_fail_PHI_geneconv, 
+                   n_pass_maxchi_geneconv, n_fail_maxchi_geneconv, n_na_PHI, n_na_maxchi, n_na_geneconv)
   
   ### Write out the summary row as a dataframe ###
   names(summary_row) <- c("dataset", "n_pass_PHI", "n_fail_PHI", "n_pass_maxchi", "n_fail_maxchi", "n_pass_geneconv", "n_fail_geneconv",
                           "n_pass_allTests", "n_fail_allTests", "n_NoTest", "n_pass_PHI_maxchi", "n_fail_PHI_maxchi", "n_pass_PHI_geneconv", 
-                          "n_fail_PHI_geneconv", "n_pass_maxchi_geneconv", "n_fail_maxchi_geneconv")
+                          "n_fail_PHI_geneconv", "n_pass_maxchi_geneconv", "n_fail_maxchi_geneconv", "n_na_PHI", "n_na_maxchi", "n_na_geneconv")
   summary_df <- data.frame(as.list(summary_row))
   summary_op_file <- paste0(output_dirs[dataset], dataset, "_species_tree_summary.csv")
   write.csv(summary_df, file = summary_op_file, row.names = FALSE)
 }
+
+# Collate species_tree_summary.csvs
+all_files <- list.files(output_dir, recursive = TRUE)
+summary_csvs <- grep("species_tree_summary.csv", all_files, value = TRUE)
+csv_list <- lapply(paste0(output_dir, summary_csvs), read.csv)
+csv_df <- do.call(rbind, csv_list)
+write.csv(csv_df, paste0(output_dir, "02_species_tree_summary_numbers.csv"))
 
 
 
