@@ -13,11 +13,14 @@
 #                              (e.g. for 2 datasets, put same dataset first and same dataset last for each variable)
 # dataset_tree_roots        <- set which taxa is outgroup for each dataset
 # alignment_dir             <- the folder(s) containing the alignments for each loci
+
 # datasets_to_run           <- set which datasets you want to apply the AU test and the QuartetNetworkGoF test to
 # tests_to_run              <- set which of the recombination detection methods should be tested (allTests, PHI, maxchi and geneconv)
+# new.ASTRAL.terminal.branch.length <- ASTRAL does not estimate terminal branch lengths, so we assign a branch length
 # run_Julia_QuarNetGoF_test <- TRUE to run the QuartetNetworkGoF.jl test, FALSE to skip it
 # n_julia_reps              <- Number of simulated data sets to generate for the QuartetNetworkGoF test.
 # run_IQTree_AU_test        <- TRUE to run the AU test in IQ-Tree, FALSE to skip it
+
 # csv_data_dir              <- directory containing the .csv file results from script 1_RecombinationDetection_empiricalTreelikeness.R
 # tree_dir                  <- directory containing species trees output from script 2_Species_Tree_Estimation.R
 # output_dir                <- where the coalescent/concatenated trees and tree comparisons will be stored 
@@ -38,6 +41,7 @@ if (run == "local"){
   # Set which datasets and which tests to run
   datasets_to_run <- c("Vanderpool2020", "Pease2016", "Strassert2021", "1KP")
   tests_to_run <- c("allTests", "PHI", "maxchi", "geneconv")
+  new.ASTRAL.terminal.branch.length <- 0.1
   run_Julia_QuarNetGoF_test <- TRUE
   n_julia_reps <- 100
   run_IQTree_AU_test <- FALSE
@@ -62,6 +66,7 @@ if (run == "local"){
   # Set which datasets and which tests to run
   datasets_to_run <- c("Vanderpool2020", "Pease2016")
   tests_to_run <- c("allTests", "PHI", "maxchi", "geneconv")
+  new.ASTRAL.terminal.branch.length <- 0.1
   run_Julia_QuarNetGoF_test <- FALSE
   n_julia_reps <- 100
   run_IQTree_AU_test <- FALSE
@@ -144,7 +149,8 @@ if (run_Julia_QuarNetGoF_test == TRUE){
           tree_root = dataset_tree_roots[[dataset]]
           
           # Rewrite ASTRAL species trees to match format for quarnetGoFtest (will all have .tre extension)
-          lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, terminal.branch.length = 0.1)
+          lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, 
+                 terminal.branch.length = new.ASTRAL.terminal.branch.length)
           # Extend the ASTRAL species trees to be ultrametric
           lapply(grep(".tre", files, value = TRUE), make.tree.ultrametric, root.tree = TRUE, outgroup = tree_root)
           # Rewrite IQ-Tree gene trees to match format for quarnetGoFTest (will have .txt extension)
