@@ -67,9 +67,9 @@ if (run_location == "local"){
   cores.to.use = 1
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
+  datasets_to_copy_loci <-  c()
   datasets_to_estimate_trees <- c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
-  estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
+  estimate.species.trees.in.IQTREE = TRUE # can be TRUE or FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use "-m MERGE" and include a charpartition with substitution models
   
@@ -96,7 +96,7 @@ if (run_location == "local"){
   cores.to.use = 45
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c()
+  datasets_to_copy_loci <-  c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
   datasets_to_estimate_trees <- c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
   estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
