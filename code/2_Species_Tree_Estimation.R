@@ -41,7 +41,7 @@
 # partition.by.codon.position = FALSE
 
 ### Caitlin's paths ###
-run_location = "local"
+run_location = "server"
 
 if (run_location == "local"){
   # Datasets/dataset information
@@ -437,7 +437,9 @@ for (dataset in datasets_to_estimate_trees){
     # Estimate the species trees using ASTRAL
     mclapply(astral_files_to_run, ASTRAL.wrapper, exec_paths["ASTRAL"], mc.cores = cores.to.use)
   }
-  
+}
+ 
+for (dataset in datasets_to_estimate_trees){
   # Identify which IQTREE analyses have not been run
   iqtree_files_to_run <- iqtree_files[!file.exists(iqtree_files_finished_names)]
   # Run remaining IQ-Tree analyses
