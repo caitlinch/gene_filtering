@@ -398,12 +398,14 @@ for (dataset in datasets_to_copy_loci){
   write.csv(summary_df, file = summary_op_file, row.names = FALSE)
 }
 
-# Collate species_tree_summary.csvs
-all_files <- list.files(output_dir, recursive = TRUE)
-summary_csvs <- grep("species_tree_summary.csv", all_files, value = TRUE)
-csv_list <- lapply(paste0(output_dir, summary_csvs), read.csv)
-csv_df <- do.call(rbind, csv_list)
-write.csv(csv_df, paste0(output_dir, "02_species_tree_summary_numbers.csv"))
+if (length(datasets_to_copy_loci) > 0 ){
+  # Collate species_tree_summary.csvs
+  all_files <- list.files(output_dir, recursive = TRUE)
+  summary_csvs <- grep("species_tree_summary.csv", all_files, value = TRUE)
+  csv_list <- lapply(paste0(output_dir, summary_csvs), read.csv)
+  csv_df <- do.call(rbind, csv_list)
+  write.csv(csv_df, paste0(output_dir, "02_species_tree_summary_numbers.csv"))
+}
 
 
 
