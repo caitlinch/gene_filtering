@@ -100,7 +100,7 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c()
   datasets_to_estimate_ASTRAL_trees <- c()
-  datasets_to_estimate_IQTREE_trees <- c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
+  datasets_to_estimate_IQTREE_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use "-m MERGE" and include a charpartition with substitution models
 }
