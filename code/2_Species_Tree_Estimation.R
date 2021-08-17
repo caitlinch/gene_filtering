@@ -443,7 +443,7 @@ for (dataset in datasets_to_estimate_IQTREE_trees){
   # Identify which IQTREE analyses have not been run
   partitions_to_run <- iqtree_files[!file.exists(iqtree_files_finished_names)]
   # Run remaining IQ-Tree analyses
-  if (length(iqtree_files_to_run) > 0){
+  if (length(partitions_to_run) > 0){
     # Estimate the species tree on each folder of alignments using the partition files
     if (use.modelfinder.models.for.partitions == TRUE){
       mclapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"], 
