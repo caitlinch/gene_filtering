@@ -42,7 +42,7 @@
 # partition.by.codon.position = FALSE
 
 ### Caitlin's paths ###
-run_location = "server"
+run_location = "local"
 
 if (run_location == "local"){
   # Datasets/dataset information
@@ -426,11 +426,8 @@ for (dataset in datasets_to_estimate_ASTRAL_trees){
   all_category_folder_files <- list.files(category_output_folder)
   # Filter into ASTRAL text files and IQ-Tree folders
   astral_files <- paste0(grep("\\.txt", grep("ASTRAL", all_category_folder_files, value = TRUE), value = TRUE))
-  iqtree_files <- paste0(grep("\\.", grep("IQTREE", all_category_folder_files, value = TRUE), value = TRUE, invert = TRUE))
   # Contruct names of finished treefiles
   astral_files_finished_names <- paste0(category_output_folder, gsub(".txt", "_species.tre", astral_files))
-  iqtree_files_finished_names <- paste0(category_output_folder, iqtree_files, ".contree")
-  
   # Identify which ASTRAL analyses have not been run
   astral_files_to_run <- astral_files[!file.exists(astral_files_finished_names)]
   # Run remaining ASTRAL analyses
@@ -443,22 +440,31 @@ for (dataset in datasets_to_estimate_ASTRAL_trees){
 }
  
 for (dataset in datasets_to_estimate_IQTREE_trees){
+  # Ensure the folder for species trees data exists
+  category_output_folder <- paste0(output_dirs[dataset], "species_trees/")
+  if (dir.exists(category_output_folder) == FALSE){
+    dir.create(category_output_folder)
+  }
+  
+  # Get list of all files in that folder
+  all_category_folder_files <- list.files(category_output_folder, recursive = TRUE, full.names = TRUE)
+  all_category_folder_files <- gsub("//", "/", all_category_folder_files)
+  iqtree_files <- paste0(grep(".nex.", grep("IQTREE", all_category_folder_files, value = TRUE), value = TRUE, invert = TRUE))
+  # Contruct names of finished treefiles
+  iqtree_files_finished_names <- paste0(iqtree_files, ".contree")
   # Identify which IQTREE analyses have not been run
-  iqtree_files_to_run <- iqtree_files[!file.exists(iqtree_files_finished_names)]
+  partitions_to_run <- iqtree_files[!file.exists(iqtree_files_finished_names)]
   # Run remaining IQ-Tree analyses
   if (length(iqtree_files_to_run) > 0){
-    # Construct full file path
-    iqtree_files_to_run <- paste0(category_output_folder, iqtree_files_to_run)
     # Estimate the species trees using IQ-Tree
     if (estimate.species.trees.in.IQTREE == TRUE){
-      # Estimate the species tree on each folder of alignments using the partition file
-      partitions_to_run <- paste0(dirname(iqtree_files_to_run), "/", basename(iqtree_files_to_run), "/", "partitions.nex")
-      if (use.modelfinder.models.for.partitions == FALSE){
+      # Estimate the species tree on each folder of alignments using the partition files
+      if (use.modelfinder.models.for.partitions == TRUE){
         mclapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"], 
-                 IQTREE_model_command = "MFP+MERGE", mc.cores = cores.to.use)
-      } else if (use.modelfinder.models.for.partitions == TRUE){
+                 IQTREE_model_command = NA, mc.cores = cores.to.use)
+      } else if (use.modelfinder.models.for.partitions == FALSE){
         mclapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"],
-                 IQTREE_model_command = "MERGE", mc.cores = cores.to.use)
+                 IQTREE_model_command = "MFP+MERGE", mc.cores = cores.to.use)
       }
     }
   }

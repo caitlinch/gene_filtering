@@ -1438,9 +1438,13 @@ estimate.IQTREE.species.tree <- function(gene_tree_folder, IQTREE_path){
 
 
 # Function to estimate species tree of a folder full of alignments using IQ-Tree
-estimate.partitioned.IQTREE.species.tree <- function(partition_file, IQTREE_path, IQTREE_model_command){
+estimate.partitioned.IQTREE.species.tree <- function(partition_file, IQTREE_path, IQTREE_model_command = NA){
   print(paste0("Estimating tree in IQ-Tree: ", basename(dirname(partition_file))))
-  iqtree_command <- paste0(IQTREE_path, " -p ", partition_file, " -m ",IQTREE_model_command," -bb 1000 -nt AUTO")
+  if (is.na(IQTREE_model_command) == TRUE){
+    iqtree_command <- paste0(IQTREE_path, " -p ", partition_file, " -bb 1000 -nt AUTO")
+  } else if (is.na(IQTREE_model_command) == FALSE){
+    iqtree_command <- paste0(IQTREE_path, " -p ", partition_file, " -m ",IQTREE_model_command," -bb 1000 -nt AUTO")
+  }
   system(iqtree_command)
 }
 
