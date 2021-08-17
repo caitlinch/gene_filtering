@@ -24,7 +24,7 @@
 
 # # To run this program: 
 # # 1. Delete the lines below that include Caitlin's paths/variables
-# # 2. Uncomment lines 24 to 41 inclusive and fill with your own variable names
+# # 2. Uncomment lines 25 to 43 inclusive and fill with your own variable names
 # input_names <- ""
 # alignment_dir <- ""
 # csv_data_dir <- ""
@@ -37,12 +37,13 @@
 # exec_paths <- c()
 # names(exec_paths) <- c("ASTRAL","IQTree")
 # datasets_to_copy_loci <-  c()
-# datasets_to_estimate_trees <- c()
-# estimate.species.trees.in.IQTREE = TRUE
-# partition.by.codon.position = FALSE
+# datasets_to_estimate_ASTRAL_trees <- c()
+# datasets_to_estimate_IQTREE_trees <- c()
+# partition.by.codon.position <- FALSE
+# use.modelfinder.models.for.partitions <- TRUE
 
 ### Caitlin's paths ###
-run_location = "local"
+run_location = "server"
 
 if (run_location == "local"){
   # Datasets/dataset information
@@ -70,8 +71,7 @@ if (run_location == "local"){
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c()
   datasets_to_estimate_ASTRAL_trees <- c()
-  datasets_to_estimate_IQTREE_trees <- c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
-  estimate.species.trees.in.IQTREE = TRUE # can be TRUE or FALSE - if TRUE, will run IQ-Tree analyses
+  datasets_to_estimate_IQTREE_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use "-m MERGE" and include a charpartition with substitution models
   
@@ -101,7 +101,6 @@ if (run_location == "local"){
   datasets_to_copy_loci <-  c()
   datasets_to_estimate_ASTRAL_trees <- c()
   datasets_to_estimate_IQTREE_trees <- c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
-  estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use "-m MERGE" and include a charpartition with substitution models
 }
@@ -266,12 +265,10 @@ for (dataset in datasets_to_copy_loci){
       # Make names for output files
       v_text_name <- paste0(text_records_dir, dataset, "_", v_name, "_", tt, "_loci_record.txt")
       v_ASTRAL_name <- paste0(dataset,"_",v_name,"_", tt, "_ASTRAL")
-      if (estimate.species.trees.in.IQTREE == TRUE){
-        if (partition.by.codon.position == TRUE){
-          v_IQTree_name <- paste0(dataset,"_",v_name, "_", tt, "_IQTREE_partitioned")
-        } else if (partition.by.codon.position == FALSE){
-          v_IQTree_name <- paste0(dataset,"_",v_name, "_", tt, "_IQTREE") 
-        }
+      if (partition.by.codon.position == TRUE){
+        v_IQTree_name <- paste0(dataset,"_",v_name, "_", tt, "_IQTREE_partitioned")
+      } else if (partition.by.codon.position == FALSE){
+        v_IQTree_name <- paste0(dataset,"_",v_name, "_", tt, "_IQTREE") 
       }
       
       # Remove any loci that have an NA result for this test
@@ -289,12 +286,10 @@ for (dataset in datasets_to_copy_loci){
       # Copy trees of all loci that pass the test into one file that can be fed into ASTRAL
       copy.loci.trees(v_df$loci_name, v_df$tree, category_output_folder, v_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
       # If running IQ-Tree analysis, copy all loci into a separate folder that can be fed into IQ-Tree
-      if (estimate.species.trees.in.IQTREE == TRUE){
-        # create the partition file required to run this IQ-Tree analysis
-        partition.file.from.loci.list(loci_list = v_df$loci_name, directory = paste0(category_output_folder, v_IQTree_name, "/"),
-                                      original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
-                                      substitution_models = v_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
-      }
+      # create the partition file required to run this IQ-Tree analysis
+      partition.file.from.loci.list(loci_list = v_df$loci_name, directory = paste0(category_output_folder, v_IQTree_name, "/"),
+                                    original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
+                                    substitution_models = v_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
       
       # Create a record of which loci went into which analysis
       output_text <- v_df$loci_name
@@ -315,12 +310,10 @@ for (dataset in datasets_to_copy_loci){
     # Create output names
     all_text_name <- paste0(text_records_dir, dataset, "_allTests_",tt ,"_loci_record.txt")
     all_ASTRAL_name <- paste0(dataset,"_allTests_", tt, "_ASTRAL")
-    if (estimate.species.trees.in.IQTREE == TRUE){
-      if (partition.by.codon.position == TRUE){
-        all_IQTree_name <- paste0(dataset,"_allTests_", tt, "_IQTREE_partitioned")
-      } else if (partition.by.codon.position == FALSE){
-        all_IQTree_name <- paste0(dataset,"_allTests_", tt, "_IQTREE") 
-      }
+    if (partition.by.codon.position == TRUE){
+      all_IQTree_name <- paste0(dataset,"_allTests_", tt, "_IQTREE_partitioned")
+    } else if (partition.by.codon.position == FALSE){
+      all_IQTree_name <- paste0(dataset,"_allTests_", tt, "_IQTREE") 
     }
     
     ## Subset the dataframe_df to loci that pass all three tests and those that fail one or more test
@@ -338,12 +331,11 @@ for (dataset in datasets_to_copy_loci){
     # Copy loci trees for ASTRAL
     copy.loci.trees(all_df$loci_name, all_df$tree, category_output_folder, all_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
     # Copy loci alignments for IQ-Tree
-    if (estimate.species.trees.in.IQTREE == TRUE){
-      # create the partition file required to run this IQ-Tree analysis
-      partition.file.from.loci.list(loci_list = all_df$loci_name, directory = paste0(category_output_folder, all_IQTree_name, "/"),
-                                    original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
-                                    substitution_models = all_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
-    }
+    
+    # create the partition file required to run this IQ-Tree analysis
+    partition.file.from.loci.list(loci_list = all_df$loci_name, directory = paste0(category_output_folder, all_IQTree_name, "/"),
+                                  original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
+                                  substitution_models = all_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
     # Create a record of which loci went into which analysis
     output_text <- all_df$loci_name
     write(output_text, file = all_text_name)
@@ -355,22 +347,18 @@ for (dataset in datasets_to_copy_loci){
   print(paste0(dataset, " : No tests -- include all loci"))
   NoTest_text_name <- paste0(text_records_dir, dataset, "_NoTest_loci_record.txt")
   NoTest_ASTRAL_name <- paste0(dataset,"_NoTest_ASTRAL")
-  if (estimate.species.trees.in.IQTREE == TRUE){
-    if (partition.by.codon.position == TRUE){
-      NoTest_IQTree_name <- paste0(dataset,"_NoTest_IQTREE_partitioned")
-    } else if (partition.by.codon.position == FALSE){
-      NoTest_IQTree_name <- paste0(dataset,"_NoTest_IQTREE") 
-    }
+  if (partition.by.codon.position == TRUE){
+    NoTest_IQTree_name <- paste0(dataset,"_NoTest_IQTREE_partitioned")
+  } else if (partition.by.codon.position == FALSE){
+    NoTest_IQTree_name <- paste0(dataset,"_NoTest_IQTREE") 
   }
   # Copy loci trees for ASTRAL
   copy.loci.trees(dataset_df$loci_name, dataset_df$tree, category_output_folder, NoTest_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
   # Copy loci alignments for IQ-Tree
-  if (estimate.species.trees.in.IQTREE == TRUE){
-    # create the partition file required to run this IQ-Tree analysis
-    partition.file.from.loci.list(loci_list = dataset_df$loci_name, directory = paste0(category_output_folder, NoTest_IQTree_name, "/"),
-                                  original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = FALSE,
-                                  substitution_models = dataset_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
-  }
+  # create the partition file required to run this IQ-Tree analysis
+  partition.file.from.loci.list(loci_list = dataset_df$loci_name, directory = paste0(category_output_folder, NoTest_IQTree_name, "/"),
+                                original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = FALSE,
+                                substitution_models = dataset_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
   
   ### Create a record of which loci went into which analysis ###
   output_text <- dataset_df$loci_name
@@ -438,7 +426,7 @@ for (dataset in datasets_to_estimate_ASTRAL_trees){
     mclapply(astral_files_to_run, ASTRAL.wrapper, exec_paths["ASTRAL"], mc.cores = cores.to.use)
   }
 }
- 
+
 for (dataset in datasets_to_estimate_IQTREE_trees){
   # Ensure the folder for species trees data exists
   category_output_folder <- paste0(output_dirs[dataset], "species_trees/")
@@ -456,16 +444,13 @@ for (dataset in datasets_to_estimate_IQTREE_trees){
   partitions_to_run <- iqtree_files[!file.exists(iqtree_files_finished_names)]
   # Run remaining IQ-Tree analyses
   if (length(iqtree_files_to_run) > 0){
-    # Estimate the species trees using IQ-Tree
-    if (estimate.species.trees.in.IQTREE == TRUE){
-      # Estimate the species tree on each folder of alignments using the partition files
-      if (use.modelfinder.models.for.partitions == TRUE){
-        mclapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"], 
-                 IQTREE_model_command = NA, mc.cores = cores.to.use)
-      } else if (use.modelfinder.models.for.partitions == FALSE){
-        mclapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"],
-                 IQTREE_model_command = "MFP+MERGE", mc.cores = cores.to.use)
-      }
+    # Estimate the species tree on each folder of alignments using the partition files
+    if (use.modelfinder.models.for.partitions == TRUE){
+      mclapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"], 
+               IQTREE_model_command = NA, mc.cores = cores.to.use)
+    } else if (use.modelfinder.models.for.partitions == FALSE){
+      mclapply(partitions_to_run, estimate.partitioned.IQTREE.species.tree, exec_paths["IQTree"],
+               IQTREE_model_command = "MFP+MERGE", mc.cores = cores.to.use)
     }
   }
 }
