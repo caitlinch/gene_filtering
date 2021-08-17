@@ -14,7 +14,8 @@
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # exec_paths        <- location to the software executables needed for analysis (ASTRAL and IQTREE)
 # datasets_to_copy_loci   <- Out of the input names, select which datasets to copy loci trees for tree estimation
-# datasets_to_estimate_trees <- Out of the input names, select which datasets to estimate species trees based on treelikeness results
+# datasets_to_estimate_ASTRAL_trees <- Out of the input names, select which datasets to estimate species trees in ASTRAL based on treelikeness results
+# datasets_to_estimate_IQTREE_trees <- Out of the input names, select which datasets to estimate species trees in IQ-Tree based on treelikeness results
 # partition.by.codon.position <- Whether to run analysis partitioning by codon position
 #                             <- set TRUE if you want to estimate species trees partitioning by codon position, and FALSE if you don't
 #                             <- codon position simply counts every third base starting from 1st, 2nd, or 3rd base, and does not account for frame shift
@@ -68,7 +69,8 @@ if (run_location == "local"){
   
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci <-  c()
-  datasets_to_estimate_trees <- c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
+  datasets_to_estimate_ASTRAL_trees <- c()
+  datasets_to_estimate_IQTREE_trees <- c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
   estimate.species.trees.in.IQTREE = TRUE # can be TRUE or FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use "-m MERGE" and include a charpartition with substitution models
@@ -96,8 +98,9 @@ if (run_location == "local"){
   cores.to.use = 45
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
-  datasets_to_estimate_trees <- c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
+  datasets_to_copy_loci <-  c()
+  datasets_to_estimate_ASTRAL_trees <- c()
+  datasets_to_estimate_IQTREE_trees <- c("Pease2016", "Vanderpool2020", "1KP", "Strassert2021")
   estimate.species.trees.in.IQTREE = TRUE # can be TRUE of FALSE - if TRUE, will run IQ-Tree analyses
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use "-m MERGE" and include a charpartition with substitution models
@@ -412,7 +415,7 @@ if (length(datasets_to_copy_loci) > 0 ){
 
 ##### Step 6: Estimate species trees #####
 ### Estimate a species tree for each of the five categories
-for (dataset in datasets_to_estimate_trees){
+for (dataset in datasets_to_estimate_ASTRAL_trees){
   # Ensure the folder for species trees data exists
   category_output_folder <- paste0(output_dirs[dataset], "species_trees/")
   if (dir.exists(category_output_folder) == FALSE){
@@ -439,7 +442,7 @@ for (dataset in datasets_to_estimate_trees){
   }
 }
  
-for (dataset in datasets_to_estimate_trees){
+for (dataset in datasets_to_estimate_IQTREE_trees){
   # Identify which IQTREE analyses have not been run
   iqtree_files_to_run <- iqtree_files[!file.exists(iqtree_files_finished_names)]
   # Run remaining IQ-Tree analyses
