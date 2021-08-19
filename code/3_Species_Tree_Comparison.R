@@ -184,7 +184,7 @@ for (dataset in compare_ASTRAL_trees){
                          tree = c("test_pass", "test_fail", "no_test"), tree_root = rep(dataset_tree_roots[[dataset]], 3), 
                          p_value_overall_GoF_test = rep(NA, 3), uncorrected_z_value_test_statistic = rep(NA, 3), 
                          estimated_sigma_for_test_statistic_correction = rep(NA, 3))
-        write.csv(df, file = quarnet_results_file)
+        write.csv(df, file = quarnet_results_file, row.names = FALSE)
       }
     }
     
