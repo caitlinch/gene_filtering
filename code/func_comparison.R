@@ -164,3 +164,86 @@ write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fai
 
 
 
+
+
+# This function takes in the locations of multiple files and writes a Julia script to apply the 
+# quarnetGoFtest from the QuartetNetworkGoodnessOfFit Julia package
+write.Julia.GoF.script.two.trees <- function(test_name, dataset, directory, pass_tree, all_tree, gene_trees, root.species.trees = FALSE, tree_root = NA, 
+                                   output_csv_file_path, number_of_simulated_replicates = 1000){
+  # Make name of output files
+  script_file <- paste0(directory, "apply_GoF_test.jl")
+  gene_cf_file <- gsub(".txt", "_geneCF.txt", gene_trees)
+  op_df_file <- output_csv_file_path
+  # Select a random seed
+  seed <- round(as.numeric(Sys.time()))
+  # Add code lines 
+  lines <- c("# Code to take in a list of species trees, estimate concordance factors, and compare them to two trees",
+             "# One tree estimated with all the data and one tree estimated with the 'good' data",
+             "# Open packages",
+             "using PhyloNetworks",
+             "using PhyloPlots",
+             "using QuartetNetworkGoodnessFit",
+             "using DataFrames, CSV",
+             "",
+             "# Set working directory")
+  # Add working directory
+  lines <- c(lines, paste0('cd("', directory, '")'), '')
+  # Add code for converting trees to quartet concordance factors
+  if (file.exists(gene_cf_file) == TRUE){
+    # If the gene trees have already been converted into concordance factors, open the concordance factors csv file
+    lines <- c(lines,
+               '# Open quartet concordance factors file',
+               paste0('genetrees_cf = readTableCF("', gene_cf_file, '")'), 
+               '')
+  } else if (file.exists(gene_cf_file) == FALSE){
+    # If the quartet concordance factors have not been calculated, calculate them from the gene trees
+    lines <- c(lines,
+               '# Convert list of gene trees to concordance factors - using trees with bootstraps works fine',
+               paste0('genetrees_cf = readTrees2CF("', gene_trees,
+                      '", writeTab=true, CFfile="', gene_cf_file, '")'), 
+               '')
+  }
+  # Open trees
+  lines <- c(lines, 
+             '# Read in the two trees',
+             paste0('tree_test_pass = readTopology("', pass_tree, '");'),
+             paste0('tree_all = readTopology("', all_tree, '");'),
+             '')
+  # Optional: root species trees by provided outgroup
+  if (root.species.trees == TRUE){
+    lines <- c(lines,
+               '# Root the two trees at the same taxa',
+               paste0('PhyloNetworks.rootatnode!(tree_test_pass, "', tree_root, '");'),
+               paste0('PhyloNetworks.rootatnode!(tree_all, "', tree_root, '");'),
+               '') 
+  }
+  # Apply the QuartetNetwork Goodness of Fit test
+  lines <- c(lines,
+             "# Apply the QuartetNetworkGoodnessFit test",
+             paste0("gof_test_pass = quarnetGoFtest!(tree_test_pass, genetrees_cf, false; quartetstat=:LRT, correction=:simulation, seed=", seed ,
+                    ", nsim=", number_of_simulated_replicates , ", verbose=false, keepfiles=false)"),
+             paste0("gof_test_all = quarnetGoFtest!(tree_all, genetrees_cf, false; quartetstat=:LRT, correction=:simulation, seed=", seed ,
+                    ", nsim=", number_of_simulated_replicates, ", verbose=false, keepfiles=false)"),
+             "")
+  # Create an output dataframe
+  lines <- c(lines,
+             '# Create a dataframe using the variables from the three gof tests',
+             paste0('df = DataFrame(dataset = ["', dataset, '", "', dataset, '"],'),
+             paste0('               concordance_factors = ["', basename(gene_cf_file), '", "', basename(gene_cf_file), '"],'),
+             paste0('               test = ["', test_name,  '", "', test_name, '"],'),
+             '               tree = ["test_pass", "no_test"],',
+             paste0('               outgroup = ["', tree_root, '", "', tree_root, '"],'),
+             '               p_value_overall_GoF_test = [gof_test_pass[1], gof_test_all[1]],',
+             '               uncorrected_z_value_test_statistic = [gof_test_pass[2], gof_test_all[2]],',
+             '               estimated_sigma_for_test_statistic_correction = [gof_test_pass[3], gof_test_all[3]]',
+             ')',
+             '')
+  # Save the output dataframe
+  lines <- c(lines,
+             '# Write output dataframe as .csv',
+             paste0('CSV.write("', op_df_file, '",df)'))
+  # Output script
+  write(lines, file = script_file)
+}
+
+
