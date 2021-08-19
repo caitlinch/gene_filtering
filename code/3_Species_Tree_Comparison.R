@@ -214,6 +214,11 @@ for (dataset in compare_IQTREE_trees){
   species_tree_folder <- paste0(tree_dir, dataset, "/", "species_trees", "/")
   all_species_trees_files <- list.files(species_tree_folder, recursive = TRUE)
   
+  # Find all IQ-Tree trees and partition files for this dataset
+  all_IQTree_files <- grep("IQTREE", all_species_trees_files, value = TRUE)
+  all_IQTree_partitions <- grep(".nex.", grep("partitions.nex", all_IQTree_files, value = TRUE), value = TRUE, invert = TRUE)
+  all_IQTree_trees <- grep("contree", all_IQTree_files, value = TRUE)
+  
   # Identify which tests to run for this dataset
   dataset_tests <- tests_to_run[[dataset]]
   # Iterate through each test
@@ -226,11 +231,6 @@ for (dataset in compare_IQTREE_trees){
     au_results_file <- paste0(new_folder, dataset, "_", test, "_AU_test_results.csv")
     # If the file does not exist, run the tests
     if (file.exists(au_results_file) == FALSE){
-      # Find all IQ-Tree files from this test/dataset combination
-      all_IQTree_files <- grep("IQTREE", all_species_trees_files, value = TRUE)
-      all_IQTree_partitions <- grep(".nex.", grep("partitions.nex", all_IQTree_files, value = TRUE), value = TRUE, invert = TRUE)
-      all_IQTree_trees <- gsub(".nex", ".nex.contree", all_IQTree_partitions)
-      
       # Collect files for this test: three trees and the partition file (containing the loci that pass the test)
       test_IQTREE_trees <- grep(test, all_IQTree_trees, value = TRUE)
       # Sort the files into the following order: test pass, test fail, no test
@@ -248,7 +248,7 @@ for (dataset in compare_IQTREE_trees){
       # Write the new name for the partition file
       partition_path <- paste0(new_folder, "partitions.nex")
       # Copy the partition file
-      file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path)
+      file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path, overwrite = TRUE)
       
       ### Apply the AU tests in IQ-Tree ###
       # Apply the AU test
