@@ -71,8 +71,8 @@ if (run == "local"){
   compare_IQTREE_trees <- c("Vanderpool2020")
   tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
-                       "Strassert2021" = c(),
-                       "1KP" = c())
+                       "Strassert2021" = c("PHI", "maxchi"),
+                       "1KP" = c("PHI", "maxchi"))
   new.ASTRAL.terminal.branch.length <- 0.1
   n_julia_reps <- 100
   
@@ -235,48 +235,91 @@ for (dataset in compare_IQTREE_trees){
     au_results_file <- paste0(new_folder, dataset, "_", test, "_AU_test_results.csv")
     # If the file does not exist, run the tests
     if (file.exists(au_results_file) == FALSE){
-      # Collect files for this test: three trees and the partition file (containing the loci that pass the test)
-      test_IQTREE_trees <- grep(test, all_IQTree_trees, value = TRUE)
-      # Sort the files into the following order: test pass, test fail, no test
-      three_trees_location <- c(grep("pass", test_IQTREE_trees, value = TRUE), grep("fail", test_IQTREE_trees, value = TRUE), 
-                                grep("NoTest", all_IQTree_trees, value = TRUE))
-      three_trees_location <- paste0(species_tree_folder, three_trees_location)
-      # Read in the three trees
-      three_trees_text <- unlist(lapply(three_trees_location, readLines))
-      # Write the three trees into one file, inside the new folder for the AU test
-      three_trees_path <- paste0(new_folder, dataset, "_", test, "three_trees_Pass-Fail-NoTest.tree")
-      write(three_trees_text, three_trees_path)
-      
-      # Find the partitions file containing the location of the loci that pass the test
-      test_pass_partition_file <- grep("pass", grep(test, all_IQTree_partitions, value = TRUE), value = TRUE)
-      # Write the new name for the partition file
-      partition_path <- paste0(new_folder, "partitions.nex")
-      # Copy the partition file
-      file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path, overwrite = TRUE)
-      
-      ### Apply the AU tests in IQ-Tree ###
-      # Apply the AU test
-      au_test_df <- perform.partition.AU.test(partition_path, three_trees_path, iqtree_path)
-      
-      # Read in trees
-      three_trees <- read.tree(file = three_trees_path)
-      # Calculate distances between the trees
-      t_test_pass <- three_trees[[1]]
-      t_test_fail <- three_trees[[2]]
-      t_none <- three_trees[[3]]
-      
-      dist_df <- data.frame(RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass), RF.dist(t_test_pass, t_test_fail), RF.dist(t_test_pass, t_none)),
-                            RF_dist_to_test_fail = c(RF.dist(t_test_fail, t_test_pass), RF.dist(t_test_fail, t_test_fail), RF.dist(t_test_fail, t_none)),
-                            RF_dist_to_test_none = c(RF.dist(t_none, t_test_pass), RF.dist(t_none, t_test_fail), RF.dist(t_none, t_none)),
-                            wRF_dist_to_test_pass = c(wRF.dist(t_test_pass, t_test_pass), wRF.dist(t_test_pass, t_test_fail), wRF.dist(t_test_pass, t_none)),
-                            wRF_dist_to_test_fail = c(wRF.dist(t_test_fail, t_test_pass), wRF.dist(t_test_fail, t_test_fail), wRF.dist(t_test_fail, t_none)),
-                            wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass), wRF.dist(t_none, t_test_fail), wRF.dist(t_none, t_none)))
-      
-      # Assemble the output dataframe
-      au_results_df <- data.frame(dataset = rep(dataset, 3), test = rep(test, 3), tree = c("test_pass", "test_fail", "no_test"))
-      au_results_df <- cbind(au_results_df, au_test_df, dist_df)
-      # Save the output dataframe
-      write.csv(au_results_df, file = au_results_file, row.names = FALSE)
+      if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
+        # Collect files for this test: three trees and the partition file (containing the loci that pass the test)
+        test_IQTREE_trees <- grep(test, all_IQTree_trees, value = TRUE)
+        # Sort the files into the following order: test pass, test fail, no test
+        three_trees_location <- c(grep("pass", test_IQTREE_trees, value = TRUE), grep("fail", test_IQTREE_trees, value = TRUE), 
+                                  grep("NoTest", all_IQTree_trees, value = TRUE))
+        three_trees_location <- paste0(species_tree_folder, three_trees_location)
+        # Read in the three trees
+        three_trees_text <- unlist(lapply(three_trees_location, readLines))
+        # Write the three trees into one file, inside the new folder for the AU test
+        three_trees_path <- paste0(new_folder, dataset, "_", test, "three_trees_Pass-Fail-NoTest.tree")
+        write(three_trees_text, three_trees_path)
+        
+        # Find the partitions file containing the location of the loci that pass the test
+        test_pass_partition_file <- grep("pass", grep(test, all_IQTree_partitions, value = TRUE), value = TRUE)
+        # Write the new name for the partition file
+        partition_path <- paste0(new_folder, "partitions.nex")
+        # Copy the partition file
+        file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path, overwrite = TRUE)
+        
+        ### Apply the AU tests in IQ-Tree ###
+        # Apply the AU test
+        au_test_df <- perform.partition.AU.test(partition_path, three_trees_path, iqtree_path)
+        
+        # Read in trees
+        three_trees <- read.tree(file = three_trees_path)
+        # Calculate distances between the trees
+        t_test_pass <- three_trees[[1]]
+        t_test_fail <- three_trees[[2]]
+        t_none <- three_trees[[3]]
+        
+        dist_df <- data.frame(RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass), RF.dist(t_test_pass, t_test_fail), RF.dist(t_test_pass, t_none)),
+                              RF_dist_to_test_fail = c(RF.dist(t_test_fail, t_test_pass), RF.dist(t_test_fail, t_test_fail), RF.dist(t_test_fail, t_none)),
+                              RF_dist_to_test_none = c(RF.dist(t_none, t_test_pass), RF.dist(t_none, t_test_fail), RF.dist(t_none, t_none)),
+                              wRF_dist_to_test_pass = c(wRF.dist(t_test_pass, t_test_pass), wRF.dist(t_test_pass, t_test_fail), wRF.dist(t_test_pass, t_none)),
+                              wRF_dist_to_test_fail = c(wRF.dist(t_test_fail, t_test_pass), wRF.dist(t_test_fail, t_test_fail), wRF.dist(t_test_fail, t_none)),
+                              wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass), wRF.dist(t_none, t_test_fail), wRF.dist(t_none, t_none)))
+        
+        # Assemble the output dataframe
+        au_results_df <- data.frame(dataset = rep(dataset, 3), test = rep(test, 3), tree = c("test_pass", "test_fail", "no_test"))
+        au_results_df <- cbind(au_results_df, au_test_df, dist_df)
+        # Save the output dataframe
+        write.csv(au_results_df, file = au_results_file, row.names = FALSE)
+      } else if (dataset == "Strassert2021"|dataset == "1KP"){
+        # Collect files for this test: three trees and the partition file (containing the loci that pass the test)
+        test_IQTREE_trees <- grep(test, all_IQTree_trees, value = TRUE)
+        # Sort the files into the following order: test pass, test fail, no test
+        two_trees_location <- c(grep("pass", test_IQTREE_trees, value = TRUE), grep("NoTest", all_IQTree_trees, value = TRUE))
+        two_trees_location <- paste0(species_tree_folder, two_trees_location)
+        # Read in the three trees
+        two_trees_text <- unlist(lapply(two_trees_location, readLines))
+        # Write the three trees into one file, inside the new folder for the AU test
+        two_trees_path <- paste0(new_folder, dataset, "_", test, "two_trees_Pass-NoTest.tree")
+        write(two_trees_text, two_trees_path)
+        
+        # Find the partitions file containing the location of the loci that pass the test
+        test_pass_partition_file <- grep("pass", grep(test, all_IQTree_partitions, value = TRUE), value = TRUE)
+        # Write the new name for the partition file
+        partition_path <- paste0(new_folder, "partitions.nex")
+        # Copy the partition file
+        file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path, overwrite = TRUE)
+        
+        ### Apply the AU tests in IQ-Tree ###
+        # Apply the AU test
+        au_test_df <- perform.partition.AU.test.two.trees(partition_path, two_trees_path, iqtree_path)
+        
+        # Read in trees
+        two_trees <- read.tree(file = two_trees_path)
+        # Calculate distances between the trees
+        t_test_pass <- two_trees[[1]]
+        t_none <- two_trees[[2]]
+        
+        dist_df <- data.frame(RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass), NA, RF.dist(t_test_pass, t_none)),
+                              RF_dist_to_test_fail = c(NA,NA,NA),
+                              RF_dist_to_test_none = c(RF.dist(t_none, t_test_pass), NA, RF.dist(t_none, t_none)),
+                              wRF_dist_to_test_pass = c(wRF.dist(t_test_pass, t_test_pass), NA, wRF.dist(t_test_pass, t_none)),
+                              wRF_dist_to_test_fail = c(NA,NA,NA),
+                              wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass), NA, wRF.dist(t_none, t_none)))
+        
+        # Assemble the output dataframe
+        au_results_df <- data.frame(dataset = rep(dataset, 2), test = rep(test, 2), tree = c("test_pass", "no_test"))
+        au_results_df <- cbind(au_results_df, au_test_df, dist_df)
+        # Save the output dataframe
+        write.csv(au_results_df, file = au_results_file, row.names = FALSE)
+      }
     }
   }
 }

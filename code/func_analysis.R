@@ -374,6 +374,92 @@ perform.partition.AU.test <- function(partition_path, three_trees_path, iqtree_p
 
 
 
+
+perform.partition.AU.test.two.trees <- function(partition_path, two_trees_path, iqtree_path){
+  # Assemble the path for the IQ-Tree log file and iqtree file
+  log_file <- paste0(partition_path, ".log")
+  iq_file <- paste0(partition_path, ".iqtree")
+  # If the log file doesn't exist, run IQ-Tree
+  if (file.exists(log_file) == FALSE | file.exists(iq_file) == FALSE){
+    # Assemble the IQ-Tree command
+    # Parameters:
+    #   * -p means all partitions share same set of branch lengths but each partition has its own evolutionary rate
+    #   * -z passes the file containing the set of trees
+    #   * -m MFP+MERGE uses PartitionFinder to select the best evolutionary model/best partitioning scheme
+    #   * -n 0 sets the number of search iterations to 0 (model parameters estimated from parsimony tree), so ML tree is not estimated. Allows just evaluation of input trees.
+    #   * -zb 1000 sets 1000 RELL replicates for topology tests: bootstrap proportion, Kishino-Hasegawa test, Shimodaira-Hasegawa test and expected likelihood weights
+    #   * -zw performs weighted KH and weighted SH tests
+    #   * -au option allows AU test
+    iqtree_command <- paste0(iqtree_path, " -p ", partition_path, " -z ", two_trees_path, " -n 0 -zb 10000 -zw -au -safe")
+    # Run IQ-Tree to calculate the AU test
+    system(iqtree_command)
+  }
+  
+  # Collect the results of the tests
+  log_lines <- readLines(log_file)
+  
+  # Collect the log likelihoods 
+  ind <- grep("Tree 1 / LogL", log_lines)[1]
+  tree1_line <- log_lines[ind]
+  tree1_logl <- as.numeric(strsplit(tree1_line, ":")[[1]][2])
+  tree2_line <- log_lines[ind + 1]
+  tree2_logl <- as.numeric(strsplit(tree2_line, ":")[[1]][2])
+  
+  # Collect results of the AU test
+  ind <- grep("TreeID", log_lines)[1]
+  if (identical(integer(0), grep("WARNING: Too few replicates for AU test", log_lines)) == TRUE){
+    # The AU test ran successfully. Collect the results. 
+    tree1_line <- log_lines[ind+1]
+    tree1_list <- strsplit(tree1_line, "\t")[[1]]
+    tree2_line <- log_lines[ind+2]
+    tree2_list <- strsplit(tree2_line, "\t")[[1]]
+  } else  if (identical(integer(0), grep("WARNING: Too few replicates for AU test", log_lines)) == FALSE) {
+    # If there is a warning stating "WARNING: Too few replicates for AU test", return an error result as the log likelihood results of the AU test
+    tree1_list <- c("1", "NotEnoughReps", "NotEnoughReps", "NotEnoughReps", "NotEnoughReps")
+    tree2_list <- c("2", "NotEnoughReps", "NotEnoughReps", "NotEnoughReps", "NotEnoughReps")
+  }
+  
+  # Construct columns for the output dataframe
+  tree_id <- c(tree1_list[1], tree2_list[1])
+  logl <- c(tree1_logl, tree2_logl)
+  au <- c(tree1_list[2], tree2_list[2])
+  rss <- c(tree1_list[3], tree2_list[3])
+  d <- c(tree1_list[4], tree2_list[4])
+  c <- c(tree1_list[5], tree2_list[5])
+  
+  # Open .iqtree file to get results of other tests
+  iq_lines <- readLines(iq_file)
+  # Find the table of test results
+  ind <- grep("deltaL", iq_lines)[1]
+  tree1_line <- iq_lines[ind+2]
+  tree1_list <- strsplit(tree1_line, " ")[[1]]
+  tree1_list <- tree1_list[tree1_list != ""]
+  tree1_list <- tree1_list[tree1_list != "+"]
+  tree2_line <- iq_lines[ind+3]
+  tree2_list <- strsplit(tree2_line, " ")[[1]]
+  tree2_list <- tree2_list[tree2_list != ""]
+  tree2_list <- tree2_list[tree2_list != "+"]
+  
+  # Construct columns for the output dataframe
+  delta_l <- c(tree1_list[3], tree2_list[3])
+  bp_rell <- c(tree1_list[4], tree2_list[4])
+  p_kh <- c(tree1_list[5], tree2_list[5])
+  p_sh <- c(tree1_list[6], tree2_list[6])
+  p_wkh <- c(tree1_list[7], tree2_list[7])
+  p_wsh <- c(tree1_list[8], tree2_list[8])
+  c_elw <- c(tree1_list[9], tree2_list[9])
+  
+  # Construct output dataframe
+  op_df <- data.frame(tree_id = tree_id, log_likelihood = logl, delta_from_max_log_l = delta_l, AU_test_p_value = au, 
+                      RSS = rss, d = d, c = c, bootstrap_proportion_RELL_method = bp_rell, KishinoHasegawa_p_value = p_kh, ShimodairaHasegawa_p_value = p_sh,
+                      weighted_KH_p_value = p_wkh, weighted_SH_p_value = p_wsh, expected_likelihood_weight = c_elw)
+  # Return out this dataframe
+  return(op_df)
+}
+
+
+
+
 # Function to calculate the likelihood weights from the log likelihoods
 calculate.likelihood.weights <- function(row_number, lw_df){
   ### Minh's trick for computing likelihood weights
