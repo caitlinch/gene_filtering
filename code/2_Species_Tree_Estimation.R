@@ -223,7 +223,7 @@ if (length(datasets_to_copy_loci) > 0){
 # Estimate a species tree from all loci
 # Estimate a species tree from loci that pass every recombination detection test
 
-### Save the loci trees (for ASTRAL) and the loci alignment (for IQ-Tree) 
+### Save the loci trees (for ASTRAL) and the loci alignment (for IQ-Tree)
 for (dataset in datasets_to_copy_loci){
   # Create a row to store information about all the different variables
   summary_row <- c(dataset)
@@ -356,7 +356,7 @@ for (dataset in datasets_to_copy_loci){
   # Copy loci alignments for IQ-Tree
   # create the partition file required to run this IQ-Tree analysis
   partition.file.from.loci.list(loci_list = dataset_df$loci_name, directory = paste0(category_output_folder, NoTest_IQTree_name, "/"),
-                                original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = FALSE,
+                                original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
                                 substitution_models = dataset_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
   
   ### Create a record of which loci went into which analysis ###
