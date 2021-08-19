@@ -194,8 +194,10 @@ for (dataset in compare_ASTRAL_trees){
 ## Collate and output ASTRAL results files ##
 # Find all QuarNetGoF_test_results.csv files
 all_output_files <- list.files(output_dir, recursive = TRUE)
-all_gof_results <- paste0(output_dir, grep("QuarNetGoF_test_results.csv", all_output_files, value = TRUE))
+all_gof_results <- grep("QuarNetGoF_test_results.csv", all_output_files, value = TRUE)
 if (length(all_gof_results) > 0){
+  # Attach directory name to file names
+  all_gof_results <- paste0(output_dir, all_gof_results)
   # Open and collate the csv files
   gof_results_list <- lapply(all_gof_results, read.csv)
   gof_results_df <- do.call(rbind, gof_results_list)
@@ -282,8 +284,10 @@ for (dataset in compare_IQTREE_trees){
 ## Collate and output IQ-Tree results files ##
 # Find all AU_test_results.csv files
 all_output_files <- list.files(output_dir, recursive = TRUE)
-all_au_results <- paste0(output_dir, grep("AU_test_results.csv", all_output_files, value = TRUE))
+all_au_results <- grep("AU_test_results.csv", all_output_files, value = TRUE)
 if (length(all_au_results) > 0){
+  # Attach directory name to file paths
+  all_au_results <- paste0(output_dir, all_au_results)
   # Open and collate the csv files
   au_results_list <- lapply(all_au_results, read.csv)
   au_results_df <- do.call(rbind, au_results_list)
