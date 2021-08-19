@@ -70,9 +70,9 @@ if (run == "local"){
   compare_ASTRAL_trees <- c("Vanderpool2020")
   compare_IQTREE_trees <- c("Vanderpool2020")
   tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
-                    "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
-                    "Strassert2021" = c(),
-                    "1KP" = c())
+                       "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
+                       "Strassert2021" = c(),
+                       "1KP" = c())
   new.ASTRAL.terminal.branch.length <- 0.1
   n_julia_reps <- 100
   
@@ -195,12 +195,14 @@ for (dataset in compare_ASTRAL_trees){
 # Find all QuarNetGoF_test_results.csv files
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_gof_results <- paste0(output_dir, grep("QuarNetGoF_test_results.csv", all_output_files, value = TRUE))
-# Open and collate the csv files
-gof_results_list <- lapply(all_gof_results, read.csv)
-gof_results_df <- do.call(rbind, gof_results_list)
-# Output compiled csv
-gof_results_df_name <- paste0(output_dir, "03_collated_ComparisonTrees_QuarNetGoF_test_results.csv")
-write.csv(gof_results_df, file = gof_results_df_name, row.names = FALSE)
+if (length(all_gof_results) > 0){
+  # Open and collate the csv files
+  gof_results_list <- lapply(all_gof_results, read.csv)
+  gof_results_df <- do.call(rbind, gof_results_list)
+  # Output compiled csv
+  gof_results_df_name <- paste0(output_dir, "03_collated_ComparisonTrees_QuarNetGoF_test_results.csv")
+  write.csv(gof_results_df, file = gof_results_df_name, row.names = FALSE)
+}
 
 
 
@@ -281,12 +283,13 @@ for (dataset in compare_IQTREE_trees){
 # Find all AU_test_results.csv files
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_au_results <- paste0(output_dir, grep("AU_test_results.csv", all_output_files, value = TRUE))
-# Open and collate the csv files
-au_results_list <- lapply(all_au_results, read.csv)
-au_results_df <- do.call(rbind, au_results_list)
-# Output compiled csv
-au_results_df_name <- paste0(output_dir, "03_collated_ComparisonTrees_AU_test_results.csv")
-write.csv(au_results_df, file = au_results_df_name, row.names = FALSE)
-
+if (length(all_au_results) > 0){
+  # Open and collate the csv files
+  au_results_list <- lapply(all_au_results, read.csv)
+  au_results_df <- do.call(rbind, au_results_list)
+  # Output compiled csv
+  au_results_df_name <- paste0(output_dir, "03_collated_ComparisonTrees_AU_test_results.csv")
+  write.csv(au_results_df, file = au_results_df_name, row.names = FALSE)
+}
 
 
