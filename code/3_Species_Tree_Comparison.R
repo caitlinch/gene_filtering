@@ -67,7 +67,7 @@ if (run == "local"){
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   
   # Set which datasets and which tests to run
-  compare_ASTRAL_trees <- c("Vanderpool2020")
+  compare_ASTRAL_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
   compare_IQTREE_trees <- c("Vanderpool2020")
   tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
