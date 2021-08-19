@@ -40,7 +40,7 @@ if (run == "local"){
   
   # Set which datasets and which tests to run
   # Set which datasets and which tests to run
-  compare_ASTRAL_trees <- c("Vanderpool2020")
+  compare_ASTRAL_trees <- c()
   compare_IQTREE_trees <- c("Vanderpool2020")
   tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
@@ -253,9 +253,24 @@ for (dataset in compare_IQTREE_trees){
       ### Apply the AU tests in IQ-Tree ###
       # Apply the AU test
       au_test_df <- perform.partition.AU.test(partition_path, three_trees_path, iqtree_path)
+      
+      # Read in trees
+      three_trees <- read.tree(file = three_trees_path)
+      # Calculate distances between the trees
+      t_test_pass <- three_trees[[1]]
+      t_test_fail <- three_trees[[2]]
+      t_none <- three_trees[[3]]
+      
+      dist_df <- data.frame(RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass), RF.dist(t_test_pass, t_test_fail), RF.dist(t_test_pass, t_none)),
+                            RF_dist_to_test_fail = c(RF.dist(t_test_fail, t_test_pass), RF.dist(t_test_fail, t_test_fail), RF.dist(t_test_fail, t_none)),
+                            RF_dist_to_test_none = c(RF.dist(t_none, t_test_pass), RF.dist(t_none, t_test_fail), RF.dist(t_none, t_none)),
+                            wRF_dist_to_test_pass = c(wRF.dist(t_test_pass, t_test_pass), wRF.dist(t_test_pass, t_test_fail), wRF.dist(t_test_pass, t_none)),
+                            wRF_dist_to_test_fail = c(wRF.dist(t_test_fail, t_test_pass), wRF.dist(t_test_fail, t_test_fail), wRF.dist(t_test_fail, t_none)),
+                            wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass), wRF.dist(t_none, t_test_fail), wRF.dist(t_none, t_none)))
+      
       # Assemble the output dataframe
       au_results_df <- data.frame(dataset = rep(dataset, 3), test = rep(test, 3), tree = c("test_pass", "test_fail", "no_test"))
-      au_results_df <- cbind(au_results_df, au_test_df)
+      au_results_df <- cbind(au_results_df, au_test_df, dist_df)
       # Save the output dataframe
       write.csv(au_results_df, file = au_results_file, row.names = FALSE)
     }
