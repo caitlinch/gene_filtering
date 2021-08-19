@@ -73,7 +73,7 @@ if (run_location == "local"){
   datasets_to_estimate_ASTRAL_trees <- c()
   datasets_to_estimate_IQTREE_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
-  use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use "-m MERGE" and include a charpartition with substitution models
+  use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use substitution models from the gene trees
   
 } else if (run_location=="server"){
   # Datasets/dataset information
@@ -331,9 +331,7 @@ for (dataset in datasets_to_copy_loci){
     }
     # Copy loci trees for ASTRAL
     copy.loci.trees(all_df$loci_name, all_df$tree, category_output_folder, all_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
-    # Copy loci alignments for IQ-Tree
-    
-    # create the partition file required to run this IQ-Tree analysis
+    # Create the partition file required to run this IQ-Tree analysis
     partition.file.from.loci.list(loci_list = all_df$loci_name, directory = paste0(category_output_folder, all_IQTree_name, "/"),
                                   original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
                                   substitution_models = all_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
