@@ -242,7 +242,8 @@ for (dataset in datasets_to_copy_loci){
   
   ### Apply a single recombination detection test ###
   ## Iterate through each var and save the loci/trees for a tree made from only loci that pass the test
-  # make a list of the variables on which to filter the loci - should be columns from the treelikeness_df
+  # Make a list of the variables on which to filter the loci
+  # vars values are columns from the treelikeness_df
   vars <- c("pass_phi", "pass_maxchi", "pass_geneconv")
   # Assign output names for each of the variables in vars
   vars_names <- c("PHI", "maxchi", "geneconv")
@@ -252,7 +253,7 @@ for (dataset in datasets_to_copy_loci){
     # Make a tree for all the loci that pass the test and all the loci that fail the test
     tree_type <- c("pass", "fail")
     for (tt in tree_type){
-      print(paste0(dataset, " : ", v, " : ", tt))
+      print(paste0(dataset, " : ", vars_names[v], " : ", tt))
       # Set boolean to collect either loci that passed or failed the test
       if (tt == "pass"){
         bool = TRUE
