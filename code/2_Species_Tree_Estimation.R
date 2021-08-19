@@ -2,7 +2,7 @@
 ## R program to estimate trees from treelike or non-treelike loci
 ## Additional software packages are required:
 ##     - ASTRAL (Zhang et al 2019) (https://github.com/smirarab/ASTRAL)
-##     - IQTREE (Nguyen et al 2015) (http://www.iqtree.org/) (need version 2.0 or later)
+##     - IQTREE (Nguyen et al 2015) (http://www.iqtree.org/) (version 2.0 or later)
 # Caitlin Cherryh 2021
 
 ##### Step 1: Set file paths and run variables #####
