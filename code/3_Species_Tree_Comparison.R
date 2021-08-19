@@ -14,12 +14,12 @@
 # dataset_tree_roots        <- set which taxa is outgroup for each dataset
 # alignment_dir             <- the folder(s) containing the alignments for each loci
 
-# datasets_to_run           <- set which datasets you want to apply the AU test and the QuartetNetworkGoF test to
-# tests_to_run              <- set which of the recombination detection methods should be tested (allTests, PHI, maxchi and geneconv)
-# new.ASTRAL.terminal.branch.length <- ASTRAL does not estimate terminal branch lengths, so we assign a branch length
-# run_Julia_QuarNetGoF_test <- TRUE to run the QuartetNetworkGoF.jl test, FALSE to skip it
+# compare_ASTRAL_trees      <- set which datasets you want to apply the QuartetNetworkGoF test to
+# compare_IQTREE_trees      <- set which datasets you want to apply the AU test to
+# tests_to_run              <- a list, with a vector for each dataset specifying which of the recombination detection methods should be tested 
+#                              Options: "allTests", "PHI", "maxchi" and "geneconv"
+# new.ASTRAL.terminal.branch.length <- ASTRAL does not estimate terminal branch lengths. Terminal branch lengths will be initially set to this value.
 # n_julia_reps              <- Number of simulated data sets to generate for the QuartetNetworkGoF test.
-# run_IQTree_AU_test        <- TRUE to run the AU test in IQ-Tree, FALSE to skip it
 
 # csv_data_dir              <- directory containing the .csv file results from script 1_RecombinationDetection_empiricalTreelikeness.R
 # tree_dir                  <- directory containing species trees output from script 2_Species_Tree_Estimation.R
@@ -39,12 +39,15 @@ if (run == "local"){
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   
   # Set which datasets and which tests to run
-  datasets_to_run <- c("Vanderpool2020", "Pease2016", "Strassert2021", "1KP")
-  tests_to_run <- c("allTests", "PHI", "maxchi", "geneconv")
+  # Set which datasets and which tests to run
+  compare_ASTRAL_trees <- c("Vanderpool2020")
+  compare_IQTREE_trees <- c("Vanderpool2020")
+  tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
+                       "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
+                       "Strassert2021" = c(),
+                       "1KP" = c())
   new.ASTRAL.terminal.branch.length <- 0.1
-  run_Julia_QuarNetGoF_test <- TRUE
   n_julia_reps <- 100
-  run_IQTree_AU_test <- FALSE
   
   # File and directory locations
   csv_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
@@ -64,12 +67,14 @@ if (run == "local"){
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   
   # Set which datasets and which tests to run
-  datasets_to_run <- c("Vanderpool2020", "Pease2016")
-  tests_to_run <- c("allTests", "PHI", "maxchi", "geneconv")
+  compare_ASTRAL_trees <- c("Vanderpool2020")
+  compare_IQTREE_trees <- c("Vanderpool2020")
+  tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
+                    "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
+                    "Strassert2021" = c(),
+                    "1KP" = c())
   new.ASTRAL.terminal.branch.length <- 0.1
-  run_Julia_QuarNetGoF_test <- FALSE
   n_julia_reps <- 100
-  run_IQTree_AU_test <- FALSE
   
   # File and directory locations
   csv_data_dir <- "/data/caitlin/empirical_treelikeness/Output/"
@@ -106,166 +111,167 @@ names(alignment_dir) <- input_names
 #   - Convert the list of gene trees into a set of quartet CFs
 #   - Apply the QGOF test and save the output values
 #   - Repeat this for the other two trees
-if (run_Julia_QuarNetGoF_test == TRUE){
-  # Iterate through each dataset
-  for (dataset in datasets_to_run){
-    # Set a folder for the analyses for this dataset
-    dataset_folder <- paste0(output_dir, dataset, "/")
-    if (dir.exists(dataset_folder) == FALSE){dir.create(dataset_folder)}
-    # Extract the names of the ASTRAL species trees and the .txt files containing the list of gene trees
-    species_tree_folder <- paste0(tree_dir, dataset, "/", "species_trees", "/")
-    all_species_trees_files <- list.files(species_tree_folder, recursive = TRUE)
-    
-    # Iterate through each test
-    for (test in tests_to_run){
-      # Name the new folder for running this test
-      new_folder <- paste0(dataset_folder, "quarnetGoFtest_", test, "/")
-      if (dir.exists(new_folder) == FALSE){dir.create(new_folder)}
-      
-      # Check whether the results file for this test exists already
-      quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
-      # If the file does not exist, run the tests
-      if (file.exists(quarnet_results_file) == FALSE){
-        # Find all ASTRAL files from this test/dataset combination
-        all_astral_files <- grep("ASTRAL", all_species_trees_files, value = TRUE)
-        all_astral_trees <- grep("\\.tre", all_astral_files, value = TRUE)
-        all_astral_gene_trees <- gsub("_species.tre", ".txt", all_astral_trees)
-        
-        # Collect files for this test
-        files <- c(grep(test, all_astral_trees, value = TRUE), grep("NoTest", all_astral_trees, value = TRUE), 
-                   grep("pass", grep(test, all_astral_gene_trees, value = TRUE), value = TRUE))
-        
-        # Print the dataset and test details
-        print(paste0(dataset, " - ", test))
-        
-        # If all four files exist, continue the analysis
-        if (length(files) == 4){
-          # Move files into the new folder
-          for (i in files){file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))}
-          # Give files their new full file paths
-          files <- paste0(new_folder, files)
-          
-          # Provide extra parameters for the function, depending on dataset
-          tree_root = dataset_tree_roots[[dataset]]
-          
-          # Rewrite ASTRAL species trees to match format for quarnetGoFtest (will all have .tre extension)
-          lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, 
-                 terminal.branch.length = new.ASTRAL.terminal.branch.length)
-          # Extend the ASTRAL species trees to be ultrametric
-          lapply(grep(".tre", files, value = TRUE), make.tree.ultrametric, root.tree = TRUE, outgroup = tree_root)
-          # Rewrite IQ-Tree gene trees to match format for quarnetGoFTest (will have .txt extension)
-          lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
-          # Name the files
-          noTest_tree_file <- grep("NoTest", grep("tre", files, value = TRUE), value = TRUE)
-          pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
-          fail_tree_file <- grep("fail", grep("tre", files, value = TRUE), value = TRUE)
-          gene_trees_file <- grep(".txt", files, value = TRUE)
-          
-          ### Apply the Quartet Network Goodness of Fit test in Julia ###
-          # Write the Julia code into a file
-          write.Julia.GoF.script(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
-                                 fail_tree = fail_tree_file, all_tree = noTest_tree_file, gene_trees = gene_trees_file, 
-                                 root.species.trees = FALSE, tree_root = tree_root, output_csv_file_path = quarnet_results_file,
-                                 number_of_simulated_replicates = n_julia_reps)
-          # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
-          julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
-          system(julia_command)
-        } else {
-          # For some tests for some datasets, there were no loci that passed/failed that test and so there are not three trees, meaning this analysis
-          # cannot be carried out as designed
-          # Output a dataframe for this test with NA results
-          df <- data.frame(dataset = rep(dataset, 3), concordance_factors = rep(NA,3), test = rep(test, 3), 
-                           tree = c("test_pass", "test_fail", "no_test"), tree_root = rep(dataset_tree_roots[[dataset]], 3), 
-                           p_value_overall_GoF_test = rep(NA, 3), uncorrected_z_value_test_statistic = rep(NA, 3), 
-                           estimated_sigma_for_test_statistic_correction = rep(NA, 3))
-          write.csv(df, file = quarnet_results_file)
-        }
-      }
-      
-    }
-  }
+# Iterate through each dataset
+for (dataset in compare_ASTRAL_trees){
+  # Set a folder for the analyses for this dataset
+  dataset_folder <- paste0(output_dir, dataset, "/")
+  if (dir.exists(dataset_folder) == FALSE){dir.create(dataset_folder)}
+  # Extract the names of the ASTRAL species trees and the .txt files containing the list of gene trees
+  species_tree_folder <- paste0(tree_dir, dataset, "/", "species_trees", "/")
+  all_species_trees_files <- list.files(species_tree_folder, recursive = TRUE)
   
-  ## Collate and output ASTRAL results files ##
-  # Find all QuarNetGoF_test_results.csv files
-  all_output_files <- list.files(output_dir, recursive = TRUE)
-  all_gof_results <- paste0(output_dir, grep("QuarNetGoF_test_results.csv", all_output_files, value = TRUE))
-  # Open and collate the csv files
-  gof_results_list <- lapply(all_gof_results, read.csv)
-  gof_results_df <- do.call(rbind, gof_results_list)
-  # Output compiled csv
-  gof_results_df_name <- paste0(output_dir, "03_",paste(sort(datasets_to_run), collapse = "_"), "_collated_ComparisonTrees_QuarNetGoF_test_results.csv")
-  write.csv(gof_results_df, file = gof_results_df_name, row.names = FALSE)
+  # Identify which tests to run for this dataset
+  dataset_tests <- tests_to_run[[dataset]]
+  # Iterate through each test
+  for (test in dataset_tests){
+    # Name the new folder for running this test
+    new_folder <- paste0(dataset_folder, "quarnetGoFtest_", test, "/")
+    if (dir.exists(new_folder) == FALSE){dir.create(new_folder)}
+    
+    # Check whether the results file for this test exists already
+    quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
+    # If the file does not exist, run the tests
+    if (file.exists(quarnet_results_file) == FALSE){
+      # Find all ASTRAL files from this test/dataset combination
+      all_astral_files <- grep("ASTRAL", all_species_trees_files, value = TRUE)
+      all_astral_trees <- grep("\\.tre", all_astral_files, value = TRUE)
+      all_astral_gene_trees <- gsub("_species.tre", ".txt", all_astral_trees)
+      
+      # Collect files for this test
+      files <- c(grep(test, all_astral_trees, value = TRUE), grep("NoTest", all_astral_trees, value = TRUE), 
+                 grep("pass", grep(test, all_astral_gene_trees, value = TRUE), value = TRUE))
+      
+      # Print the dataset and test details
+      print(paste0(dataset, " - ", test))
+      
+      # If all four files exist, continue the analysis
+      if (length(files) == 4){
+        # Move files into the new folder
+        for (i in files){file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))}
+        # Give files their new full file paths
+        files <- paste0(new_folder, files)
+        
+        # Provide extra parameters for the function, depending on dataset
+        tree_root = dataset_tree_roots[[dataset]]
+        
+        # Rewrite ASTRAL species trees to match format for quarnetGoFtest (will all have .tre extension)
+        lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, 
+               terminal.branch.length = new.ASTRAL.terminal.branch.length)
+        # Extend the ASTRAL species trees to be ultrametric
+        lapply(grep(".tre", files, value = TRUE), make.tree.ultrametric, root.tree = TRUE, outgroup = tree_root)
+        # Rewrite IQ-Tree gene trees to match format for quarnetGoFTest (will have .txt extension)
+        lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
+        # Name the files
+        noTest_tree_file <- grep("NoTest", grep("tre", files, value = TRUE), value = TRUE)
+        pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
+        fail_tree_file <- grep("fail", grep("tre", files, value = TRUE), value = TRUE)
+        gene_trees_file <- grep(".txt", files, value = TRUE)
+        
+        ### Apply the Quartet Network Goodness of Fit test in Julia ###
+        # Write the Julia code into a file
+        write.Julia.GoF.script(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
+                               fail_tree = fail_tree_file, all_tree = noTest_tree_file, gene_trees = gene_trees_file, 
+                               root.species.trees = FALSE, tree_root = tree_root, output_csv_file_path = quarnet_results_file,
+                               number_of_simulated_replicates = n_julia_reps)
+        # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
+        julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
+        system(julia_command)
+      } else {
+        # For some tests for some datasets, there were no loci that passed/failed that test and so there are not three trees, meaning this analysis
+        # cannot be carried out as designed
+        # Output a dataframe for this test with NA results
+        df <- data.frame(dataset = rep(dataset, 3), concordance_factors = rep(NA,3), test = rep(test, 3), 
+                         tree = c("test_pass", "test_fail", "no_test"), tree_root = rep(dataset_tree_roots[[dataset]], 3), 
+                         p_value_overall_GoF_test = rep(NA, 3), uncorrected_z_value_test_statistic = rep(NA, 3), 
+                         estimated_sigma_for_test_statistic_correction = rep(NA, 3))
+        write.csv(df, file = quarnet_results_file)
+      }
+    }
+    
+  }
 }
+
+## Collate and output ASTRAL results files ##
+# Find all QuarNetGoF_test_results.csv files
+all_output_files <- list.files(output_dir, recursive = TRUE)
+all_gof_results <- paste0(output_dir, grep("QuarNetGoF_test_results.csv", all_output_files, value = TRUE))
+# Open and collate the csv files
+gof_results_list <- lapply(all_gof_results, read.csv)
+gof_results_df <- do.call(rbind, gof_results_list)
+# Output compiled csv
+gof_results_df_name <- paste0(output_dir, "03_collated_ComparisonTrees_QuarNetGoF_test_results.csv")
+write.csv(gof_results_df, file = gof_results_df_name, row.names = FALSE)
 
 
 
 ##### Step 5: Compare IQ-Tree trees #####
-if (run_IQTree_AU_test == TRUE){
-  # Iterate through each dataset
-  for (dataset in datasets_to_run){
-    # Set a folder for the analyses for this dataset
-    dataset_folder <- paste0(output_dir, dataset, "/")
-    if (dir.exists(dataset_folder) == FALSE){dir.create(dataset_folder)}
-    # Extract the names of the ASTRAL species trees and the .txt files containing the list of gene trees
-    species_tree_folder <- paste0(tree_dir, dataset, "/", "species_trees", "/")
-    all_species_trees_files <- list.files(species_tree_folder, recursive = TRUE)
+# Iterate through each dataset
+for (dataset in compare_IQTREE_trees){
+  # Set a folder for the analyses for this dataset
+  dataset_folder <- paste0(output_dir, dataset, "/")
+  if (dir.exists(dataset_folder) == FALSE){dir.create(dataset_folder)}
+  # Extract the names of the ASTRAL species trees and the .txt files containing the list of gene trees
+  species_tree_folder <- paste0(tree_dir, dataset, "/", "species_trees", "/")
+  all_species_trees_files <- list.files(species_tree_folder, recursive = TRUE)
+  
+  # Identify which tests to run for this dataset
+  dataset_tests <- tests_to_run[[dataset]]
+  # Iterate through each test
+  for (test in dataset_tests){
+    # Name the new folder for running this test
+    new_folder <- paste0(dataset_folder, "AUtest_", test, "/")
+    if (dir.exists(new_folder) == FALSE){dir.create(new_folder)}
     
-    for (test in tests_to_run){
-      # Name the new folder for running this test
-      new_folder <- paste0(dataset_folder, "AUtest_", test, "/")
-      if (dir.exists(new_folder) == FALSE){dir.create(new_folder)}
+    # Check whether the results file for this test exists already
+    au_results_file <- paste0(new_folder, dataset, "_", test, "_AU_test_results.csv")
+    # If the file does not exist, run the tests
+    if (file.exists(au_results_file) == FALSE){
+      # Find all IQ-Tree files from this test/dataset combination
+      all_IQTree_files <- grep("IQTREE", all_species_trees_files, value = TRUE)
+      all_IQTree_partitions <- grep(".nex.", grep("partitions.nex", all_IQTree_files, value = TRUE), value = TRUE, invert = TRUE)
+      all_IQTree_trees <- gsub(".nex", ".nex.contree", all_IQTree_partitions)
       
-      # Check whether the results file for this test exists already
-      au_results_file <- paste0(new_folder, dataset, "_", test, "_AU_test_results.csv")
-      # If the file does not exist, run the tests
-      if (file.exists(au_results_file) == FALSE){
-        # Find all IQ-Tree files from this test/dataset combination
-        all_IQTree_files <- grep("IQTREE", all_species_trees_files, value = TRUE)
-        all_IQTree_partitions <- grep(".nex.", grep("partitions.nex", all_IQTree_files, value = TRUE), value = TRUE, invert = TRUE)
-        all_IQTree_trees <- gsub(".nex", ".nex.contree", all_IQTree_partitions)
-        
-        # Collect files for this test: three trees and the partition file (containing the loci that pass the test)
-        test_IQTREE_trees <- grep(test, all_IQTree_trees, value = TRUE)
-        # Sort the files into the following order: test pass, test fail, no test
-        three_trees_location <- c(grep("pass", test_IQTREE_trees, value = TRUE), grep("fail", test_IQTREE_trees, value = TRUE), 
-                                  grep("NoTest", all_IQTree_trees, value = TRUE))
-        three_trees_location <- paste0(species_tree_folder, three_trees_location)
-        # Read in the three trees
-        three_trees_text <- unlist(lapply(three_trees_location, readLines))
-        # Write the three trees into one file, inside the new folder for the AU test
-        three_trees_path <- paste0(new_folder, dataset, "_", test, "three_trees_Pass-Fail-NoTest.tree")
-        write(three_trees_text, three_trees_path)
-        
-        # Find the partitions file containing the location of the loci that pass the test
-        test_pass_partition_file <- grep("pass", grep(test, all_IQTree_partitions, value = TRUE), value = TRUE)
-        # Write the new name for the partition file
-        partition_path <- paste0(new_folder, "partitions.nex")
-        # Copy the partition file
-        file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path)
-        
-        ### Apply the AU tests in IQ-Tree ###
-        # Apply the AU test
-        au_test_df <- perform.partition.AU.test(partition_path, three_trees_path, iqtree_path)
-        # Assemble the output dataframe
-        au_results_df <- data.frame(dataset = rep(dataset, 3), test = rep(test, 3), tree = c("test_pass", "test_fail", "no_test"))
-        au_results_df <- cbind(au_results_df, au_test_df)
-        # Save the output dataframe
-        write.csv(au_results_df, file = au_results_file, row.names = FALSE)
-      }
+      # Collect files for this test: three trees and the partition file (containing the loci that pass the test)
+      test_IQTREE_trees <- grep(test, all_IQTree_trees, value = TRUE)
+      # Sort the files into the following order: test pass, test fail, no test
+      three_trees_location <- c(grep("pass", test_IQTREE_trees, value = TRUE), grep("fail", test_IQTREE_trees, value = TRUE), 
+                                grep("NoTest", all_IQTree_trees, value = TRUE))
+      three_trees_location <- paste0(species_tree_folder, three_trees_location)
+      # Read in the three trees
+      three_trees_text <- unlist(lapply(three_trees_location, readLines))
+      # Write the three trees into one file, inside the new folder for the AU test
+      three_trees_path <- paste0(new_folder, dataset, "_", test, "three_trees_Pass-Fail-NoTest.tree")
+      write(three_trees_text, three_trees_path)
+      
+      # Find the partitions file containing the location of the loci that pass the test
+      test_pass_partition_file <- grep("pass", grep(test, all_IQTree_partitions, value = TRUE), value = TRUE)
+      # Write the new name for the partition file
+      partition_path <- paste0(new_folder, "partitions.nex")
+      # Copy the partition file
+      file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path)
+      
+      ### Apply the AU tests in IQ-Tree ###
+      # Apply the AU test
+      au_test_df <- perform.partition.AU.test(partition_path, three_trees_path, iqtree_path)
+      # Assemble the output dataframe
+      au_results_df <- data.frame(dataset = rep(dataset, 3), test = rep(test, 3), tree = c("test_pass", "test_fail", "no_test"))
+      au_results_df <- cbind(au_results_df, au_test_df)
+      # Save the output dataframe
+      write.csv(au_results_df, file = au_results_file, row.names = FALSE)
     }
   }
-  
-  ## Collate and output IQ-Tree results files ##
-  # Find all AU_test_results.csv files
-  all_output_files <- list.files(output_dir, recursive = TRUE)
-  all_au_results <- paste0(output_dir, grep("AU_test_results.csv", all_output_files, value = TRUE))
-  # Open and collate the csv files
-  au_results_list <- lapply(all_au_results, read.csv)
-  au_results_df <- do.call(rbind, au_results_list)
-  # Output compiled csv
-  au_results_df_name <- paste0(output_dir, "03_",paste(sort(datasets_to_run), collapse = "_"), "_collated_ComparisonTrees_AU_test_results.csv")
-  write.csv(au_results_df, file = au_results_df_name, row.names = FALSE)
 }
+
+## Collate and output IQ-Tree results files ##
+# Find all AU_test_results.csv files
+all_output_files <- list.files(output_dir, recursive = TRUE)
+all_au_results <- paste0(output_dir, grep("AU_test_results.csv", all_output_files, value = TRUE))
+# Open and collate the csv files
+au_results_list <- lapply(all_au_results, read.csv)
+au_results_df <- do.call(rbind, au_results_list)
+# Output compiled csv
+au_results_df_name <- paste0(output_dir, "03_collated_ComparisonTrees_AU_test_results.csv")
+write.csv(au_results_df, file = au_results_df_name, row.names = FALSE)
 
 
 
