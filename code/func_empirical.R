@@ -1537,12 +1537,19 @@ partition.file.from.loci.list <- function(loci_list, directory, original_alignme
     inds <- unlist(lapply(loci_list, grep, original_alignments))
     loci_list_locations <- paste0(original_alignment_folder, original_alignments[inds])
   }
+  # If the dataset is Pease2016, the loci_list contains "-" which raise an error in IQ-Tree
+  # Replace these "-" with "_"
+  if (grepl("Pease2016", original_alignment_folder) == TRUE){
+    loci_list <- gsub("-", "_", loci_list)
+  }
+  # Create the charset lines
   if (add.codon.positions == TRUE){
     # make charset for each loci - split by codon position
     all_charsets <- unlist(lapply(1:length(loci_list), make.codon.position.charset.from.filepath, loci_list, loci_list_locations))
   } else if (add.codon.positions == FALSE){
     all_charsets <- unlist(lapply(1:length(loci_list), make.charset.from.filepath, loci_list, loci_list_locations))
   }
+  # If specified, create the model specification line
   if (add.charpartition.models == TRUE){
     # Want to add the substitution models into a charpartition section
     # Structure will be e.g. HKY:part1, GTR+G:part2, ..., GY:part10;
