@@ -41,7 +41,7 @@ if (run == "local"){
   # Set which datasets and which tests to run
   # Set which datasets and which tests to run
   compare_ASTRAL_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
-  compare_IQTREE_trees <- c()
+  compare_IQTREE_trees <- c("Pease2016")
   tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Strassert2021" = c("PHI", "maxchi"),
@@ -67,8 +67,8 @@ if (run == "local"){
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   
   # Set which datasets and which tests to run
-  compare_ASTRAL_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
-  compare_IQTREE_trees <- c("Vanderpool2020")
+  compare_ASTRAL_trees <- c()
+  compare_IQTREE_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
   tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Strassert2021" = c("PHI", "maxchi"),
@@ -142,17 +142,7 @@ for (dataset in compare_ASTRAL_trees){
     for (i in files){file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))}
     # Give files their new full file paths
     files <- paste0(new_folder, files)
-    
-    # Provide extra parameters for the function, depending on dataset
-    tree_root = dataset_tree_roots[[dataset]]
-    
-    # Rewrite ASTRAL species trees to match format for quarnetGoFtest (will all have .tre extension)
-    lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, 
-           terminal.branch.length = new.ASTRAL.terminal.branch.length)
-    # Extend the ASTRAL species trees to be ultrametric
-    lapply(grep(".tre", files, value = TRUE), make.tree.ultrametric, root.tree = TRUE, outgroup = tree_root)
-    # Rewrite IQ-Tree gene trees to match format for quarnetGoFTest (will have .txt extension)
-    lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
+
     # Name the files
     noTest_tree_file <- grep("NoTest", grep("tre", files, value = TRUE), value = TRUE)
     pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
@@ -162,6 +152,24 @@ for (dataset in compare_ASTRAL_trees){
       fail_tree_file <- grep("fail", grep("tre", files, value = TRUE), value = TRUE)
     }
     gene_trees_file <- grep(".txt", files, value = TRUE)
+    
+    # Create a new vector of the trees used for this dataset
+    if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
+      dataset_tree_files <- c(pass_tree_file, fail_tree_file, noTest_tree_file)
+    } else if (dataset == "1KP" | dataset == "Strassert2021"){
+      dataset_tree_files <- c(pass_tree_file, noTest_tree_file)
+    }
+    
+    # Provide extra parameters for the function, depending on dataset
+    tree_root = dataset_tree_roots[[dataset]]
+    
+    # Rewrite ASTRAL species trees to match format for quarnetGoFtest (will all have .tre extension)
+    lapply(dataset_tree_files, reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, 
+           terminal.branch.length = new.ASTRAL.terminal.branch.length)
+    # Extend the ASTRAL species trees to be ultrametric
+    lapply(dataset_tree_files, make.tree.ultrametric, root.tree = TRUE, outgroup = tree_root)
+    # Rewrite IQ-Tree gene trees to match format for quarnetGoFTest (will have .txt extension)
+    lapply(gene_trees_file, reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
     
     # Assemble the output csv name for the Quartet Network Goodness of Fit results
     quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
