@@ -44,8 +44,8 @@ if (run == "local"){
   compare_IQTREE_trees <- c()
   tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
-                       "Strassert2021" = c(),
-                       "1KP" = c())
+                       "Strassert2021" = c("PHI", "maxchi"),
+                       "1KP" = c("PHI", "maxchi"))
   new.ASTRAL.terminal.branch.length <- 0.1
   n_julia_reps <- 100
   
@@ -141,10 +141,7 @@ for (dataset in compare_ASTRAL_trees){
       # Collect files for this test
       files <- c(grep(test, all_astral_trees, value = TRUE), grep("NoTest", all_astral_trees, value = TRUE), 
                  grep("pass", grep(test, all_astral_gene_trees, value = TRUE), value = TRUE))
-      
-      # Print the dataset and test details
-      print(paste0(dataset, " - ", test))
-      
+      old_files <- paste0(species_tree_folder, files)
       # Move files into the new folder
       for (i in files){file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))}
       # Give files their new full file paths
@@ -173,6 +170,7 @@ for (dataset in compare_ASTRAL_trees){
       ### Apply the Quartet Network Goodness of Fit test in Julia ###
       # Write the Julia code into a file
       if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
+        # Run Julia script with T_test,pass and T_test,fail and T_none
         write.Julia.GoF.script(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
                                fail_tree = fail_tree_file, all_tree = noTest_tree_file, gene_trees = gene_trees_file, 
                                root.species.trees = FALSE, tree_root = tree_root, output_csv_file_path = quarnet_results_file,
@@ -180,13 +178,72 @@ for (dataset in compare_ASTRAL_trees){
         # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
         julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
         system(julia_command)
+        
+        ### Calculate the distance between trees
+        # Copy the test,pass tree across again and add terminal branches 
+        t_test_pass_file <- paste0(new_folder, dataset, "_", test, "_pass_ASTRAL_terminalBranches0.1.tre")
+        file.copy(from = grep("pass", grep("\\.tre", old_files, value = TRUE), value = TRUE), to = t_test_pass_file)
+        reformat.ASTRAL.tree.for.Julia(t_test_pass_file, add.arbitrary.terminal.branches = TRUE, terminal.branch.length = new.ASTRAL.terminal.branch.length)
+        # Copy the test,fail tree across again and add terminal branches 
+        t_test_fail_file <- paste0(new_folder, dataset, "_", test, "_fail_ASTRAL_terminalBranches0.1.tre")
+        file.copy(from = grep("fail", grep("\\.tre", old_files, value = TRUE), value = TRUE), to = t_test_fail_file)
+        reformat.ASTRAL.tree.for.Julia(t_test_fail_file, add.arbitrary.terminal.branches = TRUE, terminal.branch.length = new.ASTRAL.terminal.branch.length)
+        # Copy the NoTest tree across again and add terminal branches 
+        t_none_file <- paste0(new_folder, dataset, "_noTest_ASTRAL_terminalBranches0.1.tre")
+        file.copy(from = grep("NoTest", grep("\\.tre", old_files, value = TRUE), value = TRUE), to = t_none_file)
+        reformat.ASTRAL.tree.for.Julia(t_none_file, add.arbitrary.terminal.branches = TRUE, terminal.branch.length = new.ASTRAL.terminal.branch.length)
+        # Read in both trees
+        t_test_pass <- read.tree(t_test_pass_file)
+        t_test_fail <- read.tree(t_test_fail_file)
+        t_none <- read.tree(t_none_file)
+        # Calculate distances between the trees
+        dist_df <- data.frame(dataset = rep(dataset, 3),
+                              test = rep(test, 3),
+                              tree = c("test_pass", "test_fail", "none"),
+                              RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass, check.labels = TRUE), RF.dist(t_test_pass, t_test_fail, check.labels = TRUE), RF.dist(t_test_pass, t_none, check.labels = TRUE)),
+                              RF_dist_to_test_fail = c(RF.dist(t_test_fail, t_test_pass, check.labels = TRUE), RF.dist(t_test_fail, t_test_fail, check.labels = TRUE), RF.dist(t_test_fail, t_none, check.labels = TRUE)),
+                              RF_dist_to_test_none = c(RF.dist(t_none, t_test_pass, check.labels = TRUE),      RF.dist(t_none, t_test_fail, check.labels = TRUE),      RF.dist(t_none, t_none, check.labels = TRUE)),
+                              wRF_dist_to_test_pass = c(wRF.dist(t_test_pass, t_test_pass, check.labels = TRUE), wRF.dist(t_test_pass, t_test_fail, check.labels = TRUE), wRF.dist(t_test_pass, t_none, check.labels = TRUE)),
+                              wRF_dist_to_test_fail = c(wRF.dist(t_test_fail, t_test_pass, check.labels = TRUE), wRF.dist(t_test_fail, t_test_fail, check.labels = TRUE), wRF.dist(t_test_fail, t_none, check.labels = TRUE)),
+                              wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass, check.labels = TRUE),      wRF.dist(t_none, t_test_fail, check.labels = TRUE),      wRF.dist(t_none, t_none, check.labels = TRUE)))
+        # Save RF distance as a dataframe
+        rf_csv <- paste0(new_folder, dataset, "_", test, "ASTRAL_tree_RF_distances.csv")
+        write.csv(rf_csv, file = dist_df, row.names = FALSE)
+        
       } else if (dataset == "Strassert2021" | dataset == "1KP"){
+        # Run Julia script with T_test,pass and T_none
         write.Julia.GoF.script.two.trees(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
                                          all_tree = noTest_tree_file, gene_trees = gene_trees_file,root.species.trees = FALSE, tree_root = tree_root,
                                          output_csv_file_path = quarnet_results_file, number_of_simulated_replicates = n_julia_reps)
         # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
         julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
         system(julia_command)
+        
+        ### Calculate the distance between trees
+        # Copy the test,pass tree across again and add terminal branches 
+        t_test_pass_file <- paste0(new_folder, dataset, "_", test, "_pass_ASTRAL_terminalBranches0.1.tre")
+        file.copy(from = grep("pass", grep("\\.tre", old_files, value = TRUE), value = TRUE), to = t_test_pass_file)
+        reformat.ASTRAL.tree.for.Julia(t_test_pass_file, add.arbitrary.terminal.branches = TRUE, terminal.branch.length = new.ASTRAL.terminal.branch.length)
+        # Copy the NoTest tree across again and add terminal branches 
+        t_none_file <- paste0(new_folder, dataset, "_noTest_ASTRAL_terminalBranches0.1.tre")
+        file.copy(from = grep("NoTest", grep("\\.tre", old_files, value = TRUE), value = TRUE), to = t_none_file)
+        reformat.ASTRAL.tree.for.Julia(t_none_file, add.arbitrary.terminal.branches = TRUE, terminal.branch.length = new.ASTRAL.terminal.branch.length)
+        # Read in both trees
+        t_test_pass <- read.tree(t_test_pass_file)
+        t_none <- read.tree(t_none_file)
+        # Calculate distances between the trees
+        dist_df <- data.frame(dataset = rep(dataset, 2),
+                              test = rep(test, 2),
+                              tree = c("test_pass", "none"),
+                              RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass, check.labels = TRUE), RF.dist(t_test_pass, t_none, check.labels = TRUE)),
+                              RF_dist_to_test_fail = c(NA,NA),
+                              RF_dist_to_test_none = c(RF.dist(t_none, t_test_pass, check.labels = TRUE), RF.dist(t_none, t_none, check.labels = TRUE)),
+                              wRF_dist_to_test_pass = c(wRF.dist(t_test_pass, t_test_pass, check.labels = TRUE), wRF.dist(t_test_pass, t_none, check.labels = TRUE)),
+                              wRF_dist_to_test_fail = c(NA,NA),
+                              wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass, check.labels = TRUE),  wRF.dist(t_none, t_none, check.labels = TRUE)))
+        # Save RF distance as a dataframe
+        rf_csv <- paste0(new_folder, dataset, "_", test, "ASTRAL_tree_RF_distances.csv")
+        write.csv(rf_csv, file = dist_df, row.names = FALSE)
       }
     } 
   }
@@ -270,12 +327,12 @@ for (dataset in compare_IQTREE_trees){
         t_test_fail <- three_trees[[2]]
         t_none <- three_trees[[3]]
         
-        dist_df <- data.frame(RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass), RF.dist(t_test_pass, t_test_fail), RF.dist(t_test_pass, t_none)),
-                              RF_dist_to_test_fail = c(RF.dist(t_test_fail, t_test_pass), RF.dist(t_test_fail, t_test_fail), RF.dist(t_test_fail, t_none)),
-                              RF_dist_to_test_none = c(RF.dist(t_none, t_test_pass), RF.dist(t_none, t_test_fail), RF.dist(t_none, t_none)),
-                              wRF_dist_to_test_pass = c(wRF.dist(t_test_pass, t_test_pass), wRF.dist(t_test_pass, t_test_fail), wRF.dist(t_test_pass, t_none)),
-                              wRF_dist_to_test_fail = c(wRF.dist(t_test_fail, t_test_pass), wRF.dist(t_test_fail, t_test_fail), wRF.dist(t_test_fail, t_none)),
-                              wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass), wRF.dist(t_none, t_test_fail), wRF.dist(t_none, t_none)))
+        dist_df <- data.frame(RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass, check.labels = TRUE), RF.dist(t_test_pass, t_test_fail, check.labels = TRUE), RF.dist(t_test_pass, t_none, check.labels = TRUE)),
+                              RF_dist_to_test_fail = c(RF.dist(t_test_fail, t_test_pass, check.labels = TRUE), RF.dist(t_test_fail, t_test_fail, check.labels = TRUE), RF.dist(t_test_fail, t_none, check.labels = TRUE)),
+                              RF_dist_to_test_none = c(RF.dist(t_none, t_test_pass, check.labels = TRUE),      RF.dist(t_none, t_test_fail, check.labels = TRUE),      RF.dist(t_none, t_none, check.labels = TRUE)),
+                              wRF_dist_to_test_pass = c(wRF.dist(t_test_pass, t_test_pass, check.labels = TRUE), wRF.dist(t_test_pass, t_test_fail, check.labels = TRUE), wRF.dist(t_test_pass, t_none, check.labels = TRUE)),
+                              wRF_dist_to_test_fail = c(wRF.dist(t_test_fail, t_test_pass, check.labels = TRUE), wRF.dist(t_test_fail, t_test_fail, check.labels = TRUE), wRF.dist(t_test_fail, t_none, check.labels = TRUE)),
+                              wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass, check.labels = TRUE),      wRF.dist(t_none, t_test_fail, check.labels = TRUE),      wRF.dist(t_none, t_none, check.labels = TRUE)))
         
         # Assemble the output dataframe
         au_results_df <- data.frame(dataset = rep(dataset, 3), test = rep(test, 3), tree = c("test_pass", "test_fail", "no_test"))
@@ -311,12 +368,12 @@ for (dataset in compare_IQTREE_trees){
         t_test_pass <- two_trees[[1]]
         t_none <- two_trees[[2]]
         
-        dist_df <- data.frame(RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass), NA, RF.dist(t_test_pass, t_none)),
-                              RF_dist_to_test_fail = c(NA,NA,NA),
-                              RF_dist_to_test_none = c(RF.dist(t_none, t_test_pass), NA, RF.dist(t_none, t_none)),
-                              wRF_dist_to_test_pass = c(wRF.dist(t_test_pass, t_test_pass), NA, wRF.dist(t_test_pass, t_none)),
-                              wRF_dist_to_test_fail = c(NA,NA,NA),
-                              wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass), NA, wRF.dist(t_none, t_none)))
+        dist_df <- data.frame(RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass, check.labels = TRUE), RF.dist(t_test_pass, t_none, check.labels = TRUE)),
+                              RF_dist_to_test_fail = c(NA,NA),
+                              RF_dist_to_test_none = c(RF.dist(t_none, t_test_pass, check.labels = TRUE), RF.dist(t_none, t_none, check.labels = TRUE)),
+                              wRF_dist_to_test_pass = c(wRF.dist(t_test_pass, t_test_pass, check.labels = TRUE), wRF.dist(t_test_pass, t_none, check.labels = TRUE)),
+                              wRF_dist_to_test_fail = c(NA,NA),
+                              wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass, check.labels = TRUE), wRF.dist(t_none, t_none, check.labels = TRUE)))
         
         # Assemble the output dataframe
         au_results_df <- data.frame(dataset = rep(dataset, 2), test = rep(test, 2), tree = c("test_pass", "no_test"))
