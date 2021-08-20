@@ -124,6 +124,7 @@ for (dataset in compare_ASTRAL_trees){
   dataset_tests <- tests_to_run[[dataset]]
   # Iterate through each test
   for (test in dataset_tests){
+    print(paste0("Applying QuarNet GoF test to ", dataset, ": ", test))
     # Name the new folder for running this test
     new_folder <- paste0(dataset_folder, "quarnetGoFtest_", test, "/")
     if (dir.exists(new_folder) == FALSE){dir.create(new_folder)}
@@ -144,60 +145,61 @@ for (dataset in compare_ASTRAL_trees){
       # Print the dataset and test details
       print(paste0(dataset, " - ", test))
       
-      # If all four files exist, continue the analysis
-      if (length(files) == 4){
-        # Move files into the new folder
-        for (i in files){file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))}
-        # Give files their new full file paths
-        files <- paste0(new_folder, files)
-        
-        # Provide extra parameters for the function, depending on dataset
-        tree_root = dataset_tree_roots[[dataset]]
-        
-        # Rewrite ASTRAL species trees to match format for quarnetGoFtest (will all have .tre extension)
-        lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, 
-               terminal.branch.length = new.ASTRAL.terminal.branch.length)
-        # Extend the ASTRAL species trees to be ultrametric
-        lapply(grep(".tre", files, value = TRUE), make.tree.ultrametric, root.tree = TRUE, outgroup = tree_root)
-        # Rewrite IQ-Tree gene trees to match format for quarnetGoFTest (will have .txt extension)
-        lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
-        # Name the files
-        noTest_tree_file <- grep("NoTest", grep("tre", files, value = TRUE), value = TRUE)
-        pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
+      # Move files into the new folder
+      for (i in files){file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))}
+      # Give files their new full file paths
+      files <- paste0(new_folder, files)
+      
+      # Provide extra parameters for the function, depending on dataset
+      tree_root = dataset_tree_roots[[dataset]]
+      
+      # Rewrite ASTRAL species trees to match format for quarnetGoFtest (will all have .tre extension)
+      lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, 
+             terminal.branch.length = new.ASTRAL.terminal.branch.length)
+      # Extend the ASTRAL species trees to be ultrametric
+      lapply(grep(".tre", files, value = TRUE), make.tree.ultrametric, root.tree = TRUE, outgroup = tree_root)
+      # Rewrite IQ-Tree gene trees to match format for quarnetGoFTest (will have .txt extension)
+      lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
+      # Name the files
+      noTest_tree_file <- grep("NoTest", grep("tre", files, value = TRUE), value = TRUE)
+      pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
+      if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
+        # Only collect fail tree for Vanderpool2020 and Pease2016 datasets
+        # The fail trees for the other two datasets contained too few loci (due to tests not working for loci with few variable sites)
         fail_tree_file <- grep("fail", grep("tre", files, value = TRUE), value = TRUE)
-        gene_trees_file <- grep(".txt", files, value = TRUE)
-        
-        ### Apply the Quartet Network Goodness of Fit test in Julia ###
-        # Write the Julia code into a file
-        if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
-          write.Julia.GoF.script(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
-                                 fail_tree = fail_tree_file, all_tree = noTest_tree_file, gene_trees = gene_trees_file, 
-                                 root.species.trees = FALSE, tree_root = tree_root, output_csv_file_path = quarnet_results_file,
-                                 number_of_simulated_replicates = n_julia_reps)
-          # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
-          julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
-          system(julia_command)
-        } else if (dataset == "Strassert2021" | dataset == "1KP"){
-          write.Julia.GoF.script.two.trees(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
-                                 all_tree = noTest_tree_file, gene_trees = gene_trees_file,root.species.trees = FALSE, tree_root = tree_root,
-                                 output_csv_file_path = quarnet_results_file, number_of_simulated_replicates = n_julia_reps)
-          # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
-          julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
-          system(julia_command)
-        }
-      } else {
-        # For some tests for some datasets, there were no loci that passed/failed that test and so there are not three trees, meaning this analysis
-        # cannot be carried out as designed
-        # Output a dataframe for this test with NA results
-        df <- data.frame(dataset = rep(dataset, 3), concordance_factors = rep(NA,3), test = rep(test, 3), 
-                         tree = c("test_pass", "test_fail", "no_test"), tree_root = rep(dataset_tree_roots[[dataset]], 3), 
-                         p_value_overall_GoF_test = rep(NA, 3), uncorrected_z_value_test_statistic = rep(NA, 3), 
-                         estimated_sigma_for_test_statistic_correction = rep(NA, 3))
-        write.csv(df, file = quarnet_results_file, row.names = FALSE)
       }
+      gene_trees_file <- grep(".txt", files, value = TRUE)
+      
+      ### Apply the Quartet Network Goodness of Fit test in Julia ###
+      # Write the Julia code into a file
+      if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
+        write.Julia.GoF.script(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
+                               fail_tree = fail_tree_file, all_tree = noTest_tree_file, gene_trees = gene_trees_file, 
+                               root.species.trees = FALSE, tree_root = tree_root, output_csv_file_path = quarnet_results_file,
+                               number_of_simulated_replicates = n_julia_reps)
+        # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
+        julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
+        system(julia_command)
+      } else if (dataset == "Strassert2021" | dataset == "1KP"){
+        write.Julia.GoF.script.two.trees(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
+                                         all_tree = noTest_tree_file, gene_trees = gene_trees_file,root.species.trees = FALSE, tree_root = tree_root,
+                                         output_csv_file_path = quarnet_results_file, number_of_simulated_replicates = n_julia_reps)
+        # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
+        julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
+        system(julia_command)
+      }
+    } else {
+      # For some tests for some datasets, there were no loci that passed/failed that test and so there are not three trees, meaning this analysis
+      # cannot be carried out as designed
+      # Output a dataframe for this test with NA results
+      df <- data.frame(dataset = rep(dataset, 3), concordance_factors = rep(NA,3), test = rep(test, 3), 
+                       tree = c("test_pass", "test_fail", "no_test"), tree_root = rep(dataset_tree_roots[[dataset]], 3), 
+                       p_value_overall_GoF_test = rep(NA, 3), uncorrected_z_value_test_statistic = rep(NA, 3), 
+                       estimated_sigma_for_test_statistic_correction = rep(NA, 3))
+      write.csv(df, file = quarnet_results_file, row.names = FALSE)
     }
-    
   }
+  
 }
 
 ## Collate and output ASTRAL results files ##
@@ -205,6 +207,7 @@ for (dataset in compare_ASTRAL_trees){
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_gof_results <- grep("QuarNetGoF_test_results.csv", all_output_files, value = TRUE)
 if (length(all_gof_results) > 0){
+  print("Collating QuarNet GoF test results")
   # Attach directory name to file names
   all_gof_results <- paste0(output_dir, all_gof_results)
   # Open and collate the csv files
@@ -236,6 +239,7 @@ for (dataset in compare_IQTREE_trees){
   dataset_tests <- tests_to_run[[dataset]]
   # Iterate through each test
   for (test in dataset_tests){
+    print(paste0("Applying AU test to ", dataset, ": ", test))
     # Name the new folder for running this test
     new_folder <- paste0(dataset_folder, "AUtest_", test, "/")
     if (dir.exists(new_folder) == FALSE){dir.create(new_folder)}
@@ -338,6 +342,7 @@ for (dataset in compare_IQTREE_trees){
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_au_results <- grep("AU_test_results.csv", all_output_files, value = TRUE)
 if (length(all_au_results) > 0){
+  print("Collating AU test results")
   # Attach directory name to file paths
   all_au_results <- paste0(output_dir, all_au_results)
   # Open and collate the csv files
