@@ -129,47 +129,50 @@ for (dataset in compare_ASTRAL_trees){
     new_folder <- paste0(dataset_folder, "quarnetGoFtest_", test, "/")
     if (dir.exists(new_folder) == FALSE){dir.create(new_folder)}
     
-    # Check whether the results file for this test exists already
+    # Find all ASTRAL files from this test/dataset combination
+    all_astral_files <- grep("ASTRAL", all_species_trees_files, value = TRUE)
+    all_astral_trees <- grep("\\.tre", all_astral_files, value = TRUE)
+    all_astral_gene_trees <- gsub("_species.tre", ".txt", all_astral_trees)
+    
+    # Collect files for this test
+    files <- c(grep(test, all_astral_trees, value = TRUE), grep("NoTest", all_astral_trees, value = TRUE), 
+               grep("pass", grep(test, all_astral_gene_trees, value = TRUE), value = TRUE))
+    old_files <- paste0(species_tree_folder, files)
+    # Move files into the new folder
+    for (i in files){file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))}
+    # Give files their new full file paths
+    files <- paste0(new_folder, files)
+    
+    # Provide extra parameters for the function, depending on dataset
+    tree_root = dataset_tree_roots[[dataset]]
+    
+    # Rewrite ASTRAL species trees to match format for quarnetGoFtest (will all have .tre extension)
+    lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, 
+           terminal.branch.length = new.ASTRAL.terminal.branch.length)
+    # Extend the ASTRAL species trees to be ultrametric
+    lapply(grep(".tre", files, value = TRUE), make.tree.ultrametric, root.tree = TRUE, outgroup = tree_root)
+    # Rewrite IQ-Tree gene trees to match format for quarnetGoFTest (will have .txt extension)
+    lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
+    # Name the files
+    noTest_tree_file <- grep("NoTest", grep("tre", files, value = TRUE), value = TRUE)
+    pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
+    if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
+      # Only collect fail tree for Vanderpool2020 and Pease2016 datasets
+      # The fail trees for the other two datasets contained too few loci (due to tests not working for loci with few variable sites)
+      fail_tree_file <- grep("fail", grep("tre", files, value = TRUE), value = TRUE)
+    }
+    gene_trees_file <- grep(".txt", files, value = TRUE)
+    
+    # Assemble the output csv name for the Quartet Network Goodness of Fit results
     quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
-    # If the file does not exist, run the tests
-    if (file.exists(quarnet_results_file) == FALSE){
-      # Find all ASTRAL files from this test/dataset combination
-      all_astral_files <- grep("ASTRAL", all_species_trees_files, value = TRUE)
-      all_astral_trees <- grep("\\.tre", all_astral_files, value = TRUE)
-      all_astral_gene_trees <- gsub("_species.tre", ".txt", all_astral_trees)
+    
+    # Run slightly different versions of the code based on the dataset: shallow datasets compare 3 trees, and deeper datasets compare two trees
+    if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
+      # Assemble the output csv name for the Quartet Network Goodness of Fit results
+      quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
       
-      # Collect files for this test
-      files <- c(grep(test, all_astral_trees, value = TRUE), grep("NoTest", all_astral_trees, value = TRUE), 
-                 grep("pass", grep(test, all_astral_gene_trees, value = TRUE), value = TRUE))
-      old_files <- paste0(species_tree_folder, files)
-      # Move files into the new folder
-      for (i in files){file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))}
-      # Give files their new full file paths
-      files <- paste0(new_folder, files)
-      
-      # Provide extra parameters for the function, depending on dataset
-      tree_root = dataset_tree_roots[[dataset]]
-      
-      # Rewrite ASTRAL species trees to match format for quarnetGoFtest (will all have .tre extension)
-      lapply(grep(".tre", files, value = TRUE), reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, 
-             terminal.branch.length = new.ASTRAL.terminal.branch.length)
-      # Extend the ASTRAL species trees to be ultrametric
-      lapply(grep(".tre", files, value = TRUE), make.tree.ultrametric, root.tree = TRUE, outgroup = tree_root)
-      # Rewrite IQ-Tree gene trees to match format for quarnetGoFTest (will have .txt extension)
-      lapply(grep(".txt", files, value = TRUE), reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
-      # Name the files
-      noTest_tree_file <- grep("NoTest", grep("tre", files, value = TRUE), value = TRUE)
-      pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
-      if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
-        # Only collect fail tree for Vanderpool2020 and Pease2016 datasets
-        # The fail trees for the other two datasets contained too few loci (due to tests not working for loci with few variable sites)
-        fail_tree_file <- grep("fail", grep("tre", files, value = TRUE), value = TRUE)
-      }
-      gene_trees_file <- grep(".txt", files, value = TRUE)
-      
-      ### Apply the Quartet Network Goodness of Fit test in Julia ###
-      # Write the Julia code into a file
-      if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
+      if (file.exists(quarnet_results_file) == FALSE){
+        ### Run GoodnessOfFit test
         # Run Julia script with T_test,pass and T_test,fail and T_none
         write.Julia.GoF.script(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
                                fail_tree = fail_tree_file, all_tree = noTest_tree_file, gene_trees = gene_trees_file, 
@@ -178,8 +181,12 @@ for (dataset in compare_ASTRAL_trees){
         # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
         julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
         system(julia_command)
-        
-        ### Calculate the distance between trees
+      }
+      
+      # Assemble the file name for the RF distances csv file
+      rf_csv <- paste0(new_folder, dataset, "_", test, "ASTRAL_tree_RF_distances.csv")
+      if (file.exists(rf_csv) == FALSE){
+        ### Calculate the RF and wRF distances between trees
         # Copy the test,pass tree across again and add terminal branches 
         t_test_pass_file <- paste0(new_folder, dataset, "_", test, "_pass_ASTRAL_terminalBranches0.1.tre")
         file.copy(from = grep("pass", grep("\\.tre", old_files, value = TRUE), value = TRUE), to = t_test_pass_file)
@@ -200,6 +207,7 @@ for (dataset in compare_ASTRAL_trees){
         dist_df <- data.frame(dataset = rep(dataset, 3),
                               test = rep(test, 3),
                               tree = c("test_pass", "test_fail", "none"),
+                              analysis = rep("ASTRAL", 3),
                               RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass, check.labels = TRUE), RF.dist(t_test_pass, t_test_fail, check.labels = TRUE), RF.dist(t_test_pass, t_none, check.labels = TRUE)),
                               RF_dist_to_test_fail = c(RF.dist(t_test_fail, t_test_pass, check.labels = TRUE), RF.dist(t_test_fail, t_test_fail, check.labels = TRUE), RF.dist(t_test_fail, t_none, check.labels = TRUE)),
                               RF_dist_to_test_none = c(RF.dist(t_none, t_test_pass, check.labels = TRUE),      RF.dist(t_none, t_test_fail, check.labels = TRUE),      RF.dist(t_none, t_none, check.labels = TRUE)),
@@ -207,10 +215,15 @@ for (dataset in compare_ASTRAL_trees){
                               wRF_dist_to_test_fail = c(wRF.dist(t_test_fail, t_test_pass, check.labels = TRUE), wRF.dist(t_test_fail, t_test_fail, check.labels = TRUE), wRF.dist(t_test_fail, t_none, check.labels = TRUE)),
                               wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass, check.labels = TRUE),      wRF.dist(t_none, t_test_fail, check.labels = TRUE),      wRF.dist(t_none, t_none, check.labels = TRUE)))
         # Save RF distance as a dataframe
-        rf_csv <- paste0(new_folder, dataset, "_", test, "ASTRAL_tree_RF_distances.csv")
-        write.csv(rf_csv, file = dist_df, row.names = FALSE)
-        
-      } else if (dataset == "Strassert2021" | dataset == "1KP"){
+        write.csv(dist_df, file = rf_csv, row.names = FALSE)
+      }
+      
+    } else if (dataset == "Strassert2021" | dataset == "1KP"){
+      # Assemble the output csv name for the Quartet Network Goodness of Fit results
+      quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
+      
+      if (file.exists(quarnet_results_file) == FALSE){
+        ### Run GoodnessOfFit test
         # Run Julia script with T_test,pass and T_none
         write.Julia.GoF.script.two.trees(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
                                          all_tree = noTest_tree_file, gene_trees = gene_trees_file,root.species.trees = FALSE, tree_root = tree_root,
@@ -218,8 +231,12 @@ for (dataset in compare_ASTRAL_trees){
         # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
         julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
         system(julia_command)
-        
-        ### Calculate the distance between trees
+      }
+      
+      # Assemble the file name for the RF distances csv file
+      rf_csv <- paste0(new_folder, dataset, "_", test, "ASTRAL_tree_RF_distances.csv")
+      if (file.exists(rf_csv) == FALSE){
+        ### Calculate the RF and wRF distances between trees
         # Copy the test,pass tree across again and add terminal branches 
         t_test_pass_file <- paste0(new_folder, dataset, "_", test, "_pass_ASTRAL_terminalBranches0.1.tre")
         file.copy(from = grep("pass", grep("\\.tre", old_files, value = TRUE), value = TRUE), to = t_test_pass_file)
@@ -234,6 +251,7 @@ for (dataset in compare_ASTRAL_trees){
         # Calculate distances between the trees
         dist_df <- data.frame(dataset = rep(dataset, 2),
                               test = rep(test, 2),
+                              analysis = rep("ASTRAL", 2),
                               tree = c("test_pass", "none"),
                               RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass, check.labels = TRUE), RF.dist(t_test_pass, t_none, check.labels = TRUE)),
                               RF_dist_to_test_fail = c(NA,NA),
@@ -242,12 +260,13 @@ for (dataset in compare_ASTRAL_trees){
                               wRF_dist_to_test_fail = c(NA,NA),
                               wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass, check.labels = TRUE),  wRF.dist(t_none, t_none, check.labels = TRUE)))
         # Save RF distance as a dataframe
-        rf_csv <- paste0(new_folder, dataset, "_", test, "ASTRAL_tree_RF_distances.csv")
-        write.csv(rf_csv, file = dist_df, row.names = FALSE)
-      }
-    } 
-  }
-}
+        write.csv(dist_df, file = rf_csv, row.names = FALSE)
+      } # end check for rf_csv file
+    } # end else if dataset == deep (1KP, Strassert2021) 
+    
+  } # end iterating through tests
+  
+} # end iterating through datasets
 
 ## Collate and output ASTRAL results files ##
 # Find all QuarNetGoF_test_results.csv files (and remove the collated results file from the list of files to combine)
@@ -292,11 +311,13 @@ for (dataset in compare_IQTREE_trees){
     new_folder <- paste0(dataset_folder, "AUtest_", test, "/")
     if (dir.exists(new_folder) == FALSE){dir.create(new_folder)}
     
-    # Check whether the results file for this test exists already
+    # Assemble the filename for the results file 
     au_results_file <- paste0(new_folder, dataset, "_", test, "_AU_test_results.csv")
     # If the file does not exist, run the tests
-    if (file.exists(au_results_file) == FALSE){
-      if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
+    if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
+      ### Apply the AU test
+      # Check whether the results file for this test exists already
+      if (file.exists(au_results_file) == FALSE){
         # Collect files for this test: three trees and the partition file (containing the loci that pass the test)
         test_IQTREE_trees <- grep(test, all_IQTree_trees, value = TRUE)
         # Sort the files into the following order: test pass, test fail, no test
@@ -316,30 +337,43 @@ for (dataset in compare_IQTREE_trees){
         # Copy the partition file
         file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path, overwrite = TRUE)
         
-        ### Apply the AU tests in IQ-Tree ###
         # Apply the AU test
         au_test_df <- perform.partition.AU.test(partition_path, three_trees_path, iqtree_path)
-        
-        # Read in trees
+        # Assemble the output dataframe
+        au_results_df <- data.frame(dataset = rep(dataset, 2), test = rep(test, 2), tree = c("test_pass", "no_test"))
+        au_results_df <- cbind(au_results_df, au_test_df)
+        # Save the output dataframe
+        write.csv(au_results_df, file = au_results_file, row.names = FALSE)
+      }
+      
+      ### Calculate the RF and wRF distances between trees
+      # Read in trees
+      rf_csv <- paste0(new_folder, dataset, "_", test, "IQTREE_tree_RF_distances.csv")
+      if (file.exists(rf_csv) == FALSE){
         three_trees <- read.tree(file = three_trees_path)
         # Calculate distances between the trees
         t_test_pass <- three_trees[[1]]
         t_test_fail <- three_trees[[2]]
         t_none <- three_trees[[3]]
-        
-        dist_df <- data.frame(RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass, check.labels = TRUE), RF.dist(t_test_pass, t_test_fail, check.labels = TRUE), RF.dist(t_test_pass, t_none, check.labels = TRUE)),
+        # Calculate RF/wRF distances
+        dist_df <- data.frame(dataset = rep(dataset, 3), 
+                              test = rep(test, 3), 
+                              tree = c("test_pass", "test_fail", "no_test"), 
+                              analysis = rep("IQ-Tree", 3),
+                              RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass, check.labels = TRUE), RF.dist(t_test_pass, t_test_fail, check.labels = TRUE), RF.dist(t_test_pass, t_none, check.labels = TRUE)),
                               RF_dist_to_test_fail = c(RF.dist(t_test_fail, t_test_pass, check.labels = TRUE), RF.dist(t_test_fail, t_test_fail, check.labels = TRUE), RF.dist(t_test_fail, t_none, check.labels = TRUE)),
                               RF_dist_to_test_none = c(RF.dist(t_none, t_test_pass, check.labels = TRUE),      RF.dist(t_none, t_test_fail, check.labels = TRUE),      RF.dist(t_none, t_none, check.labels = TRUE)),
                               wRF_dist_to_test_pass = c(wRF.dist(t_test_pass, t_test_pass, check.labels = TRUE), wRF.dist(t_test_pass, t_test_fail, check.labels = TRUE), wRF.dist(t_test_pass, t_none, check.labels = TRUE)),
                               wRF_dist_to_test_fail = c(wRF.dist(t_test_fail, t_test_pass, check.labels = TRUE), wRF.dist(t_test_fail, t_test_fail, check.labels = TRUE), wRF.dist(t_test_fail, t_none, check.labels = TRUE)),
                               wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass, check.labels = TRUE),      wRF.dist(t_none, t_test_fail, check.labels = TRUE),      wRF.dist(t_none, t_none, check.labels = TRUE)))
-        
-        # Assemble the output dataframe
-        au_results_df <- data.frame(dataset = rep(dataset, 3), test = rep(test, 3), tree = c("test_pass", "test_fail", "no_test"))
-        au_results_df <- cbind(au_results_df, au_test_df, dist_df)
         # Save the output dataframe
-        write.csv(au_results_df, file = au_results_file, row.names = FALSE)
-      } else if (dataset == "Strassert2021"|dataset == "1KP"){
+        write.csv(dist_df, file = rf_csv, row.names = FALSE)
+      }
+      
+    } else if (dataset == "Strassert2021"|dataset == "1KP"){
+      ### Apply the AU test
+      # Check whether the results file for this test exists already
+      if (file.exists(au_results_file) == FALSE){
         # Collect files for this test: two trees and the partition file (containing the loci that pass the test)
         test_IQTREE_trees <- grep(test, all_IQTree_trees, value = TRUE)
         # Sort the files into the following order: test pass, no test
@@ -358,32 +392,42 @@ for (dataset in compare_IQTREE_trees){
         # Copy the partition file
         file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path, overwrite = TRUE)
         
-        ### Apply the AU tests in IQ-Tree ###
         # Apply the AU test
         au_test_df <- perform.partition.AU.test.two.trees(partition_path, two_trees_path, iqtree_path)
-        
+        # Assemble the output dataframe
+        au_results_df <- data.frame(dataset = rep(dataset, 2), test = rep(test, 2), tree = c("test_pass", "no_test"))
+        au_results_df <- cbind(au_results_df, au_test_df)
+        # Save the output dataframe
+        write.csv(au_results_df, file = au_results_file, row.names = FALSE)
+      }
+      
+      ### Calculate the RF and wRF distances between trees
+      rf_csv <- paste0(new_folder, dataset, "_", test, "IQTREE_tree_RF_distances.csv")
+      if (file.exists(rf_csv) == FALSE){
         # Read in trees
         two_trees <- read.tree(file = two_trees_path)
         # Calculate distances between the trees
         t_test_pass <- two_trees[[1]]
         t_none <- two_trees[[2]]
-        
-        dist_df <- data.frame(RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass, check.labels = TRUE), RF.dist(t_test_pass, t_none, check.labels = TRUE)),
+        # Calculate RF/wRF distances
+        dist_df <- data.frame(dataset = rep(dataset, 2), 
+                              test = rep(test, 2), 
+                              tree = c("test_pass", "no_test"), 
+                              analysis = rep("IQ-Tree", 2),
+                              RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass, check.labels = TRUE), RF.dist(t_test_pass, t_none, check.labels = TRUE)),
                               RF_dist_to_test_fail = c(NA,NA),
                               RF_dist_to_test_none = c(RF.dist(t_none, t_test_pass, check.labels = TRUE), RF.dist(t_none, t_none, check.labels = TRUE)),
                               wRF_dist_to_test_pass = c(wRF.dist(t_test_pass, t_test_pass, check.labels = TRUE), wRF.dist(t_test_pass, t_none, check.labels = TRUE)),
                               wRF_dist_to_test_fail = c(NA,NA),
                               wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass, check.labels = TRUE), wRF.dist(t_none, t_none, check.labels = TRUE)))
-        
-        # Assemble the output dataframe
-        au_results_df <- data.frame(dataset = rep(dataset, 2), test = rep(test, 2), tree = c("test_pass", "no_test"))
-        au_results_df <- cbind(au_results_df, au_test_df, dist_df)
         # Save the output dataframe
-        write.csv(au_results_df, file = au_results_file, row.names = FALSE)
-      }
-    }
-  }
-}
+        write.csv(dist_df, file = rf_csv, row.names = FALSE)
+      } # end check for RF file
+    } #end dataset == shallow (1KP or Strassert2021)
+    
+  } # end iterating through tests
+  
+} # end iterating through datasets
 
 ## Collate and output IQ-Tree results files ##
 # Find all AU_test_results.csv files (and remove the collated results file from the list of files to combine)
@@ -402,4 +446,20 @@ if (length(all_au_results) > 0){
   write.csv(au_results_df, file = au_results_df_name, row.names = FALSE)
 }
 
+## Collate and output all RF/wRF distance results files ##
+# Find all tree_RF_distances.csv files (and remove the collated results file from the list of files to combine)
+all_output_files <- list.files(output_dir, recursive = TRUE)
+all_rf_results <- grep("tree_RF_distances.csv", all_output_files, value = TRUE)
+all_rf_results <- grep("collated", all_gof_results, value = TRUE, invert = TRUE)
+if (length(all_rf_results) > 0){
+  print("Collating RF/wRF distance results")
+  # Attach directory name to file names
+  all_rf_results <- paste0(output_dir, all_rf_results)
+  # Open and collate the csv files
+  gof_results_list <- lapply(all_gof_results, read.csv)
+  gof_results_df <- do.call(rbind, gof_results_list)
+  # Output compiled csv
+  gof_results_df_name <- paste0(output_dir, "03_collated_ComparisonTrees_QuarNetGoF_test_results.csv")
+  write.csv(gof_results_df, file = gof_results_df_name, row.names = FALSE)
+}
 
