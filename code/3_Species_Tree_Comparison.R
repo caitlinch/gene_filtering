@@ -188,24 +188,15 @@ for (dataset in compare_ASTRAL_trees){
         julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
         system(julia_command)
       }
-    } else {
-      # For some tests for some datasets, there were no loci that passed/failed that test and so there are not three trees, meaning this analysis
-      # cannot be carried out as designed
-      # Output a dataframe for this test with NA results
-      df <- data.frame(dataset = rep(dataset, 3), concordance_factors = rep(NA,3), test = rep(test, 3), 
-                       tree = c("test_pass", "test_fail", "no_test"), tree_root = rep(dataset_tree_roots[[dataset]], 3), 
-                       p_value_overall_GoF_test = rep(NA, 3), uncorrected_z_value_test_statistic = rep(NA, 3), 
-                       estimated_sigma_for_test_statistic_correction = rep(NA, 3))
-      write.csv(df, file = quarnet_results_file, row.names = FALSE)
-    }
+    } 
   }
-  
 }
 
 ## Collate and output ASTRAL results files ##
-# Find all QuarNetGoF_test_results.csv files
+# Find all QuarNetGoF_test_results.csv files (and remove the collated results file from the list of files to combine)
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_gof_results <- grep("QuarNetGoF_test_results.csv", all_output_files, value = TRUE)
+all_gof_results <- grep("collated", all_gof_results, value = TRUE, invert = TRUE)
 if (length(all_gof_results) > 0){
   print("Collating QuarNet GoF test results")
   # Attach directory name to file names
@@ -338,9 +329,10 @@ for (dataset in compare_IQTREE_trees){
 }
 
 ## Collate and output IQ-Tree results files ##
-# Find all AU_test_results.csv files
+# Find all AU_test_results.csv files (and remove the collated results file from the list of files to combine)
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_au_results <- grep("AU_test_results.csv", all_output_files, value = TRUE)
+all_au_results <- grep("collated", all_au_results, value = TRUE, invert = TRUE)
 if (length(all_au_results) > 0){
   print("Collating AU test results")
   # Attach directory name to file paths
