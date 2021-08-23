@@ -89,6 +89,7 @@ if (run == "local"){
 
 
 
+
 ##### Step 2: Open packages and functions #####
 # Open packages
 library(ape)
@@ -98,9 +99,11 @@ source(paste0(maindir,"code/func_analysis.R"))
 
 
 
+
 ##### Step 3: Prepare for analysis #####
 names(dataset_tree_roots) <- input_names
 names(alignment_dir) <- input_names
+
 
 
 
@@ -282,7 +285,10 @@ for (dataset in compare_ASTRAL_trees){
   
 } # end iterating through datasets
 
-## Collate and output ASTRAL results files ##
+
+
+
+##### Collate and output ASTRAL results files #####
 # Find all QuarNetGoF_test_results.csv files (and remove the collated results file from the list of files to combine)
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_gof_results <- grep("QuarNetGoF_test_results.csv", all_output_files, value = TRUE)
@@ -298,6 +304,7 @@ if (length(all_gof_results) > 0){
   gof_results_df_name <- paste0(output_dir, "03_collated_ComparisonTrees_QuarNetGoF_test_results.csv")
   write.csv(gof_results_df, file = gof_results_df_name, row.names = FALSE)
 }
+
 
 
 
@@ -443,7 +450,10 @@ for (dataset in compare_IQTREE_trees){
   
 } # end iterating through datasets
 
-## Collate and output IQ-Tree results files ##
+
+
+
+##### Collate and output IQ-Tree results files #####
 # Find all AU_test_results.csv files (and remove the collated results file from the list of files to combine)
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_au_results <- grep("AU_test_results.csv", all_output_files, value = TRUE)
@@ -460,7 +470,10 @@ if (length(all_au_results) > 0){
   write.csv(au_results_df, file = au_results_df_name, row.names = FALSE)
 }
 
-## Collate and output all RF/wRF distance results files ##
+
+
+
+##### Collate and output all RF/wRF distance results files #####
 # Find all tree_RF_distances.csv files (and remove the collated results file from the list of files to combine)
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_rf_results <- grep("tree_RF_distances.csv", all_output_files, value = TRUE)
