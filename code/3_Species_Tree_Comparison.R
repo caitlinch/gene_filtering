@@ -40,7 +40,8 @@ if (run == "local"){
   
   # Set which datasets and which tests to run
   # Set which datasets and which tests to run
-  compare_ASTRAL_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
+  #compare_ASTRAL_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
+  compare_ASTRAL_trees <- c()
   compare_IQTREE_trees <- c("Pease2016")
   tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
@@ -192,7 +193,7 @@ for (dataset in compare_ASTRAL_trees){
       }
       
       # Assemble the file name for the RF distances csv file
-      rf_csv <- paste0(new_folder, dataset, "_", test, "ASTRAL_tree_RF_distances.csv")
+      rf_csv <- paste0(new_folder, dataset, "_", test, "_ASTRAL_tree_RF_distances.csv")
       if (file.exists(rf_csv) == FALSE){
         ### Calculate the RF and wRF distances between trees
         # Copy the test,pass tree across again and add terminal branches 
@@ -242,7 +243,7 @@ for (dataset in compare_ASTRAL_trees){
       }
       
       # Assemble the file name for the RF distances csv file
-      rf_csv <- paste0(new_folder, dataset, "_", test, "ASTRAL_tree_RF_distances.csv")
+      rf_csv <- paste0(new_folder, dataset, "_", test, "_ASTRAL_tree_RF_distances.csv")
       if (file.exists(rf_csv) == FALSE){
         ### Calculate the RF and wRF distances between trees
         # Copy the test,pass tree across again and add terminal branches 
@@ -256,6 +257,11 @@ for (dataset in compare_ASTRAL_trees){
         # Read in both trees
         t_test_pass <- read.tree(t_test_pass_file)
         t_none <- read.tree(t_none_file)
+        # If the number of tips are different, drop the tips that aren't included in the test_pass tree
+        if ( length(t_none$tip.label) != length(t_test_pass$tip.label)){
+          keep_tips <- t_test_pass$tip.label
+          t_none <- keep.tip(t_none, keep_tips)
+        }
         # Calculate distances between the trees
         dist_df <- data.frame(dataset = rep(dataset, 2),
                               test = rep(test, 2),
@@ -356,7 +362,7 @@ for (dataset in compare_IQTREE_trees){
       
       ### Calculate the RF and wRF distances between trees
       # Read in trees
-      rf_csv <- paste0(new_folder, dataset, "_", test, "IQTREE_tree_RF_distances.csv")
+      rf_csv <- paste0(new_folder, dataset, "_", test, "_IQTREE_tree_RF_distances.csv")
       if (file.exists(rf_csv) == FALSE){
         three_trees <- read.tree(file = three_trees_path)
         # Calculate distances between the trees
@@ -410,7 +416,7 @@ for (dataset in compare_IQTREE_trees){
       }
       
       ### Calculate the RF and wRF distances between trees
-      rf_csv <- paste0(new_folder, dataset, "_", test, "IQTREE_tree_RF_distances.csv")
+      rf_csv <- paste0(new_folder, dataset, "_", test, "_IQTREE_tree_RF_distances.csv")
       if (file.exists(rf_csv) == FALSE){
         # Read in trees
         two_trees <- read.tree(file = two_trees_path)
@@ -458,16 +464,16 @@ if (length(all_au_results) > 0){
 # Find all tree_RF_distances.csv files (and remove the collated results file from the list of files to combine)
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_rf_results <- grep("tree_RF_distances.csv", all_output_files, value = TRUE)
-all_rf_results <- grep("collated", all_gof_results, value = TRUE, invert = TRUE)
+all_rf_results <- grep("collated", all_rf_results, value = TRUE, invert = TRUE)
 if (length(all_rf_results) > 0){
   print("Collating RF/wRF distance results")
   # Attach directory name to file names
   all_rf_results <- paste0(output_dir, all_rf_results)
   # Open and collate the csv files
-  gof_results_list <- lapply(all_gof_results, read.csv)
-  gof_results_df <- do.call(rbind, gof_results_list)
+  rf_results_list <- lapply(all_rf_results, read.csv)
+  rf_results_df <- do.call(rbind, rf_results_list)
   # Output compiled csv
-  gof_results_df_name <- paste0(output_dir, "03_collated_ComparisonTrees_QuarNetGoF_test_results.csv")
-  write.csv(gof_results_df, file = gof_results_df_name, row.names = FALSE)
+  rf_results_df_name <- paste0(output_dir, "03_collated_RF_wRF_distances_results.csv")
+  write.csv(rf_results_df, file = rf_results_df_name, row.names = FALSE)
 }
 
