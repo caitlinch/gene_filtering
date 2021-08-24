@@ -182,7 +182,11 @@ compare.distinct.edges.of.two.trees <- function(tree_file_1, tree_file_2, tree1_
     e_2_1_df <- data.frame()
   }
   
-  
+  # Assemble information into a dataframe
+  e_df <- rbind(e_1_2, e_2_1)
+  names(e_df) <- c("support_value", "edge_length", "node1", "node2", "tree1", "tree2", "test", "dataset", "support_value_type")
+  e_df <- e_df[, c("tree1", "tree2", "test", "dataset", "support_value_type", "support_value", "edge_length", "node1", "node2")]
+  return(e_df)
 }
 
 
