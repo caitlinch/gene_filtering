@@ -27,7 +27,7 @@
 # main_dir                  <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # iqtree_path               <- location of IQ-Tree executable 
 
-run = "local"
+run = "server"
 
 if (run == "local"){
   # Set datasets, which taxa to root the tree at for each dataset, and the location of alignments for each dataset
@@ -40,9 +40,8 @@ if (run == "local"){
   
   # Set which datasets and which tests to run
   # Set which datasets and which tests to run
-  #compare_ASTRAL_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
   compare_ASTRAL_trees <- c()
-  compare_IQTREE_trees <- c("Pease2016")
+  compare_IQTREE_trees <- c()
   tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Strassert2021" = c("PHI", "maxchi"),
@@ -69,7 +68,7 @@ if (run == "local"){
   
   # Set which datasets and which tests to run
   compare_ASTRAL_trees <- c()
-  compare_IQTREE_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
+  compare_IQTREE_trees <- c("Pease2016", "Vanderpool2020")
   tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Strassert2021" = c("PHI", "maxchi"),
