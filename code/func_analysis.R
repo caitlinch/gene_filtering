@@ -687,4 +687,110 @@ get.filename.info <- function(full_filename, species_trees_files){
 
 
 
+# Function that given an edge and a tree, will go into the tree and get for that edge the support value and the branch length
+get.edge.details <- function(edge, tree){
+  edge_length <- tree$edge.length[edge]
+  edge_support <- tree$node.label[edge]
+  edge_node1 <- tree$edge[edge,][1]
+  edge_node2 <- tree$edge[edge,][2]
+  edge_info <- c(edge_support, edge_length, edge_node1, edge_node2)
+  return(edge_info)
+}
+
+# Function that given an edge and a table containing information about the tree edges, will get for that edge the support value and the branch length
+get.edge.details.from.table <- function(edge, table){
+  edge_length <- table$edge_length[edge]
+  edge_support <- table$parent_node_label[edge]
+  edge_node1 <- table$parent_node[edge]
+  edge_node2 <- table$child_node[edge]
+  edge_info <- c(edge_support, edge_length, edge_node1, edge_node2)
+  return(edge_info)
+}
+
+# Function that selects the node value given a tree and a number
+select.tip.or.node <- function(element, tree) {
+  ifelse(element < Ntip(tree)+1, tree$tip.label[element], tree$node.label[element-Ntip(tree)])
+}
+
+# Function that creates an extended edge dataframe for a tree that includes the node labels
+extend.edge.table <- function(tree){
+  node_labels_in_edge <- tree$node.label[tree$edge[,1]-Ntip(tree)]
+  tips_nodes <- tree$edge[,2]
+  edge_table <- data.frame(
+    "parent_node" = tree$edge[,1],
+    "parent_node_label" = sapply(tree$edge[,1], select.tip.or.node, tree = tree),
+    "child_node" = tree$edge[,2],
+    "child_node_label" = sapply(tree$edge[,2], select.tip.or.node, tree = tree),
+    "edge_length" = tree$edge.length
+  )
+  return(edge_table)
+}
+
+
+# Function that given two trees will return the dataframe of the information about the distinct edges
+compare.distinct.edges.of.two.trees <- function(tree_file_1, tree_file_2, tree1_name, tree2_name, test_name, dataset_name, support_value_type_name){
+  # Read in trees
+  t_1 <- read.tree(tree_file_1)
+  t_2 <- read.tree(tree_file_2)
+  # Extend the edge table from the trees by adding the edge lengths and the relevant node.labels
+  t_1_table <- extend.edge.table(t_1)
+  t_2_table <- extend.edge.table(t_2)
+  # Determine which edges are contained in one tree and not the other: returns a numeric vector of edge ids for the first tree
+  e_1_2 <- distinct.edges(t_1, t_2)
+  e_2_1 <- distinct.edges(t_2, t_1)
+  # Determine which edges are in both trees (by excluding the edges in e_1_2 from the list of all edges)
+  e_both <- setdiff(1:length(t_1$edge.length), e_1_2)
+  
+  # Collect information about each of those different edges
+  if (length(e_1_2) > 0){
+    e_1_2_list <- lapply(e_1_2, get.edge.details.from.table, t_1_table)
+    e_1_2_df <- as.data.frame(do.call(rbind, e_1_2_list))
+    e_1_2_df$tree1 <- tree1_name
+    e_1_2_df$tree2 <- tree2_name
+    e_1_2_df$test <- test_name
+    e_1_2_df$dataset <- dataset_name
+    e_1_2_df$support_value_type <- support_value_type_name
+    e_1_2_df$edge_presence <- tree1_name
+    e_1_2_df$edge_type <- "Conflicting"
+  } else {
+    e_1_2_df <- data.frame()
+  }
+  
+  if (length(e_2_1) > 0){
+    e_2_1_list <- lapply(e_2_1, get.edge.details.from.table, t_2_table)
+    e_2_1_df <- as.data.frame(do.call(rbind, e_2_1_list))
+    e_2_1_df$tree1 <- tree2_name
+    e_2_1_df$tree2 <- tree1_name
+    e_2_1_df$test <- test_name
+    e_2_1_df$dataset <- dataset_name
+    e_2_1_df$support_value_type <- support_value_type_name
+    e_2_1_df$edge_presence <- tree2_name
+    e_2_1_df$edge_type <- "Conflicting"
+  } else {
+    e_2_1_df <- data.frame()
+  }
+  
+  if (length(e_both) > 0){
+    e_both_list <- lapply(e_both, get.edge.details.from.table, t_1_table)
+    e_both_df <- as.data.frame(do.call(rbind, e_both_list))
+    e_both_df$tree1 <- tree1_name
+    e_both_df$tree2 <- tree2_name
+    e_both_df$test <- test_name
+    e_both_df$dataset <- dataset_name
+    e_both_df$support_value_type <- support_value_type_name
+    e_both_df$edge_presence <- "Both"
+    e_both_df$edge_type <- "Congruent"
+  } else {
+    e_both_df <- data.frame()
+  }
+  
+  # Assemble information into a dataframe
+  e_df <- rbind(e_1_2_df, e_2_1_df, e_both_df)
+  names(e_df) <- c("support_value", "edge_length", "node1", "node2", "tree1", "tree2", "test", "dataset", "support_value_type", "edge_presence", "edge_type")
+  e_df <- e_df[, c("test", "dataset", "support_value_type", "tree1", "tree2", "edge_type", "edge_presence", "support_value", "edge_length", "node1", "node2")]
+  return(e_df)
+}
+
+
+
 
