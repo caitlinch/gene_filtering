@@ -436,7 +436,7 @@ for (dataset in datasets_to_estimate_IQTREE_trees){
   # Get list of all files in that folder
   all_category_folder_files <- list.files(category_output_folder, recursive = TRUE, full.names = TRUE)
   all_category_folder_files <- gsub("//", "/", all_category_folder_files)
-  iqtree_files <- paste0(grep(".nex.", grep("IQTREE", all_category_folder_files, value = TRUE), value = TRUE, invert = TRUE))
+  iqtree_files <- grep("partitions.nex",grep(".nex.", grep("IQTREE", all_category_folder_files, value = TRUE), value = TRUE, invert = TRUE), value = TRUE)
   # Contruct names of finished treefiles
   iqtree_files_finished_names <- paste0(iqtree_files, ".contree")
   # Identify which IQTREE analyses have not been run
