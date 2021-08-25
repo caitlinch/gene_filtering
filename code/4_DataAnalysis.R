@@ -18,7 +18,6 @@ library(distory)
 
 ##### Step 2: Set the file paths for input and output files, and necessary functions/directories #####
 print("set filepaths")
-# treedir           <- "treelikeness" repository location (github.com/caitlinch/treelikeness)
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # tree_data_dir     <- Location of the gene trees
 # test_data_dir     <- Location of the results from the AU test and QuartetNetwork Goodness of Fit tests
@@ -31,7 +30,6 @@ print("set filepaths")
 # tests_to_run              <- a list, with a vector for each dataset specifying which of the recombination detection methods should be tested 
 #                              Options: "allTests", "PHI", "maxchi" and "geneconv"
 
-treedir <- "/Users/caitlincherryh/Documents/Repositories/treelikeness/" # where the treelikeness code is
 maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
 tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
 test_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
@@ -48,151 +46,76 @@ tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv
                      "Strassert2021" = c("PHI", "maxchi"),
                      "1KP" = c("PHI", "maxchi"))
 
+datasets_to_identify_distinct_edges <- c("Pease2016", "Vanderpool2020")
 
 
-##### Step 3: Prepare variables for analysis #####
+##### Step 3: Source function files and prepare variables for analysis #####
+print("Source function files")
+source(paste0(maindir, "code/func_analysis.R"))
+
+print("Prepare variables for indexing")
 # Name vectors for tree roots and alignment locations so they can be accessed via index
 names(dataset_tree_roots) <- input_names
 names(alignment_dir) <- input_names
 
 
 
-##### Step 4: Compare the posterior probabilities of the trees #####
-dataset = "Pease2016"
-test = "PHI"
-
-dataset_tree_dir <- paste0(tree_data_dir, dataset, "/species_trees/")
-all_files <- list.files(dataset_tree_dir, recursive = TRUE)
-# Want to collect the information about splits present in one tree but not the other (i.e. in T_all,pass vs T_None)
-# Iterate through each test and identify that information
-
-# Get the list of trees estimated in IQ-Tree for this dataset
-test_trees <- grep(test, all_files, value = TRUE)
-iq_trees <- grep(".contree", test_trees, value = TRUE)
-# Make the full filepaths for each of the three trees (test pass, test fail, and no test)
-none_tree_file <- paste0(dataset_tree_dir, grep(".contree", grep("NoTest", all_files, value = TRUE), value = TRUE))
-pass_tree_file <- paste0(dataset_tree_dir, grep("pass", iq_trees, value = TRUE))
-fail_tree_file <- paste0(dataset_tree_dir, grep("fail", iq_trees, value = TRUE))
-# Read each in as a tree
-t_none <- read.tree(none_tree_file)
-t_pass <- read.tree(pass_tree_file)
-t_fail <- read.tree(fail_tree_file)
-# Compare splits on test trees with t_none
-# Determine which edges are contained in one tree and not the other: returns a numeric vector of edge ids for the first tree
-e_pass_none <- distinct.edges(t_pass, t_none)
-e_none_pass <- distinct.edges(t_none, t_pass)
-e_fail_none <- distinct.edges(t_fail, t_none)
-e_none_fail <- distinct.edges(t_none, t_fail)
-# Collect information about each of those different edges
-if (length(e_pass_none) > 0){
-  e_pass_none_list <- lapply(e_pass_none, get.edge.details, t_pass)
-  e_pass_none_df <- as.data.frame(do.call(rbind, e_pass_none_list))
-  e_pass_none_df$tree1 <- "Pass"
-  e_pass_none_df$tree2 <- "None"
-  e_pass_none_df$test <- test
-  e_pass_none_df$dataset <- dataset
-  e_pass_none_df$support_value_type <- "UFB"
-} else {
-  e_pass_none_df <- data.frame()
+##### Step 4: Compare the posterior probabilities/ bootstraps of the trees #####
+node_output_dir <- paste0(output_dir, "node_comparisons/")
+if (dir.exists(node_output_dir) == FALSE){
+  dir.create(node_output_dir)
 }
 
-if (length(e_none_pass) > 0){
-  e_none_pass_list <- lapply(e_none_pass, get.edge.details, t_none)
-  e_none_pass_df <- as.data.frame(do.call(rbind, e_none_pass_list))
-  e_none_pass_df$tree1 <- "None"
-  e_none_pass_df$tree2 <- "Pass"
-  e_none_pass_df$test <- test
-  e_none_pass_df$dataset <- dataset
-  e_none_pass_df$support_value_type <- "UFB"
-} else {
-  e_none_pass_df <- data.frame()
-}
-
-if (length(e_fail_none) > 0){
-  e_fail_none_list <- lapply(e_fail_none, get.edge.details, t_fail)
-  e_fail_none_df <- as.data.frame(do.call(rbind, e_fail_none_list))
-  e_fail_none_df$tree1 <- "Fail"
-  e_fail_none_df$tree2 <- "None"
-  e_fail_none_df$test <- test
-  e_fail_none_df$dataset <- dataset
-  e_fail_none_df$support_value_type <- "UFB"
-}  else {
-  e_fail_none_df <- data.frame()
-}
-
-if (length(e_none_fail) > 0){
-  e_none_fail_list <- lapply(e_none_fail, get.edge.details, t_none)
-  e_none_fail_df <- as.data.frame(do.call(rbind, e_none_fail_list))
-  e_none_fail_df$tree1 <- "None"
-  e_none_fail_df$tree2 <- "Fail"
-  e_none_fail_df$test <- test
-  e_none_fail_df$dataset <- dataset
-  e_none_fail_df$support_value_type <- "UFB"
-}  else {
-  e_none_fail_df <- data.frame()
-}
-
-# Assemble information into a dataframe
-e_df <- rbind(e_pass_none_df, e_none_pass_df, e_fail_none_df, e_none_fail_df)
-names(e_df) <- c("support_value", "edge_length", "node1", "node2", "tree1", "tree2", "test", "dataset", "support_value_type")
-e_df <- e_df[, c("tree1", "tree2", "test", "dataset", "support_value_type", "support_value", "edge_length", "node1", "node2")]
-
-
-# Write a function that given an edge and a tree, will go into the tree and get for that edge the support value and the branch length
-get.edge.details <- function(edge, tree){
-  edge_length <- tree$edge.length[edge]
-  edge_support <- tree$node.label[edge]
-  edge_node1 <- tree$edge[edge,][1]
-  edge_node2 <- tree$edge[edge,][2]
-  edge_info <- c(edge_support, edge_length, edge_node1, edge_node2)
-  return(edge_info)
-}
-
-# Write a function that given two trees will return the dataframe of the information about the distinct edges
-compare.distinct.edges.of.two.trees <- function(tree_file_1, tree_file_2, tree1_name, tree2_name, test_name, dataset_name, support_value_type_name){
-  # Read in trees
-  t_1 <- read.tree(tree_file_1)
-  t_2 <- read.tree(tree_file_2)
-  # Determine which edges are contained in one tree and not the other: returns a numeric vector of edge ids for the first tree
-  e_1_2 <- distinct.edges(t_1, t_2)
-  e_2_1 <- distinct.edges(t_2, t_1)
+for (dataset in datasets_to_identify_distinct_edges){
+  # Identify file containing species trees
+  dataset_tree_dir <- paste0(tree_data_dir, dataset, "/species_trees/")
+  all_files <- list.files(dataset_tree_dir, recursive = TRUE)
   
-  # Collect information about each of those different edges
-  if (length(e_1_2) > 0){
-    e_1_2_list <- lapply(e_1_2, get.edge.details, t_1)
-    e_1_2_df <- as.data.frame(do.call(rbind, e_pass_none_list))
-    e_1_2_df$tree1 <- tree1_name
-    e_1_2_df$tree2 <- tree2_name
-    e_1_2_df$test <- test_name
-    e_1_2_df$dataset <- dataset_name
-    e_1_2_df$support_value_type <- support_value_type_name
-  } else {
-    e_1_2_df <- data.frame()
+  dataset_tests <- tests_to_run[[dataset]]
+  # Iterate through each test and identify that information
+  for (test in dataset_tests){
+    print(paste0("Processing ", dataset, ": ", test))
+    ## IQ-Tree trees: Create dataframe detailing differences in posterior probabilities between the two trees
+    # Get the list of trees estimated in IQ-Tree for this dataset
+    test_trees <- grep(test, all_files, value = TRUE)
+    iq_trees <- grep(".contree", test_trees, value = TRUE)
+    # Make the full filepaths for each of the three trees (test pass, test fail, and no test)
+    none_tree_file <- paste0(dataset_tree_dir, grep(".contree", grep("NoTest", all_files, value = TRUE), value = TRUE))
+    pass_tree_file <- paste0(dataset_tree_dir, grep("pass", iq_trees, value = TRUE))
+    fail_tree_file <- paste0(dataset_tree_dir, grep("fail", iq_trees, value = TRUE))
+    # Create dataframes
+    # Want to collect the information about splits present in one tree but not the other (i.e. in T_all,pass vs T_None)
+    test_df_pass_iq <- compare.distinct.edges.of.two.trees(tree_file_1 = pass_tree_file, tree_file_2 = none_tree_file, tree1_name = "Pass", tree2_name = "None", test_name = test, dataset_name = dataset, support_value_type_name = "BS")
+    test_df_fail_iq <- compare.distinct.edges.of.two.trees(tree_file_1 = fail_tree_file, tree_file_2 = none_tree_file, tree1_name = "Fail", tree2_name = "None", test_name = test, dataset_name = dataset, support_value_type_name = "BS")
+    
+    ## ASTRAL trees: Create dataframe detailing differences in posterior probabilities between the two trees
+    # Get the list of trees estimated in ASTRAL for this dataset
+    test_trees <- grep(test, all_files, value = TRUE)
+    astral_trees <- grep(".tre", grep(".ASTRAL", test_trees, value = TRUE), value = TRUE)
+    pass_tree_file <- paste0(dataset_tree_dir, grep("pass", astral_trees, value = TRUE))
+    fail_tree_file <- paste0(dataset_tree_dir, grep("fail", astral_trees, value = TRUE))
+    none_tree_file <- paste0(dataset_tree_dir, grep("NoTest", grep(".tre", grep(".ASTRAL", all_files, value = TRUE), value = TRUE), value = TRUE))
+    # Create dataframes
+    # Want to collect the information about splits present in one tree but not the other (i.e. in T_all,pass vs T_None)
+    test_df_pass_astral <- compare.distinct.edges.of.two.trees(tree_file_1 = pass_tree_file, tree_file_2 = none_tree_file, tree1_name = "Pass", tree2_name = "None", test_name = test, dataset_name = dataset, support_value_type_name = "PP")
+    test_df_fail_astral <- compare.distinct.edges.of.two.trees(tree_file_1 = fail_tree_file, tree_file_2 = none_tree_file, tree1_name = "Fail", tree2_name = "None", test_name = test, dataset_name = dataset, support_value_type_name = "PP")
+    
+    # Combine all four dataframes into one
+    test_df <- rbind(test_df_pass_iq, test_df_fail_iq, test_df_pass_astral, test_df_fail_astral)
+    # Save dataset
+    test_df_filename <- paste0(node_output_dir, dataset, "_", test, "_ExtractDistinctEdges.csv")
+    write.csv(test_df, file = test_df_filename)
   }
-  
-  if (length(e_none_pass) > 0){
-    e_2_1_list <- lapply(e_2_1, get.edge.details, t_2)
-    e_2_1_df <- as.data.frame(do.call(rbind, e_none_pass_list))
-    e_2_1_df$tree1 <- tree1_name
-    e_2_1_df$tree2 <- tree2_name
-    e_2_1_df$test <- test_name
-    e_2_1_df$dataset <- dataset_name
-    e_none_pass_df$support_value_type <- support_value_type_name
-  } else {
-    e_2_1_df <- data.frame()
-  }
-  
-  # Assemble information into a dataframe
-  e_df <- rbind(e_1_2, e_2_1)
-  names(e_df) <- c("support_value", "edge_length", "node1", "node2", "tree1", "tree2", "test", "dataset", "support_value_type")
-  e_df <- e_df[, c("tree1", "tree2", "test", "dataset", "support_value_type", "support_value", "edge_length", "node1", "node2")]
-  return(e_df)
 }
 
-
-
-
-
+# Collate all dataframes
+all_csvs <- list.files(node_output_dir)
+all_csvs <- grep("Collated", all_csvs, value = TRUE, invert = TRUE)
+all_csvs <- paste0(node_output_dir, all_csvs)
+all_csv_dfs <- lapply(all_csvs, read.csv)
+node_df <- as.data.frame(do.call(rbind, all_csv_dfs))
+node_df_filename <- paste0(node_output_dir, "Collated_ExtractDistinctEdges.csv")
+write.csv(node_df, file = node_df_filename)
 
 
 
