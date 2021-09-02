@@ -687,22 +687,24 @@ get.filename.info <- function(full_filename, species_trees_files){
 
 
 
-# Function that given an edge and a tree, will go into the tree and get for that edge the support value and the branch length
+# Function that given an edge and a tree, will go into the tree and get for that edge the branch length
 get.edge.details <- function(edge, tree){
   edge_length <- tree$edge.length[edge]
-  edge_support <- tree$node.label[edge]
   edge_node1 <- tree$edge[edge,][1]
   edge_node2 <- tree$edge[edge,][2]
-  edge_info <- c(edge_support, edge_length, edge_node1, edge_node2)
+  edge_info <- c(edge_length, edge_node1, edge_node2)
   return(edge_info)
 }
 
 # Function that given an edge and a table containing information about the tree edges, will get for that edge the support value and the branch length
 get.edge.details.from.table <- function(edge, table){
+  # Get the branch length and the connecting nodes for the branch
   edge_length <- table$edge_length[edge]
-  edge_support <- table$parent_node_label[edge]
   edge_node1 <- table$parent_node[edge]
   edge_node2 <- table$child_node[edge]
+  # The edge support value for this branch is from the child node
+  edge_support <- table$child_node_label[edge]
+  # Collate all the edge details into one vector and return it
   edge_info <- c(edge_support, edge_length, edge_node1, edge_node2)
   return(edge_info)
 }
@@ -712,18 +714,81 @@ select.tip.or.node <- function(element, tree) {
   ifelse(element < Ntip(tree)+1, tree$tip.label[element], tree$node.label[element-Ntip(tree)])
 }
 
+# Function that selects the node value given a tree and a number
+assign.node.label <- function(element, tree) {
+  ifelse(element < Ntip(tree)+1, "tip", tree$node.label[element-Ntip(tree)])
+}
+
 # Function that creates an extended edge dataframe for a tree that includes the node labels
 extend.edge.table <- function(tree){
   node_labels_in_edge <- tree$node.label[tree$edge[,1]-Ntip(tree)]
   tips_nodes <- tree$edge[,2]
   edge_table <- data.frame(
     "parent_node" = tree$edge[,1],
-    "parent_node_label" = sapply(tree$edge[,1], select.tip.or.node, tree = tree),
+    "parent_node_label" = sapply(tree$edge[,1], assign.node.label, tree = tree),
     "child_node" = tree$edge[,2],
-    "child_node_label" = sapply(tree$edge[,2], select.tip.or.node, tree = tree),
+    "child_node_label" = sapply(tree$edge[,2], assign.node.label, tree = tree),
     "edge_length" = tree$edge.length
   )
   return(edge_table)
+}
+
+
+# Function that checks child nodes with no child node label: if the node links to a single taxa, it is irrelevant and removed from the table
+check.edge.table <- function(table){
+  # Remove the tips from the table and determine which branches have nodes that do NOT connect to a tip are missing a child node support value
+  # Want branches where either the node.label is empty ("") OR the node.label is unable to be converted to numeric OR the node.label is NA
+  check_branches <- unique(c(which(is.na(table$child_node_label)), which(table$child_node_label == "")))
+  # Check each flagged branch. If the node connects to a node that connects to a taxa, and the branch length is 0, remove the branch
+  check_bools <- unlist(lapply(check_branches, check.single.edge, table = table))
+  # Identify which branches should be removed
+  remove_branches <- check_branches[check_bools]
+  keep_branches <- setdiff(1:nrow(table), remove_branches)
+  # Use the keep_branches values to index the rows on the table to keep
+  keep_table <- table[keep_branches, ]
+  return(keep_table)
+}
+
+# Function that checks child nodes with no child node label: if the node links to a single taxa, it is irrelevant and removed from the table
+which.branches.to.exclude <- function(table){
+  # Remove the tips from the table and determine which branches have nodes that do NOT connect to a tip are missing a child node support value
+  # Want branches where either the node.label is empty ("") OR the node.label is unable to be converted to numeric OR the node.label is NA
+  check_branches <- unique(c(which(is.na(table$child_node_label)), which(table$child_node_label == "")))
+  # Check each flagged branch. If the node connects to a node that connects to a taxa, and the branch length is 0, remove the branch
+  check_bools <- unlist(lapply(check_branches, check.single.edge, table = table))
+  # Identify which branches should be removed
+  remove_branches <- check_branches[check_bools]
+  # Return the vector of branches to remove
+  return(remove_branches)
+}
+
+# Function to check a single edge and determine whether it should be removed from the edge table
+# Remove branches that connect on one side to a terminal taxa, on the other to an internal branch and have a branch length of 0
+check.single.edge <- function(edge, table){
+  # Check the length of the branch
+  edge_length <- table$edge_length[edge]
+  # Identify the nodes on each side of the branch
+  edge_child_node = table$child_node[edge]
+  edge_parent_node = table$parent_node[edge]
+  # Now check both edges of the branch
+  # Want to see what the child/parent node connects to
+  connections <- table[which(table$parent_node == edge_child_node | table$child_node == edge_parent_node),]
+  # Determine if this is a branch to keep
+  # If the branch length is 0 and the branch connects only one tip and one edge, assign this branch for removal
+  # Otherwise keep the branch
+  num_connections <- nrow(connections) # will be 2 if branch connects one tip and one internal node
+  num_tips <- length(which(connections$child_node_label == "tip")) # how many of those rows are tips (have "tip" as child node label)
+  num_internal_branches <- nrow(connections[connections$child_node_label != "tip" & connections$parent_node_label != "tip",]) # how many of those rows are not tips
+  # If the branch connects one tip and one not-tip, remove this branch
+  if (num_tips == 1 & num_internal_branches == 1 & edge_length == 0){
+    bool = TRUE
+  } else {
+    bool = FALSE
+  }
+  # Return the TRUE or FALSE value
+  # TRUE if should exclude from table
+  # FALSE if should keep in table
+  return(bool)
 }
 
 
@@ -740,6 +805,15 @@ compare.distinct.edges.of.two.trees <- function(tree_file_1, tree_file_2, tree1_
   e_2_1 <- distinct.edges(t_2, t_1)
   # Determine which edges are in both trees (by excluding the edges in e_1_2 from the list of all edges)
   e_both <- setdiff(1:length(t_1$edge.length), e_1_2)
+  # Check the edges in the edge table and determine which branches to exclude
+  t_1_exclude_branches <- which.branches.to.exclude(t_1_table)
+  t_2_exclude_branches <- which.branches.to.exclude(t_2_table)
+  # Exclude those brances from the list of edges (e_1_2, e_2_1, and e_both)
+  # Remove the exclude_branches from t_1 from e_1_2 and e_both, which have the edges present in tree 1 and not in tree 2
+  # Remove the exclude_branches from t_2 from e_2_1, which has the edges present in tree 2 and not in tree 1
+  e_1_2 <- setdiff(e_1_2, t_1_exclude_branches)
+  e_both <- setdiff(e_both, t_1_exclude_branches)
+  e_2_1 <- setdiff(e_2_1, t_2_exclude_branches)
   
   # Collect information about each of those different edges
   if (length(e_1_2) > 0){
@@ -783,6 +857,7 @@ compare.distinct.edges.of.two.trees <- function(tree_file_1, tree_file_2, tree1_
   } else {
     e_both_df <- data.frame()
   }
+  
   
   # Assemble information into a dataframe
   e_df <- rbind(e_1_2_df, e_2_1_df, e_both_df)
