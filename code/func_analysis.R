@@ -777,6 +777,7 @@ check.single.edge <- function(edge, table){
   # Exclude the edge of interest
   edge_rownum <- which(connections$parent_node == edge_parent_node & connections$child_node == edge_child_node)
   row <- connections[edge_rownum,]
+  print(row)
   other_edges <- setdiff(1:nrow(connections), edge_rownum)
   connections <- connections[other_edges,]
   # Determine if this is a branch to keep
@@ -786,9 +787,7 @@ check.single.edge <- function(edge, table){
   num_tips <- length(which(connections$child_node_label == "tip")) # how many of those rows are tips (have "tip" as child node label)
   num_internal_branches <- nrow(connections[connections$child_node_label != "tip" & connections$parent_node_label != "tip",]) # how many of those rows are not tips
   # If the branch connects one or more tips and one or more not-tips and has a branch length of 0, remove this branch
-  if (num_tips >= 1 & num_internal_branches >= 1 & edge_length == 0){
-    bool = TRUE
-  } else if (row$parent_node_label == "" & row$child_node_label == 0 & row$edge_length == 0) {
+  if (row$parent_node_label == "" & row$child_node_label == 0 & row$edge_length == 0) {
     # If the branch has no node label for the parent or child node and an edge length of 0, remove the node
     bool = TRUE
   } else {
