@@ -131,6 +131,7 @@ for (dataset in datasets_to_identify_distinct_edges){
 # Collate all dataframes
 all_csvs <- list.files(node_output_dir)
 all_csvs <- grep("Collated", all_csvs, value = TRUE, invert = TRUE)
+all_csvs <- grep("plots", all_csvs, value = TRUE, invert = TRUE)
 all_csvs <- paste0(node_output_dir, all_csvs)
 all_csv_dfs <- lapply(all_csvs, read.csv)
 node_df <- as.data.frame(do.call(rbind, all_csv_dfs))
