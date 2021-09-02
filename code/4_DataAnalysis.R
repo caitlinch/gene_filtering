@@ -94,8 +94,12 @@ for (dataset in datasets_to_identify_distinct_edges){
         fail_tree_file <- paste0(dataset_tree_dir, grep("fail", iq_trees, value = TRUE))
         # Create dataframes
         # Want to collect the information about splits present in one tree but not the other (i.e. in T_all,pass vs T_None)
-        test_df_pass_iq <- compare.distinct.edges.of.two.trees(tree_file_1 = pass_tree_file, tree_file_2 = none_tree_file, tree1_name = "Pass", tree2_name = "None", test_name = test, dataset_name = dataset, support_value_type_name = "BS")
-        test_df_fail_iq <- compare.distinct.edges.of.two.trees(tree_file_1 = fail_tree_file, tree_file_2 = none_tree_file, tree1_name = "Fail", tree2_name = "None", test_name = test, dataset_name = dataset, support_value_type_name = "BS")
+        test_df_pass_iq <- compare.distinct.edges.of.two.trees(tree_file_1 = pass_tree_file, tree_file_2 = none_tree_file, 
+                                                               tree1_name = "Pass", tree2_name = "None", test_name = test, 
+                                                               dataset_name = dataset, support_value_type_name = "BS")
+        test_df_fail_iq <- compare.distinct.edges.of.two.trees(tree_file_1 = fail_tree_file, tree_file_2 = none_tree_file, 
+                                                               tree1_name = "Fail", tree2_name = "None", test_name = test, 
+                                                               dataset_name = dataset, support_value_type_name = "BS")
       }
       
       print("Compare ASTRAL trees")
@@ -141,6 +145,11 @@ write.csv(node_df, file = node_df_filename)
 
 
 ##### Step 5: Compare the posterior probabilities/ bootstraps of the trees #####
+#### Create new folder for plots ####
+if (dir.exists(paste0(node_output_dir, "plots/")) == FALSE){
+  dir.create(paste0(node_output_dir, "plots/"))
+}
+
 #### Create new columns to facilitate plotting ####
 # Create a new factored dataset columns for nice plotting
 node_df$dataset_fac <- factor(node_df$dataset, levels = c("Vanderpool2020", "Pease2016", "Strassert2021", "1KP"), 
