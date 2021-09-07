@@ -606,7 +606,8 @@ call.IQTREE.empirical <- function(alignment_path, iqtree_path, alignment_model, 
   # Check if the tree file already exists and if it doesn't, run IQ-tree and create it
   if (file.exists(paste0(alignment_path,".treefile")) == FALSE){
     # Given an alignment, estimate the maximum likelihood tree
-    # to estimate: iqtree -s ALN_FILE -p PARTITION_FILE --prefix concat -bb 1000 -nt AUTO
+    # to estimate: iqtree -s ALN_FILE -spp PARTITION_FILE --prefix concat -bb 1000 -nt AUTO for partition
+    # to estimate: iqtree -s ALN_FILE --prefix concat -bb 1000 -nt AUTO for alignment file
     call <- paste0(iqtree_path," -s ",alignment_path," -m ",alignment_model," -nt ", num_threads," -redo -safe")
     system(call)
   }
@@ -620,7 +621,8 @@ call.IQTREE.empirical.UFB <- function(alignment_path, iqtree_path, alignment_mod
   # Check if the tree file already exists and if it doesn't, run IQ-tree and create it
   if (file.exists(paste0(alignment_path,".treefile")) == FALSE){
     # Given an alignment, estimate the maximum likelihood tree
-    # to estimate: iqtree -s ALN_FILE -p PARTITION_FILE --prefix concat -bb 1000 -nt AUTO
+    # to estimate: iqtree -s ALN_FILE -spp PARTITION_FILE --prefix concat -bb 1000 -nt AUTO for partition
+    # to estimate: iqtree -s ALN_FILE --prefix concat -bb 1000 -nt AUTO for alignment file
     call <- paste0(iqtree_path, " -s ", alignment_path, " -m ", alignment_model, " -bb ", num_bootstraps, " -nt ", num_threads," -redo -safe")
     system(call)
   }
@@ -1431,19 +1433,27 @@ ASTRAL.wrapper <- function(text_file, ASTRAL_path){
 # Function to estimate species tree of a folder full of alignments using IQ-Tree
 estimate.IQTREE.species.tree <- function(gene_tree_folder, IQTREE_path){
   print(paste0("Estimating tree in IQ-Tree: ", basename(gene_tree_folder)))
-  iqtree_command <- paste0(IQTREE_path, " -p ", gene_tree_folder, " -m MFP+MERGE -bb 1000 -nt AUTO")
+  iqtree_command <- paste0(IQTREE_path, " -spp ", gene_tree_folder, " -m MFP+MERGE -bb 1000 -nt AUTO")
   system(iqtree_command)
 }
 
 
 
 # Function to estimate species tree of a folder full of alignments using IQ-Tree
-estimate.partitioned.IQTREE.species.tree <- function(partition_file, IQTREE_path, IQTREE_model_command = NA){
+estimate.partitioned.IQTREE.species.tree <- function(partition_file, IQTREE_path, IQTREE_model_command = NA, extra_commands = NA){
   print(paste0("Estimating tree in IQ-Tree: ", basename(dirname(partition_file))))
   if (is.na(IQTREE_model_command) == TRUE){
-    iqtree_command <- paste0(IQTREE_path, " -p ", partition_file, " -bb 1000 -nt AUTO -safe")
+    if (is.na(extra_commands) == TRUE){
+      iqtree_command <- paste0(IQTREE_path, " -spp ", partition_file, " -bb 1000 -nt AUTO -safe")
+    } else if (is.na(extra_commands) == FALSE){
+      iqtree_command <- paste0(IQTREE_path, " -spp ", partition_file, " -bb 1000 -nt AUTO -safe", " ", extra_commands)
+    }
   } else if (is.na(IQTREE_model_command) == FALSE){
-    iqtree_command <- paste0(IQTREE_path, " -p ", partition_file, " -m ",IQTREE_model_command," -bb 1000 -nt AUTO -safe")
+    if (is.na(extra_commands) == TRUE){
+      iqtree_command <- paste0(IQTREE_path, " -spp ", partition_file, " -m ",IQTREE_model_command," -bb 1000 -nt AUTO -safe")
+    } else if (is.na(extra_commands) == FALSE){
+      iqtree_command <- paste0(IQTREE_path, " -spp ", partition_file, " -m ",IQTREE_model_command," -bb 1000 -nt AUTO -safe", " ", extra_commands)
+    }
   }
   system(iqtree_command)
 }
