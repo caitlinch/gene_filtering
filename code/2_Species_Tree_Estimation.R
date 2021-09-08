@@ -141,18 +141,18 @@ for (d in output_dirs){
     dir.create(d)
   }
 }
-
+all_datasets_to_copy <- unique(c(datasets_to_copy_loci_ASTRAL_IQTREE, datasets_to_copy_loci_RAxML))
 
 
 ##### Step 4: Assemble the dataframe of gene recombination results #####
-if (length(datasets_to_copy_loci_ASTRAL_IQTREE) > 0  | length(datasets_to_copy_loci_RAxML) > 0){
+if (length(all_datasets_to_copy) > 0){
   # Check whether a collated, trimmed recombination detection results file exists
-  trimmed_treelikeness_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
-  pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
-  collated_exclude_file <- paste0(csv_data_dir, "01_IQ-Tree_warnings_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_LociToExclude.csv")
+  trimmed_gene_result_df_file <- paste0(csv_data_dir, "02_",paste(sort(all_datasets_to_copy), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
+  pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(all_datasets_to_copy), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
+  collated_exclude_file <- paste0(csv_data_dir, "01_IQ-Tree_warnings_",paste(sort(all_datasets_to_copy), collapse="_"), "_LociToExclude.csv")
   
-  if (file.exists(trimmed_treelikeness_df_file) & file.exists(pass_df_file)){
-    treelikeness_df <- read.csv(trimmed_treelikeness_df_file, stringsAsFactors = TRUE)
+  if (file.exists(trimmed_gene_result_df_file) & file.exists(pass_df_file)){
+    gene_result_df <- read.csv(trimmed_gene_result_df_file, stringsAsFactors = TRUE)
     pass_df <- read.csv(pass_df_file, stringsAsFactors = TRUE)
   } else{
     # If the file doesn't exist, create it
@@ -169,12 +169,12 @@ if (length(datasets_to_copy_loci_ASTRAL_IQTREE) > 0  | length(datasets_to_copy_l
     # Remove duplicates
     results <- unique(results)
     # Open and attach the datasets
-    treelikeness_df <- as.data.frame(do.call(rbind, lapply(results, read.csv)))
-    treelikeness_df$match <- paste0(treelikeness_df$dataset, ":", treelikeness_df$loci_name)
+    gene_result_df <- as.data.frame(do.call(rbind, lapply(results, read.csv)))
+    gene_result_df$match <- paste0(gene_result_df$dataset, ":", gene_result_df$loci_name)
     # If the collated total file hasn't been saved, save it
     all_treelikeness_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_collated_RecombinationDetection.csv")
     if (file.exists(all_treelikeness_file) == FALSE){
-      write.csv(treelikeness_df, all_treelikeness_file)
+      write.csv(gene_result_df, all_treelikeness_file)
     }
     
     # Open the csv containing the list of loci to exclude from species tree analysis
@@ -186,38 +186,38 @@ if (length(datasets_to_copy_loci_ASTRAL_IQTREE) > 0  | length(datasets_to_copy_l
       write.csv(exclude_df, file = collated_exclude_file, row.names = FALSE)
     }
     
-    # Reduce down to the unique dataset/loci pairs to exclude from treelikeness_df
+    # Reduce down to the unique dataset/loci pairs to exclude from gene_result_df
     exclude_df <- exclude_df[,c("dataset", "loci")]
     exclude_df <- exclude_df[!duplicated(exclude_df),]
     exclude_df$match <- paste0(exclude_df$dataset, ":", exclude_df$loci)
     
     # Identify the row numbers of the loci to exclude
-    exclude_loci <- which(treelikeness_df$match %in% exclude_df$match)
+    exclude_loci <- which(gene_result_df$match %in% exclude_df$match)
     # Compare with the set of all loci in all datasets to get the loci to keep
-    include_loci <- setdiff(1:nrow(treelikeness_df), exclude_loci)
+    include_loci <- setdiff(1:nrow(gene_result_df), exclude_loci)
     
-    # Trim the treelikeness_df to remove the loci to be excluded
-    treelikeness_df <- treelikeness_df[include_loci,]
+    # Trim the gene_result_df to remove the loci to be excluded
+    gene_result_df <- gene_result_df[include_loci,]
     
     # Create new columns with pass/fail for each test
-    treelikeness_df <- make.pass.fail.column("pass_3seq", "X3SEQ_p_value", treelikeness_df)
-    treelikeness_df <- make.pass.fail.column("pass_phi", "PHI_normal_p_value", treelikeness_df)
-    treelikeness_df <- make.pass.fail.column("pass_phi_permute", "PHI_permutation_p_value", treelikeness_df)
-    treelikeness_df <- make.pass.fail.column("pass_maxchi", "max_chi_squared_p_value", treelikeness_df)
-    treelikeness_df <- make.pass.fail.column("pass_NSS", "NSS_p_value", treelikeness_df)
-    treelikeness_df <- make.pass.fail.column("pass_geneconv_inner", "geneconv_inner_fragment_simulated_p_value", treelikeness_df)
-    treelikeness_df <- make.pass.fail.column("pass_geneconv_outer", "geneconv_outer_fragment_simulated_p_value", treelikeness_df)
+    gene_result_df <- make.pass.fail.column("pass_3seq", "X3SEQ_p_value", gene_result_df)
+    gene_result_df <- make.pass.fail.column("pass_phi", "PHI_normal_p_value", gene_result_df)
+    gene_result_df <- make.pass.fail.column("pass_phi_permute", "PHI_permutation_p_value", gene_result_df)
+    gene_result_df <- make.pass.fail.column("pass_maxchi", "max_chi_squared_p_value", gene_result_df)
+    gene_result_df <- make.pass.fail.column("pass_NSS", "NSS_p_value", gene_result_df)
+    gene_result_df <- make.pass.fail.column("pass_geneconv_inner", "geneconv_inner_fragment_simulated_p_value", gene_result_df)
+    gene_result_df <- make.pass.fail.column("pass_geneconv_outer", "geneconv_outer_fragment_simulated_p_value", gene_result_df)
     # Create a column for GeneConv where both inner and outer fragment p-value must be >0.05 to pass
-    treelikeness_df$pass_geneconv <- "FALSE"
-    treelikeness_df$pass_geneconv[((treelikeness_df$geneconv_outer_fragment_simulated_p_value > 0.05) & 
-                                     (treelikeness_df$geneconv_inner_fragment_simulated_p_value > 0.05))] <- "TRUE"
-    treelikeness_df$pass_geneconv <- as.logical(treelikeness_df$pass_geneconv)
+    gene_result_df$pass_geneconv <- "FALSE"
+    gene_result_df$pass_geneconv[((gene_result_df$geneconv_outer_fragment_simulated_p_value > 0.05) & 
+                                     (gene_result_df$geneconv_inner_fragment_simulated_p_value > 0.05))] <- "TRUE"
+    gene_result_df$pass_geneconv <- as.logical(gene_result_df$pass_geneconv)
     
-    # Save the trimmed treelikeness_df
-    trimmed_treelikeness_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
-    write.csv(treelikeness_df, file = trimmed_treelikeness_df_file, row.names = FALSE)
+    # Save the trimmed gene_result_df
+    trimmed_gene_result_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
+    write.csv(gene_result_df, file = trimmed_gene_result_df_file, row.names = FALSE)
     # Save a df of just the pass/fail info
-    pass_df <- treelikeness_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", 
+    pass_df <- gene_result_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", 
                                   "pass_NSS", "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
     pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
     write.csv(pass_df, file = pass_df_file, row.names = FALSE)
@@ -247,13 +247,13 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
     dir.create(text_records_dir)
   }
   
-  ## filter treelikeness_df by dataset
-  dataset_df <- treelikeness_df[treelikeness_df$dataset == dataset,]
+  ## filter gene_result_df by dataset
+  dataset_df <- gene_result_df[gene_result_df$dataset == dataset,]
   
   ### Apply a single recombination detection test ###
   ## Iterate through each var and save the loci/trees for a tree made from only loci that pass the test
   # Make a list of the variables on which to filter the loci
-  # vars values are columns from the treelikeness_df
+  # vars values are columns from the gene_result_df
   vars <- c("pass_phi", "pass_maxchi", "pass_geneconv")
   # Assign output names for each of the variables in vars
   vars_names <- c("PHI", "maxchi", "geneconv")
