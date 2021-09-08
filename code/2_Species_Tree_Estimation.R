@@ -492,13 +492,21 @@ for (dataset in datasets_to_copy_loci_RAxML){
   all_als <- grep(file_extension, all_als, value = TRUE)
   # Extend the alignment names to be the full alignment folder paths
   all_als_alignment_dir <- paste0(alignment_dir[dataset], all_als)
+  # Get list of loci names for all alignments
+  if (dataset == "1KP"){
+    all_als_loci_names <- list.files(alignment_dir[dataset])
+  }
+  # Filter out alignments that are not in the dataset_df$loci_name
+  keep_als <- which(all_als_loci_names %in% dataset_df$loci_name)
+  keep_al_paths <- all_als_alignment_dir[keep_als]
   # Create the output names for the supermatrix and partition files
   supermatrix_file <- paste0(raxml_dir, dataset, "_NoTest_supermat.phy")
   partition_file <- paste0(raxml_dir, dataset, "_NoTest_partition.txt")
   # Build PHYLIP supermatrix and RAxML partition file using aligned FASTA files
   notest_mat <- supermat(all_als_alignment_dir, outfile = supermatrix_file, partition.file = partition_file)
   # Reset the models in the partition file one at a time
-  loci <- dataset_df$loci_name
+  fix.all.models.in.partition.file(locus_names = dataset_df$loci_name, locus_models = dataset_df$ModelFinder_model, 
+                                   dataset = dataset, partition_file = partition_file)
   
   ## Create the supermatrix and partition file for the PHI,pass and MaxChi,pass trees
   tests_to_run = c("PHI", "maxchi")
@@ -507,9 +515,7 @@ for (dataset in datasets_to_copy_loci_RAxML){
   
 }
 
-
-locus_name <- dataset_df$loci_name[1]
-locus_model <- dataset_df$ModelFinder_model[1]
+# Function to take model and name for one locus and correct the model in the RAxML partition file for that locus
 fix.one.model.in.partition.file <- function(locus_name, locus_model, dataset, partition_file){
   # Check model name and edit if required for RAxML format
   model_first_param <- strsplit(locus_model, "\\+")[[1]][1]
@@ -529,10 +535,19 @@ fix.one.model.in.partition.file <- function(locus_name, locus_model, dataset, pa
   ind <- grep(locus_name, p)
   line <- p[ind]
   # Replace "DNA" with the modelFinder best model for this locus
-  line <- gsub("DNA", locus_model)
+  line <- gsub("DNA", locus_model, line)
   p[ind] <- line
   # Write the partition file to disk
   write(p, file = partition_file)
+}
+
+# Run fix.one.model.in.partition.file as a for loop for each locus
+fix.all.models.in.partition.file <- function(locus_names, locus_models, dataset, partition_file){
+  for(i in 1:length(locus_names)){
+    locus_name = locus_names[i]
+    locus_model = locus_models[i]
+    fix.one.model.in.partition.file(locus_name, locus_model, dataset, partition_file)
+  }
 }
 
 
