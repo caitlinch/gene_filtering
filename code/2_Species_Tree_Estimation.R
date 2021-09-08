@@ -211,7 +211,7 @@ if (length(all_datasets_to_copy) > 0){
     # Create a column for GeneConv where both inner and outer fragment p-value must be >0.05 to pass
     gene_result_df$pass_geneconv <- "FALSE"
     gene_result_df$pass_geneconv[((gene_result_df$geneconv_outer_fragment_simulated_p_value > 0.05) & 
-                                     (gene_result_df$geneconv_inner_fragment_simulated_p_value > 0.05))] <- "TRUE"
+                                    (gene_result_df$geneconv_inner_fragment_simulated_p_value > 0.05))] <- "TRUE"
     gene_result_df$pass_geneconv <- as.logical(gene_result_df$pass_geneconv)
     
     # Save the trimmed gene_result_df
@@ -219,7 +219,7 @@ if (length(all_datasets_to_copy) > 0){
     write.csv(gene_result_df, file = trimmed_gene_result_df_file, row.names = FALSE)
     # Save a df of just the pass/fail info
     pass_df <- gene_result_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", 
-                                  "pass_NSS", "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
+                                 "pass_NSS", "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
     pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
     write.csv(pass_df, file = pass_df_file, row.names = FALSE)
   }
@@ -471,6 +471,9 @@ for (dataset in datasets_to_estimate_IQTREE_trees){
 for (dataset in datasets_to_copy_loci_RAxML){
   # filter the gene_result_df for this dataset
   dataset_df <- gene_result_df[(gene_result_df$dataset == dataset), ]
+  dataset_df$ModelFinder_model <- as.character(dataset_df$ModelFinder_model)
+  dataset_df$loci_name <- as.character(dataset_df$loci_name)
+  
   # identify file extension for alignment files
   if (dataset == "1KP"){
     file_extension = "fasta"
@@ -484,8 +487,6 @@ for (dataset in datasets_to_copy_loci_RAxML){
   if (dir.exists(raxml_dir) == FALSE){
     dir.create(raxml_dir)
   }
-  # Get the list of loci to include
-  loci <- dataset_df$loci_name
   # Identify those loci from the alignment folder
   all_als <- list.files(alignment_dir[dataset], recursive = TRUE)
   all_als <- grep(file_extension, all_als, value = TRUE)
@@ -496,6 +497,8 @@ for (dataset in datasets_to_copy_loci_RAxML){
   partition_file <- paste0(raxml_dir, dataset, "_NoTest_partition.txt")
   # Build PHYLIP supermatrix and RAxML partition file using aligned FASTA files
   notest_mat <- supermat(all_als_alignment_dir, outfile = supermatrix_file, partition.file = partition_file)
+  # Reset the models in the partition file one at a time
+  loci <- dataset_df$loci_name
   
   ## Create the supermatrix and partition file for the PHI,pass and MaxChi,pass trees
   tests_to_run = c("PHI", "maxchi")
@@ -505,8 +508,32 @@ for (dataset in datasets_to_copy_loci_RAxML){
 }
 
 
-
-
+locus_name <- dataset_df$loci_name[1]
+locus_model <- dataset_df$ModelFinder_model[1]
+fix.one.model.in.partition.file <- function(locus_name, locus_model, dataset, partition_file){
+  # Check model name and edit if required for RAxML format
+  model_first_param <- strsplit(locus_model, "\\+")[[1]][1]
+  if (model_first_param == "JTTDCMut"){
+    locus_model = gsub(model_first_param, "JTT-DCMut", locus_model)
+  }
+  
+  # Change model parameters for those models that are not available in RAxML-NG
+  if (dataset == "1KP" & locus_name == "5870"){
+    # mtInv model not available in RAxML-NG: for locus 5870 in the 1KP dataset, use the LG+G4 model instead
+    locus_model = "LG+G4"
+  }
+  
+  # Open the partition file
+  p <- readLines(partition_file)
+  # Identify the line for this locus by name
+  ind <- grep(locus_name, p)
+  line <- p[ind]
+  # Replace "DNA" with the modelFinder best model for this locus
+  line <- gsub("DNA", locus_model)
+  p[ind] <- line
+  # Write the partition file to disk
+  write(p, file = partition_file)
+}
 
 
 ##### Step 8: Estimate trees in RAxML #####
