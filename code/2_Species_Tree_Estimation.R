@@ -13,14 +13,20 @@
 # output_dir        <- where the coalescent/concatenated trees and tree comparisons will be stored 
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # exec_paths        <- location to the software executables needed for analysis (ASTRAL and IQTREE)
-# datasets_to_copy_loci   <- Out of the input names, select which datasets to copy loci trees for tree estimation
-# datasets_to_estimate_ASTRAL_trees <- Out of the input names, select which datasets to estimate species trees in ASTRAL based on treelikeness results
-# datasets_to_estimate_IQTREE_trees <- Out of the input names, select which datasets to estimate species trees in IQ-Tree based on treelikeness results
+# datasets_to_copy_loci_ASTRAL_IQTREE <- Out of the input names, select which datasets to copy loci trees for tree estimation in ASTRAL or IQ-Tree
+# datasets_to_copy_loci_RAxML <- Out of the input names, select which datasets to copy loci trees for tree estimation in RAxML-NG
+# datasets_to_estimate_ASTRAL_trees <- Out of the input names, select which datasets to estimate species trees in ASTRAL based on recombination results
+# datasets_to_estimate_IQTREE_trees <- Out of the input names, select which datasets to estimate species trees in IQ-Tree based on recombination results
+# datasets_to_estimate_RAxML_trees <- Out of the input names, select which datasets to estimate species trees in IQ-Tree based on recombination results
 # partition.by.codon.position <- Whether to run analysis partitioning by codon position
 #                             <- set TRUE if you want to estimate species trees partitioning by codon position, and FALSE if you don't
 #                             <- codon position simply counts every third base starting from 1st, 2nd, or 3rd base, and does not account for frame shift
 # use.modelfinder.models.for.partitions <- can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. 
 #                                       <- TRUE will use "-m MERGE" and include a charpartition with substitution models selected by ModelFinder in IQ-Tree
+
+# We estimated species trees in ASTRAl for all four datasets (1KP, Strassert2021, Vanderpool2020 and Pease2016)
+# We estimated concatenated trees in IQ-Tree for the two shallow datasets (Vanderpool2020 and Pease2016) as the deep datasets were too large to reasonably run
+# We estimated concatenated trees in RAxML-NG for the two deep datasets (1KP and Strassert2021)
 
 # # To run this program: 
 # # 1. Delete the lines below that include Caitlin's paths/variables
@@ -36,7 +42,8 @@
 # # To access a path: exec_paths[["name"]]
 # exec_paths <- c()
 # names(exec_paths) <- c("ASTRAL","IQTree")
-# datasets_to_copy_loci <-  c()
+# datasets_to_copy_loci_ASTRAL_IQTREE <-  c()
+# datasets_to_copy_loci_RAxML <- c()
 # datasets_to_estimate_ASTRAL_trees <- c()
 # datasets_to_estimate_IQTREE_trees <- c()
 # partition.by.codon.position <- FALSE
@@ -50,7 +57,7 @@ if (run_location == "local"){
   input_names <- c( "1KP", "Strassert2021", "Vanderpool2020", "Pease2016")
   
   # File and directory locations
-  alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
+  alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes_renamed/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Strassert2021/02_trimAL_Divvier_filtered_genes_only/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
@@ -60,18 +67,20 @@ if (run_location == "local"){
   
   # Create a vector with all of the executable file paths  in this order: ASTRAL, IQ-Tree
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("Astral/astral.5.7.5.jar","iqtree-2.0-rc1-MacOSX/bin/iqtree")
+  exec_paths <- c("Astral/astral.5.7.5.jar","iqtree-2.0-rc1-MacOSX/bin/iqtree", "raxml-ng_v1.0.3_macos_x86_64/raxml-ng")
   exec_folder <- "/Users/caitlincherryh/Documents/Executables/"
   exec_paths <- paste0(exec_folder,exec_paths)
-  names(exec_paths) <- c("ASTRAL","IQTree")
+  names(exec_paths) <- c("ASTRAL","IQTree", "RAxML-NG")
   
   # Select number of cores for parallelisation
   cores.to.use = 1
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c()
+  datasets_to_copy_loci_ASTRAL_IQTREE <-  c()
+  datasets_to_copy_loci_RAxML <- c("1KP", "Strassert2021")
   datasets_to_estimate_ASTRAL_trees <- c()
-  datasets_to_estimate_IQTREE_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
+  datasets_to_estimate_IQTREE_trees <- c()
+  datasets_to_estimate_RAxML_trees <- c("1KP", "Strassert2021")
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use substitution models from the gene trees
   
@@ -86,7 +95,7 @@ if (run_location == "local"){
                      "/data/caitlin/empirical_treelikeness/Data_Pease2016/")
   csv_data_dir <- "/data/caitlin/empirical_treelikeness/Output/"
   output_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
-  maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness code is
+  maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical_treelikeness repository is
   
   # Create a vector with all of the executable file paths in this order: ASTRAL, IQ-Tree
   # To access a path: exec_paths[["name"]]
@@ -98,9 +107,10 @@ if (run_location == "local"){
   cores.to.use = 45
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci <-  c()
+  datasets_to_copy_loci_ASTRAL_IQTREE <-  c()
+  datasets_to_copy_loci_RAxML <- c("1KP", "Strassert2021")
   datasets_to_estimate_ASTRAL_trees <- c()
-  datasets_to_estimate_IQTREE_trees <- c("Vanderpool2020", "Pease2016", "1KP", "Strassert2021")
+  datasets_to_estimate_IQTREE_trees <- c()
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use partition file with substitution models specified
 }
@@ -134,12 +144,12 @@ for (d in output_dirs){
 
 
 
-##### Step 4: Assemble the treelikeness dataframe #####
-if (length(datasets_to_copy_loci) > 0){
+##### Step 4: Assemble the dataframe of gene recombination results #####
+if (length(datasets_to_copy_loci_ASTRAL_IQTREE) > 0  | length(datasets_to_copy_loci_RAxML) > 0){
   # Check whether a collated, trimmed recombination detection results file exists
-  trimmed_treelikeness_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
-  pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
-  collated_exclude_file <- paste0(csv_data_dir, "01_IQ-Tree_warnings_",paste(sort(datasets_to_copy_loci), collapse="_"), "_LociToExclude.csv")
+  trimmed_treelikeness_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
+  pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
+  collated_exclude_file <- paste0(csv_data_dir, "01_IQ-Tree_warnings_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_LociToExclude.csv")
   
   if (file.exists(trimmed_treelikeness_df_file) & file.exists(pass_df_file)){
     treelikeness_df <- read.csv(trimmed_treelikeness_df_file, stringsAsFactors = TRUE)
@@ -152,7 +162,7 @@ if (length(datasets_to_copy_loci) > 0){
     all_results <- grep("RecombinationDetection_complete_collated_results", all_files, value = TRUE)
     all_results <- paste0(csv_data_dir, all_results)
     results <- c()
-    for (dataset in datasets_to_copy_loci){
+    for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
       f <- grep(dataset, all_results, value = TRUE)
       results <- c(results, f)
     }
@@ -162,7 +172,7 @@ if (length(datasets_to_copy_loci) > 0){
     treelikeness_df <- as.data.frame(do.call(rbind, lapply(results, read.csv)))
     treelikeness_df$match <- paste0(treelikeness_df$dataset, ":", treelikeness_df$loci_name)
     # If the collated total file hasn't been saved, save it
-    all_treelikeness_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_collated_RecombinationDetection.csv")
+    all_treelikeness_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_collated_RecombinationDetection.csv")
     if (file.exists(all_treelikeness_file) == FALSE){
       write.csv(treelikeness_df, all_treelikeness_file)
     }
@@ -204,12 +214,12 @@ if (length(datasets_to_copy_loci) > 0){
     treelikeness_df$pass_geneconv <- as.logical(treelikeness_df$pass_geneconv)
     
     # Save the trimmed treelikeness_df
-    trimmed_treelikeness_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
+    trimmed_treelikeness_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
     write.csv(treelikeness_df, file = trimmed_treelikeness_df_file, row.names = FALSE)
     # Save a df of just the pass/fail info
     pass_df <- treelikeness_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", 
                                   "pass_NSS", "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
-    pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
+    pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
     write.csv(pass_df, file = pass_df_file, row.names = FALSE)
   }
 }
@@ -224,7 +234,7 @@ if (length(datasets_to_copy_loci) > 0){
 # Estimate a species tree from loci that pass every recombination detection test
 
 ### Save the loci trees (for ASTRAL) and the loci alignment (for IQ-Tree)
-for (dataset in datasets_to_copy_loci){
+for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
   # Create a row to store information about all the different variables
   summary_row <- c(dataset)
   # Create new folders to put these tree files/loci files and records in
@@ -281,7 +291,7 @@ for (dataset in datasets_to_copy_loci){
       # Break up dataframe into only loci that pass the test
       v_inds <- which(dataset_df[,c(v)] == bool)
       # Use the indexes to subset the dataframe to just loci that pass the test 
-      # (i.e. have a non significant p-value, meaning the null hypothesis of treelikeness cannot be rejected)
+      # (i.e. have a non significant p-value, meaning the null hypothesis of non-recombination/treelikeness cannot be rejected)
       v_df <- dataset_df[v_inds,]
       
       # Copy trees of all loci that pass the test into one file that can be fed into ASTRAL
@@ -388,7 +398,7 @@ for (dataset in datasets_to_copy_loci){
   write.csv(summary_df, file = summary_op_file, row.names = FALSE)
 }
 
-if (length(datasets_to_copy_loci) > 0 ){
+if (length(datasets_to_copy_loci_ASTRAL_IQTREE) > 0 | length(datasets_to_copy_loci_RAxML) > 0){
   # Collate species_tree_summary.csvs
   all_files <- list.files(output_dir, recursive = TRUE)
   summary_csvs <- grep("species_tree_summary.csv", all_files, value = TRUE)
@@ -400,7 +410,7 @@ if (length(datasets_to_copy_loci) > 0 ){
 
 
 
-##### Step 6: Estimate species trees #####
+##### Step 6: Estimate species trees in ASTRAL and IQ-Tree #####
 ### Estimate a species tree for each of the five categories
 for (dataset in datasets_to_estimate_ASTRAL_trees){
   # Ensure the folder for species trees data exists
@@ -453,3 +463,22 @@ for (dataset in datasets_to_estimate_IQTREE_trees){
     }
   }
 }
+
+
+
+##### Step 7: Prepare partition and supermatrix files for tree estimation in RAxML #####
+for (dataset in datasets_to_copy_loci_RAxML){
+  
+}
+
+
+
+
+
+
+##### Step 8: Estimate trees in RAxML #####
+
+
+
+
+
