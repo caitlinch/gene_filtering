@@ -503,7 +503,7 @@ for (dataset in datasets_to_copy_loci_RAxML){
   supermatrix_file <- paste0(raxml_dir, dataset, "_NoTest_supermat.phy")
   partition_file <- paste0(raxml_dir, dataset, "_NoTest_partition.txt")
   # Build PHYLIP supermatrix and RAxML partition file using aligned FASTA files
-  notest_mat <- supermat(all_als_alignment_dir, outfile = supermatrix_file, partition.file = partition_file)
+  supermat(keep_al_paths, outfile = supermatrix_file, partition.file = partition_file)
   # Reset the models in the partition file one at a time
   fix.all.models.in.partition.file(locus_names = dataset_df$loci_name, locus_models = dataset_df$ModelFinder_model, 
                                    dataset = dataset, partition_file = partition_file)
@@ -537,6 +537,12 @@ fix.one.model.in.partition.file <- function(locus_name, locus_model, dataset, pa
   # Replace "DNA" with the modelFinder best model for this locus
   line <- gsub("DNA", locus_model, line)
   p[ind] <- line
+  # Remove the filename of the loci so that each partition is identical to the loci name
+  if (dataset == "1KP"){
+    file_name <- "_FAA-upp-masked.mask10sites.mask33taxa"
+    line <- gsub(file_name, "", line)
+    p[ind] <- line
+  }
   # Write the partition file to disk
   write(p, file = partition_file)
 }
