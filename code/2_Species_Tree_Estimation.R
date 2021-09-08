@@ -124,6 +124,7 @@ library(ape) # analyses of phylogenetics and evolution
 library(parallel) # support for parallel computation
 library(phangorn) # phylogenetic reconstruction and analysis
 library(phytools) # tools for comparative biology and phylogenetics
+library(phylotools)
 # Source the functions using the filepaths
 source(paste0(maindir,"code/func_empirical.R"))
 source(paste0(maindir,"code/func_analysis.R"))
@@ -468,6 +469,38 @@ for (dataset in datasets_to_estimate_IQTREE_trees){
 
 ##### Step 7: Prepare partition and supermatrix files for tree estimation in RAxML #####
 for (dataset in datasets_to_copy_loci_RAxML){
+  # filter the gene_result_df for this dataset
+  dataset_df <- gene_result_df[(gene_result_df$dataset == dataset), ]
+  # identify file extension for alignment files
+  if (dataset == "1KP"){
+    file_extension = "fasta"
+  } else if (dataset == "Strassert2021"){
+    file_extension = "fas"
+  }
+  
+  ## Create the supermatrix and partition file for the NoTest tree (tree estimated from all genes)
+  # Create a new directory for this analysis
+  raxml_dir <- paste0(output_dirs[dataset], "species_trees/", dataset, "_NoTest_RAxML/")
+  if (dir.exists(raxml_dir) == FALSE){
+    dir.create(raxml_dir)
+  }
+  # Get the list of loci to include
+  loci <- dataset_df$loci_name
+  # Identify those loci from the alignment folder
+  all_als <- list.files(alignment_dir[dataset], recursive = TRUE)
+  all_als <- grep(file_extension, all_als, value = TRUE)
+  # Extend the alignment names to be the full alignment folder paths
+  all_als_alignment_dir <- paste0(alignment_dir[dataset], all_als)
+  # Create the output names for the supermatrix and partition files
+  supermatrix_file <- paste0(raxml_dir, dataset, "_NoTest_supermat.phy")
+  partition_file <- paste0(raxml_dir, dataset, "_NoTest_partition.txt")
+  # Build PHYLIP supermatrix and RAxML partition file using aligned FASTA files
+  notest_mat <- supermat(all_als_alignment_dir, outfile = supermatrix_file, partition.file = partition_file)
+  
+  ## Create the supermatrix and partition file for the PHI,pass and MaxChi,pass trees
+  tests_to_run = c("PHI", "maxchi")
+  
+  
   
 }
 
