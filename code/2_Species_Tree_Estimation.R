@@ -172,9 +172,9 @@ if (length(all_datasets_to_copy) > 0){
     gene_result_df <- as.data.frame(do.call(rbind, lapply(results, read.csv)))
     gene_result_df$match <- paste0(gene_result_df$dataset, ":", gene_result_df$loci_name)
     # If the collated total file hasn't been saved, save it
-    all_treelikeness_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_collated_RecombinationDetection.csv")
-    if (file.exists(all_treelikeness_file) == FALSE){
-      write.csv(gene_result_df, all_treelikeness_file)
+    all_gene_result_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_collated_RecombinationDetection.csv")
+    if (file.exists(all_gene_result_file) == FALSE){
+      write.csv(gene_result_df, all_gene_result_file)
     }
     
     # Open the csv containing the list of loci to exclude from species tree analysis
