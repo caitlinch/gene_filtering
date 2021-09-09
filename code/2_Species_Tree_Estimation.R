@@ -495,6 +495,11 @@ for (dataset in datasets_to_copy_loci_RAxML){
   # Get list of loci names for all alignments
   if (dataset == "1KP"){
     all_als_loci_names <- list.files(alignment_dir[dataset])
+  } else {
+    all_als_file_names <- unlist(strsplit(all_als, "\\."))
+    all_als_file_name_parts <- which(all_als_file_names %in% c("filtered", "ginsi", "bmge", "merged", "fa", "divvy", "trimal", "fas"))
+    all_als_loci_name_indexes <- setdiff(1:length(all_als_file_names), all_als_file_name_parts)
+    all_als_loci_names <- all_als_file_names[all_als_loci_name_indexes]
   }
   # Filter out alignments that are not in the dataset_df$loci_name
   keep_als <- which(all_als_loci_names %in% dataset_df$loci_name)
