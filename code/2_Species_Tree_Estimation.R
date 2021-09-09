@@ -570,23 +570,15 @@ for (dataset in datasets_to_estimate_RAxML_trees){
     test_files <- grep(".phy.", test_files, invert = TRUE, value = TRUE)
     test_files <- grep(".txt.", test_files, invert = TRUE, value = TRUE)
     # Identify the partition and supermatrix files
-    partition_file <- paste0(test_dir, grep("partition.txt", test_files, value = TRUE))
-    supermatrix_file <- paste0(test_dir, grep("supermat.phy", test_files, value = TRUE))
+    partition_file <- paste0(test_dir, "/", grep("partition.txt", test_files, value = TRUE))
+    supermatrix_file <- paste0(test_dir, "/", grep("supermat.phy", test_files, value = TRUE))
     # Assemble RAxML-NG command line 
     raxml_call <- paste0("raxml-ng --all --msa ", supermatrix_file, " --model ", partition_file, 
-                         " --prefix ", dataset, "_test_pass --brlen scaled --bs-metric fbp,tbe --bs-trees 10")
+                         " --prefix ", dataset, "_", test, " --brlen scaled --bs-metric fbp,tbe --bs-trees 100 --lh-epsilon 1")
+    print(raxml_call)
     system(raxml_call)
   }
 }
-
-test_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/1KP/species_trees/1KP_RAxML_small_test/"
-
-
-
-
-
-
-
 
 
 
