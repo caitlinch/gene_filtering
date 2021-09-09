@@ -2316,6 +2316,46 @@ calculate.2tailed.p_value <- function(value_vector,id_vector){
 
 
 
+# Function to take model and name for one locus and correct the model in the RAxML partition file for that locus
+fix.one.model.in.partition.file <- function(locus_name, locus_model, dataset, partition_file){
+  # Check model name and edit if required for RAxML format
+  model_first_param <- strsplit(locus_model, "\\+")[[1]][1]
+  if (model_first_param == "JTTDCMut"){
+    locus_model = gsub(model_first_param, "JTT-DCMut", locus_model)
+  }
+  
+  # Change model parameters for those models that are not available in RAxML-NG
+  if (dataset == "1KP" & locus_name == "5870"){
+    # mtInv model not available in RAxML-NG: for locus 5870 in the 1KP dataset, use the LG+G4 model instead
+    locus_model = "LG+G4"
+  }
+  
+  # Open the partition file
+  p <- readLines(partition_file)
+  # Identify the line for this locus by name
+  ind <- grep(locus_name, p)
+  line <- p[ind]
+  # Replace "DNA" with the modelFinder best model for this locus
+  line <- gsub("DNA", locus_model, line)
+  p[ind] <- line
+  # Remove the filename of the loci so that each partition is identical to the loci name
+  if (dataset == "1KP"){
+    file_name <- "_FAA-upp-masked.mask10sites.mask33taxa"
+    line <- gsub(file_name, "", line)
+    p[ind] <- line
+  }
+  # Write the partition file to disk
+  write(p, file = partition_file)
+}
+
+# Run fix.one.model.in.partition.file as a for loop for each locus
+fix.all.models.in.partition.file <- function(locus_names, locus_models, dataset, partition_file){
+  for(i in 1:length(locus_names)){
+    locus_name = locus_names[i]
+    locus_model = locus_models[i]
+    fix.one.model.in.partition.file(locus_name, locus_model, dataset, partition_file)
+  }
+}
 
 
 

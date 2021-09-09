@@ -510,51 +510,44 @@ for (dataset in datasets_to_copy_loci_RAxML){
   
   ## Create the supermatrix and partition file for the PHI,pass and MaxChi,pass trees
   tests_to_run = c("PHI", "maxchi")
-  
-  
-  
+  for (test in tests_to_run){
+    raxml_dir <- paste0(output_dirs[dataset], "species_trees/", dataset, "_", test, "_pass_RAxML/")
+    if (dir.exists(raxml_dir) == FALSE){
+      dir.create(raxml_dir)
+    }
+    
+    # Set column names
+    col_names <- c("pass_phi", "pass_maxchi")
+    names(col_names) <- c("PHI", "maxchi")
+    col <- col_names[test]
+    
+    # Remove any loci that have an NA result for this test
+    na_test_inds <- which(is.na(dataset_df[[col]]))
+    dataset_inds <- 1:nrow(dataset_df)
+    keep_inds <- setdiff(dataset_inds, na_test_inds)
+    test_df <- dataset_df[keep_inds,]
+    
+    # Break up dataframe into only loci that pass the test
+    col_inds <- which(test_df[,c(col)] == TRUE)
+    # Use the indexes to subset the dataframe to just loci that pass the test 
+    # (i.e. have a non significant p-value, meaning the null hypothesis of non-recombination/treelikeness cannot be rejected)
+    test_df <- test_df[col_inds,]
+    
+    # Identify file paths for those loci
+    test_al_inds <- which(all_als_loci_names %in% test_df$loci_name)
+    test_al_paths <- all_als_alignment_dir[test_al_inds]
+    
+    # Create the output names for the supermatrix and partition files
+    supermatrix_file <- paste0(raxml_dir, dataset, "_", test, "_pass_supermat.phy")
+    partition_file <- paste0(raxml_dir, dataset, "_", test, "_pass_partition.txt")
+    # Build PHYLIP supermatrix and RAxML partition file using aligned FASTA files
+    supermat(test_al_paths, outfile = supermatrix_file, partition.file = partition_file)
+    # Reset the models in the partition file one at a time
+    fix.all.models.in.partition.file(locus_names = test_df$loci_name, locus_models = test_df$ModelFinder_model, 
+                                     dataset = dataset, partition_file = partition_file)
+  }
 }
 
-# Function to take model and name for one locus and correct the model in the RAxML partition file for that locus
-fix.one.model.in.partition.file <- function(locus_name, locus_model, dataset, partition_file){
-  # Check model name and edit if required for RAxML format
-  model_first_param <- strsplit(locus_model, "\\+")[[1]][1]
-  if (model_first_param == "JTTDCMut"){
-    locus_model = gsub(model_first_param, "JTT-DCMut", locus_model)
-  }
-  
-  # Change model parameters for those models that are not available in RAxML-NG
-  if (dataset == "1KP" & locus_name == "5870"){
-    # mtInv model not available in RAxML-NG: for locus 5870 in the 1KP dataset, use the LG+G4 model instead
-    locus_model = "LG+G4"
-  }
-  
-  # Open the partition file
-  p <- readLines(partition_file)
-  # Identify the line for this locus by name
-  ind <- grep(locus_name, p)
-  line <- p[ind]
-  # Replace "DNA" with the modelFinder best model for this locus
-  line <- gsub("DNA", locus_model, line)
-  p[ind] <- line
-  # Remove the filename of the loci so that each partition is identical to the loci name
-  if (dataset == "1KP"){
-    file_name <- "_FAA-upp-masked.mask10sites.mask33taxa"
-    line <- gsub(file_name, "", line)
-    p[ind] <- line
-  }
-  # Write the partition file to disk
-  write(p, file = partition_file)
-}
-
-# Run fix.one.model.in.partition.file as a for loop for each locus
-fix.all.models.in.partition.file <- function(locus_names, locus_models, dataset, partition_file){
-  for(i in 1:length(locus_names)){
-    locus_name = locus_names[i]
-    locus_model = locus_models[i]
-    fix.one.model.in.partition.file(locus_name, locus_model, dataset, partition_file)
-  }
-}
 
 
 ##### Step 8: Estimate trees in RAxML #####
