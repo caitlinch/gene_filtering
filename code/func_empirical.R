@@ -2326,36 +2326,49 @@ fix.one.model.in.partition.file <- function(locus_name, locus_model, dataset, pa
   
   # Change model parameters for those models that are not available in RAxML-NG
   if (dataset == "1KP" & locus_name == "5870"){
-    # mtInv model not available in RAxML-NG: for locus 5870 in the 1KP dataset, use the LG+G4 model instead
+    # mtInv model not available in RAxML-NG: for locus 5870 in the 1KP dataset, use the LG+G4 model instead (best model according to AICc)
     locus_model = "LG+G4"
   }
   
   # Open the partition file
   p <- readLines(partition_file)
-  # Identify the line for this locus by name
-  ind <- grep(locus_name, p)
+  # Identify the line for this locus by name 
+  # Add a space on each side to look for e.g. " rpl10 " to avoid getting loci where one name is a subset of the other
+  # e.g. from Strassert2021 dataset: "rpl10" and "rpl10a"
+  ind <- grep(paste0(" ", locus_name, " "), p)
   line <- p[ind]
+  
   # Replace "DNA" with the modelFinder best model for this locus
   line <- gsub("DNA", locus_model, line)
   p[ind] <- line
-  # Remove the filename of the loci so that each partition is identical to the loci name
-  if (dataset == "1KP"){
-    file_name <- "_FAA-upp-masked.mask10sites.mask33taxa"
-    line <- gsub(file_name, "", line)
-    p[ind] <- line
-  }
+  
   # Write the partition file to disk
   write(p, file = partition_file)
 }
 
 # Run fix.one.model.in.partition.file as a for loop for each locus
 fix.all.models.in.partition.file <- function(locus_names, locus_models, dataset, partition_file){
+  # Open the partition file
+  p <- readLines(partition_file)
+  # Remove the filename of the loci so that each partition is identical to the loci name
+  if (dataset == "1KP"){
+    file_name <- "_FAA-upp-masked.mask10sites.mask33taxa"
+    p <- gsub(file_name, "", p)
+  } else if (dataset == "Strassert2021"){
+    file_name <- ".filtered.ginsi.bmge.merged.fa.divvy.trimal"
+    p <- gsub(file_name, "", p)
+  }
+  # Write the partition file to disk
+  write(p, file = partition_file)
+  
+  
   for(i in 1:length(locus_names)){
     locus_name = locus_names[i]
     locus_model = locus_models[i]
     fix.one.model.in.partition.file(locus_name, locus_model, dataset, partition_file)
   }
 }
+
 
 
 
