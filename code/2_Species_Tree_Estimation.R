@@ -77,7 +77,7 @@ if (run_location == "local"){
   
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci_ASTRAL_IQTREE <-  c()
-  datasets_to_copy_loci_RAxML <- c("1KP", "Strassert2021")
+  datasets_to_copy_loci_RAxML <- c()
   datasets_to_estimate_ASTRAL_trees <- c()
   datasets_to_estimate_IQTREE_trees <- c()
   datasets_to_estimate_RAxML_trees <- c("1KP", "Strassert2021")
@@ -100,17 +100,19 @@ if (run_location == "local"){
   # Create a vector with all of the executable file paths in this order: ASTRAL, IQ-Tree
   # To access a path: exec_paths[["name"]]
   exec_paths <- c("/data/caitlin/executables/ASTRAL/astral.5.7.5.jar",
-                  "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
-  names(exec_paths) <- c("ASTRAL","IQTree")
+                  "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree",
+                  "/data/caitlin/linux_executables/raxml-ng")
+  names(exec_paths) <- c("ASTRAL","IQTree", "RAxML-NG")
   
   # Select number of cores for parallelisation
   cores.to.use = 45
   
   # Select datasets to run analysis and collect results
   datasets_to_copy_loci_ASTRAL_IQTREE <-  c()
-  datasets_to_copy_loci_RAxML <- c("1KP", "Strassert2021")
+  datasets_to_copy_loci_RAxML <- c()
   datasets_to_estimate_ASTRAL_trees <- c()
   datasets_to_estimate_IQTREE_trees <- c()
+  datasets_to_estimate_RAxML_trees <- c("1KP", "Strassert2021")
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use partition file with substitution models specified
 }
@@ -573,7 +575,7 @@ for (dataset in datasets_to_estimate_RAxML_trees){
     partition_file <- paste0(test_dir, "/", grep("partition.txt", test_files, value = TRUE))
     supermatrix_file <- paste0(test_dir, "/", grep("supermat.phy", test_files, value = TRUE))
     # Assemble RAxML-NG command line 
-    raxml_call <- paste0("raxml-ng --all --msa ", supermatrix_file, " --model ", partition_file, 
+    raxml_call <- paste0(exec_paths[["RAxML-NG"]], " --all --msa ", supermatrix_file, " --model ", partition_file, 
                          " --prefix ", dataset, "_", test, " --brlen scaled --bs-metric fbp,tbe --bs-trees 100 --lh-epsilon 1")
     print(raxml_call)
     system(raxml_call)
