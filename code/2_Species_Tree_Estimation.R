@@ -556,6 +556,35 @@ for (dataset in datasets_to_copy_loci_RAxML){
 
 
 ##### Step 8: Estimate trees in RAxML #####
+for (dataset in datasets_to_estimate_RAxML_trees){
+  species_tree_dir <- paste0(output_dirs[dataset], "species_trees/")
+  all_dirs <- list.dirs(species_tree_dir)
+  all_dirs <- gsub("//", "/", all_dirs) # remove double slashes from file names
+  raxml_dirs <- grep("RAxML", all_dirs, value = TRUE)
+  
+  tests_to_run <- c("NoTest", "PHI_pass", "maxchi_pass")
+  for (test in tests_to_run){
+    test_dir <- grep(paste0(test, "_RAxML"), raxml_dirs, value = TRUE)
+    test_files <- list.files(test_dir)
+    # Remove any RAxML files from the list of test files (by removing anything that has extra filename parts after the .phy or .txt)
+    test_files <- grep(".phy.", test_files, invert = TRUE, value = TRUE)
+    test_files <- grep(".txt.", test_files, invert = TRUE, value = TRUE)
+    # Identify the partition and supermatrix files
+    partition_file <- paste0(test_dir, grep("partition.txt", test_files, value = TRUE))
+    supermatrix_file <- paste0(test_dir, grep("supermat.phy", test_files, value = TRUE))
+    # Assemble RAxML-NG command line 
+    raxml_call <- paste0("raxml-ng --all --msa ", supermatrix_file, " --model ", partition_file, 
+                         " --prefix ", dataset, "_test_pass --brlen scaled --bs-metric fbp,tbe --bs-trees 10")
+    system(raxml_call)
+  }
+}
+
+test_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/1KP/species_trees/1KP_RAxML_small_test/"
+
+
+
+
+
 
 
 
