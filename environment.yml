@@ -10,3 +10,4 @@ dependencies:
   - r-phangorn
   - r-seqinr
   - r-phytools
+  - r-phylotools
