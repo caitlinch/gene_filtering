@@ -570,15 +570,22 @@ for (dataset in datasets_to_estimate_RAxML_trees){
   for (test in tests_to_run){
     test_dir <- grep(paste0(test, "_RAxML"), raxml_dirs, value = TRUE)
     test_files <- list.files(test_dir)
+    # Set working directory to test_dir to save output files with partition/supermatrix file
+    setwd(test_dir)
     # Remove any RAxML files from the list of test files (by removing anything that has extra filename parts after the .phy or .txt)
     test_files <- grep(".phy.", test_files, invert = TRUE, value = TRUE)
     test_files <- grep(".txt.", test_files, invert = TRUE, value = TRUE)
     # Identify the partition and supermatrix files
     partition_file <- paste0(test_dir, "/", grep("partition.txt", test_files, value = TRUE))
     supermatrix_file <- paste0(test_dir, "/", grep("supermat.phy", test_files, value = TRUE))
-    # Assemble RAxML-NG command line 
-    raxml_call <- paste0(exec_paths[["RAxML-NG"]], " --all --msa ", supermatrix_file, " --model ", partition_file, 
-                         " --prefix ", dataset, "_", test, " --brlen scaled --bs-metric fbp,tbe --bs-trees 100 --lh-epsilon 1")
+    # Assemble RAxML-NG command line (to estimate tree with ML and perform bootstraps)
+    # raxml_call <- paste0(exec_paths[["RAxML-NG"]], " --all --msa ", supermatrix_file, " --model ", partition_file, 
+    #                      " --prefix ", dataset, "_", test, " --brlen scaled --bs-metric fbp,tbe --bs-trees 100 --lh-epsilon 1")
+    # Assemble RAxML-NG command line (to estimate tree with ML)
+    # Perform quick seach from single random starting tree using "--search1"
+    # Perform search using n parsimony starting trees by adding "--tree pars{n}" (can also have "pars{n},rand{m}" to specify n parsimony and m random starting trees)
+    raxml_call <- paste0(exec_paths[["RAxML-NG"]], " --search --msa ", supermatrix_file, " --model ", partition_file, 
+                         " --prefix ", dataset, "_", test, " --brlen scaled --tree pars{1} --lh-epsilon 1")
     print(raxml_call)
     system(raxml_call)
   }
