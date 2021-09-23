@@ -543,7 +543,7 @@ for (dataset in datasets_to_copy_loci_RAxML){
     # Extract the names and models of the loci and feed them into the function fix.all.models.in.partition.file
     fix.all.models.in.partition.file(locus_names = noFreeRate_df$loci, locus_models = noFreeRate_df$no_freerates_best_model, 
                                      dataset = dataset, partition_file = partition_file)
-  }
+   }
   
   ## Create the supermatrix and partition file for the PHI,pass and MaxChi,pass trees
   tests_to_run = c("PHI", "maxchi")
