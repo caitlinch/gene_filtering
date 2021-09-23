@@ -35,12 +35,12 @@ if (run_location == "local"){
   
 }
 ### End of Caitlin's paths ###
-source(paste0(maindir, "/code/func_empirical.R"))
 
 
 
 ##### Step 2: Extract models for each locus #####
 # Source the file containing the function required for extracting ModelFinder details from .iqtree files
+source(paste0(maindir, "func_empirical.R"))
 
 # Iterate through each locus in each dataset and identify the best model and the best model without FreeRate model parameters (+R)
 # Save the results as a dataframe per dataset
