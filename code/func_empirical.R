@@ -2371,4 +2371,80 @@ fix.all.models.in.partition.file <- function(locus_names, locus_models, dataset,
 
 
 
+# For a given locus, open the .iqtree file from estimating the gene tree and determine the best model and the
+# best model that doesn't use free rates (i.e. +R term). Return this information as a dataframe row.
+get.ModelFinder.models <- function(locus, dataset, dataset_directory, return.best.model.without.free.rates = FALSE){
+  # Assemble file name for this locus
+  locus_dir <- paste0(dataset_dir, locus, "/")
+  # Find the .iqtree file containing ModelFinder information
+  locus_files <- list.files(locus_dir)
+  iq_file <- paste0(locus_dir, grep("\\.iqtree", locus_files, value = TRUE))
+  # Open iq_file
+  iq <- readLines(iq_file)
+  # Find the lines containing ModelFinder information, split into numbers and remove unneccessary values ("", "+", "-")
+  start_id <- grep("Model       ", iq) + 1
+  end_id <- grep("Akaike information criterion scores and weights", iq) - 2
+  modelfinder_lines <- iq[start_id:end_id]
+  modelfinder_split <- unlist(strsplit(modelfinder_lines, " "))
+  modelfinder_split <- modelfinder_split[modelfinder_split != ""]
+  modelfinder_split <- modelfinder_split[modelfinder_split != "-"]
+  modelfinder_split <- modelfinder_split[modelfinder_split != "+"]
+  modelfinder_matrix <- matrix(data = modelfinder_split, nrow = length(modelfinder_lines), ncol = 8, byrow = TRUE)
+  modelfinder_df <- as.data.frame(modelfinder_matrix)
+  names(modelfinder_df) <- c("Model", "LogL", "AIC", "w-AIC", "AICc", "w-AICc", "BIC", "w-BIC")
+  modelfinder_df$Dataset <- dataset
+  modelfinder_df$Loci <- locus
+  modelfinder_df <- modelfinder_df[, c("Dataset", "Loci", "Model", "LogL", "AIC", "w-AIC", "AICc", "w-AICc", "BIC", "w-BIC")]
+  # Save model finder dataframe
+  modelfinder_df_file <- paste0(locus_dir, locus, "_ModelFinder_models_results.csv")
+  write.csv(modelfinder_df, file = modelfinder_df_file, row.names = FALSE)
+  
+  # If specified, determine what the best model is when models with free rate categories are excluded
+  # (excluding all models with +R or +Rn, where n is the number of free rate categories)
+  # These models are computationally intensive and can slow down estimation of trees for the deep datasets
+  if (return.best.model.without.free.rates == TRUE){
+    ## Find best model according to BIC using ModelFinder
+    # Extract best fit model according to BIC
+    bic_model_row <- iq[grep("Best-fit model according to", iq)]
+    bic_model_split <- strsplit(bic_model_row, ":")[[1]]
+    bic_model <- bic_model_split[[2]]
+    bic_model <- gsub(" ", "", bic_model)
+    
+    ## Find best model that doesn't include a FreeRate model (+R, +Rn where n is the number of rate categories)
+    # Get all model names and break into components to determine if an R is present
+    models <- modelfinder_df$Model
+    models_split <- strsplit(models, "\\+")
+    # Remove first element of every element of models_split (the first element is the model name e.g. JC, GTR)
+    model_parameters_split <- lapply(models_split, function(x) x[-1])
+    model_parameters <- unlist(lapply(model_parameters_split, function(x) paste(x, collapse = "+")))
+    # Check whether there is an "R" parameter in each model and get indexes of models that don't have an "R" parameter
+    check_freerates_inds <- grep("R", model_parameters, invert = TRUE)
+    # Reduce dataframe to just models without an "R" parameter
+    new_model_df <- modelfinder_df[check_freerates_inds,]
+    # Sort dataframe based on model.selection.parameter to pick new best model  (default is "BIC")
+    # Want to pick model that minimizes the BIC score - lower is better 
+    # (BIC decreases when likelihood increases and BIC increases when complexity of model increases)
+    # By default, order() sorts from smallest to largest, so we can take the model from the first row after sorting by BIC
+    new_model_df <- new_model_df[order(new_model_df$BIC),]
+    locus_new_model <- new_model_df[1,]$Model
+    # Compare the new model and the original model
+    if (bic_model == locus_new_model){
+      check_models = TRUE
+    } else if (bic_model != locus_new_model){
+      check_models = FALSE
+    }
+    # Calculate difference in BIC values
+    best_model_bic <- as.numeric(modelfinder_df[which(modelfinder_df$Model == bic_model),]$BIC)
+    new_model_bic <- as.numeric(modelfinder_df[which(modelfinder_df$Model == locus_new_model),]$BIC)
+    model_bic_difference <- round((best_model_bic-new_model_bic), digits = 3)
+    # Create dataframe row containing information about this locus and the models
+    locus_row <- data.frame(dataset = dataset, loci = locus, best_model = bic_model, no_freerates_best_model = locus_new_model, 
+                            are_models_identical = check_models, best_model_BIC_value = best_model_bic, no_freerates_best_model_BIC_value = new_model_bic,
+                            BIC_difference = model_bic_difference)
+    return(locus_row)
+  }
+}
+
+
+
 
