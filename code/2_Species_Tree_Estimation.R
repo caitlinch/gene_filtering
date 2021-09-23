@@ -585,7 +585,7 @@ for (dataset in datasets_to_estimate_RAxML_trees){
     # Perform quick seach from single random starting tree using "--search1"
     # Perform search using n parsimony starting trees by adding "--tree pars{n}" (can also have "pars{n},rand{m}" to specify n parsimony and m random starting trees)
     raxml_call <- paste0(exec_paths[["RAxML-NG"]], " --search --msa ", supermatrix_file, " --model ", partition_file, 
-                         " --prefix ", dataset, "_", test, " --brlen scaled --tree pars{1} --lh-epsilon 1")
+                         " --prefix ", dataset, "_", test, " --brlen scaled --tree pars{1} --threads ", cores.to.use, " --lh-epsilon 1")
     print(raxml_call)
     system(raxml_call)
   }
