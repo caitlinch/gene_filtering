@@ -479,6 +479,7 @@ for (dataset in datasets_to_estimate_IQTREE_trees){
 
 ##### Step 7: Prepare partition and supermatrix files for tree estimation in RAxML #####
 for (dataset in datasets_to_copy_loci_RAxML){
+  print(paste0("Dataset: ", dataset))
   # filter the gene_result_df for this dataset
   dataset_df <- gene_result_df[(gene_result_df$dataset == dataset), ]
   dataset_df$ModelFinder_model <- as.character(dataset_df$ModelFinder_model)
@@ -492,6 +493,7 @@ for (dataset in datasets_to_copy_loci_RAxML){
   }
   
   ## Create the supermatrix and partition file for the NoTest tree (tree estimated from all genes)
+  print(paste0("Dataset: ", dataset, " : No test"))
   # Create a new directory for this analysis
   if (use.free.rate.models.for.deep.datasets == TRUE){
     raxml_dir <- paste0(output_dirs[dataset], "species_trees/", dataset, "_NoTest_RAxML/")
@@ -548,6 +550,8 @@ for (dataset in datasets_to_copy_loci_RAxML){
   ## Create the supermatrix and partition file for the PHI,pass and MaxChi,pass trees
   tests_to_run = c("PHI", "maxchi")
   for (test in tests_to_run){
+    print(paste0("Dataset: ", dataset, " : ", test))
+    # Create directory
     if (use.free.rate.models.for.deep.datasets == TRUE){
       raxml_dir <- paste0(output_dirs[dataset], "species_trees/", dataset, "_", test, "_pass_RAxML/")
     } else if(use.free.rate.models.for.deep.datasets == FALSE){
