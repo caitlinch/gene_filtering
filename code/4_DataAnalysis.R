@@ -1,4 +1,4 @@
-### empirical_treelikeness/3_DataAnalysis.R
+### empirical_treelikeness/4_DataAnalysis.R
 ## R program to plot and explore results of the treelikeness test statistics on empirical data
 # Final result is a reformatted csv file and a number of graphs
 # Caitlin Cherryh 2021
