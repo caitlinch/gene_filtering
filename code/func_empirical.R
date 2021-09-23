@@ -2380,7 +2380,7 @@ get.ModelFinder.models <- function(locus, dataset, dataset_directory, return.bes
   locus_files <- list.files(locus_dir)
   iq_file <- paste0(locus_dir, grep("\\.iqtree", locus_files, value = TRUE))
   
-  if (file.exists(iq_file == TRUE)){
+  if (file.exists(iq_file) == TRUE){
     # Open iq_file
     iq <- readLines(iq_file)
     # Find the lines containing ModelFinder information, split into numbers and remove unneccessary values ("", "+", "-")
