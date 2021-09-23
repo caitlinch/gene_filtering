@@ -20,7 +20,6 @@
 
 ### Caitlin's paths ###
 run_location = "server"
-run_location = "local"
 
 if (run_location == "local"){
   input_names <- c("1KP", "Strassert2021")
