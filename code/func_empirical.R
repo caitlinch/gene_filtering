@@ -2326,8 +2326,9 @@ fix.one.model.in.partition.file <- function(locus_name, locus_model, dataset, pa
   
   # Change model parameters for those models that are not available in RAxML-NG
   if (dataset == "1KP" & locus_name == "5870"){
-    # mtInv model not available in RAxML-NG: for locus 5870 in the 1KP dataset, use the LG+G4 model instead (best model according to AICc)
-    locus_model = "LG+G4"
+    # mtInv model not available in RAxML-NG: for locus 5870 in the 1KP dataset, use the JTT+F+R9 model instead (5th best model according to BIC, 
+    # first model that uses a model of sequence evolution available in RAxML-NG [mtInv and mtMet not available in RAxML-NG])
+    locus_model = "JTT+F+R9"
   }
   
   # Open the partition file
