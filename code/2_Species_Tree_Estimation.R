@@ -23,6 +23,10 @@
 #                             <- codon position simply counts every third base starting from 1st, 2nd, or 3rd base, and does not account for frame shift
 # use.modelfinder.models.for.partitions <- can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. 
 #                                       <- TRUE will use "-m MERGE" and include a charpartition with substitution models selected by ModelFinder in IQ-Tree
+# use.free.rate.models.for.deep.datasets <- during our tree estimation step we found estimating trees from the deep datasets (1KP and Strassert2021) was extremely
+#                                           time consuming. This argument excludes the free rate parameters for the deep datasets by instead using the best
+#                                           model found by ModelFinder that doesn't include a free rate parameter. 
+#                                           To find the correct models needed to set this value to TRUE, run file 2.5_ExtractingModels_DeepDatasets.R
 
 # We estimated species trees in ASTRAl for all four datasets (1KP, Strassert2021, Vanderpool2020 and Pease2016)
 # We estimated concatenated trees in IQ-Tree for the two shallow datasets (Vanderpool2020 and Pease2016) as the deep datasets were too large to reasonably run
@@ -48,6 +52,7 @@
 # datasets_to_estimate_IQTREE_trees <- c()
 # partition.by.codon.position <- FALSE
 # use.modelfinder.models.for.partitions <- TRUE
+# use.free.rate.models.for.deep.datasets <- FALSE
 
 ### Caitlin's paths ###
 run_location = "server"
@@ -83,6 +88,7 @@ if (run_location == "local"){
   datasets_to_estimate_RAxML_trees <- c("1KP", "Strassert2021")
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use substitution models from the gene trees
+  use.free.rate.models.for.deep.datasets = FALSE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
   
 } else if (run_location=="server"){
   # Datasets/dataset information
@@ -115,6 +121,7 @@ if (run_location == "local"){
   datasets_to_estimate_RAxML_trees <- c("1KP", "Strassert2021")
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use partition file with substitution models specified
+  use.free.rate.models.for.deep.datasets = FALSE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
 }
 ### End of Caitlin's paths ###
 
@@ -146,15 +153,14 @@ for (d in output_dirs){
     dir.create(d)
   }
 }
-all_datasets_to_copy <- unique(c(datasets_to_copy_loci_ASTRAL_IQTREE, datasets_to_copy_loci_RAxML))
 
 
 ##### Step 4: Assemble the dataframe of gene recombination results #####
-if (length(all_datasets_to_copy) > 0){
+if (length(input_names) > 0){
   # Check whether a collated, trimmed recombination detection results file exists
-  trimmed_gene_result_df_file <- paste0(csv_data_dir, "02_",paste(sort(all_datasets_to_copy), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
-  pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(all_datasets_to_copy), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
-  collated_exclude_file <- paste0(csv_data_dir, "01_IQ-Tree_warnings_",paste(sort(all_datasets_to_copy), collapse="_"), "_LociToExclude.csv")
+  trimmed_gene_result_df_file <- paste0(csv_data_dir, "02_",paste(sort(input_names), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
+  pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(input_names), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
+  collated_exclude_file <- paste0(csv_data_dir, "01_IQ-Tree_warnings_",paste(sort(input_names), collapse="_"), "_LociToExclude.csv")
   
   if (file.exists(trimmed_gene_result_df_file) & file.exists(pass_df_file)){
     gene_result_df <- read.csv(trimmed_gene_result_df_file, stringsAsFactors = TRUE)
@@ -487,7 +493,11 @@ for (dataset in datasets_to_copy_loci_RAxML){
   
   ## Create the supermatrix and partition file for the NoTest tree (tree estimated from all genes)
   # Create a new directory for this analysis
-  raxml_dir <- paste0(output_dirs[dataset], "species_trees/", dataset, "_NoTest_RAxML/")
+  if (use.free.rate.models.for.deep.datasets == TRUE){
+    raxml_dir <- paste0(output_dirs[dataset], "species_trees/", dataset, "_NoTest_RAxML/")
+  } else if(use.free.rate.models.for.deep.datasets == FALSE){
+    raxml_dir <- paste0(output_dirs[dataset], "species_trees/", dataset, "_NoTest_RAxML_noFreeRates/")
+  }
   if (dir.exists(raxml_dir) == FALSE){
     dir.create(raxml_dir)
   }
@@ -514,13 +524,36 @@ for (dataset in datasets_to_copy_loci_RAxML){
   # Build PHYLIP supermatrix and RAxML partition file using aligned FASTA files
   supermat(keep_al_paths, outfile = supermatrix_file, partition.file = partition_file)
   # Reset the models in the partition file one at a time
-  fix.all.models.in.partition.file(locus_names = dataset_df$loci_name, locus_models = dataset_df$ModelFinder_model, 
-                                   dataset = dataset, partition_file = partition_file)
+  if (use.free.rate.models.for.deep.datasets == TRUE){
+    # Reset the models in the partition file one at a time
+    fix.all.models.in.partition.file(locus_names = dataset_df$loci_name, locus_models = dataset_df$ModelFinder_model, 
+                                     dataset = dataset, partition_file = partition_file)
+  } else if (use.free.rate.models.for.deep.datasets == FALSE){
+    # Open file containing best models without free rate parameters
+    all_output_files <- list.files(csv_data_dir)
+    noFreeRate_csvs <- grep("loci_models_noFreeRates", all_output_files, value = TRUE)
+    noFreeRate_dataset_csv <- grep(dataset, noFreeRate_csvs, value = TRUE)
+    noFreeRate_df <- read.csv(paste0(csv_data_dir, noFreeRate_dataset_csv), stringsAsFactors = FALSE)
+    # Trim noFreeRate_df to only include rows that appear in the dataset_df$loci_name column
+    keep_row_inds <- which(noFreeRate_df$loci %in% dataset_df$loci_name)
+    noFreeRate_df <- noFreeRate_df[keep_row_inds, ]
+    noFreeRate_df$loci <- as.character(noFreeRate_df$loci)
+    # Order noFreeRate_df in same order as dataset_df
+    noFreeRate_df <- noFreeRate_df[match(dataset_df$loci_name, noFreeRate_df$loci),]
+    # Extract the names and models of the loci and feed them into the function fix.all.models.in.partition.file
+    fix.all.models.in.partition.file(locus_names = noFreeRate_df$loci, locus_models = noFreeRate_df$no_freerates_best_model, 
+                                     dataset = dataset, partition_file = partition_file)
+  }
   
   ## Create the supermatrix and partition file for the PHI,pass and MaxChi,pass trees
   tests_to_run = c("PHI", "maxchi")
   for (test in tests_to_run){
-    raxml_dir <- paste0(output_dirs[dataset], "species_trees/", dataset, "_", test, "_pass_RAxML/")
+    if (use.free.rate.models.for.deep.datasets == TRUE){
+      raxml_dir <- paste0(output_dirs[dataset], "species_trees/", dataset, "_", test, "_pass_RAxML/")
+    } else if(use.free.rate.models.for.deep.datasets == FALSE){
+      raxml_dir <- paste0(output_dirs[dataset], "species_trees/", dataset, "_", test, "_pass_RAxML_noFreeRates/")
+    }
+    
     if (dir.exists(raxml_dir) == FALSE){
       dir.create(raxml_dir)
     }
@@ -551,9 +584,27 @@ for (dataset in datasets_to_copy_loci_RAxML){
     partition_file <- paste0(raxml_dir, dataset, "_", test, "_pass_partition.txt")
     # Build PHYLIP supermatrix and RAxML partition file using aligned FASTA files
     supermat(test_al_paths, outfile = supermatrix_file, partition.file = partition_file)
-    # Reset the models in the partition file one at a time
-    fix.all.models.in.partition.file(locus_names = test_df$loci_name, locus_models = test_df$ModelFinder_model, 
-                                     dataset = dataset, partition_file = partition_file)
+    
+    if (use.free.rate.models.for.deep.datasets == TRUE){
+      # Reset the models in the partition file one at a time
+      fix.all.models.in.partition.file(locus_names = test_df$loci_name, locus_models = test_df$ModelFinder_model, 
+                                       dataset = dataset, partition_file = partition_file)
+    } else if (use.free.rate.models.for.deep.datasets == FALSE){
+      # Open file containing best models without free rate parameters
+      all_output_files <- list.files(csv_data_dir)
+      noFreeRate_csvs <- grep("loci_models_noFreeRates", all_output_files, value = TRUE)
+      noFreeRate_dataset_csv <- grep(dataset, noFreeRate_csvs, value = TRUE)
+      noFreeRate_df <- read.csv(paste0(csv_data_dir, noFreeRate_dataset_csv), stringsAsFactors = FALSE)
+      # Trim noFreeRate_df to only include rows that appear in the test_df$loci_name column
+      keep_row_inds <- which(noFreeRate_df$loci %in% test_df$loci_name)
+      noFreeRate_df <- noFreeRate_df[keep_row_inds, ]
+      noFreeRate_df$loci <- as.character(noFreeRate_df$loci)
+      # Order noFreeRate_df in same order as test_df
+      noFreeRate_df <- noFreeRate_df[match(test_df$loci_name, noFreeRate_df$loci),]
+      # Extract the names and models of the loci and feed them into the function fix.all.models.in.partition.file
+      fix.all.models.in.partition.file(locus_names = noFreeRate_df$loci, locus_models = noFreeRate_df$no_freerates_best_model, 
+                                       dataset = dataset, partition_file = partition_file)
+    }
   }
 }
 
