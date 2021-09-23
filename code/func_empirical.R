@@ -2378,9 +2378,11 @@ get.ModelFinder.models <- function(locus, dataset, dataset_directory, return.bes
   locus_dir <- paste0(dataset_dir, locus, "/")
   # Find the .iqtree file containing ModelFinder information
   locus_files <- list.files(locus_dir)
-  iq_file <- paste0(locus_dir, grep("\\.iqtree", locus_files, value = TRUE))
+  iq_file <- grep("\\.iqtree", locus_files, value = TRUE)
   
-  if (file.exists(iq_file) == TRUE){
+  if (length(iq_file) != 0){
+    # Create full filepath for iq_file
+    iq_file <- paste0(locus_dir, grep("\\.iqtree", locus_files, value = TRUE))
     # Open iq_file
     iq <- readLines(iq_file)
     # Find the lines containing ModelFinder information, split into numbers and remove unneccessary values ("", "+", "-")
@@ -2445,7 +2447,7 @@ get.ModelFinder.models <- function(locus, dataset, dataset_directory, return.bes
                               BIC_difference = model_bic_difference)
       return(locus_row)
     }
-  } else if ((file.exists(iq_file) == FALSE) & (return.best.model.without.free.rates == TRUE)){
+  } else if ((length(iq_file) == 0) & (return.best.model.without.free.rates == TRUE)){
     locus_row <- data.frame(dataset = dataset, loci = locus, best_model = NA, no_freerates_best_model = NA, 
                             are_models_identical = NA, best_model_BIC_value = NA, no_freerates_best_model_BIC_value = NA,
                             BIC_difference = NA)

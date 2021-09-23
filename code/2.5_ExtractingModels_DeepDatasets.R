@@ -45,6 +45,7 @@ source(paste0(maindir, "func_empirical.R"))
 # Iterate through each locus in each dataset and identify the best model and the best model without FreeRate model parameters (+R)
 # Save the results as a dataframe per dataset
 for (dataset in input_names){
+  print(paste0("Dataset: ", dataset))
   # Assemble name of folder containing gene tree results for this dataset
   dataset_dir <- paste0(gene_tree_dir, dataset, "/")
   # Get the names of each loci
