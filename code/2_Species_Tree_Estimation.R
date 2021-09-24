@@ -418,6 +418,97 @@ if (length(datasets_to_copy_loci_ASTRAL_IQTREE) > 0 | length(datasets_to_copy_lo
   write.csv(csv_df, paste0(output_dir, "02_species_tree_summary_numbers.csv"))
 }
 
+# If estimating deep datasets in IQ-Tree and using models without free rate parameters, create partition file for IQ-Tree for those analyses
+if ((use.free.rate.models.for.deep.datasets == FALSE) & 
+    (("1KP" %in% datasets_to_copy_loci_ASTRAL_IQTREE) | ("Strassert2021" %in% datasets_to_copy_loci_ASTRAL_IQTREE))){
+  for (dataset in c("1KP", "Strassert2021")){
+    # Create new folders to put these tree files/loci files and records in
+    category_output_folder <- paste0(output_dirs[dataset], "species_trees/")
+    if (dir.exists(category_output_folder) == FALSE){
+      dir.create(category_output_folder)
+    }
+    
+    # Filter gene_result_df by dataset
+    dataset_df <- gene_result_df[gene_result_df$dataset == dataset,]
+    
+    # Open file containing best models without free rate parameters
+    all_output_files <- list.files(csv_data_dir)
+    noFreeRate_csvs <- grep("loci_models_noFreeRates", all_output_files, value = TRUE)
+    noFreeRate_dataset_csv <- grep(dataset, noFreeRate_csvs, value = TRUE)
+    noFreeRate_df <- read.csv(paste0(csv_data_dir, noFreeRate_dataset_csv), stringsAsFactors = FALSE)
+    
+    # Trim noFreeRate_df to only include rows that appear in the dataset_df$loci_name column
+    keep_row_inds <- which(noFreeRate_df$loci %in% dataset_df$loci_name)
+    noFreeRate_df <- noFreeRate_df[keep_row_inds, ]
+    noFreeRate_df$loci <- as.character(noFreeRate_df$loci)
+    # Order noFreeRate_df in same order as dataset_df
+    noFreeRate_df <- noFreeRate_df[match(dataset_df$loci_name, noFreeRate_df$loci),]
+    
+    ### Create partition file to estimate tree for full set of loci: NoTests ###
+    print(paste0(dataset, " : No tests -- include all loci"))
+    if (partition.by.codon.position == TRUE){
+      NoTest_IQTree_name <- paste0(dataset,"_NoTest_IQTREE_noFreeRates_partitioned")
+    } else if (partition.by.codon.position == FALSE){
+      NoTest_IQTree_name <- paste0(dataset,"_NoTest_IQTREE_noFreeRates") 
+    }
+    iqtree_dir <- paste0(category_output_folder, NoTest_IQTree_name, "/")
+    if (dir.exists(iqtree_dir) == FALSE){
+      dir.create(iqtree_dir)
+    }
+    
+    # Create the partition file required to run this IQ-Tree analysis
+    partition.file.from.loci.list(loci_list = noFreeRate_df$loci, directory = iqtree_dir,
+                                  original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
+                                  substitution_models = noFreeRate_df$no_freerates_best_model, add.codon.positions = partition.by.codon.position)
+    
+    ### Create partition file for PHI and MaxChi tree estimation runs ### 
+    tests_to_run = c("PHI", "maxchi")
+    for (test in tests_to_run){
+      print(paste0("Dataset: ", dataset, " : ", test))
+      # Create directory
+      if (partition.by.codon.position == TRUE){
+        test_IQTree_name <- paste0(dataset,"_", test, "_pass_IQTREE_noFreeRates_partitioned")
+      } else if (partition.by.codon.position == FALSE){
+        test_IQTree_name <- paste0(dataset,"_", test, "_pass_IQTREE_noFreeRates") 
+      }
+      iqtree_dir <- paste0(category_output_folder, test_IQTree_name, "/")
+      if (dir.exists(iqtree_dir) == FALSE){
+        dir.create(iqtree_dir)
+      }
+      
+      # Set column names
+      col_names <- c("pass_phi", "pass_maxchi")
+      names(col_names) <- c("PHI", "maxchi")
+      col <- col_names[test]
+      
+      # Remove any loci that have an NA result for this test
+      na_test_inds <- which(is.na(dataset_df[[col]]))
+      dataset_inds <- 1:nrow(dataset_df)
+      keep_inds <- setdiff(dataset_inds, na_test_inds)
+      test_df <- dataset_df[keep_inds,]
+      
+      # Break up dataframe into only loci that pass the test
+      col_inds <- which(test_df[,c(col)] == TRUE)
+      # Use the indexes to subset the dataframe to just loci that pass the test 
+      # (i.e. have a non significant p-value, meaning the null hypothesis of non-recombination/treelikeness cannot be rejected)
+      test_df <- test_df[col_inds,]
+      
+      # Trim noFreeRate_df to only include rows that appear in the dataset_df$loci_name column
+      keep_row_inds <- which(noFreeRate_df$loci %in% test_df$loci_name)
+      test_noFreeRate_df <- noFreeRate_df[keep_row_inds, ]
+      test_noFreeRate_df$loci <- as.character(test_noFreeRate_df$loci)
+      # Order noFreeRate_df in same order as dataset_df
+      test_noFreeRate_df <- test_noFreeRate_df[match(test_df$loci_name, test_noFreeRate_df$loci),]
+      
+      # Create the partition file required to run this IQ-Tree analysis
+      partition.file.from.loci.list(loci_list = test_noFreeRate_df$loci, directory = iqtree_dir,
+                                    original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
+                                    substitution_models = test_noFreeRate_df$no_freerates_best_model, add.codon.positions = partition.by.codon.position)
+      
+    }
+  }
+}
+
 
 
 
@@ -545,7 +636,7 @@ for (dataset in datasets_to_copy_loci_RAxML){
     # Extract the names and models of the loci and feed them into the function fix.all.models.in.partition.file
     fix.all.models.in.partition.file(locus_names = noFreeRate_df$loci, locus_models = noFreeRate_df$no_freerates_best_model, 
                                      dataset = dataset, partition_file = partition_file)
-   }
+  }
   
   ## Create the supermatrix and partition file for the PHI,pass and MaxChi,pass trees
   tests_to_run = c("PHI", "maxchi")
