@@ -1,4 +1,4 @@
-### empirical_treelikeness/4_Plots.R
+### empirical_treelikeness/5_Plots.R
 ## R program to plot and explore results of the treelikeness test statistics on empirical data
 # Caitlin Cherryh 2021
 
