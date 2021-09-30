@@ -46,7 +46,7 @@ tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv
                      "Strassert2021" = c("PHI", "maxchi"),
                      "1KP" = c("PHI", "maxchi"))
 
-datasets_to_identify_distinct_edges <- c("Pease2016", "Vanderpool2020", "Strassert2021", "1KP")
+datasets_to_identify_distinct_edges <- c()
 
 
 ##### Step 3: Source function files and prepare variables for analysis #####
@@ -133,14 +133,18 @@ for (dataset in datasets_to_identify_distinct_edges){
 
 
 # Collate all dataframes
-all_csvs <- list.files(node_output_dir)
-all_csvs <- grep("Collated", all_csvs, value = TRUE, invert = TRUE)
-all_csvs <- grep("plots", all_csvs, value = TRUE, invert = TRUE)
-all_csvs <- paste0(node_output_dir, all_csvs)
-all_csv_dfs <- lapply(all_csvs, read.csv)
-node_df <- as.data.frame(do.call(rbind, all_csv_dfs))
 node_df_filename <- paste0(node_output_dir, "Collated_ExtractDistinctEdges.csv")
-write.csv(node_df, file = node_df_filename)
+if (file.exists(node_df_filename) == FALSE){
+  all_csvs <- list.files(node_output_dir)
+  all_csvs <- grep("Collated", all_csvs, value = TRUE, invert = TRUE)
+  all_csvs <- grep("plots", all_csvs, value = TRUE, invert = TRUE)
+  all_csvs <- paste0(node_output_dir, all_csvs)
+  all_csv_dfs <- lapply(all_csvs, read.csv)
+  node_df <- as.data.frame(do.call(rbind, all_csv_dfs))
+  write.csv(node_df, file = node_df_filename)
+} else {
+  node_df <- read.csv(node_df_filename)
+}
 
 
 
@@ -172,6 +176,15 @@ node_df$boxplot_fac <- factor(node_df$boxplot_groups, levels = c("Pass,\n Congru
 # Separate out the two shallow datasets
 shallow_df <- node_df[(node_df$dataset == "Vanderpool2020" | node_df$dataset == "Pease2016"),]
 
+# All trees estimated from loci that pass test have 0 conflicting branches. Add dummy data so that label appears in the plot
+dummy_df <- data.frame(boxplot_fac = rep("Pass,\n Conflicting", 16), test_fac = rep(c("PHI", "MaxChi", "GENECONV", "All tests"),4),
+                       dataset_fac = c(rep("Vanderpool et al. (2020)",8), rep("Pease et al. (2016)",8)), 
+                       edge_length = rep(NA,16), support_value = rep(NA,16), support_value_type = c(rep("BS",4), rep("PP",4), rep("BS",4), rep("PP",4)))
+# Make sure bs_df is formatted
+shallow_bs_df <- bs_df[, c("boxplot_fac", "test_fac", "dataset_fac", "edge_length", "support_value" , "support_value_type")]
+# Combine two datasets
+shallow_bs_df <- rbind(shallow_bs_df, dummy_df)
+
 # Separate into ASTRAL and IQ-Tree data frames
 pp_df <- shallow_df[(shallow_df$support_value_type == "PP"),]
 bs_df <- shallow_df[(shallow_df$support_value_type == "BS"),]
@@ -181,10 +194,12 @@ bs_df <- shallow_df[(shallow_df$support_value_type == "BS"),]
 p = ggplot(data = pp_df, aes(x = boxplot_fac, y = support_value)) + geom_boxplot() +
   facet_grid(dataset_fac ~ test_fac) + 
   theme_bw() +
-  labs(title = "Coalescent trees: posterior probability of conflicted and congruent branches") +
   scale_x_discrete(name = "Tree and edge type") +
-  scale_y_continuous(name = "Posterior Probability", breaks = seq(0,1,0.1),  labels = seq(0,1,0.1), minor_breaks = seq(0,1,0.05), limits = c(0,1)) +
-  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 90, hjust = 1))
+  scale_y_continuous(name = "Posterior Probability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.05), limits = c(0,1)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 25), 
+      axis.title.x = element_text(size = 25), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 20),
+      axis.title.y = element_text(size = 25), axis.text.y = element_text(size = 20),
+      strip.text = element_text(size = 25))
 ggsave(filename = paste0(node_output_dir, "plots/ShallowDatasets_ASTRAL_posteriorProbability_conflicting_branches.pdf"), plot = p, device = "pdf")
 ggsave(filename = paste0(node_output_dir, "plots/ShallowDatasets_ASTRAL_posteriorProbability_conflicting_branches.png"), plot = p, device = "png")
 
@@ -192,32 +207,38 @@ ggsave(filename = paste0(node_output_dir, "plots/ShallowDatasets_ASTRAL_posterio
 p = ggplot(data = pp_df, aes(x = boxplot_fac, y = edge_length)) + geom_boxplot() +
   facet_grid(dataset_fac ~ test_fac) + 
   theme_bw() +
-  labs(title = "Coalescent trees: branch length of conflicted and congruent branches") +
   scale_x_discrete(name = "Tree and edge type") +
   scale_y_continuous(name = "Branch length (coalescent units)", breaks = seq(0,6,2),  labels = seq(0,6,2), minor_breaks = seq(0,7,0.5), limits = c(0,7)) +
-  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(plot.title = element_text(hjust = 0.5, size = 25), 
+        axis.title.x = element_text(size = 25), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 20),
+        axis.title.y = element_text(size = 25), axis.text.y = element_text(size = 20),
+        strip.text = element_text(size = 25))
 ggsave(filename = paste0(node_output_dir, "plots/ShallowDatasets_ASTRAL_branchLength_conflicting_branches.pdf"), plot = p, device = "pdf")
 ggsave(filename = paste0(node_output_dir, "plots/ShallowDatasets_ASTRAL_branchLength_conflicting_branches.png"), plot = p, device = "png")
 
 # For IQ-Tree trees (with ultrafast bootstrap suport values)
-p = ggplot(data = bs_df, aes(x = boxplot_fac, y = support_value)) + geom_boxplot() +
+p = ggplot(data = shallow_bs_df, aes(x = boxplot_fac, y = support_value)) + geom_boxplot() +
   facet_grid(dataset_fac ~ test_fac) + 
   theme_bw() +
-  labs(title = "Concatenated trees: UFB value for conflicted and congruent branches") +
   scale_x_discrete(name = "Tree and edge type") +
   scale_y_continuous(name = "Ultrafast bootstrap support value", breaks = seq(0,100,20), labels = seq(0,100,20), minor_breaks = seq(0,100,10), limits = c(0,100)) +
-  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(plot.title = element_text(hjust = 0.5, size = 25), 
+        axis.title.x = element_text(size = 25), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 20),
+        axis.title.y = element_text(size = 25), axis.text.y = element_text(size = 20),
+        strip.text = element_text(size = 25))
 ggsave(filename = paste0(node_output_dir, "plots/ShallowDatasets_IQTree_UFBootstraps_conflicting_branches.pdf"), plot = p, device = "pdf")
 ggsave(filename = paste0(node_output_dir, "plots/ShallowDatasets_IQTree_UFBootstraps_conflicting_branches.png"), plot = p, device = "png")
 
 # For IQ-Tree trees (with branch lengths)
-p = ggplot(data = bs_df, aes(x = boxplot_fac, y = edge_length)) + geom_boxplot() +
+p = ggplot(data = shallow_bs_df, aes(x = boxplot_fac, y = edge_length)) + geom_boxplot() +
   facet_grid(dataset_fac ~ test_fac, scales = "free_y") + 
   theme_bw() +
-  labs(title = "Concatenated trees: branch length of conflicted and congruent branches") +
   scale_x_discrete(name = "Tree and edge type") +
   scale_y_continuous(name = "Branch length (substitutions per site)") +
-  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(plot.title = element_text(hjust = 0.5, size = 25), 
+        axis.title.x = element_text(size = 25), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 20),
+        axis.title.y = element_text(size = 25), axis.text.y = element_text(size = 20),
+        strip.text = element_text(size = 25))
 ggsave(filename = paste0(node_output_dir, "plots/ShallowDatasets_IQTree_branchLength_conflicting_branches.pdf"), plot = p, device = "pdf")
 ggsave(filename = paste0(node_output_dir, "plots/ShallowDatasets_IQTree_branchLength_conflicting_branches.png"), plot = p, device = "png")
 
@@ -234,10 +255,12 @@ bs_df <- deep_df[(deep_df$support_value_type == "BS"),]
 p = ggplot(data = pp_df, aes(x = boxplot_fac, y = support_value)) + geom_boxplot() +
   facet_grid(dataset_fac ~ test_fac) + 
   theme_bw() +
-  labs(title = "Coalescent trees: posterior probability of conflicted and congruent branches") +
   scale_x_discrete(name = "Tree and edge type") +
-  scale_y_continuous(name = "Posterior Probability", breaks = seq(0,1,0.1),  labels = seq(0,1,0.1), minor_breaks = seq(0,1,0.05), limits = c(0,1)) +
-  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 90, hjust = 1))
+  scale_y_continuous(name = "Posterior Probability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.05), limits = c(0,1)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 25), 
+        axis.title.x = element_text(size = 25), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 22),
+        axis.title.y = element_text(size = 25), axis.text.y = element_text(size = 22),
+        strip.text = element_text(size = 25))
 ggsave(filename = paste0(node_output_dir, "plots/DeepDatasets_ASTRAL_posteriorProbability_conflicting_branches.pdf"), plot = p, device = "pdf")
 ggsave(filename = paste0(node_output_dir, "plots/DeepDatasets_ASTRAL_posteriorProbability_conflicting_branches.png"), plot = p, device = "png")
 
@@ -245,11 +268,52 @@ ggsave(filename = paste0(node_output_dir, "plots/DeepDatasets_ASTRAL_posteriorPr
 p = ggplot(data = pp_df, aes(x = boxplot_fac, y = edge_length)) + geom_boxplot() +
   facet_grid(dataset_fac ~ test_fac) + 
   theme_bw() +
-  labs(title = "Coalescent trees: branch length of conflicted and congruent branches") +
   scale_x_discrete(name = "Tree and edge type") +
-  scale_y_continuous(name = "Branch length (coalescent units)", breaks = seq(0,6,2),  labels = seq(0,6,2), minor_breaks = seq(0,7,0.5), limits = c(0,7)) +
-  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 90, hjust = 1))
+  scale_y_continuous(name = "Branch length (coalescent units)", breaks = seq(0,6,2),  labels = seq(0,6,2), minor_breaks = seq(0,6,0.5), limits = c(0,6)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 25), 
+        axis.title.x = element_text(size = 25), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 22),
+        axis.title.y = element_text(size = 25), axis.text.y = element_text(size = 22),
+        strip.text = element_text(size = 25))
 ggsave(filename = paste0(node_output_dir, "plots/DeepDatasets_ASTRAL_branchLength_conflicting_branches.pdf"), plot = p, device = "pdf")
 ggsave(filename = paste0(node_output_dir, "plots/DeepDatasets_ASTRAL_branchLength_conflicting_branches.png"), plot = p, device = "png")
+
+
+#### For whole dataset ####
+node_df2 <- node_df
+node_df2$dataset_fac <- factor(node_df2$dataset, levels = c("Vanderpool2020", "Pease2016", "Strassert2021", "1KP"), 
+                              labels = c("Vanderpool2020", "Pease2016", "Strassert2020", "1000 Plants"), 
+                              ordered = TRUE)
+
+pp_df <- node_df2[(node_df2$support_value_type == "PP"),]
+bs_df <- node_df2[(node_df2$support_value_type == "BS"),]
+
+# Make a nice plot of the deep datasets, faceted by test and dataset
+# For ASTRAL trees (with posterior probabilities)
+p = ggplot(data = pp_df, aes(x = boxplot_fac, y = support_value)) + geom_boxplot() +
+  facet_grid(dataset_fac ~ test_fac) + 
+  theme_bw() +
+  scale_x_discrete(name = "Tree and edge type") +
+  scale_y_continuous(name = "Posterior Probability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.05), limits = c(0,1)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 25), 
+        axis.title.x = element_text(size = 22), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 18),
+        axis.title.y = element_text(size = 22), axis.text.y = element_text(size = 18),
+        strip.text = element_text(size = 20))
+ggsave(filename = paste0(node_output_dir, "plots/AllDatasets_ASTRAL_posteriorProbability_conflicting_branches.pdf"), plot = p, device = "pdf")
+ggsave(filename = paste0(node_output_dir, "plots/AllDatasets_ASTRAL_posteriorProbability_conflicting_branches.png"), plot = p, device = "png")
+
+# For ASTRAL trees (with branch lengths)
+p = ggplot(data = pp_df, aes(x = boxplot_fac, y = edge_length)) + geom_boxplot() +
+  facet_grid(dataset_fac ~ test_fac) + 
+  theme_bw() +
+  scale_x_discrete(name = "Tree and edge type") +
+  scale_y_continuous(name = "Branch length (coalescent units)", breaks = seq(0,6,2),  labels = seq(0,6,2), minor_breaks = seq(0,6,0.5), limits = c(0,6)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 25), 
+        axis.title.x = element_text(size = 22), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 18),
+        axis.title.y = element_text(size = 22), axis.text.y = element_text(size = 18),
+        strip.text = element_text(size = 20))
+ggsave(filename = paste0(node_output_dir, "plots/AllDatasets_ASTRAL_branchLength_conflicting_branches.pdf"), plot = p, device = "pdf")
+ggsave(filename = paste0(node_output_dir, "plots/AllDatasets_ASTRAL_branchLength_conflicting_branches.png"), plot = p, device = "png")
+
+
 
 
