@@ -1,6 +1,6 @@
 ### empirical_treelikeness/code/1_TestStatistics_EmpiricalData.R
 ## R program to apply recombination detection methods to transcriptomes from empirical data
-## A number of additional software packages are required: IQ-Tree2, 3SEQ, PH and GeneConv
+## A number of additional software packages are required: IQ-Tree2, PHIPack and GeneConv
 # Caitlin Cherryh 2021
 
 ##### Step 1: Set file paths and run variables #####
@@ -11,7 +11,7 @@
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # cores_to_use      <- the number of cores to use for parallelisation. 1 for a single core (wholly sequential), or higher if using parallelisation.
 # iqtree_num_threads<- specify number of cores for IQ-Tree to use during tree estimation. May be number, or set as "AUTO" for IQ-Tree to choose best number of threads
-# exec_folder       <- the folder containing the software executables needed for analysis (3SEQ, PhiPack, GeneConv)
+# exec_folder       <- the folder containing the software executables needed for analysis (PhiPack, GeneConv)
 # exec_paths        <- location to each executable within the folder. Attach the names of the executables so the paths can be accessed by name
 
 # Set which datasets you want to run through which analyses
@@ -40,9 +40,9 @@
 # iqtree_num_threads <- "AUTO"
 # # Create a vector with all of the executable file paths using the following lines as a template:
 # # exec_folder <- "/path/to/executables/folder/"
-# # exec_paths <- c("3seq_executable","PHIPack_executable", "GeneConv_executable)
+# # exec_paths <- c("PHIPack_executable", "GeneConv_executable, "IQ-Tree_executable")
 # # exec_paths <- paste0(exec_folder,exec_paths)
-# # names(exec_paths) <- c("3seq","IQTree","SplitsTree")
+# # names(exec_paths) <- c("PHIPack","GeneConv","IQTree")
 # # To access a path: exec_paths[["name"]]
 # exec_folder <- ""
 # exec_paths <- c()
@@ -57,9 +57,9 @@
 run_location = "local"
 
 if (run_location == "local"){
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
+  input_names <- c("1KP", "Whelan2015","Vanderpool2020", "Pease2016")
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
-                 "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Strassert2021/02_trimAL_Divvier_filtered_genes_only/",
+                 "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Whelan2015/10_genes/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   best_model_paths <- c(NA, NA, NA, NA)
@@ -67,11 +67,11 @@ if (run_location == "local"){
   maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
   
   exec_folder <- "/Users/caitlincherryh/Documents/Executables/"
-  # Create a vector with all of the executable file paths  in this order: 3SEQ, IQ-Tree, SplitsTree
+  # Create a vector with all of the executable file paths  in this order: PHIPack, GeneConv, IQ-Tree
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("3seq","Phi", "GENECONV_v1.81_unix.source/geneconv","iqtree-2.0-rc1-MacOSX/bin/iqtree")
+  exec_paths <- c("Phi", "GENECONV_v1.81_unix.source/geneconv","iqtree-2.0-rc1-MacOSX/bin/iqtree")
   exec_paths <- paste0(exec_folder,exec_paths)
-  names(exec_paths) <- c("3seq","PHIPack","GeneConv","IQTree")
+  names(exec_paths) <- c("PHIPack","GeneConv","IQTree")
   
   # set number of cores for parallelisation
   cores_to_use = 1
@@ -79,27 +79,26 @@ if (run_location == "local"){
   
   # Select which analyses to apply to each dataset
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("Pease2016")
-  datasets_to_collect_trees <- c()
-  datasets_to_check <- c("Pease2016")
+  datasets_to_run <- c("Whelan2015")
+  datasets_to_collect_trees <- c("Whelan2015")
+  datasets_to_check <- c("Whelan2015")
   
 } else if (run_location=="server"){
-  input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
+  input_names <- c("1KP", "Whelan2015", "Vanderpool2020", "Pease2016")
   input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
-                 "/data/caitlin/empirical_treelikeness/Data_Strassert2021/",
+                 "/data/caitlin/empirical_treelikeness/Data_Whelan2015/",
                  "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/",
                  "/data/caitlin/empirical_treelikeness/Data_Pease2016/")
   best_model_paths <- c(NA, NA, NA, NA)
   output_dir <- "/data/caitlin/empirical_treelikeness/Output/"
   maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical treelikeness repository/folder is 
   
-  # Create a vector with all of the executable file paths in this order: 3SEQ, IQ-Tree, SplitsTree
+  # Create a vector with all of the executable file paths in this order: PHIPack, GeneConv, IQ-Tree
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("/data/caitlin/linux_executables/3seq/3seq",
-                  "/data/caitlin/linux_executables/PhiPack/Phi",
+  exec_paths <- c("/data/caitlin/linux_executables/PhiPack/Phi",
                   "/data/caitlin/executables/GENECONV_v1.81_unix.source/geneconv", 
                   "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
-  names(exec_paths) <- c("3seq","PHIPack","GeneConv","IQTree")
+  names(exec_paths) <- c("PHIPack","GeneConv","IQTree")
   
   # set number of cores for parallelisation
   cores_to_use = 30
@@ -107,9 +106,9 @@ if (run_location == "local"){
   
   # Select which analyses to apply to each dataset
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("1KP", "Strassert2021","Vanderpool2020")
+  datasets_to_run <- c("Whelan2015")
   datasets_to_collect_trees <- c()
-  datasets_to_check <- c("1KP", "Strassert2021","Vanderpool2020")
+  datasets_to_check <- c("Whelan2015")
 }
 ### End Caitlin's paths ###
 
@@ -155,15 +154,15 @@ if (create_information_dataframe == TRUE){
   }
   OKP_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
   
-  ### Strassert 2021 dataset
-  Strassert2021_paths <- paste0(input_dir[["Strassert2021"]], list.files(input_dir[["Strassert2021"]], full.names = FALSE))
-  Strassert2021_names <- gsub(".filtered.ginsi.bmge.merged.fa.divvy.trimal.fas","",basename(Strassert2021_paths))
-  if (is.na(best_model_paths[["Strassert2021"]])){
+  ### Whelan 2015 dataset
+  Whelan2015_paths <- paste0(input_dir[["Whelan2015"]], list.files(input_dir[["Whelan2015"]], full.names = FALSE))
+  Whelan2015_names <- gsub("\\.fa","",basename(Whelan2015_paths))
+  if (is.na(best_model_paths[["Whelan2015"]])){
     # no set of models for these loci.
-    # Use "-m MFP" in IQ-Tree to automatically set best model - see Strassert et al (2021)
-    Strassert2021_model <- rep("MFP", length(Strassert2021_paths))
+    # Use "-m MFP" in IQ-Tree to automatically set best model
+    Whelan2015_model <- rep("MFP", length(Whelan2015_paths))
   }
-  Strassert2021_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
+  Whelan2015_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
   
   ### Vanderpool 2020 dataset
   # Obtaining the list of loci file paths from Vanderpool 2020 is easy -- all the loci are in the same folder
@@ -195,24 +194,24 @@ if (create_information_dataframe == TRUE){
   
   ### Compile datasets into one dataframe
   # Create a dataframe of loci information for all three datasets: loci name, alphabet type, model, dataset, path, output path
-  loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Strassert2021_names, OKP_names, Pease2016_names),
-                        alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Strassert2021_paths)), 
+  loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Whelan2015_names, OKP_names, Pease2016_names),
+                        alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Whelan2015_paths)), 
                                      rep("protein",length(OKP_paths)), rep("dna", length(Pease2016_paths))),
-                        best_model = c(Vanderpool2020_model, Strassert2021_model, OKP_model, Pease2016_model),
-                        dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Strassert2021",length(Strassert2021_paths)), 
+                        best_model = c(Vanderpool2020_model, Whelan2015_model, OKP_model, Pease2016_model),
+                        dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Whelan2015",length(Whelan2015_paths)), 
                                     rep("1KP",length(OKP_paths)), rep("Pease2016", length(Pease2016_paths))),
-                        loci_path = c(Vanderpool2020_paths, Strassert2021_paths, OKP_paths, Pease2016_paths),
-                        output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Strassert2021"]], length(Strassert2021_paths)), 
+                        loci_path = c(Vanderpool2020_paths, Whelan2015_paths, OKP_paths, Pease2016_paths),
+                        output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Whelan2015"]], length(Whelan2015_paths)), 
                                           rep(output_dirs[["1KP"]],length(OKP_paths)), rep(output_dirs[["Pease2016"]], length(Pease2016_paths))),
                         allowable_proportion_missing_sites = c(rep(Vanderpool2020_allowed_missing_sites, length(Vanderpool2020_paths)),
-                                                               rep(Strassert2021_allowed_missing_sites, length(Strassert2021_paths)),
+                                                               rep(Whelan2015_allowed_missing_sites, length(Whelan2015_paths)),
                                                                rep(OKP_allowed_missing_sites,length(OKP_paths)),
                                                                rep(Pease2016_allowed_missing_sites, length(Pease2016_paths))),
                         stringsAsFactors = FALSE)
   
   # output loci_df <- save a record of the input parameters you used!
   loci_df_name <- paste0(output_dir,"01_RecombinationDetection_input_loci_parameters.csv")
-  write.csv(loci_df, file = loci_df_name)
+  write.csv(loci_df, file = loci_df_name, row.names = FALSE)
 }
 
 
@@ -318,8 +317,7 @@ for (dataset in datasets_to_check){
   # Exceptions:
   #     - Ignore "some pairwise ML distances too long (saturated)" when the vast majority of loci alignments have this warning
   #         - 1KP dataset: 378/410 loci have this warning
-  #         - Strassert2021 dataset: 286/320 loci have this warning
-  if ((dataset == "1KP") | (dataset == "Strassert2021")){
+  if ((dataset == "1KP")){
     sat_inds <- grep("WARNING: Some pairwise ML distances are too long", w_df$warnings)
   } else {
     sat_inds <- c()
