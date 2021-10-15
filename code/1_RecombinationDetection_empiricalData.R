@@ -57,9 +57,9 @@
 run_location = "local"
 
 if (run_location == "local"){
-  input_names <- c("1KP", "Whelan2015","Vanderpool2020", "Pease2016")
+  input_names <- c("1KP", "Whelan2017","Vanderpool2020", "Pease2016")
   input_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
-                 "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Whelan2015/10_genes/",
+                 "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Whelan2017/genes/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   best_model_paths <- c(NA, NA, NA, NA)
@@ -79,14 +79,14 @@ if (run_location == "local"){
   
   # Select which analyses to apply to each dataset
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("Whelan2015")
-  datasets_to_collect_trees <- c("Whelan2015")
-  datasets_to_check <- c("Whelan2015")
+  datasets_to_run <- c("Whelan2017")
+  datasets_to_collect_trees <- c("Whelan2017")
+  datasets_to_check <- c("Whelan2017")
   
 } else if (run_location=="server"){
-  input_names <- c("1KP", "Whelan2015", "Vanderpool2020", "Pease2016")
+  input_names <- c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
   input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
-                 "/data/caitlin/empirical_treelikeness/Data_Whelan2015/",
+                 "/data/caitlin/empirical_treelikeness/Data_Whelan2017/",
                  "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/",
                  "/data/caitlin/empirical_treelikeness/Data_Pease2016/")
   best_model_paths <- c(NA, NA, NA, NA)
@@ -106,9 +106,9 @@ if (run_location == "local"){
   
   # Select which analyses to apply to each dataset
   create_information_dataframe <- TRUE
-  datasets_to_run <- c("Whelan2015")
+  datasets_to_run <- c("Whelan2017")
   datasets_to_collect_trees <- c()
-  datasets_to_check <- c("Whelan2015")
+  datasets_to_check <- c("Whelan2017")
 }
 ### End Caitlin's paths ###
 
@@ -155,14 +155,14 @@ if (create_information_dataframe == TRUE){
   OKP_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
   
   ### Whelan 2015 dataset
-  Whelan2015_paths <- paste0(input_dir[["Whelan2015"]], list.files(input_dir[["Whelan2015"]], full.names = FALSE))
-  Whelan2015_names <- gsub("\\.fa","",basename(Whelan2015_paths))
-  if (is.na(best_model_paths[["Whelan2015"]])){
+  Whelan2017_paths <- paste0(input_dir[["Whelan2017"]], list.files(input_dir[["Whelan2017"]], full.names = FALSE))
+  Whelan2017_names <- gsub("\\.fa","",basename(Whelan2017_paths))
+  if (is.na(best_model_paths[["Whelan2017"]])){
     # no set of models for these loci.
     # Use "-m MFP" in IQ-Tree to automatically set best model
-    Whelan2015_model <- rep("MFP", length(Whelan2015_paths))
+    Whelan2017_model <- rep("MFP", length(Whelan2017_paths))
   }
-  Whelan2015_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
+  Whelan2017_allowed_missing_sites <- NA # Don't remove any sequences based on the number of gaps/missing sites 
   
   ### Vanderpool 2020 dataset
   # Obtaining the list of loci file paths from Vanderpool 2020 is easy -- all the loci are in the same folder
@@ -194,17 +194,17 @@ if (create_information_dataframe == TRUE){
   
   ### Compile datasets into one dataframe
   # Create a dataframe of loci information for all three datasets: loci name, alphabet type, model, dataset, path, output path
-  loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Whelan2015_names, OKP_names, Pease2016_names),
-                        alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Whelan2015_paths)), 
+  loci_df <- data.frame(loci_name = c(Vanderpool2020_names, Whelan2017_names, OKP_names, Pease2016_names),
+                        alphabet = c(rep("dna", length(Vanderpool2020_paths)), rep("protein", length(Whelan2017_paths)), 
                                      rep("protein",length(OKP_paths)), rep("dna", length(Pease2016_paths))),
-                        best_model = c(Vanderpool2020_model, Whelan2015_model, OKP_model, Pease2016_model),
-                        dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Whelan2015",length(Whelan2015_paths)), 
+                        best_model = c(Vanderpool2020_model, Whelan2017_model, OKP_model, Pease2016_model),
+                        dataset = c(rep("Vanderpool2020", length(Vanderpool2020_paths)), rep("Whelan2017",length(Whelan2017_paths)), 
                                     rep("1KP",length(OKP_paths)), rep("Pease2016", length(Pease2016_paths))),
-                        loci_path = c(Vanderpool2020_paths, Whelan2015_paths, OKP_paths, Pease2016_paths),
-                        output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Whelan2015"]], length(Whelan2015_paths)), 
+                        loci_path = c(Vanderpool2020_paths, Whelan2017_paths, OKP_paths, Pease2016_paths),
+                        output_folder = c(rep(output_dirs[["Vanderpool2020"]], length(Vanderpool2020_paths)), rep(output_dirs[["Whelan2017"]], length(Whelan2017_paths)), 
                                           rep(output_dirs[["1KP"]],length(OKP_paths)), rep(output_dirs[["Pease2016"]], length(Pease2016_paths))),
                         allowable_proportion_missing_sites = c(rep(Vanderpool2020_allowed_missing_sites, length(Vanderpool2020_paths)),
-                                                               rep(Whelan2015_allowed_missing_sites, length(Whelan2015_paths)),
+                                                               rep(Whelan2017_allowed_missing_sites, length(Whelan2017_paths)),
                                                                rep(OKP_allowed_missing_sites,length(OKP_paths)),
                                                                rep(Pease2016_allowed_missing_sites, length(Pease2016_paths))),
                         stringsAsFactors = FALSE)
