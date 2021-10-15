@@ -1,16 +1,16 @@
 # empirical_treelikeness/code/0_Whelan2015_data_formatting.R
 # Caitlin Cherryh, 2021
-## This script recreates the 100kb genomic window alignments used to estimate gene trees in Pease et al (2016)
 
-## Whelan et al (2015) paper: 
-#       Nathan V. Whelan, Kevin M. Kocot, Leonid L. Moroz, Kenneth M. Halanych 2015. Ctenophora is sister to all other animals.
-#           Proceedings of the National Academy of Sciences May 2015, 112 (18) 5773-5778; DOI: 10.1073/pnas.1503453112
+## This script separates the supermatrix from Whelan et al (2017) into fasta alignments for individual genes
+# Uses the "Metazoa_Choano_RCFV_strict" dataset from the original paper, used to estimate the tree in Fig. 2.
 
-## Whelan et al (2015) data:
-#       Whelan, Nathan; M. Kocot, Kevin; Moroz, Leonid L.; Kenneth M. Halanych 2016. 
-#           Error, signal, and the placement of Ctenophora sister to all other animals. figshare. Dataset. 
-#           https://doi.org/10.6084/m9.figshare.1334306.v3 
-#
+## Whelan et al (2017) paper: 
+#     Whelan, N.V., Kocot, K.M., Moroz, T.P. et al. Ctenophore relationships and their placement as the sister group to all other animals. 
+#         Nat Ecol Evol 1, 1737–1746 (2017). https://doi.org/10.1038/s41559-017-0331-3
+
+## Whelan et al (2017) data:
+#     Whelan, Nathan; M. Kocot, Kevin; Moroz, Tatiana P.; Mukherjee, Krishanu; Williams, Peter; Paulay, Gustav; et al. (2017): 
+#         Ctenophora Phylogeny Datasets and Core Orthologs. figshare. Dataset. https://doi.org/10.6084/m9.figshare.4484138.v1 
 
 ## This script:
 # 1. Reads in the supermatrix and the gene locations from dataset "10"
@@ -22,15 +22,15 @@ library(phylotools)
 library(phangorn)
 
 ## Parameters
-# dataset_dir <- unzipped "Final_Datasets.tar.gz" folder (downloaded from figshare)
+# dataset_dir <- contains the Metazoa_Choano_RCFV_strict.phy file from figshare and the partioning scheme for individual genes
 # output_dir <- file where alignments for individual genes will be saved
 
-dataset_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Whelan2015/"
-output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Whelan2015/10_genes/"
+dataset_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Whelan2017/raw_data/"
+output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Whelan2017/genes/"
 
-## Open supermatrix file and file containing gene locations
-supermat_file <- paste0(dataset_dir, "10/Dataset10_CertainPruned_LBAtaxa_LBAandHeteroGenesPruned.phy")
-location_file <- paste0(dataset_dir, "10/Dataset10_GeneList_CertainPruned_LBAtaxa_LBAandHeteroGenesPruned.txt")
+## Specify file names for supermatrix and gene partition file (in RAxML format)
+supermat_file <- paste0(dataset_dir, "Metazoa_Choano_RCFV_strict.phy")
+location_file <- paste0(dataset_dir, "Whelan2017_gene_partitions.txt")
 
 # Open supermatrix as an alignment using Phylotools and write it out as a fasta file
 fasta_supermat_file <- gsub("\\.phy", "\\.fa", supermat_file)
@@ -81,8 +81,8 @@ for (i in 1:length(locations)){
 }
 
 # Create dataframe with gene name and lengths
-df <- data.frame(dataset = "Whelan2015_10", gene_name = all_gene_names, gene_length = all_gene_lengths)
-write.csv(df, file = paste0(dataset_dir, "Whelan2015_10_gene_lengths.csv"), row.names = FALSE)
+df <- data.frame(dataset = "Whelan2017", gene_name = all_gene_names, gene_length = all_gene_lengths)
+write.csv(df, file = paste0(dataset_dir, "Whelan2017_gene_lengths.csv"), row.names = FALSE)
 
 
 
