@@ -314,7 +314,7 @@ for (dataset in datasets_to_check){
   # Check for long strings of "****************************" - these indicate start and end of warnings 
   star_ids <- grep("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", w_df$warnings)
   # Check for difficult datasets (by looking for situations where the number of NNIs does not converge)
-  # This indicates that it's a diffcult dataset with low phylogenetic information, but doesn't necessarily indicate low quality gene trees
+  # This indicates that it's a difficult dataset with low phylogenetic information, but doesn't necessarily indicate low quality gene trees
   nni_inds <- grep("NNI search needs unusual large number of steps", w_df$warnings)
   # Check for different sequence names
   seq_name_inds <- grep("Some sequence names are changed as follows", w_df$warnings)
