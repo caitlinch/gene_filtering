@@ -210,8 +210,13 @@ if (create_information_dataframe == TRUE){
                         stringsAsFactors = FALSE)
   
   # output loci_df <- save a record of the input parameters you used!
-  loci_df_name <- paste0(output_dir,"01_RecombinationDetection_input_loci_parameters.csv")
-  write.csv(loci_df, file = loci_df_name, row.names = FALSE)
+  if (setequal(datasets_to_run, input_names) == TRUE){
+    loci_df_name <- paste0(output_dir,"01_AllDatasets_RecombinationDetection_input_loci_parameters.csv")
+    write.csv(loci_df, file = loci_df_name, row.names = FALSE)
+  } else {
+    loci_df_name <- paste0(output_dir,"01_",paste(sort(datasets_to_run), collapse = "_"),"_RecombinationDetection_input_loci_parameters.csv")
+    write.csv(loci_df, file = loci_df_name, row.names = FALSE)
+  }
 }
 
 
@@ -225,8 +230,13 @@ if (length(datasets_to_run) > 0){
   run_list <- mclapply(dataset_ids, recombination.detection.wrapper, df = loci_df, executable_paths = exec_paths, iqtree_num_threads, mc.cores = cores_to_use)
   run_df <- as.data.frame(do.call(rbind, run_list))
   print("save results file as a .csv")
-  results_file <- paste0(output_dir,"01_RecombinationDetection_complete_collated_results_", paste(sort(datasets_to_run), collapse = "_"),".csv")
-  write.csv(run_df, file = results_file, row.names = FALSE)
+  if (setequal(datasets_to_run, input_names) == TRUE){
+    results_file <- paste0(output_dir,"01_AllDatasets_RecombinationDetection_complete_collated_results.csv")
+    write.csv(run_df, file = results_file, row.names = FALSE)
+  } else {
+    results_file <- paste0(output_dir,"01_",paste(sort(datasets_to_run), collapse = "_"),"_RecombinationDetection_complete_collated_results.csv")
+    write.csv(run_df, file = results_file, row.names = FALSE)
+  }
 }
 
 
@@ -249,6 +259,7 @@ if (length(datasets_to_collect_trees) > 0){
     lapply(all_ds_folder, save.tree, trees_folder = op_tree_folder)
   }
 }
+
 
 
 ##### Step 6: Identify warnings from IQ-Tree runs #####
