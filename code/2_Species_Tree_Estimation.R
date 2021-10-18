@@ -26,7 +26,7 @@
 # use.free.rate.models.for.deep.datasets <- during our tree estimation step we found estimating trees from the deep dataset (1KP) was extremely
 #                                           time consuming. This argument excludes the free rate parameters for the deep datasets by instead using the best
 #                                           model found by ModelFinder that doesn't include a free rate parameter. 
-#                                           To find the correct models needed to set this value to TRUE, run file 2.5_ExtractingModels_DeepDatasets.R
+#                                           To find the correct models needed to set this value to FALSE, run file 2.5_ExtractingModels_DeepDatasets.R
 
 # We estimated species trees in ASTRAl for all four datasets (1KP, Whelan2017, Vanderpool2020 and Pease2016)
 # We estimated concatenated trees in IQ-Tree for the two shallow datasets (Vanderpool2020 and Pease2016) as the deep datasets were too large to reasonably run
@@ -52,7 +52,7 @@
 # datasets_to_estimate_IQTREE_trees <- c()
 # partition.by.codon.position <- FALSE
 # use.modelfinder.models.for.partitions <- TRUE
-# use.free.rate.models.for.deep.datasets <- FALSE
+# use.free.rate.models.for.deep.datasets <- TRUE
 
 ### Caitlin's paths ###
 run_location = "local"
@@ -88,7 +88,7 @@ if (run_location == "local"){
   datasets_to_estimate_RAxML_trees <- c()
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use substitution models from the gene trees
-  use.free.rate.models.for.deep.datasets = FALSE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
+  use.free.rate.models.for.deep.datasets = TRUE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
   
 } else if (run_location=="server"){
   # Datasets/dataset information
@@ -121,7 +121,7 @@ if (run_location == "local"){
   datasets_to_estimate_RAxML_trees <- c()
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use partition file with substitution models specified
-  use.free.rate.models.for.deep.datasets = FALSE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
+  use.free.rate.models.for.deep.datasets = TRUE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
 }
 ### End of Caitlin's paths ###
 
@@ -334,13 +334,16 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
       # (i.e. have a non significant p-value, meaning the null hypothesis of non-recombination/treelikeness cannot be rejected)
       v_df <- dataset_df[v_inds,]
       
-      # Copy trees of all loci that pass the test into one file that can be fed into ASTRAL
-      copy.loci.trees(v_df$loci_name, v_df$tree, category_output_folder, v_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
-      # If running IQ-Tree analysis, copy all loci into a separate folder that can be fed into IQ-Tree
-      # create the partition file required to run this IQ-Tree analysis
-      partition.file.from.loci.list(loci_list = v_df$loci_name, directory = paste0(category_output_folder, v_IQTree_name, "/"),
-                                    original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
-                                    substitution_models = v_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
+      # If there are more than 50 loci (50+ rows in v_df), prepare the files to run this analysis
+      if (nrow(v_df) >= 50){
+        # Copy trees of all loci that pass the test into one file that can be fed into ASTRAL
+        copy.loci.trees(v_df$loci_name, v_df$tree, category_output_folder, v_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
+        # If running IQ-Tree analysis, copy all loci into a separate folder that can be fed into IQ-Tree
+        # create the partition file required to run this IQ-Tree analysis
+        partition.file.from.loci.list(loci_list = v_df$loci_name, directory = paste0(category_output_folder, v_IQTree_name, "/"),
+                                      original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
+                                      substitution_models = v_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
+      }
       
       # Create a record of which loci went into which analysis
       output_text <- v_df$loci_name
@@ -349,8 +352,6 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
       summary_row <- c(summary_row, length(v_df$loci_name))
     }
   }
-  
-  
   
   ### Apply all three tests - get loci that pass all, and those that fail any ###
   # Make a tree for all the loci that pass all tests and all the loci that fail one or more test
@@ -379,12 +380,17 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
     } else if (tt == "fail"){
       all_df <- allTest_df[fail_inds, ] 
     }
-    # Copy loci trees for ASTRAL
-    copy.loci.trees(all_df$loci_name, all_df$tree, category_output_folder, all_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
-    # Create the partition file required to run this IQ-Tree analysis
-    partition.file.from.loci.list(loci_list = all_df$loci_name, directory = paste0(category_output_folder, all_IQTree_name, "/"),
-                                  original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
-                                  substitution_models = all_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
+    
+    # If there are more than 50 loci (50+ rows in all_df), prepare the files to run this analysis
+    if (nrow(all_df) >= 50){
+      # Copy loci trees for ASTRAL
+      copy.loci.trees(all_df$loci_name, all_df$tree, category_output_folder, all_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
+      # Create the partition file required to run this IQ-Tree analysis
+      partition.file.from.loci.list(loci_list = all_df$loci_name, directory = paste0(category_output_folder, all_IQTree_name, "/"),
+                                    original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
+                                    substitution_models = all_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
+    }
+    
     # Create a record of which loci went into which analysis
     output_text <- all_df$loci_name
     write(output_text, file = all_text_name)
@@ -401,13 +407,17 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
   } else if (partition.by.codon.position == FALSE){
     NoTest_IQTree_name <- paste0(dataset,"_NoTest_IQTREE") 
   }
-  # Copy loci trees for ASTRAL
-  copy.loci.trees(dataset_df$loci_name, dataset_df$tree, category_output_folder, NoTest_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
-  # Copy loci alignments for IQ-Tree
-  # create the partition file required to run this IQ-Tree analysis
-  partition.file.from.loci.list(loci_list = dataset_df$loci_name, directory = paste0(category_output_folder, NoTest_IQTree_name, "/"),
-                                original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
-                                substitution_models = dataset_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
+  
+  # If there are more than 50 loci (50+ rows in dataset_df), prepare the files to run this analysis
+  if (nrow(dataset_df) >= 50){
+    # Copy loci trees for ASTRAL
+    copy.loci.trees(dataset_df$loci_name, dataset_df$tree, category_output_folder, NoTest_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
+    # Copy loci alignments for IQ-Tree
+    # create the partition file required to run this IQ-Tree analysis
+    partition.file.from.loci.list(loci_list = dataset_df$loci_name, directory = paste0(category_output_folder, NoTest_IQTree_name, "/"),
+                                  original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
+                                  substitution_models = dataset_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
+  }
   
   ### Create a record of which loci went into which analysis ###
   output_text <- dataset_df$loci_name
@@ -442,6 +452,7 @@ if (length(datasets_to_copy_loci_ASTRAL_IQTREE) > 0 | length(datasets_to_copy_lo
   # Collate species_tree_summary.csvs
   all_files <- list.files(output_dir, recursive = TRUE)
   summary_csvs <- grep("species_tree_summary.csv", all_files, value = TRUE)
+  summary_csvs <- summary_csvs[grepl(paste0(input_names, collapse = "|"), summary_csvs)]
   csv_list <- lapply(paste0(output_dir, summary_csvs), read.csv)
   csv_df <- do.call(rbind, csv_list)
   write.csv(csv_df, paste0(output_dir, "02_species_tree_summary_numbers.csv"))
