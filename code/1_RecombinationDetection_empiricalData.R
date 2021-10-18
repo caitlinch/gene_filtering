@@ -334,8 +334,13 @@ for (dataset in datasets_to_check){
 exclusion_df <- data.frame(dataset = exclusion_loci_dataset,
                            loci = exclusion_loci_name,
                            warning = exclusion_warning)
-exclusion_op_name <- paste0(output_dir, "01_IQ-Tree_warnings_", paste(datasets_to_check, collapse = "_"), "_LociToExclude.csv")
-write.csv(exclusion_df, exclusion_op_name, row.names = FALSE)
+if (setequal(datasets_to_check, input_names) == TRUE){
+  exclusion_op_name <- paste0(output_dir, "01_AllDatasets_IQ-Tree_warnings_LociToExclude.csv")
+  write.csv(exclusion_df, exclusion_op_name, row.names = FALSE)
+} else {
+  exclusion_op_name <- paste0(output_dir, "01_", paste(datasets_to_check, collapse = "_"), "_IQ-Tree_warnings_LociToExclude.csv")
+  write.csv(exclusion_df, exclusion_op_name, row.names = FALSE) 
+}
 
 
 
