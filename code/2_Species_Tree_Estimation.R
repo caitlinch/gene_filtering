@@ -55,15 +55,15 @@
 # use.free.rate.models.for.deep.datasets <- FALSE
 
 ### Caitlin's paths ###
-run_location = "server"
+run_location = "local"
 
 if (run_location == "local"){
   # Datasets/dataset information
-  input_names <- c( "1KP", "Strassert2021", "Vanderpool2020", "Pease2016")
+  input_names <- c( "1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
   
   # File and directory locations
   alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes_renamed/",
-                     "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Strassert2021/02_trimAL_Divvier_filtered_genes_only/",
+                     "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Whelan2017/genes/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   csv_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
@@ -81,22 +81,22 @@ if (run_location == "local"){
   cores.to.use = 1
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci_ASTRAL_IQTREE <-  c()
+  datasets_to_copy_loci_ASTRAL_IQTREE <-  c("Whelan2017")
   datasets_to_copy_loci_RAxML <- c()
-  datasets_to_estimate_ASTRAL_trees <- c()
-  datasets_to_estimate_IQTREE_trees <- c()
-  datasets_to_estimate_RAxML_trees <- c("1KP", "Strassert2021")
+  datasets_to_estimate_ASTRAL_trees <- c("Whelan2017")
+  datasets_to_estimate_IQTREE_trees <- c("Whelan2017")
+  datasets_to_estimate_RAxML_trees <- c()
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use substitution models from the gene trees
   use.free.rate.models.for.deep.datasets = FALSE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
   
 } else if (run_location=="server"){
   # Datasets/dataset information
-  input_names <- c( "1KP", "Strassert2021", "Vanderpool2020", "Pease2016")
+  input_names <- c( "1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
   
   # File and directory locations
   alignment_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
-                     "/data/caitlin/empirical_treelikeness/Data_Strassert2021/",
+                     "/data/caitlin/empirical_treelikeness/Data_Whelan2017/",
                      "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/",
                      "/data/caitlin/empirical_treelikeness/Data_Pease2016/")
   csv_data_dir <- "/data/caitlin/empirical_treelikeness/Output/"
@@ -118,7 +118,7 @@ if (run_location == "local"){
   datasets_to_copy_loci_RAxML <- c()
   datasets_to_estimate_ASTRAL_trees <- c()
   datasets_to_estimate_IQTREE_trees <- c()
-  datasets_to_estimate_RAxML_trees <- c("1KP", "Strassert2021")
+  datasets_to_estimate_RAxML_trees <- c()
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use partition file with substitution models specified
   use.free.rate.models.for.deep.datasets = FALSE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
@@ -158,43 +158,59 @@ for (d in output_dirs){
 ##### Step 4: Assemble the dataframe of gene recombination results #####
 if (length(input_names) > 0){
   # Check whether a collated, trimmed recombination detection results file exists
-  trimmed_gene_result_df_file <- paste0(csv_data_dir, "02_",paste(sort(input_names), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
-  pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(input_names), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
-  collated_exclude_file <- paste0(csv_data_dir, "01_IQ-Tree_warnings_",paste(sort(input_names), collapse="_"), "_LociToExclude.csv")
+  trimmed_gene_result_df_file <- paste0(csv_data_dir, "02_AllDatasets_collated_RecombinationDetection_TrimmedLoci.csv")
+  pass_df_file <- paste0(csv_data_dir, "02_AllDatasets_RecombinationDetection_PassFail_record.csv")
+  collated_exclude_file <- paste0(csv_data_dir, "01_AllDatasets_IQ-Tree_warnings_LociToExclude.csv")
   
   if (file.exists(trimmed_gene_result_df_file) & file.exists(pass_df_file)){
     gene_result_df <- read.csv(trimmed_gene_result_df_file, stringsAsFactors = TRUE)
     pass_df <- read.csv(pass_df_file, stringsAsFactors = TRUE)
   } else{
-    # If the file doesn't exist, create it
-    # Get a list of all the csv files in the csv_data_directory
-    all_files <- list.files(csv_data_dir)
-    # Get the results filenames for the datasets of interest
-    all_results <- grep("RecombinationDetection_complete_collated_results", all_files, value = TRUE)
-    all_results <- paste0(csv_data_dir, all_results)
-    results <- c()
-    for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
-      f <- grep(dataset, all_results, value = TRUE)
-      results <- c(results, f)
-    }
-    # Remove duplicates
-    results <- unique(results)
-    # Open and attach the datasets
-    gene_result_df <- as.data.frame(do.call(rbind, lapply(results, read.csv)))
-    gene_result_df$match <- paste0(gene_result_df$dataset, ":", gene_result_df$loci_name)
-    # If the collated total file hasn't been saved, save it
-    all_gene_result_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_collated_RecombinationDetection.csv")
-    if (file.exists(all_gene_result_file) == FALSE){
-      write.csv(gene_result_df, all_gene_result_file)
+    # If the collated, trimmed recombination detection results file doesn't exist, create it
+    
+    # If collated RecombinationDetection results file for all datasets has been collated, open that file
+    # If not, create it.
+    all_gene_result_file <- paste0(csv_data_dir, "01_AllDatasets_RecombinationDetection_complete_collated_results.csv")
+    if (file.exists(all_gene_result_file)){
+      gene_result_df <- read.csv(all_gene_result_file)
+    } else {
+      # Get a list of all the csv files in the csv_data_directory
+      all_files <- list.files(csv_data_dir)
+      # Get the results filenames for the datasets of interest
+      all_results <- grep("RecombinationDetection_complete_collated_results", all_files, value = TRUE)
+      all_results <- paste0(csv_data_dir, all_results)
+      results <- c()
+      for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
+        f <- grep(dataset, all_results, value = TRUE)
+        results <- c(results, f)
+      }
+      # Remove duplicates
+      results <- unique(results)
+      # Open and attach the datasets
+      gene_result_df <- as.data.frame(do.call(rbind, lapply(results, read.csv)))
+      gene_result_df$match <- paste0(gene_result_df$dataset, ":", gene_result_df$loci_name)
+      # If the collated total file hasn't been saved, save it
+      all_gene_result_file <- paste0(csv_data_dir, "01_AllDatasets_RecombinationDetection_complete_collated_results.csv")
+      if (file.exists(all_gene_result_file) == FALSE){
+        write.csv(gene_result_df, all_gene_result_file)
+      }
     }
     
-    # Open the csv containing the list of loci to exclude from species tree analysis
-    exclude_file <- paste0(csv_data_dir, grep("LociToExclude.csv", all_files, value = TRUE))
-    # Open the csv files and bind into one dataframe
-    exclude_df <- as.data.frame(do.call(rbind, lapply(exclude_file, read.csv)))
-    # Collate and output if that file doesn't exist
-    if (file.exists(collated_exclude_file) == FALSE){
-      write.csv(exclude_df, file = collated_exclude_file, row.names = FALSE)
+    # If collated LociToExclude file for all datasets has been collated, open that file
+    # If not, create it.
+    if (file.exists(collated_exclude_file) == TRUE){
+      exclude_df <- read.csv(collated_exclude_file)
+    } else {
+      # Get a list of all the csv files in the csv_data_directory
+      all_files <- list.files(csv_data_dir)
+      # Open the csv containing the list of loci to exclude from species tree analysis
+      exclude_file <- paste0(csv_data_dir, grep("LociToExclude.csv", all_files, value = TRUE))
+      # Open the csv files and bind into one dataframe
+      exclude_df <- as.data.frame(do.call(rbind, lapply(exclude_file, read.csv)))
+      # Collate and output if that file doesn't exist
+      if (file.exists(collated_exclude_file) == FALSE){
+        write.csv(exclude_df, file = collated_exclude_file, row.names = FALSE)
+      }
     }
     
     # Reduce down to the unique dataset/loci pairs to exclude from gene_result_df
