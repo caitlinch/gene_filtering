@@ -316,8 +316,8 @@ for (dataset in datasets_to_check){
   #     - Some pairwise ML distances are too long (saturated)
   # Exceptions:
   #     - Ignore "some pairwise ML distances too long (saturated)" when the vast majority of loci alignments have this warning
-  #         - 1KP dataset: 378/410 loci have this warning
-  if ((dataset == "1KP")){
+  #         - Both the deep datasets (1KP and Whelan2017)
+  if ((dataset == "1KP") | (dataset == "Whelan2017")){
     sat_inds <- grep("WARNING: Some pairwise ML distances are too long", w_df$warnings)
   } else {
     sat_inds <- c()
