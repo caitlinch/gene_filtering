@@ -173,6 +173,7 @@ if (length(input_names) > 0){
     all_gene_result_file <- paste0(csv_data_dir, "01_AllDatasets_RecombinationDetection_complete_collated_results.csv")
     if (file.exists(all_gene_result_file)){
       gene_result_df <- read.csv(all_gene_result_file)
+      gene_result_df$match <- paste0(gene_result_df$dataset, ":", gene_result_df$loci_name)
     } else {
       # Get a list of all the csv files in the csv_data_directory
       all_files <- list.files(csv_data_dir)
@@ -240,13 +241,11 @@ if (length(input_names) > 0){
                                     (gene_result_df$geneconv_inner_fragment_simulated_p_value > 0.05))] <- "TRUE"
     gene_result_df$pass_geneconv <- as.logical(gene_result_df$pass_geneconv)
     
-    # Save the trimmed gene_result_df
-    trimmed_gene_result_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_collated_RecombinationDetection_TrimmedLoci.csv")
+    # Save the trimmed gene_result_df and pass_df_file
     write.csv(gene_result_df, file = trimmed_gene_result_df_file, row.names = FALSE)
     # Save a df of just the pass/fail info
     pass_df <- gene_result_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", 
                                  "pass_NSS", "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
-    pass_df_file <- paste0(csv_data_dir, "02_",paste(sort(datasets_to_copy_loci_ASTRAL_IQTREE), collapse="_"), "_RecombinationDetection_PassFail_record.csv")
     write.csv(pass_df, file = pass_df_file, row.names = FALSE)
   }
 }
