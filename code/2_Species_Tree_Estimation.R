@@ -23,14 +23,14 @@
 #                             <- codon position simply counts every third base starting from 1st, 2nd, or 3rd base, and does not account for frame shift
 # use.modelfinder.models.for.partitions <- can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. 
 #                                       <- TRUE will use "-m MERGE" and include a charpartition with substitution models selected by ModelFinder in IQ-Tree
-# use.free.rate.models.for.deep.datasets <- during our tree estimation step we found estimating trees from the deep datasets (1KP and Strassert2021) was extremely
+# use.free.rate.models.for.deep.datasets <- during our tree estimation step we found estimating trees from the deep dataset (1KP) was extremely
 #                                           time consuming. This argument excludes the free rate parameters for the deep datasets by instead using the best
 #                                           model found by ModelFinder that doesn't include a free rate parameter. 
 #                                           To find the correct models needed to set this value to TRUE, run file 2.5_ExtractingModels_DeepDatasets.R
 
-# We estimated species trees in ASTRAl for all four datasets (1KP, Strassert2021, Vanderpool2020 and Pease2016)
+# We estimated species trees in ASTRAl for all four datasets (1KP, Whelan2017, Vanderpool2020 and Pease2016)
 # We estimated concatenated trees in IQ-Tree for the two shallow datasets (Vanderpool2020 and Pease2016) as the deep datasets were too large to reasonably run
-# We estimated concatenated trees in RAxML-NG for the two deep datasets (1KP and Strassert2021)
+# We estimated concatenated trees in RAxML-NG for the 1000 Plants deep dataset (1KP)
 
 # # To run this program: 
 # # 1. Delete the lines below that include Caitlin's paths/variables
@@ -156,6 +156,12 @@ for (d in output_dirs){
 
 
 ##### Step 4: Assemble the dataframe of gene recombination results #####
+# This section:
+#   1. Takes in the recombination detection results from file 1. 
+#   2. Checks the LociToExclude file, and removes any loci that have been flagged (by IQ-Tree warnings)
+#   3. Outputs a csv of the trimmed data
+# All downstream analyses use the trimmed dataframe (i.e. the complete results, minus individual loci that were removed on the basis of IQ-Tree warnings)
+
 if (length(input_names) > 0){
   # Check whether a collated, trimmed recombination detection results file exists
   trimmed_gene_result_df_file <- paste0(csv_data_dir, "02_AllDatasets_collated_RecombinationDetection_TrimmedLoci.csv")
@@ -253,11 +259,19 @@ if (length(input_names) > 0){
 
 
 ##### Step 5: Categorize loci by test results and prepare subsets of data for tree estimation #####
-# Iterate through each of the datasets
-# For each recombination detection test, record which loci pass the test
-# For each recombination detection test, estimate a species tree from the loci that pass the test
-# Estimate a species tree from all loci
-# Estimate a species tree from loci that pass every recombination detection test
+# Estimate trees from the putatively non-recombinant and the putatively recombinant loci for each dataset 
+# Iterate through each dataset and:
+#    For each recombination detection test:
+#        1. Record which loci pass the test
+#        2. Estimate a species tree from the loci that pass the test
+#        3. Record which loci fail the test
+#        4. Estimate a species tree from the loci that fail the test
+#    Then:
+#        1. Estimate a species tree from all loci
+#        2. Estimate a species tree from loci that pass every recombination detection test
+
+# This section of the code prepares all files for IQ-Tree and ASTRAL to estimate the trees described above.
+# Trees are estimated in the next section (Section 6)
 
 ### Save the loci trees (for ASTRAL) and the loci alignment (for IQ-Tree)
 for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
@@ -435,8 +449,8 @@ if (length(datasets_to_copy_loci_ASTRAL_IQTREE) > 0 | length(datasets_to_copy_lo
 
 # If estimating deep datasets in IQ-Tree and using models without free rate parameters, create partition file for IQ-Tree for those analyses
 if ((use.free.rate.models.for.deep.datasets == FALSE) & 
-    (("1KP" %in% datasets_to_copy_loci_ASTRAL_IQTREE) | ("Strassert2021" %in% datasets_to_copy_loci_ASTRAL_IQTREE))){
-  for (dataset in c("1KP", "Strassert2021")){
+    ("1KP" %in% datasets_to_copy_loci_ASTRAL_IQTREE)){
+  for (dataset in c("1KP")){
     # Create new folders to put these tree files/loci files and records in
     category_output_folder <- paste0(output_dirs[dataset], "species_trees/")
     if (dir.exists(category_output_folder) == FALSE){
@@ -528,7 +542,7 @@ if ((use.free.rate.models.for.deep.datasets == FALSE) &
 
 
 ##### Step 6: Estimate species trees in ASTRAL and IQ-Tree #####
-### Estimate a species tree for each of the five categories
+### Estimate a species trees from the files prepared in Section 5.
 for (dataset in datasets_to_estimate_ASTRAL_trees){
   # Ensure the folder for species trees data exists
   category_output_folder <- paste0(output_dirs[dataset], "species_trees/")
@@ -584,6 +598,9 @@ for (dataset in datasets_to_estimate_IQTREE_trees){
 
 
 ##### Step 7: Prepare partition and supermatrix files for tree estimation in RAxML #####
+# For the 1KP dataset, estimating a ML tree in IQ-Tree was not computationally feasible
+# We estimated the tree in RAxML-NG instead
+
 for (dataset in datasets_to_copy_loci_RAxML){
   print(paste0("Dataset: ", dataset))
   # filter the gene_result_df for this dataset
@@ -594,8 +611,6 @@ for (dataset in datasets_to_copy_loci_RAxML){
   # identify file extension for alignment files
   if (dataset == "1KP"){
     file_extension = "fasta"
-  } else if (dataset == "Strassert2021"){
-    file_extension = "fas"
   }
   
   ## Create the supermatrix and partition file for the NoTest tree (tree estimated from all genes)
