@@ -15,12 +15,12 @@ print("Set filepaths")
 maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/" # where the empirical treelikeness code is
 plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
 species_tree_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
-treelikeness_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/02_1KP_Pease2016_Strassert2021_Vanderpool2020_collated_RecombinationDetection_TrimmedLoci.csv"
+treelikeness_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/02_AllDatasets_collated_RecombinationDetection_TrimmedLoci.csv"
 
 # Datasets
-datasets <- c("Vanderpool2020", "Pease2016", "Strassert2021", "1KP")
+datasets <- c("Vanderpool2020", "Pease2016", "Whelan2015", "1KP")
 roots <- c("Pease2016" = "LA4116", "Vanderpool2020" = "Mus_musculus", "1KP" = "BAJW", 
-           "Strassert2021" = "Apusozoa_Apusozoa_N_A_N_A_N_A_Nutomonas_longa_SRR1617398")
+           "Whelan2017" = "Salpingoeca_pyxidium")
 n_tips <- c("Pease2016" = 29, "Vanderpool2020" = 29)
 taxa_order <- list("Pease2016" = c("LA4116", "LA4126", "LA2951", "LA3778", "LA0716", "LA1777", "LA0407", "LA4117", "LA1782", "LA2964", 
                                    "LA0444", "LA0107", "LA1358", "LA2744", "LA1364", "LA1316", "LA1028", "LA2172", "LA2133", "LA1322",
