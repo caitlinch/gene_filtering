@@ -47,7 +47,7 @@ tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv
                      "Whelan2017" = c("PHI", "maxchi", "geneconv"),
                      "1KP" = c("PHI", "maxchi"))
 
-datasets_to_identify_distinct_edges <- c("Whelan2017")
+datasets_to_identify_distinct_edges <- c("1KP")
 plotting = FALSE
 
 
@@ -94,7 +94,6 @@ for (dataset in datasets_to_identify_distinct_edges){
         none_tree_file <- paste0(dataset_tree_dir, grep(".contree", grep("NoTest", all_files, value = TRUE), value = TRUE))
         pass_tree_file <- paste0(dataset_tree_dir, grep("pass", iq_trees, value = TRUE))
         fail_tree_file <- paste0(dataset_tree_dir, grep("fail", iq_trees, value = TRUE))
-        # Create dataframes
         # Want to collect the information about splits present in one tree but not the other (i.e. in T_all,pass vs T_None)
         test_df_pass_iq <- compare.distinct.edges.of.two.trees(tree_file_1 = pass_tree_file, tree_file_2 = none_tree_file, 
                                                                tree1_name = "Pass", tree2_name = "None", test_name = test, 
@@ -104,14 +103,26 @@ for (dataset in datasets_to_identify_distinct_edges){
                                                                dataset_name = dataset, support_value_type_name = "BS")
       } else if ((dataset == "Whelan2017" & test != "geneconv") | dataset == "1KP"){
         print("Compare IQ-Tree trees")
-        ## IQ-Tree trees: Create dataframe detailing differences in posterior probabilities between the two trees
-        # Get the list of trees estimated in IQ-Tree for this dataset
-        test_trees <- grep(test, all_files, value = TRUE)
-        iq_trees <- grep(".contree", test_trees, value = TRUE)
-        # Make the full filepaths for each of the three trees (test pass, test fail, and no test)
-        none_tree_file <- paste0(dataset_tree_dir, grep(".contree", grep("NoTest", all_files, value = TRUE), value = TRUE))
-        pass_tree_file <- paste0(dataset_tree_dir, grep("pass", iq_trees, value = TRUE))
-        # Create dataframes
+        ## ML trees: Create dataframe detailing differences in posterior probabilities between the two trees
+        # If dataset is 1KP, collect RAxML trees estimated with no free rate models
+        # For other datasets, collect IQ-Tree trees (no restrictions on models)
+        if (dataset == "1KP"){
+          # Get the list of trees estimated in RAxML-NG for this dataset
+          # Get the list of trees estimated in IQ-Tree for this dataset
+          raxml_trees <- grep("bestTree", all_files, value = TRUE)
+          raxml_trees <- grep("noFreeRates", raxml_trees, value = TRUE)
+          test_trees <- grep(test, raxml_trees, value = TRUE)
+          # Make the full filepaths for each of the three trees (test pass, test fail, and no test)
+          none_tree_file <- paste0(dataset_tree_dir, grep("NoTest", raxml_trees, value = TRUE))
+          pass_tree_file <- paste0(dataset_tree_dir, grep("pass", test_trees, value = TRUE))
+        } else {
+          # Get the list of trees estimated in IQ-Tree for this dataset
+          test_trees <- grep(test, all_files, value = TRUE)
+          iq_trees <- grep(".contree", test_trees, value = TRUE)
+          # Make the full filepaths for each of the three trees (test pass, test fail, and no test)
+          none_tree_file <- paste0(dataset_tree_dir, grep(".contree", grep("NoTest", all_files, value = TRUE), value = TRUE))
+          pass_tree_file <- paste0(dataset_tree_dir, grep("pass", iq_trees, value = TRUE))
+        }
         # Want to collect the information about splits present in one tree but not the other (i.e. in T_all,pass vs T_None)
         test_df_pass_iq <- compare.distinct.edges.of.two.trees(tree_file_1 = pass_tree_file, tree_file_2 = none_tree_file, 
                                                                tree1_name = "Pass", tree2_name = "None", test_name = test, 
@@ -129,7 +140,7 @@ for (dataset in datasets_to_identify_distinct_edges){
       # Want to collect the information about splits present in one tree but not the other (i.e. in T_all,pass vs T_None)
       test_df_pass_astral <- compare.distinct.edges.of.two.trees(tree_file_1 = pass_tree_file, tree_file_2 = none_tree_file, tree1_name = "Pass", 
                                                                  tree2_name = "None", test_name = test, dataset_name = dataset, support_value_type_name = "PP")
-      # Run fail tree for shallow datasets only
+      # Run fail tree for shallow datasets and Whelan2017 geneconv only
       if (dataset == "Vanderpool2020" | dataset == "Pease2016" | (dataset == "Whelan2017" & test == "geneconv")){
         fail_tree_file <- paste0(dataset_tree_dir, grep("fail", astral_trees, value = TRUE))
         test_df_fail_astral <- compare.distinct.edges.of.two.trees(tree_file_1 = fail_tree_file, tree_file_2 = none_tree_file, tree1_name = "Fail", 
