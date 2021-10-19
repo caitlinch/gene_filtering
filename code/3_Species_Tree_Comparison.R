@@ -323,6 +323,16 @@ for (dataset in compare_IQTREE_trees){
   all_IQTree_partitions <- grep(".nex.", grep("partitions.nex", all_IQTree_files, value = TRUE), value = TRUE, invert = TRUE)
   all_IQTree_trees <- grep("contree", all_IQTree_files, value = TRUE)
   
+  # If dataset was run using RAxML-NG, find the bestTree files (the trees) and the IQ-Tree partitions for the no free rate model runs
+  if (dataset == "1KP"){
+    # Find RAxML-NG trees
+    all_raxml_trees <- grep("bestTree", all_species_trees_files, value = TRUE)
+    # Replace IQ-Tree trees with RAxML-NG trees
+    all_IQTree_trees <- all_raxml_trees
+    # Find the partition files for the no free rates runs
+    all_IQTree_partitions <- grep("noFreeRates", all_IQTree_partitions, value = TRUE)
+  }
+  
   # Identify which tests to run for this dataset
   dataset_tests <- tests_to_run[[dataset]]
   # Iterate through each test
@@ -335,7 +345,7 @@ for (dataset in compare_IQTREE_trees){
     # Assemble the filename for the results file 
     au_results_file <- paste0(new_folder, dataset, "_", test, "_AU_test_results.csv")
     # If the file does not exist, run the tests
-    if (dataset == "Vanderpool2020" | dataset == "Pease2016" | (dataset = "Whelan2017" & test != "geneconv")){
+    if (dataset == "Vanderpool2020" | dataset == "Pease2016" | ((dataset == "Whelan2017") & (test == "geneconv"))){
       ### Apply the AU test
       # Check whether the results file for this test exists already
       if (file.exists(au_results_file) == FALSE){
@@ -391,7 +401,7 @@ for (dataset in compare_IQTREE_trees){
         write.csv(dist_df, file = rf_csv, row.names = FALSE)
       }
       
-    } else if (dataset == "1KP" | (dataset = "Whelan2017" & test != "geneconv")){
+    } else if (dataset == "1KP" | (dataset == "Whelan2017" & test != "geneconv")){
       ### Apply the AU test
       # Check whether the results file for this test exists already
       if (file.exists(au_results_file) == FALSE){
@@ -403,7 +413,7 @@ for (dataset in compare_IQTREE_trees){
         # Read in the two trees
         two_trees_text <- unlist(lapply(two_trees_location, readLines))
         # Write the two trees into one file, inside the new folder for the AU test
-        two_trees_path <- paste0(new_folder, dataset, "_", test, "two_trees_Pass-NoTest.tree")
+        two_trees_path <- paste0(new_folder, dataset, "_", test, "_two_trees_Pass-NoTest.tree")
         write(two_trees_text, two_trees_path)
         
         # Find the partitions file containing the location of the loci that pass the test
