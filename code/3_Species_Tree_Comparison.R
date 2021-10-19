@@ -158,7 +158,9 @@ for (dataset in compare_ASTRAL_trees){
     # Create a new vector of the trees used for this dataset
     if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
       dataset_tree_files <- c(pass_tree_file, fail_tree_file, noTest_tree_file)
-    } else if (dataset == "1KP" | dataset == "Strassert2021"){
+    } else if (dataset == "Whelan2017" & test == "geneconv"){
+      dataset_tree_files <- c(pass_tree_file, fail_tree_file, noTest_tree_file)
+    } else if (dataset == "1KP" | (dataset == "Whelan2017" & test != "geneconv")){
       dataset_tree_files <- c(pass_tree_file, noTest_tree_file)
     }
     
@@ -177,7 +179,7 @@ for (dataset in compare_ASTRAL_trees){
     quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
     
     # Run slightly different versions of the code based on the dataset: shallow datasets compare 3 trees, and deeper datasets compare two trees
-    if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
+    if (dataset == "Vanderpool2020" | dataset == "Pease2016" | (dataset == "Whelan2017" & test == "geneconv")){
       # Assemble the output csv name for the Quartet Network Goodness of Fit results
       quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
       
@@ -228,7 +230,7 @@ for (dataset in compare_ASTRAL_trees){
         write.csv(dist_df, file = rf_csv, row.names = FALSE)
       }
       
-    } else if (dataset == "Strassert2021" | dataset == "1KP"){
+    } else if (dataset == "1KP" | (dataset == "Whelan2017" & test != "geneconv")){
       # Assemble the output csv name for the Quartet Network Goodness of Fit results
       quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
       
@@ -277,7 +279,7 @@ for (dataset in compare_ASTRAL_trees){
         # Save RF distance as a dataframe
         write.csv(dist_df, file = rf_csv, row.names = FALSE)
       } # end check for rf_csv file
-    } # end else if dataset == deep (1KP, Strassert2021) 
+    } # end else if dataset == deep
     
   } # end iterating through tests
   
@@ -333,7 +335,7 @@ for (dataset in compare_IQTREE_trees){
     # Assemble the filename for the results file 
     au_results_file <- paste0(new_folder, dataset, "_", test, "_AU_test_results.csv")
     # If the file does not exist, run the tests
-    if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
+    if (dataset == "Vanderpool2020" | dataset == "Pease2016" | (dataset = "Whelan2017" & test != "geneconv")){
       ### Apply the AU test
       # Check whether the results file for this test exists already
       if (file.exists(au_results_file) == FALSE){
@@ -389,7 +391,7 @@ for (dataset in compare_IQTREE_trees){
         write.csv(dist_df, file = rf_csv, row.names = FALSE)
       }
       
-    } else if (dataset == "Strassert2021"|dataset == "1KP"){
+    } else if (dataset == "1KP" | (dataset = "Whelan2017" & test != "geneconv")){
       ### Apply the AU test
       # Check whether the results file for this test exists already
       if (file.exists(au_results_file) == FALSE){
@@ -442,7 +444,7 @@ for (dataset in compare_IQTREE_trees){
         # Save the output dataframe
         write.csv(dist_df, file = rf_csv, row.names = FALSE)
       } # end check for RF file
-    } #end dataset == shallow (1KP or Strassert2021)
+    } #end deep dataset
     
   } # end iterating through tests
   
