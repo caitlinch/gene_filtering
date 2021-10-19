@@ -40,7 +40,7 @@ if (run == "local"){
   
   # Set which datasets and which tests to run
   compare_ASTRAL_trees <- c("Whelan2017")
-  compare_IQTREE_trees <- c("Whelan2017", "1KP")
+  compare_IQTREE_trees <- c()
   tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Whelan2017" = c("PHI", "maxchi", "geneconv"),
@@ -67,7 +67,7 @@ if (run == "local"){
   
   # Set which datasets and which tests to run
   compare_ASTRAL_trees <- c()
-  compare_IQTREE_trees <- c()
+  compare_IQTREE_trees <- c("1KP")
   tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
                        "Whelan2017" = c("PHI", "maxchi", "geneconv"),
