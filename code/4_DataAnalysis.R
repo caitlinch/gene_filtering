@@ -46,7 +46,7 @@ tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv
                      "Whelan2017" = c("PHI", "maxchi", "geneconv"),
                      "1KP" = c("PHI", "maxchi"))
 
-datasets_to_identify_distinct_edges <- c("Whelan2015")
+datasets_to_identify_distinct_edges <- c("Whelan2017")
 
 
 ##### Step 3: Source function files and prepare variables for analysis #####

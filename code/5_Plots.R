@@ -18,7 +18,7 @@ species_tree_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness
 treelikeness_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/02_AllDatasets_collated_RecombinationDetection_TrimmedLoci.csv"
 
 # Datasets
-datasets <- c("Vanderpool2020", "Pease2016", "Whelan2015", "1KP")
+datasets <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
 roots <- c("Pease2016" = "LA4116", "Vanderpool2020" = "Mus_musculus", "1KP" = "BAJW", 
            "Whelan2017" = "Salpingoeca_pyxidium")
 n_tips <- c("Pease2016" = 29, "Vanderpool2020" = 29)
