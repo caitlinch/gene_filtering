@@ -35,18 +35,18 @@ tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_tr
 test_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
 output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
 
-input_names <- c("1KP", "Strassert2021","Vanderpool2020", "Pease2016")
-dataset_tree_roots <- c("BAJW", "Apusozoa_Apusozoa_N_A_N_A_N_A_Nutomonas_longa_SRR1617398", "Mus_musculus", "LA4116")
+input_names <- c("1KP", "Whelan2017","Vanderpool2020", "Pease2016")
+dataset_tree_roots <- c("BAJW", "Salpingoeca_pyxidium", "Mus_musculus", "LA4116")
 alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
-                   "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Strassert2021/02_trimAL_Divvier_filtered_genes_only/",
+                   "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Whelan2017/genes/",
                    "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
                    "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
 tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                      "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
-                     "Strassert2021" = c("PHI", "maxchi"),
+                     "Whelan2017" = c("PHI", "maxchi", "geneconv"),
                      "1KP" = c("PHI", "maxchi"))
 
-datasets_to_identify_distinct_edges <- c()
+datasets_to_identify_distinct_edges <- c("Whelan2015")
 
 
 ##### Step 3: Source function files and prepare variables for analysis #####
@@ -156,8 +156,8 @@ if (dir.exists(paste0(node_output_dir, "plots/")) == FALSE){
 
 #### Create new columns to facilitate plotting ####
 # Create a new factored dataset columns for nice plotting
-node_df$dataset_fac <- factor(node_df$dataset, levels = c("Vanderpool2020", "Pease2016", "Strassert2021", "1KP"), 
-                              labels = c("Vanderpool et al. (2020)", "Pease et al. (2016)", "Strassert et al. (2020)", "1000 Plants"), 
+node_df$dataset_fac <- factor(node_df$dataset, levels = c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP"), 
+                              labels = c("Primates", "Tomatoes", "Metazoa", "Plants"), 
                               ordered = TRUE)
 node_df$edge_type_fac <- factor(node_df$edge_type, levels = c("Congruent", "Conflicting"), ordered = TRUE)
 node_df$test_fac <- factor(node_df$test, levels = c("PHI", "maxchi", "geneconv", "allTests"), labels = c("PHI", "MaxChi", "GENECONV", "All tests"), ordered = TRUE)
@@ -244,7 +244,7 @@ ggsave(filename = paste0(node_output_dir, "plots/ShallowDatasets_IQTree_branchLe
 
 #### Plot the deep datasets ####
 # Separate out the two shallow datasets
-deep_df <- node_df[(node_df$dataset == "Strassert2021" | node_df$dataset == "1KP"),]
+deep_df <- node_df[(node_df$dataset == "Whelan2017" | node_df$dataset == "1KP"),]
 
 # Separate into ASTRAL and IQ-Tree data frames
 pp_df <- deep_df[(deep_df$support_value_type == "PP"),]
@@ -280,8 +280,8 @@ ggsave(filename = paste0(node_output_dir, "plots/DeepDatasets_ASTRAL_branchLengt
 
 #### For whole dataset ####
 node_df2 <- node_df
-node_df2$dataset_fac <- factor(node_df2$dataset, levels = c("Vanderpool2020", "Pease2016", "Strassert2021", "1KP"), 
-                              labels = c("Vanderpool2020", "Pease2016", "Strassert2020", "1000 Plants"), 
+node_df2$dataset_fac <- factor(node_df2$dataset, levels = c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP"), 
+                              labels = c("Primates", "Tomatoes", "Metazoa", "Plants"), 
                               ordered = TRUE)
 
 pp_df <- node_df2[(node_df2$support_value_type == "PP"),]
