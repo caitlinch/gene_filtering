@@ -12,7 +12,7 @@ print("Set filepaths")
 # datasets            <- set name(s) for the dataset(s)
 
 # Folders and filepaths
-maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
+maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/" # where the empirical treelikeness code is
 plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
 species_tree_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
 treelikeness_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/02_1KP_Pease2016_Strassert2021_Vanderpool2020_collated_RecombinationDetection_TrimmedLoci.csv"

@@ -64,7 +64,7 @@ if (run_location == "local"){
                  "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
   best_model_paths <- c(NA, NA, NA, NA)
   output_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/")
-  maindir <- "/Users/caitlincherryh/Documents/Repositories/empirical_treelikeness/" # where the empirical treelikeness code is
+  maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/" # where the empirical treelikeness code is
   
   exec_folder <- "/Users/caitlincherryh/Documents/Executables/"
   # Create a vector with all of the executable file paths  in this order: PHIPack, GeneConv, IQ-Tree
