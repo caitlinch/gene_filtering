@@ -115,6 +115,8 @@ for (dataset in datasets_to_identify_distinct_edges){
           # Make the full filepaths for each of the three trees (test pass, test fail, and no test)
           none_tree_file <- paste0(dataset_tree_dir, grep("NoTest", raxml_trees, value = TRUE))
           pass_tree_file <- paste0(dataset_tree_dir, grep("pass", test_trees, value = TRUE))
+          print(Ntip(read.tree(none_tree_file)))
+          print(Ntip(read.tree(pass_tree_file)))
         } else {
           # Get the list of trees estimated in IQ-Tree for this dataset
           test_trees <- grep(test, all_files, value = TRUE)
@@ -136,6 +138,8 @@ for (dataset in datasets_to_identify_distinct_edges){
       astral_trees <- grep(".tre", grep(".ASTRAL", test_trees, value = TRUE), value = TRUE)
       pass_tree_file <- paste0(dataset_tree_dir, grep("pass", astral_trees, value = TRUE))
       none_tree_file <- paste0(dataset_tree_dir, grep("NoTest", grep(".tre", grep(".ASTRAL", all_files, value = TRUE), value = TRUE), value = TRUE))
+      print(Ntip(read.tree(none_tree_file)))
+      print(Ntip(read.tree(pass_tree_file)))
       # Create dataframes
       # Want to collect the information about splits present in one tree but not the other (i.e. in T_all,pass vs T_None)
       test_df_pass_astral <- compare.distinct.edges.of.two.trees(tree_file_1 = pass_tree_file, tree_file_2 = none_tree_file, tree1_name = "Pass", 
@@ -165,8 +169,8 @@ for (dataset in datasets_to_identify_distinct_edges){
 node_df_filename <- paste0(node_output_dir, "Collated_ExtractDistinctEdges.csv")
 if (file.exists(node_df_filename) == FALSE){
   all_csvs <- list.files(node_output_dir)
+  all_csvs <- grep("\\.csv", all_csvs, value = TRUE)
   all_csvs <- grep("Collated", all_csvs, value = TRUE, invert = TRUE)
-  all_csvs <- grep("plots", all_csvs, value = TRUE, invert = TRUE)
   all_csvs <- paste0(node_output_dir, all_csvs)
   all_csv_dfs <- lapply(all_csvs, read.csv)
   node_df <- as.data.frame(do.call(rbind, all_csv_dfs))
