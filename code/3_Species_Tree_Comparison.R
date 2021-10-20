@@ -301,7 +301,7 @@ if (length(all_gof_results) > 0){
   gof_results_list <- lapply(all_gof_results, read.csv)
   gof_results_df <- do.call(rbind, gof_results_list)
   # Output compiled csv
-  gof_results_df_name <- paste0(output_dir, "03_collated_ComparisonTrees_QuarNetGoF_test_results.csv")
+  gof_results_df_name <- paste0(output_dir, "03_AllDatasets_collated_ComparisonTrees_QuarNetGoF_test_results.csv")
   write.csv(gof_results_df, file = gof_results_df_name, row.names = FALSE)
 }
 
@@ -476,7 +476,7 @@ if (length(all_au_results) > 0){
   au_results_list <- lapply(all_au_results, read.csv)
   au_results_df <- do.call(rbind, au_results_list)
   # Output compiled csv
-  au_results_df_name <- paste0(output_dir, "03_collated_ComparisonTrees_AU_test_results.csv")
+  au_results_df_name <- paste0(output_dir, "03_AllDatasets_collated_ComparisonTrees_AU_test_results.csv")
   write.csv(au_results_df, file = au_results_df_name, row.names = FALSE)
 }
 
@@ -496,7 +496,7 @@ if (length(all_rf_results) > 0){
   rf_results_list <- lapply(all_rf_results, read.csv)
   rf_results_df <- do.call(rbind, rf_results_list)
   # Output compiled csv
-  rf_results_df_name <- paste0(output_dir, "03_collated_RF_wRF_distances_results.csv")
+  rf_results_df_name <- paste0(output_dir, "03_AllDatasets_collated_RF_wRF_distances_results.csv")
   write.csv(rf_results_df, file = rf_results_df_name, row.names = FALSE)
 }
 
