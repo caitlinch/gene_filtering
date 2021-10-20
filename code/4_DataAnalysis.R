@@ -115,8 +115,6 @@ for (dataset in datasets_to_identify_distinct_edges){
           # Make the full filepaths for each of the three trees (test pass, test fail, and no test)
           none_tree_file <- paste0(dataset_tree_dir, grep("NoTest", raxml_trees, value = TRUE))
           pass_tree_file <- paste0(dataset_tree_dir, grep("pass", test_trees, value = TRUE))
-          print(Ntip(read.tree(none_tree_file)))
-          print(Ntip(read.tree(pass_tree_file)))
         } else {
           # Get the list of trees estimated in IQ-Tree for this dataset
           test_trees <- grep(test, all_files, value = TRUE)
