@@ -721,15 +721,28 @@ assign.node.label <- function(element, tree) {
 
 # Function that creates an extended edge dataframe for a tree that includes the node labels
 extend.edge.table <- function(tree){
-  node_labels_in_edge <- tree$node.label[tree$edge[,1]-Ntip(tree)]
   tips_nodes <- tree$edge[,2]
-  edge_table <- data.frame(
-    "parent_node" = tree$edge[,1],
-    "parent_node_label" = sapply(tree$edge[,1], assign.node.label, tree = tree),
-    "child_node" = tree$edge[,2],
-    "child_node_label" = sapply(tree$edge[,2], assign.node.label, tree = tree),
-    "edge_length" = tree$edge.length
-  )
+  # If there are no node labels, return NA for support label for each branch
+  if (is.null(tree$node.label) == TRUE){
+    node_labels_in_edge <- rep(NA, length(tree$edge[,1]))
+    edge_table <- data.frame(
+      "parent_node" = tree$edge[,1],
+      "parent_node_label" = NA,
+      "child_node" = tree$edge[,2],
+      "child_node_label" = NA,
+      "edge_length" = tree$edge.length
+    )
+  } else {
+    # Return the support labels, edge lengths and nodes for each branch
+    node_labels_in_edge <- tree$node.label[tree$edge[,1]-Ntip(tree)]
+    edge_table <- data.frame(
+      "parent_node" = tree$edge[,1],
+      "parent_node_label" = sapply(tree$edge[,1], assign.node.label, tree = tree),
+      "child_node" = tree$edge[,2],
+      "child_node_label" = sapply(tree$edge[,2], assign.node.label, tree = tree),
+      "edge_length" = tree$edge.length
+    )
+  }
   return(edge_table)
 }
 
@@ -777,7 +790,6 @@ check.single.edge <- function(edge, table){
   # Exclude the edge of interest
   edge_rownum <- which(connections$parent_node == edge_parent_node & connections$child_node == edge_child_node)
   row <- connections[edge_rownum,]
-  print(row)
   other_edges <- setdiff(1:nrow(connections), edge_rownum)
   connections <- connections[other_edges,]
   # Determine if this is a branch to keep
