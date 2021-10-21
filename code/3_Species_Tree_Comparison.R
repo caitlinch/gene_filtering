@@ -488,6 +488,7 @@ if (length(all_au_results) > 0){
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_rf_results <- grep("tree_RF_distances.csv", all_output_files, value = TRUE)
 all_rf_results <- grep("collated", all_rf_results, value = TRUE, invert = TRUE)
+all_rf_results <- all_rf_results[grepl(paste(input_names, collapse = "|"), all_rf_results)]
 if (length(all_rf_results) > 0){
   print("Collating RF/wRF distance results")
   # Attach directory name to file names
