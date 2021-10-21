@@ -164,7 +164,7 @@ for (dataset in datasets_to_identify_distinct_edges){
 
 
 # Collate all dataframes
-node_df_filename <- paste0(node_output_dir, "AllDatasets_Collated_ExtractDistinctEdges.csv")
+node_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges.csv")
 if (file.exists(node_df_filename) == FALSE){
   all_csvs <- list.files(node_output_dir)
   all_csvs <- grep("\\.csv", all_csvs, value = TRUE)
