@@ -93,7 +93,6 @@ write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fai
              "# One tree estimated with all the data, one tree estimated with the 'good' data and one with the 'bad' data",
              "# Open packages",
              "using PhyloNetworks",
-             "using PhyloPlots",
              "using QuartetNetworkGoodnessFit",
              "using DataFrames, CSV",
              "",
