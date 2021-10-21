@@ -148,7 +148,7 @@ for (dataset in compare_ASTRAL_trees){
     # Name the files
     noTest_tree_file <- grep("NoTest", grep("tre", files, value = TRUE), value = TRUE)
     pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
-    if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
+    if (dataset == "Vanderpool2020" | dataset == "Pease2016" |(dataset == "Whelan2017" & test == "geneconv")){
       # Only collect fail tree for Vanderpool2020 and Pease2016 datasets
       # The fail trees for the other two datasets contained too few loci (due to tests not working for loci with few variable sites)
       fail_tree_file <- grep("fail", grep("tre", files, value = TRUE), value = TRUE)
