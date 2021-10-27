@@ -20,10 +20,8 @@ print("set filepaths")
 # test_data_dir     <- Location of the results from the AU test and QuartetNetwork Goodness of Fit tests
 # output_dir        <- for saving collated output and results from treelikeness analysis.
 #
-# input_names               <- set name(s) for the dataset(s) - make sure input_names is in same order as alignment_dir and dataset_tree_roots
-#                              (e.g. for 2 datasets, put same dataset first and same dataset last for each variable)
+# input_names               <- set name(s) for the dataset(s)
 # dataset_tree_roots        <- set which taxa is outgroup for each dataset
-# alignment_dir             <- the folder(s) containing the alignments for each loci
 # tests_to_run              <- a list, with a vector for each dataset specifying which of the recombination detection methods should be tested 
 #                              Options: "allTests", "PHI", "maxchi" and "geneconv"
 # plotting                  <- whether to plot figures (TRUE = yes, FALSE = no)
@@ -34,11 +32,8 @@ test_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_da
 output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
 
 input_names <- c("1KP", "Whelan2017","Vanderpool2020", "Pease2016")
-dataset_tree_roots <- c("BAJW", "Salpingoeca_pyxidium", "Mus_musculus", "LA4116")
-alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
-                   "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Whelan2017/genes/",
-                   "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
-                   "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
+dataset_tree_roots <- c("1KP"="BAJW", "Whelan2017"="Salpingoeca_pyxidium", "Vanderpool2020"="Mus_musculus", "Pease2016"="LA4116")
+
 tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                      "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
                      "Whelan2017" = c("PHI", "maxchi", "geneconv"),
@@ -48,14 +43,12 @@ datasets_to_identify_distinct_edges <- c()
 plotting = TRUE
 
 
+
+
 ##### Step 3: Source function files and prepare variables for analysis #####
 print("Source function files")
 source(paste0(maindir, "code/func_analysis.R"))
 
-print("Prepare variables for indexing")
-# Name vectors for tree roots and alignment locations so they can be accessed via index
-names(dataset_tree_roots) <- input_names
-names(alignment_dir) <- input_names
 
 
 
@@ -394,6 +387,7 @@ if (plotting == TRUE){
   ggsave(filename = paste0(plot_dir, "ML_edgeLength_conflicting_branches.png"), plot = p, device = "png", units = "in", width = 8, height = 10)
 
 }
+
 
 
 
