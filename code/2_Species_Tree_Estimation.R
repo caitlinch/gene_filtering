@@ -1,24 +1,28 @@
-### empirical_treelikeness/code/2_TreeEstimation_EmpiricalData.R
-## R program to estimate trees from treelike or non-treelike loci
-## Additional software packages are required:
-##     - ASTRAL (Zhang et al 2019) (https://github.com/smirarab/ASTRAL)
-##     - IQTREE (Nguyen et al 2015) (http://www.iqtree.org/) (version 2.0 or later)
+### gene_filtering/code/2_Species_Tree_Estimation.R
+## R program to estimate trees from recombinant or non-recombinant loci
 # Caitlin Cherryh 2021
+
+## Additional software packages are required:
+##     - ASTRAL (Zhang et. al. 2019) (https://github.com/smirarab/ASTRAL)
+##     - IQTREE2 (Minh et. al. 2020) (http://www.iqtree.org/)
+##     - RAxML-ng (Kozlov et. al. 2019) (https://github.com/amkozlov/raxml-ng)
 
 ##### Step 1: Set file paths and run variables #####
 # input_names       <- set name(s) for the dataset(s) - make sure input_names is in same order as alignment_dir 
 #                      (e.g. for 2 datasets, put same dataset first and same dataset last)
-# alignment_dir     <- the folder(s) containing the alignments for each loci
-# csv_data_dir      <- directory containing the .csv file results from script 1_RecombinationDetection_empiricalTreelikeness.R
+# alignment_dir     <- the folder(s) containing the alignments for each loci (should be vector with same length as input_names, with directories in same order as for input_names)
+# csv_data_dir      <- directory containing the .csv file results from script 1_RecombinationDetection.R
 # output_dir        <- where the coalescent/concatenated trees and tree comparisons will be stored 
-# maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+# maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/gene_filtering)
 # exec_paths        <- location to the software executables needed for analysis (ASTRAL and IQTREE)
 # datasets_to_copy_loci_ASTRAL_IQTREE <- Out of the input names, select which datasets to copy loci trees for tree estimation in ASTRAL or IQ-Tree
 # datasets_to_copy_loci_RAxML <- Out of the input names, select which datasets to copy loci trees for tree estimation in RAxML-NG
 # datasets_to_estimate_ASTRAL_trees <- Out of the input names, select which datasets to estimate species trees in ASTRAL based on recombination results
 # datasets_to_estimate_IQTREE_trees <- Out of the input names, select which datasets to estimate species trees in IQ-Tree based on recombination results
 # datasets_to_estimate_RAxML_trees <- Out of the input names, select which datasets to estimate species trees in IQ-Tree based on recombination results
-# partition.by.codon.position <- Whether to run analysis partitioning by codon position
+# dataset_tests_to_run <- list of tests to apply to each dataset (only apply categories that contain 50 or more loci)
+# dataset_trees_to_estimate <- list of trees to estimate for each dataset (only estimate trees that contain 50 or more loci)
+# partition.by.codon.position <- whether to run analysis partitioning by codon position
 #                             <- set TRUE if you want to estimate species trees partitioning by codon position, and FALSE if you don't
 #                             <- codon position simply counts every third base starting from 1st, 2nd, or 3rd base, and does not account for frame shift
 # use.modelfinder.models.for.partitions <- can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. 
@@ -35,21 +39,33 @@
 # # To run this program: 
 # # 1. Delete the lines below that include Caitlin's paths/variables
 # # 2. Uncomment lines 25 to 43 inclusive and fill with your own variable names
-# input_names <- ""
+# input_names <- c( "1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
 # alignment_dir <- ""
 # csv_data_dir <- ""
 # output_dir <- ""
-# maindir <- ""
+# maindir <- "/path/to/gene_filtering/"
 # # Create a vector with all of the executable file paths:
 # # exec_paths <- c("/path/to/ASTRAL_executable","/path/to/IQ-Tree_executable")
 # # names(exec_paths) <- c("ASTRAL","IQTree")
 # # To access a path: exec_paths[["name"]]
 # exec_paths <- c()
 # names(exec_paths) <- c("ASTRAL","IQTree")
-# datasets_to_copy_loci_ASTRAL_IQTREE <-  c()
-# datasets_to_copy_loci_RAxML <- c()
-# datasets_to_estimate_ASTRAL_trees <- c()
-# datasets_to_estimate_IQTREE_trees <- c()
+# datasets_to_copy_loci_ASTRAL_IQTREE <-  c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
+# datasets_to_copy_loci_RAxML <- c("1KP")
+# datasets_to_estimate_ASTRAL_trees <- c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
+# datasets_to_estimate_IQTREE_trees <- c("Whelan2017", "Vanderpool2020", "Pease2016")
+# datasets_to_estimate_RAxML_trees <- c("1KP")
+# dataset_tests_to_run <- list("1KP" = c("PHI", "maxchi"),
+#                              "Whelan2017" = c("PHI", "maxchi", "geneconv"),
+#                              "Vanderpool2020" = c("PHI", "maxchi", "geneconv", "all"),
+#                              "Pease2016" = c("PHI", "maxchi", "geneconv", "all"))
+# # List of trees to estimate for each dataset
+# dataset_trees_to_estimate <- list("1KP" = c("PHI,pass", "maxchi,pass"),
+#                                   "Whelan2017" = c("PHI", "maxchi", "geneconv,pass", "geneconv,fail"),
+#                                   "Vanderpool2020" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
+#                                                        "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"),
+#                                   "Pease2016" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
+#                                                   "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"))
 # partition.by.codon.position <- FALSE
 # use.modelfinder.models.for.partitions <- TRUE
 # use.free.rate.models.for.deep.datasets <- TRUE
@@ -81,14 +97,26 @@ if (run_location == "local"){
   cores.to.use = 1
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci_ASTRAL_IQTREE <-  c("Whelan2017")
-  datasets_to_copy_loci_RAxML <- c()
-  datasets_to_estimate_ASTRAL_trees <- c("Whelan2017")
-  datasets_to_estimate_IQTREE_trees <- c("Whelan2017")
-  datasets_to_estimate_RAxML_trees <- c()
+  datasets_to_copy_loci_ASTRAL_IQTREE <-  c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
+  datasets_to_copy_loci_RAxML <- c("1KP")
+  datasets_to_estimate_ASTRAL_trees <- c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
+  datasets_to_estimate_IQTREE_trees <- c("Whelan2017", "Vanderpool2020", "Pease2016")
+  datasets_to_estimate_RAxML_trees <- c("1KP")
+  # List of tests to run for each dataset
+  dataset_tests_to_run <- list("1KP" = c("PHI", "maxchi"),
+                               "Whelan2017" = c("PHI", "maxchi", "geneconv"),
+                               "Vanderpool2020" = c("PHI", "maxchi", "geneconv", "all"),
+                               "Pease2016" = c("PHI", "maxchi", "geneconv", "all"))
+  # List of trees to estimate for each dataset
+  dataset_trees_to_estimate <- list("1KP" = c("PHI,pass", "maxchi,pass"),
+                                    "Whelan2017" = c("PHI", "maxchi", "geneconv,pass", "geneconv,fail"),
+                                    "Vanderpool2020" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
+                                                         "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"),
+                                    "Pease2016" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
+                                                    "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"))
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use substitution models from the gene trees
-  use.free.rate.models.for.deep.datasets = TRUE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
+  use.free.rate.models.for.deep.datasets = FALSE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
   
 } else if (run_location=="server"){
   # Datasets/dataset information
@@ -114,14 +142,26 @@ if (run_location == "local"){
   cores.to.use = 45
   
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci_ASTRAL_IQTREE <-  c()
-  datasets_to_copy_loci_RAxML <- c()
-  datasets_to_estimate_ASTRAL_trees <- c()
-  datasets_to_estimate_IQTREE_trees <- c()
-  datasets_to_estimate_RAxML_trees <- c()
+  datasets_to_copy_loci_ASTRAL_IQTREE <-  c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
+  datasets_to_copy_loci_RAxML <- c("1KP")
+  datasets_to_estimate_ASTRAL_trees <- c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
+  datasets_to_estimate_IQTREE_trees <- c("Whelan2017", "Vanderpool2020", "Pease2016")
+  datasets_to_estimate_RAxML_trees <- c("1KP")
+  # List of tests to run for each dataset
+  dataset_tests_to_run <- list("1KP" = c("PHI", "maxchi"),
+                               "Whelan2017" = c("PHI", "maxchi", "geneconv"),
+                               "Vanderpool2020" = c("PHI", "maxchi", "geneconv", "all"),
+                               "Pease2016" = c("PHI", "maxchi", "geneconv", "all"))
+  # List of trees to estimate for each dataset
+  dataset_trees_to_estimate <- list("1KP" = c("PHI,pass", "maxchi,pass"),
+                                    "Whelan2017" = c("PHI", "maxchi", "geneconv,pass", "geneconv,fail"),
+                                    "Vanderpool2020" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
+                                                         "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"),
+                                    "Pease2016" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
+                                                    "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"))
   partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use partition file with substitution models specified
-  use.free.rate.models.for.deep.datasets = TRUE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
+  use.free.rate.models.for.deep.datasets = FALSE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
 }
 ### End of Caitlin's paths ###
 
@@ -155,6 +195,7 @@ for (d in output_dirs){
 }
 
 
+
 ##### Step 4: Assemble the dataframe of gene recombination results #####
 # This section:
 #   1. Takes in the recombination detection results from file 1. 
@@ -164,9 +205,9 @@ for (d in output_dirs){
 
 if (length(input_names) > 0){
   # Check whether a collated, trimmed recombination detection results file exists
-  trimmed_gene_result_df_file <- paste0(csv_data_dir, "02_AllDatasets_collated_RecombinationDetection_TrimmedLoci.csv")
-  pass_df_file <- paste0(csv_data_dir, "02_AllDatasets_RecombinationDetection_PassFail_record.csv")
-  collated_exclude_file <- paste0(csv_data_dir, "01_AllDatasets_IQ-Tree_warnings_LociToExclude.csv")
+  trimmed_gene_result_df_file <- paste0(csv_data_dir, "02_AllDatasets_collated_RecombinationDetection_TrimmedLoci.csv", stringsAsFactors = FALSE)
+  pass_df_file <- paste0(csv_data_dir, "02_AllDatasets_RecombinationDetection_PassFail_record.csv", stringsAsFactors = FALSE)
+  collated_exclude_file <- paste0(csv_data_dir, "01_AllDatasets_IQ-Tree_warnings_LociToExclude.csv", stringsAsFactors = FALSE)
   
   if (file.exists(trimmed_gene_result_df_file) & file.exists(pass_df_file)){
     gene_result_df <- read.csv(trimmed_gene_result_df_file, stringsAsFactors = TRUE)
@@ -275,8 +316,6 @@ if (length(input_names) > 0){
 
 ### Save the loci trees (for ASTRAL) and the loci alignment (for IQ-Tree)
 for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
-  # Create a row to store information about all the different variables
-  summary_row <- c(dataset)
   # Create new folders to put these tree files/loci files and records in
   category_output_folder <- paste0(output_dirs[dataset], "species_trees/")
   if (dir.exists(category_output_folder) == FALSE){
@@ -292,110 +331,130 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
   
   ### Apply a single recombination detection test ###
   ## Iterate through each var and save the loci/trees for a tree made from only loci that pass the test
-  # Make a list of the variables on which to filter the loci
-  # vars values are columns from the gene_result_df
-  vars <- c("pass_phi", "pass_maxchi", "pass_geneconv")
-  # Assign output names for each of the variables in vars
-  vars_names <- c("PHI", "maxchi", "geneconv")
-  names(vars_names) <- vars
+  # Make a list of the three tests for recombination (used to index columns in gene_result_df)
+  vars <- c("PHI" = "pass_phi", "maxchi" = "pass_maxchi", "geneconv" = "pass_geneconv")
+  
+  # Get list of vars to run and trees to estimate for this dataset
+  dataset_vars <- vars[which(names(vars) %in% dataset_tests_to_run[[dataset]])]
+  dataset_var_trees <- dataset_trees_to_estimate[[dataset]]
+  
   # Iterate through each var: 
-  for (v in vars){
+  for (v in dataset_vars){
     # Make a tree for all the loci that pass the test and all the loci that fail the test
     tree_type <- c("pass", "fail")
     for (tt in tree_type){
-      print(paste0(dataset, " : ", vars_names[v], " : ", tt))
-      # Set boolean to collect either loci that passed or failed the test
-      if (tt == "pass"){
-        bool = TRUE
-      } else if (tt == "fail"){
-        bool = FALSE
+      print(paste0(dataset, " : ", names(dataset_vars)[which(dataset_vars == v)], " : ", tt))
+      
+      # Check whether tree is in list to estimate 
+      v_tt <- paste0(names(v),",",tt)
+      run_check <- "PHI,pass" %in% dataset_var_trees
+      
+      # If run_check = TRUE, this tree is in the list to estimate.
+      # Collect the loci to estimate this tree 
+      if (run_check == TRUE){
+        # Set boolean to collect either loci that passed or failed the test
+        if (tt == "pass"){
+          bool = TRUE
+        } else if (tt == "fail"){
+          bool = FALSE
+        }
+        
+        # Get short version of name for output files
+        v_name <- names(dataset_vars)[which(dataset_vars == v)]
+        # Make names for output files
+        v_text_name <- paste0(text_records_dir, dataset, "_", v_name, "_", tt, "_loci_record.txt")
+        v_ASTRAL_name <- paste0(dataset,"_",v_name,"_", tt, "_ASTRAL")
+        if (partition.by.codon.position == TRUE){
+          v_IQTree_name <- paste0(dataset,"_",v_name, "_", tt, "_IQTREE_partitioned")
+        } else if (partition.by.codon.position == FALSE){
+          v_IQTree_name <- paste0(dataset,"_",v_name, "_", tt, "_IQTREE") 
+        }
+        
+        # Remove any loci that have an NA result for this test
+        na_test_inds <- which(is.na(dataset_df[[v]]))
+        dataset_inds <- 1:nrow(dataset_df)
+        keep_inds <- setdiff(dataset_inds, na_test_inds)
+        v_df <- dataset_df[keep_inds,]
+        
+        # Break up dataframe into only loci that pass the test
+        v_inds <- which(dataset_df[,c(v)] == bool)
+        # Use the indexes to subset the dataframe to just loci that pass the test 
+        # (i.e. have a non significant p-value, meaning the null hypothesis of non-recombination/treelikeness cannot be rejected)
+        v_df <- dataset_df[v_inds,]
+        
+        # If there are more than 50 loci (50+ rows in v_df), prepare the files to run this analysis
+        if (nrow(v_df) >= 50){
+          # Copy trees of all loci that pass the test into one file that can be fed into ASTRAL
+          copy.loci.trees(v_df$loci_name, v_df$tree, category_output_folder, v_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
+          # If running IQ-Tree analysis, copy all loci into a separate folder that can be fed into IQ-Tree
+          # create the partition file required to run this IQ-Tree analysis
+          partition.file.from.loci.list(loci_list = v_df$loci_name, directory = paste0(category_output_folder, v_IQTree_name, "/"),
+                                        original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
+                                        substitution_models = v_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
+        } else {
+          print(paste0("ERROR: less than fifty loci in this category."))
+          print(paste0("CATEGORY: Dataset = " ,dataset, ". Test = ", names(dataset_vars)[which(dataset_vars == v)], ". Pass/fail = ", tt))
+          print("CATEGORY NOT PREPARED FOR TREE ESTIMATION")
+        }
+        
+        # Create a record of which loci went into which analysis
+        output_text <- v_df$loci_name
+        write(output_text, file = v_text_name)
       }
-      
-      # Get short version of name for output files
-      v_name <- vars_names[v]
-      # Make names for output files
-      v_text_name <- paste0(text_records_dir, dataset, "_", v_name, "_", tt, "_loci_record.txt")
-      v_ASTRAL_name <- paste0(dataset,"_",v_name,"_", tt, "_ASTRAL")
-      if (partition.by.codon.position == TRUE){
-        v_IQTree_name <- paste0(dataset,"_",v_name, "_", tt, "_IQTREE_partitioned")
-      } else if (partition.by.codon.position == FALSE){
-        v_IQTree_name <- paste0(dataset,"_",v_name, "_", tt, "_IQTREE") 
-      }
-      
-      # Remove any loci that have an NA result for this test
-      na_test_inds <- which(is.na(dataset_df[[v]]))
-      dataset_inds <- 1:nrow(dataset_df)
-      keep_inds <- setdiff(dataset_inds, na_test_inds)
-      v_df <- dataset_df[keep_inds,]
-      
-      # Break up dataframe into only loci that pass the test
-      v_inds <- which(dataset_df[,c(v)] == bool)
-      # Use the indexes to subset the dataframe to just loci that pass the test 
-      # (i.e. have a non significant p-value, meaning the null hypothesis of non-recombination/treelikeness cannot be rejected)
-      v_df <- dataset_df[v_inds,]
-      
-      # If there are more than 50 loci (50+ rows in v_df), prepare the files to run this analysis
-      if (nrow(v_df) >= 50){
-        # Copy trees of all loci that pass the test into one file that can be fed into ASTRAL
-        copy.loci.trees(v_df$loci_name, v_df$tree, category_output_folder, v_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
-        # If running IQ-Tree analysis, copy all loci into a separate folder that can be fed into IQ-Tree
-        # create the partition file required to run this IQ-Tree analysis
-        partition.file.from.loci.list(loci_list = v_df$loci_name, directory = paste0(category_output_folder, v_IQTree_name, "/"),
-                                      original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
-                                      substitution_models = v_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
-      }
-      
-      # Create a record of which loci went into which analysis
-      output_text <- v_df$loci_name
-      write(output_text, file = v_text_name)
-      # Add the number of loci in this category to the summary row
-      summary_row <- c(summary_row, length(v_df$loci_name))
     }
   }
   
   ### Apply all three tests - get loci that pass all, and those that fail any ###
   # Make a tree for all the loci that pass all tests and all the loci that fail one or more test
-  tree_type <- c("pass", "fail")
-  for (tt in tree_type){
-    print(paste0(dataset, " : all tests : ", tt))
-    
-    # Create output names
-    all_text_name <- paste0(text_records_dir, dataset, "_allTests_",tt ,"_loci_record.txt")
-    all_ASTRAL_name <- paste0(dataset,"_allTests_", tt, "_ASTRAL")
-    if (partition.by.codon.position == TRUE){
-      all_IQTree_name <- paste0(dataset,"_allTests_", tt, "_IQTREE_partitioned")
-    } else if (partition.by.codon.position == FALSE){
-      all_IQTree_name <- paste0(dataset,"_allTests_", tt, "_IQTREE") 
+  if ("all,fail" %in% dataset_var_trees | "all,pass" %in% dataset_var_trees){
+    # Collect the trees from the "all" test to estimate
+    all_vars <- grep("all", dataset_var_trees, value = TRUE)
+    # Iterate through each of the "all" tests in the dataset_var_trees vector (may be "all,pass", "all,fail", or both)
+    for (all_var in all_vars){
+      # Assign test type (tt) as "pass" or "fail" to match the current all_var
+      if (all_var == "all,pass"){
+        tt = "pass"
+      } else if (all_var == "all,fail"){
+        tt = fail
+      }
+      print(paste0(dataset, " : all tests : ", tt))
+      
+      # Create output names
+      all_text_name <- paste0(text_records_dir, dataset, "_allTests_",tt ,"_loci_record.txt")
+      all_ASTRAL_name <- paste0(dataset,"_allTests_", tt, "_ASTRAL")
+      if (partition.by.codon.position == TRUE){
+        all_IQTree_name <- paste0(dataset,"_allTests_", tt, "_IQTREE_partitioned")
+      } else if (partition.by.codon.position == FALSE){
+        all_IQTree_name <- paste0(dataset,"_allTests_", tt, "_IQTREE") 
+      }
+      
+      ## Subset the dataframe_df to loci that pass all three tests and those that fail one or more test
+      allTest_df <- dataset_df
+      # Select loci that pass/fail all three tests
+      pass_inds <- which((allTest_df$pass_phi == TRUE) & (allTest_df$pass_maxchi == TRUE) & (allTest_df$pass_geneconv == TRUE))
+      # setdiff(x,y) = elements in x but not in y
+      fail_inds <- setdiff(1:nrow(allTest_df), pass_inds)
+      # Subset the dataframe
+      if (tt == "pass"){
+        all_df <- allTest_df[pass_inds, ]
+      } else if (tt == "fail"){
+        all_df <- allTest_df[fail_inds, ] 
+      }
+      
+      # If there are more than 50 loci (50+ rows in all_df), prepare the files to run this analysis
+      if (nrow(all_df) >= 50){
+        # Copy loci trees for ASTRAL
+        copy.loci.trees(all_df$loci_name, all_df$tree, category_output_folder, all_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
+        # Create the partition file required to run this IQ-Tree analysis
+        partition.file.from.loci.list(loci_list = all_df$loci_name, directory = paste0(category_output_folder, all_IQTree_name, "/"),
+                                      original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
+                                      substitution_models = all_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
+      }
+      
+      # Create a record of which loci went into which analysis
+      output_text <- all_df$loci_name
+      write(output_text, file = all_text_name)
     }
-    
-    ## Subset the dataframe_df to loci that pass all three tests and those that fail one or more test
-    allTest_df <- dataset_df
-    # Select loci that pass/fail all three tests
-    pass_inds <- which((allTest_df$pass_phi == TRUE) & (allTest_df$pass_maxchi == TRUE) & (allTest_df$pass_geneconv == TRUE))
-    # setdiff(x,y) = elements in x but not in y
-    fail_inds <- setdiff(1:nrow(allTest_df), pass_inds)
-    # Subset the dataframe
-    if (tt == "pass"){
-      all_df <- allTest_df[pass_inds, ]
-    } else if (tt == "fail"){
-      all_df <- allTest_df[fail_inds, ] 
-    }
-    
-    # If there are more than 50 loci (50+ rows in all_df), prepare the files to run this analysis
-    if (nrow(all_df) >= 50){
-      # Copy loci trees for ASTRAL
-      copy.loci.trees(all_df$loci_name, all_df$tree, category_output_folder, all_ASTRAL_name, copy.all.individually = FALSE, copy.and.collate = TRUE)
-      # Create the partition file required to run this IQ-Tree analysis
-      partition.file.from.loci.list(loci_list = all_df$loci_name, directory = paste0(category_output_folder, all_IQTree_name, "/"),
-                                    original_alignment_folder = alignment_dir[[dataset]], add.charpartition.models = TRUE,
-                                    substitution_models = all_df$ModelFinder_model, add.codon.positions = partition.by.codon.position)
-    }
-    
-    # Create a record of which loci went into which analysis
-    output_text <- all_df$loci_name
-    write(output_text, file = all_text_name)
-    # Add the number of loci in this category to the summary row
-    summary_row <- c(summary_row, length(all_df$loci_name))
   }
   
   ### Apply no tests ###
@@ -422,27 +481,35 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
   ### Create a record of which loci went into which analysis ###
   output_text <- dataset_df$loci_name
   write(output_text, file = NoTest_text_name)
-  # Add the number of loci in this category to the summary row
-  summary_row <- c(summary_row, length(dataset_df$loci_name))
   
   # Expand the summary row to identify the number of loci that pass or fail the same tests
+  n_total <- nrow(dataset_df)
+  n_pass_PHI <- nrow(dataset_df[(dataset_df$pass_phi == TRUE),])
+  n_fail_PHI <- nrow(dataset_df[(dataset_df$pass_phi == FALSE),])
+  n_na_PHI <- length(which(is.na(dataset_df$PHI_normal_p_value)))
+  n_pass_maxchi <- nrow(dataset_df[(dataset_df$pass_maxchi == TRUE),])
+  n_fail_maxchi <- nrow(dataset_df[(dataset_df$pass_maxchi == FALSE),])
+  n_na_maxchi <- length(which(is.na(dataset_df$max_chi_squared_p_value)))
+  n_pass_geneconv <- nrow(dataset_df[(dataset_df$pass_geneconv == TRUE),])
+  n_fail_geneconv <- nrow(dataset_df[(dataset_df$pass_geneconv == FALSE),])
+  n_na_geneconv <- length(unique(c(which(is.na(dataset_df$geneconv_outer_fragment_simulated_p_value)),
+                                   which(is.na(dataset_df$geneconv_inner_fragment_simulated_p_value))) ))
+  n_pass_all <- length(which((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE)))
+  n_fail_all <- length(setdiff(1:nrow(dataset_df), which((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE))))
   n_pass_PHI_maxchi <- nrow(dataset_df[((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE)), ])
   n_fail_PHI_maxchi <- nrow(dataset_df[((dataset_df$pass_phi == FALSE) & (dataset_df$pass_maxchi == FALSE)), ])
   n_pass_PHI_geneconv <- nrow(dataset_df[((dataset_df$pass_phi == TRUE) & (dataset_df$pass_geneconv == TRUE)), ])
   n_fail_PHI_geneconv <- nrow(dataset_df[((dataset_df$pass_phi == FALSE) & (dataset_df$pass_geneconv == FALSE)), ])
   n_pass_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE)), ])
   n_fail_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == FALSE) & (dataset_df$pass_geneconv == FALSE)), ])
-  n_na_PHI <- length(which(is.na(dataset_df$PHI_normal_p_value)))
-  n_na_maxchi <- length(which(is.na(dataset_df$max_chi_squared_p_value)))
-  n_na_geneconv <- length(unique(c(which(is.na(dataset_df$geneconv_outer_fragment_simulated_p_value)),
-                                   which(is.na(dataset_df$geneconv_inner_fragment_simulated_p_value))) ))
-  summary_row <- c(summary_row, n_pass_PHI_maxchi, n_fail_PHI_maxchi, n_pass_PHI_geneconv, n_fail_PHI_geneconv, 
-                   n_pass_maxchi_geneconv, n_fail_maxchi_geneconv, n_na_PHI, n_na_maxchi, n_na_geneconv)
+  summary_row <- c(dataset, n_all, n_pass_PHI, n_fail_PHI, n_na_PHI, n_pass_maxchi, n_fail_maxchi, n_na_maxchi, n_pass_geneconv, n_fail_geneconv, n_na_geneconv,
+                   n_pass_all, n_fail_all, n_pass_PHI_maxchi, n_fail_PHI_maxchi, n_pass_PHI_geneconv, n_fail_PHI_geneconv,
+                   n_pass_maxchi_geneconv, n_fail_maxchi_geneconv)
   
   ### Write out the summary row as a dataframe ###
-  names(summary_row) <- c("dataset", "n_pass_PHI", "n_fail_PHI", "n_pass_maxchi", "n_fail_maxchi", "n_pass_geneconv", "n_fail_geneconv",
-                          "n_pass_allTests", "n_fail_allTests", "n_NoTest", "n_pass_PHI_maxchi", "n_fail_PHI_maxchi", "n_pass_PHI_geneconv", 
-                          "n_fail_PHI_geneconv", "n_pass_maxchi_geneconv", "n_fail_maxchi_geneconv", "n_na_PHI", "n_na_maxchi", "n_na_geneconv")
+  names(summary_row) <- c("dataset", "n_total", "n_pass_PHI", "n_fail_PHI", "n_na_PHI", "n_pass_maxchi", "n_fail_maxchi", "n_na_maxchi", "n_pass_geneconv", "n_fail_geneconv", "n_na_geneconv",
+                          "n_pass_all", "n_fail_all", "n_pass_PHI_maxchi", "n_fail_PHI_maxchi", "n_pass_PHI_geneconv", "n_fail_PHI_geneconv",
+                          "n_pass_maxchi_geneconv", "n_fail_maxchi_geneconv")
   summary_df <- data.frame(as.list(summary_row))
   summary_op_file <- paste0(output_dirs[dataset], dataset, "_species_tree_summary.csv")
   write.csv(summary_df, file = summary_op_file, row.names = FALSE)
