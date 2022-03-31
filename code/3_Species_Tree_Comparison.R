@@ -196,15 +196,15 @@ for (dataset in compare_ASTRAL_trees){
       rf_csv <- paste0(new_folder, dataset, "_", test, "_ASTRAL_tree_RF_distances.csv")
       if (file.exists(rf_csv) == FALSE){
         ### Calculate the RF and wRF distances between trees
-        # Copy the test,pass tree across again and add terminal branches 
+        # Copy the test,pass tree across again and add terminal branches
         t_test_pass_file <- paste0(new_folder, dataset, "_", test, "_pass_ASTRAL_terminalBranches0.1.tre")
         file.copy(from = grep("pass", grep("\\.tre", old_files, value = TRUE), value = TRUE), to = t_test_pass_file)
         reformat.ASTRAL.tree.for.Julia(t_test_pass_file, add.arbitrary.terminal.branches = TRUE, terminal.branch.length = new.ASTRAL.terminal.branch.length)
-        # Copy the test,fail tree across again and add terminal branches 
+        # Copy the test,fail tree across again and add terminal branches
         t_test_fail_file <- paste0(new_folder, dataset, "_", test, "_fail_ASTRAL_terminalBranches0.1.tre")
         file.copy(from = grep("fail", grep("\\.tre", old_files, value = TRUE), value = TRUE), to = t_test_fail_file)
         reformat.ASTRAL.tree.for.Julia(t_test_fail_file, add.arbitrary.terminal.branches = TRUE, terminal.branch.length = new.ASTRAL.terminal.branch.length)
-        # Copy the NoTest tree across again and add terminal branches 
+        # Copy the NoTest tree across again and add terminal branches
         t_none_file <- paste0(new_folder, dataset, "_noTest_ASTRAL_terminalBranches0.1.tre")
         file.copy(from = grep("NoTest", grep("\\.tre", old_files, value = TRUE), value = TRUE), to = t_none_file)
         reformat.ASTRAL.tree.for.Julia(t_none_file, add.arbitrary.terminal.branches = TRUE, terminal.branch.length = new.ASTRAL.terminal.branch.length)
