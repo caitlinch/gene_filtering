@@ -141,13 +141,18 @@ write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fai
                     ", nsim=", number_of_simulated_replicates, ", verbose=false, keepfiles=false)"),
              "")
   # Create an output dataframe
+  if (length(tree_root) > 1){
+    tree_root_op <- paste(tree_root, collapse = ",")
+  } else {
+    tree_root_op <- tree_root
+  }
   lines <- c(lines,
              '# Create a dataframe using the variables from the three gof tests',
              paste0('df = DataFrame(dataset = ["', dataset, '", "', dataset, '", "', dataset, '"],'),
              paste0('               concordance_factors = ["', basename(gene_cf_file), '", "', basename(gene_cf_file), '", "', basename(gene_cf_file), '"],'),
              paste0('               test = ["', test_name, '", "', test_name, '", "', test_name, '"],'),
              '               tree = ["test_pass", "test_fail", "no_test"],',
-             paste0('               outgroup = ["', tree_root, '", "', tree_root, '", "', tree_root, '"],'),
+             paste0('               outgroup = ["', tree_root_op, '", "', tree_root_op, '", "', tree_root_op, '"],'),
              '               p_value_overall_GoF_test = [gof_test_pass[1], gof_test_fail[1], gof_test_all[1]],',
              '               uncorrected_z_value_test_statistic = [gof_test_pass[2], gof_test_fail[2], gof_test_all[2]],',
              '               estimated_sigma_for_test_statistic_correction = [gof_test_pass[3], gof_test_fail[3], gof_test_all[3]]',
@@ -225,13 +230,18 @@ write.Julia.GoF.script.two.trees <- function(test_name, dataset, directory, pass
                     ", nsim=", number_of_simulated_replicates, ", verbose=false, keepfiles=false)"),
              "")
   # Create an output dataframe
+  if (length(tree_root) > 1){
+    tree_root_op <- paste(tree_root, collapse = ",")
+  } else {
+    tree_root_op <- tree_root
+  }
   lines <- c(lines,
              '# Create a dataframe using the variables from the three gof tests',
              paste0('df = DataFrame(dataset = ["', dataset, '", "', dataset, '"],'),
              paste0('               concordance_factors = ["', basename(gene_cf_file), '", "', basename(gene_cf_file), '"],'),
              paste0('               test = ["', test_name,  '", "', test_name, '"],'),
              '               tree = ["test_pass", "no_test"],',
-             paste0('               outgroup = ["', tree_root, '", "', tree_root, '"],'),
+             paste0('               outgroup = ["', tree_root_op, '", "', tree_root_op, '"],'),
              '               p_value_overall_GoF_test = [gof_test_pass[1], gof_test_all[1]],',
              '               uncorrected_z_value_test_statistic = [gof_test_pass[2], gof_test_all[2]],',
              '               estimated_sigma_for_test_statistic_correction = [gof_test_pass[3], gof_test_all[3]]',
