@@ -285,26 +285,6 @@ for (dataset in compare_ASTRAL_trees){
 
 
 
-##### Collate and output ASTRAL results files #####
-# Find all QuarNetGoF_test_results.csv files (and remove the collated results file from the list of files to combine)
-all_output_files <- list.files(output_dir, recursive = TRUE)
-all_gof_results <- grep("QuarNetGoF_test_results.csv", all_output_files, value = TRUE)
-all_gof_results <- grep("collated", all_gof_results, value = TRUE, invert = TRUE)
-if (length(all_gof_results) > 0){
-  print("Collating QuarNet GoF test results")
-  # Attach directory name to file names
-  all_gof_results <- paste0(output_dir, all_gof_results)
-  # Open and collate the csv files
-  gof_results_list <- lapply(all_gof_results, read.csv)
-  gof_results_df <- do.call(rbind, gof_results_list)
-  # Output compiled csv
-  gof_results_df_name <- paste0(output_dir, "03_AllDatasets_collated_ComparisonTrees_QuarNetGoF_test_results.csv")
-  write.csv(gof_results_df, file = gof_results_df_name, row.names = FALSE)
-}
-
-
-
-
 ##### Step 5: Compare IQ-Tree trees #####
 # Iterate through each dataset
 for (dataset in compare_IQTREE_trees){
@@ -460,7 +440,27 @@ for (dataset in compare_IQTREE_trees){
 
 
 
-##### Collate and output IQ-Tree results files #####
+
+
+##### Step 6: Collate csv files #####
+## Collate and output ASTRAL results files ##
+# Find all QuarNetGoF_test_results.csv files (and remove the collated results file from the list of files to combine)
+all_output_files <- list.files(output_dir, recursive = TRUE)
+all_gof_results <- grep("QuarNetGoF_test_results.csv", all_output_files, value = TRUE)
+all_gof_results <- grep("collated", all_gof_results, value = TRUE, invert = TRUE)
+if (length(all_gof_results) > 0){
+  print("Collating QuarNet GoF test results")
+  # Attach directory name to file names
+  all_gof_results <- paste0(output_dir, all_gof_results)
+  # Open and collate the csv files
+  gof_results_list <- lapply(all_gof_results, read.csv)
+  gof_results_df <- do.call(rbind, gof_results_list)
+  # Output compiled csv
+  gof_results_df_name <- paste0(output_dir, "03_AllDatasets_collated_ComparisonTrees_QuarNetGoF_test_results.csv")
+  write.csv(gof_results_df, file = gof_results_df_name, row.names = FALSE)
+}
+
+## Collate and output IQ-Tree results files ##
 # Find all AU_test_results.csv files (and remove the collated results file from the list of files to combine)
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_au_results <- grep("AU_test_results.csv", all_output_files, value = TRUE)
@@ -477,10 +477,7 @@ if (length(all_au_results) > 0){
   write.csv(au_results_df, file = au_results_df_name, row.names = FALSE)
 }
 
-
-
-
-##### Collate and output all RF/wRF distance results files #####
+## Collate and output all RF/wRF distance results files ##
 # Find all tree_RF_distances.csv files (and remove the collated results file from the list of files to combine)
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_rf_results <- grep("tree_RF_distances.csv", all_output_files, value = TRUE)
