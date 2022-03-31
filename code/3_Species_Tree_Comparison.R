@@ -448,6 +448,8 @@ for (dataset in compare_IQTREE_trees){
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_gof_results <- grep("QuarNetGoF_test_results.csv", all_output_files, value = TRUE)
 all_gof_results <- grep("collated", all_gof_results, value = TRUE, invert = TRUE)
+all_gof_results <- grep("zz_", all_gof_results, value = TRUE, invert = TRUE) # Remove old test runs
+all_gof_results <- all_gof_results[grepl(paste(input_names, collapse = "|"), all_gof_results)]
 if (length(all_gof_results) > 0){
   print("Collating QuarNet GoF test results")
   # Attach directory name to file names
@@ -465,6 +467,8 @@ if (length(all_gof_results) > 0){
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_au_results <- grep("AU_test_results.csv", all_output_files, value = TRUE)
 all_au_results <- grep("collated", all_au_results, value = TRUE, invert = TRUE)
+all_au_results <- grep("zz_", all_au_results, value = TRUE, invert = TRUE) # Remove old test runs
+all_au_results <- all_au_results[grepl(paste(input_names, collapse = "|"), all_au_results)]
 if (length(all_au_results) > 0){
   print("Collating AU test results")
   # Attach directory name to file paths
@@ -482,6 +486,7 @@ if (length(all_au_results) > 0){
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_rf_results <- grep("tree_RF_distances.csv", all_output_files, value = TRUE)
 all_rf_results <- grep("collated", all_rf_results, value = TRUE, invert = TRUE)
+all_rf_results <- grep("zz_", all_rf_results, value = TRUE, invert = TRUE) # Remove old test runs
 all_rf_results <- all_rf_results[grepl(paste(input_names, collapse = "|"), all_rf_results)]
 if (length(all_rf_results) > 0){
   print("Collating RF/wRF distance results")
