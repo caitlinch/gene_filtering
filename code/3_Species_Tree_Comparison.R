@@ -34,7 +34,12 @@
 ## Set input parameters
 # Set dataset names and tree roots for datasets
 input_names <- c("1KP", "Whelan2017","Vanderpool2020", "Pease2016")
-dataset_tree_roots <- list(c("BAJW"), c("Salpingoeca_pyxidium"), c("Mus_musculus"), c("LA4116"))
+dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
+                             "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
+                             "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
+                           c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
+                           c("Mus_musculus"), 
+                           c("LA4116", "LA2951", "LA4126"))
 names(dataset_tree_roots) <- input_names
 
 # Set which datasets and which tests to run
@@ -47,8 +52,9 @@ tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv
 new.ASTRAL.terminal.branch.length <- 0.1
 n_julia_reps <- 100
 
-run = "local"
 
+# Set file and directory locations, set software locations
+run = "local"
 if (run == "local"){
   # File and directory locations
   alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
@@ -76,21 +82,6 @@ if (run == "local"){
   # Software locations
   iqtree_path <- "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree"
 }
-
-# Set tree roots for datasets
-dataset_tree_roots <- list(c("BAJW"), c("Salpingoeca_pyxidium"), c("Mus_musculus"), c("LA4116"))
-names(dataset_tree_roots) <- input_names
-
-# Set which datasets and which tests to run
-compare_ASTRAL_trees <- c()
-compare_IQTREE_trees <- c()
-tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
-                     "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
-                     "Whelan2017" = c("PHI", "maxchi", "geneconv"),
-                     "1KP" = c("PHI", "maxchi"))
-new.ASTRAL.terminal.branch.length <- 0.1
-n_julia_reps <- 100
-
 
 
 
