@@ -40,7 +40,6 @@ dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "AP
                            c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
                            c("Mus_musculus"), 
                            c("LA4116", "LA2951", "LA4126"))
-names(dataset_tree_roots) <- input_names
 
 # Set which datasets and which tests to run
 compare_ASTRAL_trees <- c("Vanderpool2020", "Pease2016")
@@ -276,12 +275,12 @@ for (dataset in compare_ASTRAL_trees){
                               wRF_dist_to_test_none = c(wRF.dist(t_none, t_test_pass, check.labels = TRUE),  wRF.dist(t_none, t_none, check.labels = TRUE)))
         # Save RF distance as a dataframe
         write.csv(dist_df, file = rf_csv, row.names = FALSE)
-      } # end check for rf_csv file
-    } # end else if dataset == deep
+      } # end: check for rf_csv file
+    } # end: else if dataset == deep
     
-  } # end iterating through tests
+  } # end: iterating through tests
   
-} # end iterating through datasets
+} # end: iterating through datasets
 
 
 
