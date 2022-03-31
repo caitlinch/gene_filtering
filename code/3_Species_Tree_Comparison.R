@@ -9,10 +9,10 @@
 
 
 ##### Step 1: Set file paths and run variables #####
+## Input parameters
 # input_names               <- set name(s) for the dataset(s) - make sure input_names is in same order as alignment_dir and dataset_tree_roots
 #                              (e.g. for 2 datasets, put same dataset first and same dataset last for each variable)
 # dataset_tree_roots        <- set which taxa is outgroup for each dataset
-# alignment_dir             <- the folder(s) containing the alignments for each loci
 
 # compare_ASTRAL_trees      <- set which datasets you want to apply the QuartetNetworkGoF test to
 # compare_IQTREE_trees      <- set which datasets you want to apply the AU test to
@@ -21,34 +21,40 @@
 # new.ASTRAL.terminal.branch.length <- ASTRAL does not estimate terminal branch lengths. Terminal branch lengths will be initially set to this value.
 # n_julia_reps              <- Number of simulated data sets to generate for the QuartetNetworkGoF test.
 
+## File and directory locations
+# alignment_dir             <- the folder(s) containing the alignments for each loci (in the same order as the input_names vector)
 # csv_data_dir              <- directory containing the .csv file results from script 1_RecombinationDetection_empiricalTreelikeness.R
 # tree_dir                  <- directory containing species trees output from script 2_Species_Tree_Estimation.R
 # output_dir                <- where the coalescent/concatenated trees and tree comparisons will be stored 
 # main_dir                  <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+
+## Software locations
 # iqtree_path               <- location of IQ-Tree executable 
+
+## Set input parameters
+# Set dataset names and tree roots for datasets
+input_names <- c("1KP", "Whelan2017","Vanderpool2020", "Pease2016")
+dataset_tree_roots <- list(c("BAJW"), c("Salpingoeca_pyxidium"), c("Mus_musculus"), c("LA4116"))
+names(dataset_tree_roots) <- input_names
+
+# Set which datasets and which tests to run
+compare_ASTRAL_trees <- c("Vanderpool2020", "Pease2016")
+compare_IQTREE_trees <- c()
+tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
+                     "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
+                     "Whelan2017" = c("PHI", "maxchi", "geneconv"),
+                     "1KP" = c("PHI", "maxchi"))
+new.ASTRAL.terminal.branch.length <- 0.1
+n_julia_reps <- 100
 
 run = "local"
 
 if (run == "local"){
-  # Set datasets, which taxa to root the tree at for each dataset, and the location of alignments for each dataset
-  input_names <- c("1KP", "Whelan2017","Vanderpool2020", "Pease2016")
-  dataset_tree_roots <- c("BAJW", "Salpingoeca_pyxidium", "Mus_musculus", "LA4116")
+  # File and directory locations
   alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Whelan2017/genes/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/")
-  
-  # Set which datasets and which tests to run
-  compare_ASTRAL_trees <- c("Whelan2017")
-  compare_IQTREE_trees <- c()
-  tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
-                       "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
-                       "Whelan2017" = c("PHI", "maxchi", "geneconv"),
-                       "1KP" = c("PHI", "maxchi"))
-  new.ASTRAL.terminal.branch.length <- 0.1
-  n_julia_reps <- 100
-  
-  # File and directory locations
   csv_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/"
   tree_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
   output_dir <-"/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
@@ -57,25 +63,11 @@ if (run == "local"){
   # Software locations
   iqtree_path <- "/Users/caitlincherryh/Documents/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
 } else if (run == "server"){
-  # Set datasets, which taxa to root the tree at for each dataset, and the location of alignments for each dataset
-  input_names <- c("1KP", "Whelan2017","Vanderpool2020", "Pease2016")
-  dataset_tree_roots <- c("BAJW", "Salpingoeca_pyxidium", "Mus_musculus", "LA4116")
+  # File and directory locations
   alignment_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
                      "/data/caitlin/empirical_treelikeness/Data_Whelan2017/",
                      "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/",
                      "/data/caitlin/empirical_treelikeness/Data_Pease2016/")
-  
-  # Set which datasets and which tests to run
-  compare_ASTRAL_trees <- c()
-  compare_IQTREE_trees <- c("1KP")
-  tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
-                       "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
-                       "Whelan2017" = c("PHI", "maxchi", "geneconv"),
-                       "1KP" = c("PHI", "maxchi"))
-  new.ASTRAL.terminal.branch.length <- 0.1
-  n_julia_reps <- 100
-  
-  # File and directory locations
   csv_data_dir <- "/data/caitlin/empirical_treelikeness/Output/"
   tree_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
   output_dir <- "/data/caitlin/empirical_treelikeness/Output_dataAnalysis/"
@@ -84,6 +76,21 @@ if (run == "local"){
   # Software locations
   iqtree_path <- "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree"
 }
+
+# Set tree roots for datasets
+dataset_tree_roots <- list(c("BAJW"), c("Salpingoeca_pyxidium"), c("Mus_musculus"), c("LA4116"))
+names(dataset_tree_roots) <- input_names
+
+# Set which datasets and which tests to run
+compare_ASTRAL_trees <- c()
+compare_IQTREE_trees <- c()
+tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
+                     "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
+                     "Whelan2017" = c("PHI", "maxchi", "geneconv"),
+                     "1KP" = c("PHI", "maxchi"))
+new.ASTRAL.terminal.branch.length <- 0.1
+n_julia_reps <- 100
+
 
 
 
