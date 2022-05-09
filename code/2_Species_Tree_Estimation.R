@@ -275,7 +275,6 @@ if (length(input_names) > 0){
     gene_result_df <- gene_result_df[include_loci,]
     
     # Create new columns with pass/fail for each test
-    gene_result_df <- make.pass.fail.column("pass_3seq", "X3SEQ_p_value", gene_result_df)
     gene_result_df <- make.pass.fail.column("pass_phi", "PHI_normal_p_value", gene_result_df)
     gene_result_df <- make.pass.fail.column("pass_phi_permute", "PHI_permutation_p_value", gene_result_df)
     gene_result_df <- make.pass.fail.column("pass_maxchi", "max_chi_squared_p_value", gene_result_df)
@@ -291,7 +290,7 @@ if (length(input_names) > 0){
     # Save the trimmed gene_result_df and pass_df_file
     write.csv(gene_result_df, file = trimmed_gene_result_df_file, row.names = FALSE)
     # Save a df of just the pass/fail info
-    pass_df <- gene_result_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_3seq", "pass_phi", "pass_maxchi", 
+    pass_df <- gene_result_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_phi", "pass_maxchi", 
                                  "pass_NSS", "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
     write.csv(pass_df, file = pass_df_file, row.names = FALSE)
   }
