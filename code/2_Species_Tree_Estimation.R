@@ -306,7 +306,7 @@ if (length(input_names) > 0){
     write.csv(gene_result_df, file = trimmed_gene_result_df_file, row.names = FALSE)
     # Save a df of just the pass/fail info
     pass_df <- gene_result_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_phi", "pass_maxchi", 
-                                 "pass_NSS", "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
+                                 "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
     write.csv(pass_df, file = pass_df_file, row.names = FALSE)
   }
 }
