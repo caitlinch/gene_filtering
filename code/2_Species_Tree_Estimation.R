@@ -215,7 +215,7 @@ if (length(input_names) > 0){
     pass_df <- read.csv(pass_df_file, stringsAsFactors = TRUE)
   } else{
     # If the collated, trimmed recombination detection results file doesn't exist, create it
-
+    
     all_gene_result_file <- paste0(csv_data_dir, "01_AllDatasets_RecombinationDetection_complete_collated_results.csv")
     if (file.exists(all_gene_result_file)){
       gene_result_df <- read.csv(all_gene_result_file)
@@ -510,27 +510,33 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
   pass_all_inds <- which((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE) &
                            is.na(dataset_df$pass_phi) == FALSE & is.na(dataset_df$pass_maxchi) == FALSE & is.na(dataset_df$pass_geneconv) == FALSE)
   n_pass_all <- length(pass_all_inds)
-  n_fail_all <- length(setdiff(1:nrow(dataset_df), pass_all_inds))
+  na_inds <- which(is.na(dataset_df$pass_phi) | is.na(dataset_df$pass_maxchi) | is.na(dataset_df$pass_geneconv))
+  n_na_all <- length(na_inds)
+  pass_or_na_inds <- c(pass_all_inds, na_inds)
+  n_fail_all <- length(setdiff(1:nrow(dataset_df), pass_or_na_inds))
   n_pass_PHI_maxchi <- nrow(dataset_df[((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE) &
                                           is.na(dataset_df$pass_phi) == FALSE & is.na(dataset_df$pass_maxchi) == FALSE), ])
   n_fail_PHI_maxchi <- nrow(dataset_df[((dataset_df$pass_phi == FALSE) & (dataset_df$pass_maxchi == FALSE) &
                                           is.na(dataset_df$pass_phi) == FALSE & is.na(dataset_df$pass_maxchi) == FALSE), ])
+  n_na_PHI_maxchi <- nrow(dataset_df[(is.na(dataset_df$pass_phi) & is.na(dataset_df$pass_maxchi)), ])
   n_pass_PHI_geneconv <- nrow(dataset_df[((dataset_df$pass_phi == TRUE) & (dataset_df$pass_geneconv == TRUE) &
                                             is.na(dataset_df$pass_phi) == FALSE & is.na(dataset_df$pass_geneconv) == FALSE), ])
   n_fail_PHI_geneconv <- nrow(dataset_df[((dataset_df$pass_phi == FALSE) & (dataset_df$pass_geneconv == FALSE) &
                                             is.na(dataset_df$pass_phi) == FALSE & is.na(dataset_df$pass_geneconv) == FALSE), ])
+  n_na_PHI_geneconv <- nrow(dataset_df[(is.na(dataset_df$pass_phi) & is.na(dataset_df$pass_geneconv)), ])
   n_pass_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE) &
                                                is.na(dataset_df$pass_maxchi) == FALSE & is.na(dataset_df$pass_geneconv) == FALSE), ])
   n_fail_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == FALSE) & (dataset_df$pass_geneconv == FALSE) &
                                                is.na(dataset_df$pass_maxchi) == FALSE & is.na(dataset_df$pass_geneconv) == FALSE), ])
+  n_na_maxchi_geneconv <- nrow(dataset_df[(is.na(dataset_df$pass_maxchi) & is.na(dataset_df$pass_geneconv)), ])
   summary_row <- c(dataset, n_total, n_pass_PHI, n_fail_PHI, n_na_PHI, n_pass_maxchi, n_fail_maxchi, n_na_maxchi, n_pass_geneconv, n_fail_geneconv, n_na_geneconv,
-                   n_pass_all, n_fail_all, n_pass_PHI_maxchi, n_fail_PHI_maxchi, n_pass_PHI_geneconv, n_fail_PHI_geneconv,
-                   n_pass_maxchi_geneconv, n_fail_maxchi_geneconv)
+                   n_pass_all, n_fail_all, n_na_all, n_pass_PHI_maxchi, n_fail_PHI_maxchi, n_na_PHI_maxchi, n_pass_PHI_geneconv, n_fail_PHI_geneconv,
+                   n_na_PHI_geneconv, n_pass_maxchi_geneconv, n_fail_maxchi_geneconv, n_na_maxchi_geneconv)
   
   ### Write out the summary row as a dataframe ###
   names(summary_row) <- c("dataset", "n_total", "n_pass_PHI", "n_fail_PHI", "n_na_PHI", "n_pass_maxchi", "n_fail_maxchi", "n_na_maxchi", "n_pass_geneconv", "n_fail_geneconv", "n_na_geneconv",
-                          "n_pass_all", "n_fail_all", "n_pass_PHI_maxchi", "n_fail_PHI_maxchi", "n_pass_PHI_geneconv", "n_fail_PHI_geneconv",
-                          "n_pass_maxchi_geneconv", "n_fail_maxchi_geneconv")
+                          "n_pass_all", "n_fail_all", "n_na_all", "n_pass_PHI_maxchi", "n_fail_PHI_maxchi", "n_na_PHI_maxchi", "n_pass_PHI_geneconv", "n_fail_PHI_geneconv", "n_na_PHI_geneconv",
+                          "n_pass_maxchi_geneconv", "n_fail_maxchi_geneconv", "n_na_maxchi_geneconv")
   summary_df <- data.frame(as.list(summary_row))
   summary_op_file <- paste0(output_dirs[dataset], dataset, "_species_tree_summary.csv")
   write.csv(summary_df, file = summary_op_file, row.names = FALSE)
