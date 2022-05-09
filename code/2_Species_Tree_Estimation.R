@@ -277,14 +277,30 @@ if (length(input_names) > 0){
     gene_result_df <- make.pass.fail.column("pass_phi", "PHI_normal_p_value", gene_result_df)
     gene_result_df <- make.pass.fail.column("pass_phi_permute", "PHI_permutation_p_value", gene_result_df)
     gene_result_df <- make.pass.fail.column("pass_maxchi", "max_chi_squared_p_value", gene_result_df)
-    gene_result_df <- make.pass.fail.column("pass_NSS", "NSS_p_value", gene_result_df)
     gene_result_df <- make.pass.fail.column("pass_geneconv_inner", "geneconv_inner_fragment_simulated_p_value", gene_result_df)
     gene_result_df <- make.pass.fail.column("pass_geneconv_outer", "geneconv_outer_fragment_simulated_p_value", gene_result_df)
     # Create a column for GeneConv where both inner and outer fragment p-value must be >0.05 to pass
-    gene_result_df$pass_geneconv <- "FALSE"
+    gene_result_df$pass_geneconv <- "0"
     gene_result_df$pass_geneconv[((gene_result_df$geneconv_outer_fragment_simulated_p_value > 0.05) & 
                                     (gene_result_df$geneconv_inner_fragment_simulated_p_value > 0.05))] <- "TRUE"
+    gene_result_df$pass_geneconv[((gene_result_df$geneconv_outer_fragment_simulated_p_value <= 0.05) | 
+                                    (gene_result_df$geneconv_inner_fragment_simulated_p_value <= 0.05))] <- "FALSE"
+    gene_result_df$pass_geneconv[(is.na(gene_result_df$geneconv_outer_fragment_simulated_p_value) |
+                                    is.na(gene_result_df$geneconv_inner_fragment_simulated_p_value))] <- "NA"
     gene_result_df$pass_geneconv <- as.logical(gene_result_df$pass_geneconv)
+    # Select columns to save for gene results df
+    gene_result_df <- gene_result_df[,c("dataset", "loci_name", "alphabet", "best_model", "ModelFinder_model", "n_taxa", "n_bp",
+                                        "analytical_PHI_mean_value",  "permutation_PHI_mean_value", "analytical_PHI_variance_value",
+                                        "permutation_PHI_variance_value", "analytical_PHI_observed_value", "permutation_PHI_observed_value",
+                                        "NSS_p_value", "max_chi_squared_p_value", "PHI_permutation_p_value", "PHI_normal_p_value",
+                                        "geneconv_seed", "geneconv_num_global_inner_fragments", "geneconv_num_global_outer.sequence_fragments",
+                                        "geneconv_num_pairwise_inner_fragments", "geneconv_num_pairwise_outer.sequence_fragments",
+                                        "geneconv_inner_fragment_maximum_blast.like_score", "geneconv_inner_fragment_simulated_p_value",
+                                        "geneconv_inner_fragment_sd_above_sim_mean", "geneconv_inner_fragment_sd_of_sim", 
+                                        "geneconv_outer_fragment_maximum_blast.like_score", "geneconv_outer_fragment_simulated_p_value",
+                                        "geneconv_outer_fragment_sd_above_sim_mean", "geneconv_outer_fragment_sd_of_sim", "tree",
+                                        "pass_phi", "pass_phi_permute", "pass_maxchi", "pass_geneconv_inner", "pass_geneconv_outer",
+                                        "pass_geneconv")]
     
     # Save the trimmed gene_result_df and pass_df_file
     write.csv(gene_result_df, file = trimmed_gene_result_df_file, row.names = FALSE)
