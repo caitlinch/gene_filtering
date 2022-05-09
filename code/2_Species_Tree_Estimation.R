@@ -205,18 +205,17 @@ for (d in output_dirs){
 
 if (length(input_names) > 0){
   # Check whether a collated, trimmed recombination detection results file exists
-  trimmed_gene_result_df_file <- paste0(csv_data_dir, "02_AllDatasets_collated_RecombinationDetection_TrimmedLoci.csv", stringsAsFactors = FALSE)
-  pass_df_file <- paste0(csv_data_dir, "02_AllDatasets_RecombinationDetection_PassFail_record.csv", stringsAsFactors = FALSE)
-  collated_exclude_file <- paste0(csv_data_dir, "01_AllDatasets_IQ-Tree_warnings_LociToExclude.csv", stringsAsFactors = FALSE)
+  trimmed_gene_result_df_file <- paste0(csv_data_dir, "02_AllDatasets_collated_RecombinationDetection_TrimmedLoci.csv")
+  pass_df_file <- paste0(csv_data_dir, "02_AllDatasets_RecombinationDetection_PassFail_record.csv")
+  collated_exclude_file <- paste0(csv_data_dir, "01_AllDatasets_IQ-Tree_warnings_LociToExclude.csv")
   
   if (file.exists(trimmed_gene_result_df_file) & file.exists(pass_df_file)){
+    # If collated RecombinationDetection results file for all datasets has been created, open that file
     gene_result_df <- read.csv(trimmed_gene_result_df_file, stringsAsFactors = TRUE)
     pass_df <- read.csv(pass_df_file, stringsAsFactors = TRUE)
   } else{
     # If the collated, trimmed recombination detection results file doesn't exist, create it
-    
-    # If collated RecombinationDetection results file for all datasets has been collated, open that file
-    # If not, create it.
+
     all_gene_result_file <- paste0(csv_data_dir, "01_AllDatasets_RecombinationDetection_complete_collated_results.csv")
     if (file.exists(all_gene_result_file)){
       gene_result_df <- read.csv(all_gene_result_file)
