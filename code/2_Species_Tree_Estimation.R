@@ -109,7 +109,7 @@ if (run_location == "local"){
                                "Pease2016" = c("PHI", "maxchi", "geneconv", "all"))
   # List of trees to estimate for each dataset
   dataset_trees_to_estimate <- list("1KP" = c("PHI,pass", "maxchi,pass"),
-                                    "Whelan2017" = c("PHI", "maxchi", "geneconv,pass", "geneconv,fail"),
+                                    "Whelan2017" = c("PHI,pass", "maxchi,pass", "geneconv,pass", "geneconv,fail"),
                                     "Vanderpool2020" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
                                                          "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"),
                                     "Pease2016" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
@@ -154,7 +154,7 @@ if (run_location == "local"){
                                "Pease2016" = c("PHI", "maxchi", "geneconv", "all"))
   # List of trees to estimate for each dataset
   dataset_trees_to_estimate <- list("1KP" = c("PHI,pass", "maxchi,pass"),
-                                    "Whelan2017" = c("PHI", "maxchi", "geneconv,pass"),
+                                    "Whelan2017" = c("PHI,pass", "maxchi,pass", "geneconv,pass"),
                                     "Vanderpool2020" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
                                                          "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"),
                                     "Pease2016" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
