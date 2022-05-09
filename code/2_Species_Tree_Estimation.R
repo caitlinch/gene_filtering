@@ -361,7 +361,7 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
       
       # Check whether tree is in list to estimate 
       v_tt <- paste0(names(v),",",tt)
-      run_check <- "PHI,pass" %in% dataset_var_trees
+      run_check <- v_tt %in% dataset_var_trees
       
       # If run_check = TRUE, this tree is in the list to estimate.
       # Collect the loci to estimate this tree 
@@ -429,7 +429,7 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
       if (all_var == "all,pass"){
         tt = "pass"
       } else if (all_var == "all,fail"){
-        tt = fail
+        tt = "fail"
       }
       print(paste0(dataset, " : all tests : ", tt))
       
