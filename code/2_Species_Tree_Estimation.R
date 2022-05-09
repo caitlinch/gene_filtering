@@ -498,23 +498,31 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
   
   # Expand the summary row to identify the number of loci that pass or fail the same tests
   n_total <- nrow(dataset_df)
-  n_pass_PHI <- nrow(dataset_df[(dataset_df$pass_phi == TRUE),])
-  n_fail_PHI <- nrow(dataset_df[(dataset_df$pass_phi == FALSE),])
+  n_pass_PHI <- nrow(dataset_df[(dataset_df$pass_phi == TRUE & is.na(dataset_df$pass_phi) == FALSE),])
+  n_fail_PHI <- nrow(dataset_df[(dataset_df$pass_phi == FALSE & is.na(dataset_df$pass_phi) == FALSE),])
   n_na_PHI <- length(which(is.na(dataset_df$PHI_normal_p_value)))
-  n_pass_maxchi <- nrow(dataset_df[(dataset_df$pass_maxchi == TRUE),])
-  n_fail_maxchi <- nrow(dataset_df[(dataset_df$pass_maxchi == FALSE),])
+  n_pass_maxchi <- nrow(dataset_df[(dataset_df$pass_maxchi == TRUE & is.na(dataset_df$pass_maxchi) == FALSE),])
+  n_fail_maxchi <- nrow(dataset_df[(dataset_df$pass_maxchi == FALSE & is.na(dataset_df$pass_maxchi) == FALSE),])
   n_na_maxchi <- length(which(is.na(dataset_df$max_chi_squared_p_value)))
-  n_pass_geneconv <- nrow(dataset_df[(dataset_df$pass_geneconv == TRUE),])
-  n_fail_geneconv <- nrow(dataset_df[(dataset_df$pass_geneconv == FALSE),])
+  n_pass_geneconv <- nrow(dataset_df[(dataset_df$pass_geneconv == TRUE & is.na(dataset_df$pass_geneconv) == FALSE),])
+  n_fail_geneconv <- nrow(dataset_df[(dataset_df$pass_geneconv == FALSE  & is.na(dataset_df$pass_geneconv) == FALSE),])
   n_na_geneconv <- nrow(dataset_df[is.na(dataset_df$pass_geneconv),])
-  n_pass_all <- length(which((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE)))
-  n_fail_all <- length(setdiff(1:nrow(dataset_df), which((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE))))
-  n_pass_PHI_maxchi <- nrow(dataset_df[((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE)), ])
-  n_fail_PHI_maxchi <- nrow(dataset_df[((dataset_df$pass_phi == FALSE) & (dataset_df$pass_maxchi == FALSE)), ])
-  n_pass_PHI_geneconv <- nrow(dataset_df[((dataset_df$pass_phi == TRUE) & (dataset_df$pass_geneconv == TRUE)), ])
-  n_fail_PHI_geneconv <- nrow(dataset_df[((dataset_df$pass_phi == FALSE) & (dataset_df$pass_geneconv == FALSE)), ])
-  n_pass_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE)), ])
-  n_fail_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == FALSE) & (dataset_df$pass_geneconv == FALSE)), ])
+  pass_all_inds <- which((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE) &
+                           is.na(dataset_df$pass_phi) == FALSE & is.na(dataset_df$pass_maxchi) == FALSE & is.na(dataset_df$pass_geneconv) == FALSE)
+  n_pass_all <- length(pass_all_inds)
+  n_fail_all <- length(setdiff(1:nrow(dataset_df), pass_all_inds))
+  n_pass_PHI_maxchi <- nrow(dataset_df[((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE) &
+                                          is.na(dataset_df$pass_phi) == FALSE & is.na(dataset_df$pass_maxchi) == FALSE), ])
+  n_fail_PHI_maxchi <- nrow(dataset_df[((dataset_df$pass_phi == FALSE) & (dataset_df$pass_maxchi == FALSE) &
+                                          is.na(dataset_df$pass_phi) == FALSE & is.na(dataset_df$pass_maxchi) == FALSE), ])
+  n_pass_PHI_geneconv <- nrow(dataset_df[((dataset_df$pass_phi == TRUE) & (dataset_df$pass_geneconv == TRUE) &
+                                            is.na(dataset_df$pass_phi) == FALSE & is.na(dataset_df$pass_geneconv) == FALSE), ])
+  n_fail_PHI_geneconv <- nrow(dataset_df[((dataset_df$pass_phi == FALSE) & (dataset_df$pass_geneconv == FALSE) &
+                                            is.na(dataset_df$pass_phi) == FALSE & is.na(dataset_df$pass_geneconv) == FALSE), ])
+  n_pass_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE) &
+                                               is.na(dataset_df$pass_maxchi) == FALSE & is.na(dataset_df$pass_geneconv) == FALSE), ])
+  n_fail_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == FALSE) & (dataset_df$pass_geneconv == FALSE) &
+                                               is.na(dataset_df$pass_maxchi) == FALSE & is.na(dataset_df$pass_geneconv) == FALSE), ])
   summary_row <- c(dataset, n_total, n_pass_PHI, n_fail_PHI, n_na_PHI, n_pass_maxchi, n_fail_maxchi, n_na_maxchi, n_pass_geneconv, n_fail_geneconv, n_na_geneconv,
                    n_pass_all, n_fail_all, n_pass_PHI_maxchi, n_fail_PHI_maxchi, n_pass_PHI_geneconv, n_fail_PHI_geneconv,
                    n_pass_maxchi_geneconv, n_fail_maxchi_geneconv)
