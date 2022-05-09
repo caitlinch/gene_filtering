@@ -506,8 +506,7 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
   n_na_maxchi <- length(which(is.na(dataset_df$max_chi_squared_p_value)))
   n_pass_geneconv <- nrow(dataset_df[(dataset_df$pass_geneconv == TRUE),])
   n_fail_geneconv <- nrow(dataset_df[(dataset_df$pass_geneconv == FALSE),])
-  n_na_geneconv <- length(unique(c(which(is.na(dataset_df$geneconv_outer_fragment_simulated_p_value)),
-                                   which(is.na(dataset_df$geneconv_inner_fragment_simulated_p_value))) ))
+  n_na_geneconv <- nrow(dataset_df[is.na(dataset_df$pass_geneconv),])
   n_pass_all <- length(which((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE)))
   n_fail_all <- length(setdiff(1:nrow(dataset_df), which((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE))))
   n_pass_PHI_maxchi <- nrow(dataset_df[((dataset_df$pass_phi == TRUE) & (dataset_df$pass_maxchi == TRUE)), ])
@@ -516,7 +515,7 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
   n_fail_PHI_geneconv <- nrow(dataset_df[((dataset_df$pass_phi == FALSE) & (dataset_df$pass_geneconv == FALSE)), ])
   n_pass_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == TRUE) & (dataset_df$pass_geneconv == TRUE)), ])
   n_fail_maxchi_geneconv <- nrow(dataset_df[((dataset_df$pass_maxchi == FALSE) & (dataset_df$pass_geneconv == FALSE)), ])
-  summary_row <- c(dataset, n_all, n_pass_PHI, n_fail_PHI, n_na_PHI, n_pass_maxchi, n_fail_maxchi, n_na_maxchi, n_pass_geneconv, n_fail_geneconv, n_na_geneconv,
+  summary_row <- c(dataset, n_total, n_pass_PHI, n_fail_PHI, n_na_PHI, n_pass_maxchi, n_fail_maxchi, n_na_maxchi, n_pass_geneconv, n_fail_geneconv, n_na_geneconv,
                    n_pass_all, n_fail_all, n_pass_PHI_maxchi, n_fail_PHI_maxchi, n_pass_PHI_geneconv, n_fail_PHI_geneconv,
                    n_pass_maxchi_geneconv, n_fail_maxchi_geneconv)
   
