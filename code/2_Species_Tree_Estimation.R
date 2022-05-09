@@ -360,7 +360,7 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
       print(paste0(dataset, " : ", names(dataset_vars)[which(dataset_vars == v)], " : ", tt))
       
       # Check whether tree is in list to estimate 
-      v_tt <- paste0(names(v),",",tt)
+      v_tt <- paste0(strsplit(v, "_")[[1]][2],",",tt)
       run_check <- v_tt %in% dataset_var_trees
       
       # If run_check = TRUE, this tree is in the list to estimate.
