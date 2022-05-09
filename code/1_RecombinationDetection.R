@@ -69,9 +69,9 @@ if (run_location == "local"){
   exec_folder <- "/Users/caitlincherryh/Documents/Executables/"
   # Create a vector with all of the executable file paths  in this order: PHIPack, GeneConv, IQ-Tree
   # To access a path: exec_paths[["name"]]
-  exec_paths <- c("Phi", "GENECONV_v1.81_unix.source/geneconv","iqtree-2.0-rc1-MacOSX/bin/iqtree", "3seq")
+  exec_paths <- c("Phi", "GENECONV_v1.81_unix.source/geneconv","iqtree-2.0-rc1-MacOSX/bin/iqtree")
   exec_paths <- paste0(exec_folder,exec_paths)
-  names(exec_paths) <- c("PHIPack","GeneConv","IQTree", "3seq")
+  names(exec_paths) <- c("PHIPack","GeneConv","IQTree")
   
   # set number of cores for parallelisation
   cores_to_use = 1

@@ -48,8 +48,6 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
       prune.taxa.by.length(alignment_path, loci_row$allowable_proportion_missing_sites, loci_row$alphabet, write_output_text = TRUE, alignment_folder)
     }
     
-    # Run 3seq
-    threeseq_results <- run.3seq(alignment_path, alignment_folder, threeseq_path = executable_paths[["3seq"]])
     # Run PhiPack
     phipack_results <- run.phipack(alignment_path, alignment_folder, phipack_path = executable_paths[["PHIPack"]], loci_row$alphabet)
     # Run GeneConv
@@ -67,7 +65,6 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
     sub_ls      <- strsplit(sub_str,":")
     model_sub   <- sub_ls[[1]][2]
     model_sub   <- gsub(" ", "", model_sub)
-    
     
     # Extract basic information about the alignment for the output csv file
     # Check file extension of alignment
@@ -89,9 +86,6 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
       n_char <- length(unlist(n[1]))
     }
     
-    # Calculate extra variables for output
-    # Calculate proportion of recombinant sequences
-    prop_recomb_seq <- round(as.numeric(threeseq_results["num_distinct_recombinant_sequences"])/n_taxa,3)
     # Extract tree from iqtree file
     alignment_files <- list.files(alignment_folder)
     tree_file <- paste0(alignment_folder, grep("treefile", alignment_files, value = TRUE))
@@ -103,12 +97,10 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
     
     # Combine results into a nice row for output csv file
     results_vec <- c(loci_row$dataset, loci_row$loci_name, loci_row$alphabet, loci_row$best_model,
-                     model_sub, n_taxa, n_char, threeseq_results, prop_recomb_seq, phipack_results,
-                     geneconv_results, newick_tree)
+                     model_sub, n_taxa, n_char, phipack_results, geneconv_results, newick_tree)
     results_df <- data.frame(as.list(results_vec))
     result_names <- c("dataset", "loci_name", "alphabet", "best_model", "ModelFinder_model", "n_taxa", "n_bp",
-                      names(threeseq_results), "proportion_recombinant_sequences", names(phipack_results),
-                      names(geneconv_results), "tree")
+                      names(phipack_results), names(geneconv_results), "tree")
     names(results_vec) <- result_names
     names(results_df) <- result_names
     write.csv(results_df, file = recombination_results_file, row.names = FALSE)
@@ -125,7 +117,7 @@ apply.recombination.detection.methods <- function(loci_row, executable_paths, iq
 
 # Run the 3SEQ program on one alignment and return the key variables calculated by the program
 run.3seq <- function(alignment_path, alignment_folder, threeseq_path){
-  # Change to the log (storage for log files) folder for this alignment - means that 3seq and Phi files will be saved into a unique folder
+  # Change to the log (storage for log files) folder for this alignment - means that files will be saved into a unique folder
   setwd(alignment_folder)
   
   # Determine file extension
@@ -195,7 +187,7 @@ run.phipack <- function(alignment_path, alignment_folder, phipack_path, seqtype)
     # Check file extension of alignment
     if (file_extension == "fasta" | file_extension == "fa" | file_extension == "fna" | file_extension == "ffn" | 
         file_extension == "faa" | file_extension == "frn" | file_extension == "fas"){
-      # 3SEQ only reads in phylip or fasta format - if the alignment is already in that format, call 3SEQ on the alignment
+      # Assemble command based on sequence format
       if (seqtype == "dna"){
         phi_command <- paste0(phipack_path, " -f ", alignment_path, " -v -o -p") # assemble system command
       } else if (seqtype == "protein"){
@@ -213,13 +205,13 @@ run.phipack <- function(alignment_path, alignment_folder, phipack_path, seqtype)
         write.fasta(sequences = n, names = names(n), file.out = fasta.name) # output alignment as a fasta format
       }
       # There is now a definitely a fasta format version of this alignment
-      # Assemble the 3SEQ command using the new fasta alignment
+      # Assemble the command using the new fasta alignment
       if (seqtype == "dna"){
         phi_command <- paste0(phipack_path, " -f ", alignment_path, " -v -o -p") # assemble system command
       } else if (seqtype == "protein"){
         phi_command <- paste0(phipack_path, " -f ", alignment_path, " -v -o -p -t A") # assemble system command
       }
-      # Call 3SEQ
+      # Call PHI
       system(phi_command)
     }
   }
