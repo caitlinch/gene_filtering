@@ -96,46 +96,25 @@ if (run_location == "local"){
   # Select number of cores for parallelisation
   cores.to.use = 1
   
-  # # Select datasets to run analysis and collect results
-  # datasets_to_copy_loci_ASTRAL_IQTREE <-  c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
-  # datasets_to_copy_loci_RAxML <- c("1KP")
-  # datasets_to_estimate_ASTRAL_trees <- c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
-  # datasets_to_estimate_IQTREE_trees <- c("Whelan2017", "Vanderpool2020", "Pease2016")
-  # datasets_to_estimate_RAxML_trees <- c("1KP")
-  # # List of tests to run for each dataset
-  # dataset_tests_to_run <- list("1KP" = c("PHI", "maxchi"),
-  #                              "Whelan2017" = c("PHI", "maxchi", "geneconv"),
-  #                              "Vanderpool2020" = c("PHI", "maxchi", "geneconv", "all"),
-  #                              "Pease2016" = c("PHI", "maxchi", "geneconv", "all"))
-  # # List of trees to estimate for each dataset
-  # dataset_trees_to_estimate <- list("1KP" = c("PHI,pass", "maxchi,pass"),
-  #                                   "Whelan2017" = c("PHI,pass", "maxchi,pass", "geneconv,pass"),
-  #                                   "Vanderpool2020" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
-  #                                                        "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"),
-  #                                   "Pease2016" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
-  #                                                   "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"))
-  # partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
-  # use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use substitution models from the gene trees
-  # use.free.rate.models.for.deep.datasets = FALSE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
-  
   # Select datasets to run analysis and collect results
-  # To rerun GENECONV trees:
-  datasets_to_copy_loci_ASTRAL_IQTREE <-  c()
-  datasets_to_copy_loci_RAxML <- c()
-  datasets_to_estimate_ASTRAL_trees <- c("Whelan2017", "Vanderpool2020", "Pease2016")
+  datasets_to_copy_loci_ASTRAL_IQTREE <-  c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
+  datasets_to_copy_loci_RAxML <- c("1KP")
+  datasets_to_estimate_ASTRAL_trees <- c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
   datasets_to_estimate_IQTREE_trees <- c("Whelan2017", "Vanderpool2020", "Pease2016")
-  datasets_to_estimate_RAxML_trees <- c()
+  datasets_to_estimate_RAxML_trees <- c("1KP")
   # List of tests to run for each dataset
-  dataset_tests_to_run <- list("1KP" = c(),
-                               "Whelan2017" = c("geneconv"),
-                               "Vanderpool2020" = c("geneconv", "all"),
-                               "Pease2016" = c("geneconv", "all"))
+  dataset_tests_to_run <- list("1KP" = c("PHI", "maxchi"),
+                               "Whelan2017" = c("PHI", "maxchi", "geneconv"),
+                               "Vanderpool2020" = c("PHI", "maxchi", "geneconv", "all"),
+                               "Pease2016" = c("PHI", "maxchi", "geneconv", "all"))
   # List of trees to estimate for each dataset
-  dataset_trees_to_estimate <- list("1KP" = c(),
-                                    "Whelan2017" = c("geneconv,pass"),
-                                    "Vanderpool2020" = c("geneconv,pass", "geneconv,fail", "all,pass", "all,fail"),
-                                    "Pease2016" = c("geneconv,pass", "geneconv,fail", "all,pass", "all,fail"))
-  partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
+  dataset_trees_to_estimate <- list("1KP" = c("PHI,pass", "maxchi,pass"),
+                                    "Whelan2017" = c("PHI,pass", "maxchi,pass", "geneconv,pass"),
+                                    "Vanderpool2020" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
+                                                         "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"),
+                                    "Pease2016" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
+                                                    "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"))
+  partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file)
   use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use substitution models from the gene trees
   use.free.rate.models.for.deep.datasets = FALSE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
 
@@ -162,27 +141,50 @@ if (run_location == "local"){
   # Select number of cores for parallelisation
   cores.to.use = 45
   
+  # # Select datasets to run analysis and collect results
+  # datasets_to_copy_loci_ASTRAL_IQTREE <-  c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
+  # datasets_to_copy_loci_RAxML <- c("1KP")
+  # datasets_to_estimate_ASTRAL_trees <- c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
+  # datasets_to_estimate_IQTREE_trees <- c("Whelan2017", "Vanderpool2020", "Pease2016")
+  # datasets_to_estimate_RAxML_trees <- c("1KP")
+  # # List of tests to run for each dataset
+  # dataset_tests_to_run <- list("1KP" = c("PHI", "maxchi"),
+  #                              "Whelan2017" = c("PHI", "maxchi", "geneconv"),
+  #                              "Vanderpool2020" = c("PHI", "maxchi", "geneconv", "all"),
+  #                              "Pease2016" = c("PHI", "maxchi", "geneconv", "all"))
+  # # List of trees to estimate for each dataset
+  # dataset_trees_to_estimate <- list("1KP" = c("PHI,pass", "maxchi,pass"),
+  #                                   "Whelan2017" = c("PHI,pass", "maxchi,pass", "geneconv,pass"),
+  #                                   "Vanderpool2020" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
+  #                                                        "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"),
+  #                                   "Pease2016" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
+  #                                                   "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"))
+  # partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
+  # use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use partition file with substitution models specified
+  # use.free.rate.models.for.deep.datasets = FALSE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
+  
+  
   # Select datasets to run analysis and collect results
-  datasets_to_copy_loci_ASTRAL_IQTREE <-  c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
-  datasets_to_copy_loci_RAxML <- c("1KP")
-  datasets_to_estimate_ASTRAL_trees <- c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
-  datasets_to_estimate_IQTREE_trees <- c("Whelan2017", "Vanderpool2020", "Pease2016")
-  datasets_to_estimate_RAxML_trees <- c("1KP")
+  # To rerun GENECONV trees:
+  datasets_to_copy_loci_ASTRAL_IQTREE <-  c()
+  datasets_to_copy_loci_RAxML <- c()
+  datasets_to_estimate_ASTRAL_trees <- c("Pease2016")
+  datasets_to_estimate_IQTREE_trees <- c("Pease2016")
+  datasets_to_estimate_RAxML_trees <- c()
   # List of tests to run for each dataset
-  dataset_tests_to_run <- list("1KP" = c("PHI", "maxchi"),
-                               "Whelan2017" = c("PHI", "maxchi", "geneconv"),
-                               "Vanderpool2020" = c("PHI", "maxchi", "geneconv", "all"),
-                               "Pease2016" = c("PHI", "maxchi", "geneconv", "all"))
+  dataset_tests_to_run <- list("1KP" = c(),
+                               "Whelan2017" = c(),
+                               "Vanderpool2020" = c(),
+                               "Pease2016" = c("geneconv", "all"))
   # List of trees to estimate for each dataset
-  dataset_trees_to_estimate <- list("1KP" = c("PHI,pass", "maxchi,pass"),
-                                    "Whelan2017" = c("PHI,pass", "maxchi,pass", "geneconv,pass"),
-                                    "Vanderpool2020" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
-                                                         "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"),
-                                    "Pease2016" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
-                                                    "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"))
-  partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd), FALSE will treat each gene homogeneously 
-  use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use partition file with substitution models specified
+  dataset_trees_to_estimate <- list("1KP" = c(),
+                                    "Whelan2017" = c(),
+                                    "Vanderpool2020" = c(),
+                                    "Pease2016" = c("geneconv,pass", "geneconv,fail", "all,pass", "all,fail"))
+  partition.by.codon.position = FALSE # can be TRUE or FALSE: TRUE will partition by codon position (1st, 2nd and 3rd - based on position in alignment file) 
+  use.modelfinder.models.for.partitions = TRUE # can be TRUE or FALSE. FALSE will use "-m MFP+MERGE" in IQ-Tree. TRUE will use substitution models from the gene trees
   use.free.rate.models.for.deep.datasets = FALSE # whether to use modelFinder best model or best model that doesn't include a free rates parameter
+  
 }
 ### End of Caitlin's paths ###
 
