@@ -203,7 +203,8 @@ for (dataset in compare_ASTRAL_trees){
                                number_of_simulated_replicates = n_julia_reps)
         # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
         julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
-        system(julia_command)
+        #system(julia_command)
+        print("system(julia_command)")
       }
       
       # Assemble the file name for the RF distances csv file
@@ -254,7 +255,8 @@ for (dataset in compare_ASTRAL_trees){
                                            output_csv_file_path = quarnet_results_file, number_of_simulated_replicates = n_julia_reps)
           # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
           julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
-          system(julia_command)
+          #system(julia_command)
+          print("system(julia_command)")
         }
       }
       
@@ -362,7 +364,8 @@ for (dataset in compare_IQTREE_trees){
         file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path, overwrite = TRUE)
         
         # Apply the AU test
-        au_test_df <- perform.partition.AU.test(partition_path, three_trees_path, iqtree_path)
+        # au_test_df <- perform.partition.AU.test(partition_path, three_trees_path, iqtree_path)
+        print("system(call IQ Tree)")
         # Assemble the output dataframe
         au_results_df <- data.frame(dataset = rep(dataset, 3), test = rep(test, 3), tree = c("test_pass", "test_fail", "no_test"))
         au_results_df <- cbind(au_results_df, au_test_df)
@@ -417,7 +420,8 @@ for (dataset in compare_IQTREE_trees){
         file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path, overwrite = TRUE)
         
         # Apply the AU test
-        au_test_df <- perform.partition.AU.test.two.trees(partition_path, two_trees_path, iqtree_path)
+        # au_test_df <- perform.partition.AU.test.two.trees(partition_path, two_trees_path, iqtree_path)
+        print("system(call IQ Tree)")
         # Assemble the output dataframe
         au_results_df <- data.frame(dataset = rep(dataset, 2), test = rep(test, 2), tree = c("test_pass", "no_test"))
         au_results_df <- cbind(au_results_df, au_test_df)
