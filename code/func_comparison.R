@@ -66,8 +66,10 @@ make.tree.ultrametric <- function(tree_path, root.tree = FALSE, outgroup = NA){
   tree <- read.tree(file = tree_path)
   # If root.tree == FALSE, then reroot the tree at the provided outgroup
   if (root.tree == TRUE){
+    # Select the outgroup species which are within the tree
+    present_outgroup_species <- outgroup[which(outgroup %in% tree$tip.label)]
     # Root the tree at the desired outgroup
-    tree <- root(tree, outgroup)
+    tree <- root(tree, present_outgroup_species)
   }
   # Extend the terminal branches to make the tree ultrametric
   ultrametric_tree <- force.ultrametric(tree, method = "extend")
