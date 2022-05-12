@@ -168,9 +168,7 @@ for (dataset in compare_ASTRAL_trees){
     # Create a new vector of the trees used for this dataset
     if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
       dataset_tree_files <- c(pass_tree_file, fail_tree_file, noTest_tree_file)
-    } else if (dataset == "Whelan2017" & test == "geneconv"){
-      dataset_tree_files <- c(pass_tree_file, fail_tree_file, noTest_tree_file)
-    } else if (dataset == "1KP" | (dataset == "Whelan2017" & test != "geneconv")){
+    } else if (dataset == "1KP" | dataset == "Whelan2017"){
       dataset_tree_files <- c(pass_tree_file, noTest_tree_file)
     }
     
@@ -337,7 +335,7 @@ for (dataset in compare_IQTREE_trees){
     # Assemble the filename for the results file 
     au_results_file <- paste0(new_folder, dataset, "_", test, "_AU_test_results.csv")
     # If the file does not exist, run the tests
-    if (dataset == "Vanderpool2020" | dataset == "Pease2016" | ((dataset == "Whelan2017") & (test == "geneconv"))){
+    if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
       ### Apply the AU test
       # Check whether the results file for this test exists already
       if (file.exists(au_results_file) == FALSE){
@@ -393,7 +391,7 @@ for (dataset in compare_IQTREE_trees){
         write.csv(dist_df, file = rf_csv, row.names = FALSE)
       }
       
-    } else if (dataset == "1KP" | (dataset == "Whelan2017" & test != "geneconv")){
+    } else if (dataset == "1KP" | dataset == "Whelan2017"){
       ### Apply the AU test
       # Check whether the results file for this test exists already
       if (file.exists(au_results_file) == FALSE){
