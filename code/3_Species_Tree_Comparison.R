@@ -54,12 +54,12 @@ dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "AP
                            c("LA4116", "LA2951", "LA4126"))
 
 # Set which datasets and which tests to run
-compare_ASTRAL_trees <- c("Vanderpool2020", "Whelan2017", "1KP")
+compare_ASTRAL_trees <- c("Vanderpool2020", "Whelan2017")
 compare_IQTREE_trees <- c("Vanderpool2020", "Whelan2017")
 tests_to_run <- list("Vanderpool2020" = c("allTests", "geneconv"),
                      "Pease2016" = c("allTests", "geneconv"),
                      "Whelan2017" = c("geneconv"),
-                     "1KP" = c("PHI", "maxchi"))
+                     "1KP" = c())
 new.ASTRAL.terminal.branch.length <- 0.1
 n_julia_reps <- 100
 run_julia_deep_trees <- FALSE
@@ -178,17 +178,6 @@ for (dataset in compare_ASTRAL_trees){
     # Provide extra parameters for the function, depending on dataset
     tree_root = dataset_tree_roots[[dataset]]
     
-    # Rewrite ASTRAL species trees to match format for quarnetGoFtest (will all have .tre extension)
-    lapply(dataset_tree_files, reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, 
-           terminal.branch.length = new.ASTRAL.terminal.branch.length)
-    # Extend the ASTRAL species trees to be ultrametric
-    lapply(dataset_tree_files, make.tree.ultrametric, root.tree = TRUE, outgroup = tree_root)
-    # Rewrite IQ-Tree gene trees to match format for quarnetGoFTest (will have .txt extension)
-    lapply(gene_trees_file, reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
-    
-    # Assemble the output csv name for the Quartet Network Goodness of Fit results
-    quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
-    
     # Run slightly different versions of the code based on the dataset: shallow datasets compare 3 trees, and deeper datasets compare two trees
     if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
       # Assemble the output csv name for the Quartet Network Goodness of Fit results
@@ -196,6 +185,14 @@ for (dataset in compare_ASTRAL_trees){
       
       if (file.exists(quarnet_results_file) == FALSE){
         ### Run GoodnessOfFit test
+        # Rewrite ASTRAL species trees to match format for quarnetGoFtest (will all have .tre extension)
+        lapply(dataset_tree_files, reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, 
+               terminal.branch.length = new.ASTRAL.terminal.branch.length)
+        # Extend the ASTRAL species trees to be ultrametric
+        lapply(dataset_tree_files, make.tree.ultrametric, root.tree = TRUE, outgroup = tree_root)
+        # Rewrite IQ-Tree gene trees to match format for quarnetGoFTest (will have .txt extension)
+        lapply(gene_trees_file, reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
+        
         # Run Julia script with T_test,pass and T_test,fail and T_none
         write.Julia.GoF.script(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
                                fail_tree = fail_tree_file, all_tree = noTest_tree_file, gene_trees = gene_trees_file, 
@@ -203,8 +200,7 @@ for (dataset in compare_ASTRAL_trees){
                                number_of_simulated_replicates = n_julia_reps)
         # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
         julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
-        #system(julia_command)
-        print("system(julia_command)")
+        system(julia_command)
       }
       
       # Assemble the file name for the RF distances csv file
@@ -249,14 +245,21 @@ for (dataset in compare_ASTRAL_trees){
       if (run_julia_deep_trees == TRUE){
         if (file.exists(quarnet_results_file) == FALSE){
           ### Run GoodnessOfFit test
+          # Rewrite ASTRAL species trees to match format for quarnetGoFtest (will all have .tre extension)
+          lapply(dataset_tree_files, reformat.ASTRAL.tree.for.Julia, add.arbitrary.terminal.branches = TRUE, 
+                 terminal.branch.length = new.ASTRAL.terminal.branch.length)
+          # Extend the ASTRAL species trees to be ultrametric
+          lapply(dataset_tree_files, make.tree.ultrametric, root.tree = TRUE, outgroup = tree_root)
+          # Rewrite IQ-Tree gene trees to match format for quarnetGoFTest (will have .txt extension)
+          lapply(gene_trees_file, reformat.gene.tree.list.for.Julia, add.arbitrary.terminal.branches = FALSE)
+          
           # Run Julia script with T_test,pass and T_none
           write.Julia.GoF.script.two.trees(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
                                            all_tree = noTest_tree_file, gene_trees = gene_trees_file,root.species.trees = FALSE, tree_root = tree_root,
                                            output_csv_file_path = quarnet_results_file, number_of_simulated_replicates = n_julia_reps)
           # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
           julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
-          #system(julia_command)
-          print("system(julia_command)")
+          system(julia_command)
         }
       }
       
@@ -364,8 +367,7 @@ for (dataset in compare_IQTREE_trees){
         file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path, overwrite = TRUE)
         
         # Apply the AU test
-        # au_test_df <- perform.partition.AU.test(partition_path, three_trees_path, iqtree_path)
-        print("system(call IQ Tree)")
+        au_test_df <- perform.partition.AU.test(partition_path, three_trees_path, iqtree_path)
         # Assemble the output dataframe
         au_results_df <- data.frame(dataset = rep(dataset, 3), test = rep(test, 3), tree = c("test_pass", "test_fail", "no_test"))
         au_results_df <- cbind(au_results_df, au_test_df)
@@ -420,8 +422,7 @@ for (dataset in compare_IQTREE_trees){
         file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path, overwrite = TRUE)
         
         # Apply the AU test
-        # au_test_df <- perform.partition.AU.test.two.trees(partition_path, two_trees_path, iqtree_path)
-        print("system(call IQ Tree)")
+        au_test_df <- perform.partition.AU.test.two.trees(partition_path, two_trees_path, iqtree_path)
         # Assemble the output dataframe
         au_results_df <- data.frame(dataset = rep(dataset, 2), test = rep(test, 2), tree = c("test_pass", "no_test"))
         au_results_df <- cbind(au_results_df, au_test_df)
