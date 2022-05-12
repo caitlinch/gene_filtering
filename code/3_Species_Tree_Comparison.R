@@ -9,7 +9,7 @@
 
 
 ##### Step 1: Set file paths and run variables #####
-## Input parameters
+### Input parameters
 # input_names               <- set name(s) for the dataset(s) - make sure input_names is in same order as alignment_dir and dataset_tree_roots
 #                              (e.g. for 2 datasets, put same dataset first and same dataset last for each variable)
 # dataset_tree_roots        <- set which taxa is outgroup for each dataset
@@ -20,18 +20,30 @@
 #                              Options: "allTests", "PHI", "maxchi" and "geneconv"
 # new.ASTRAL.terminal.branch.length <- ASTRAL does not estimate terminal branch lengths. Terminal branch lengths will be initially set to this value.
 # n_julia_reps              <- Number of simulated data sets to generate for the QuartetNetworkGoF test.
+# run_julia_deep_trees      <- Whether to apply the Julia GoF test to the deep datasets i.e. Whelan2017 and 1KP (can be TRUE or FALSE)
 
-## File and directory locations
+## Values we used for these parameters:
+# compare_ASTRAL_trees <- c("Pease2016", "Vanderpool2020", "Whelan2017", "1KP")
+# compare_IQTREE_trees <- c("Pease2016", "Vanderpool2020", "Whelan2017", "1KP")
+# tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
+#                      "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
+#                      "Whelan2017" = c("PHI", "maxchi", "geneconv"),
+#                      "1KP" = c("PHI", "maxchi"))
+# new.ASTRAL.terminal.branch.length <- 0.1
+# n_julia_reps <- 100
+# run_julia_deep_trees <- FALSE
+
+### File and directory locations
 # alignment_dir             <- the folder(s) containing the alignments for each loci (in the same order as the input_names vector)
 # csv_data_dir              <- directory containing the .csv file results from script 1_RecombinationDetection_empiricalTreelikeness.R
 # tree_dir                  <- directory containing species trees output from script 2_Species_Tree_Estimation.R
 # output_dir                <- where the coalescent/concatenated trees and tree comparisons will be stored 
 # main_dir                  <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 
-## Software locations
+### Software locations
 # iqtree_path               <- location of IQ-Tree executable 
 
-## Set input parameters
+### Set input parameters
 # Set dataset names and tree roots for datasets
 input_names <- c("1KP", "Whelan2017","Vanderpool2020", "Pease2016")
 dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
@@ -42,20 +54,21 @@ dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "AP
                            c("LA4116", "LA2951", "LA4126"))
 
 # Set which datasets and which tests to run
-compare_ASTRAL_trees <- c("Pease2016")
-compare_IQTREE_trees <- c()
-tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
-                     "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
-                     "Whelan2017" = c("PHI", "maxchi", "geneconv"),
-                     "1KP" = c("PHI", "maxchi"))
+compare_ASTRAL_trees <- c("Vanderpool2020", "Whelan2017")
+compare_IQTREE_trees <- c("Vanderpool2020", "Whelan2017")
+tests_to_run <- list("Vanderpool2020" = c("allTests", "geneconv"),
+                     "Pease2016" = c("allTests", "geneconv"),
+                     "Whelan2017" = c("geneconv"),
+                     "1KP" = c())
 new.ASTRAL.terminal.branch.length <- 0.1
 n_julia_reps <- 100
+run_julia_deep_trees <- FALSE
 
 
-# Set file and directory locations, set software locations
+## Set file/directory/software locations for the computer in use
 run = "local"
 if (run == "local"){
-  # File and directory locations
+  ## File and directory locations
   alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Whelan2017/genes/",
                      "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/",
@@ -65,10 +78,10 @@ if (run == "local"){
   output_dir <-"/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
   maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/" # where the empirical treelikeness code is
   
-  # Software locations
+  ## Software locations
   iqtree_path <- "/Users/caitlincherryh/Documents/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
 } else if (run == "server"){
-  # File and directory locations
+  ## File and directory locations
   alignment_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
                      "/data/caitlin/empirical_treelikeness/Data_Whelan2017/",
                      "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/",
@@ -78,7 +91,7 @@ if (run == "local"){
   output_dir <- "/data/caitlin/empirical_treelikeness/Output_dataAnalysis/"
   maindir <- "/data/caitlin/empirical_treelikeness/"
   
-  # Software locations
+  ## Software locations
   iqtree_path <- "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree"
 }
 
@@ -141,11 +154,11 @@ for (dataset in compare_ASTRAL_trees){
     for (i in files){file.copy(from = paste0(species_tree_folder, i), to = paste0(new_folder, i))}
     # Give files their new full file paths
     files <- paste0(new_folder, files)
-
+    
     # Name the files
     noTest_tree_file <- grep("NoTest", grep("tre", files, value = TRUE), value = TRUE)
     pass_tree_file <- grep("pass", grep("tre", files, value = TRUE), value = TRUE)
-    if (dataset == "Vanderpool2020" | dataset == "Pease2016" |(dataset == "Whelan2017" & test == "geneconv")){
+    if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
       # Only collect fail tree for Vanderpool2020 and Pease2016 datasets
       # The fail trees for the other two datasets contained too few loci (due to tests not working for loci with few variable sites)
       fail_tree_file <- grep("fail", grep("tre", files, value = TRUE), value = TRUE)
@@ -176,7 +189,7 @@ for (dataset in compare_ASTRAL_trees){
     quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
     
     # Run slightly different versions of the code based on the dataset: shallow datasets compare 3 trees, and deeper datasets compare two trees
-    if (dataset == "Vanderpool2020" | dataset == "Pease2016" | (dataset == "Whelan2017" & test == "geneconv")){
+    if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
       # Assemble the output csv name for the Quartet Network Goodness of Fit results
       quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
       
@@ -227,19 +240,21 @@ for (dataset in compare_ASTRAL_trees){
         write.csv(dist_df, file = rf_csv, row.names = FALSE)
       }
       
-    } else if (dataset == "1KP" | (dataset == "Whelan2017" & test != "geneconv")){
+    } else if (dataset == "1KP" | dataset == "Whelan2017"){
       # Assemble the output csv name for the Quartet Network Goodness of Fit results
       quarnet_results_file <- paste0(new_folder, dataset, "_", test, "_QuarNetGoF_test_results.csv")
       
-      if (file.exists(quarnet_results_file) == FALSE){
-        ### Run GoodnessOfFit test
-        # Run Julia script with T_test,pass and T_none
-        write.Julia.GoF.script.two.trees(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
-                                         all_tree = noTest_tree_file, gene_trees = gene_trees_file,root.species.trees = FALSE, tree_root = tree_root,
-                                         output_csv_file_path = quarnet_results_file, number_of_simulated_replicates = n_julia_reps)
-        # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
-        julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
-        system(julia_command)
+      if (run_julia_deep_trees == TRUE){
+        if (file.exists(quarnet_results_file) == FALSE){
+          ### Run GoodnessOfFit test
+          # Run Julia script with T_test,pass and T_none
+          write.Julia.GoF.script.two.trees(test_name = test, dataset = dataset, directory = new_folder, pass_tree = pass_tree_file, 
+                                           all_tree = noTest_tree_file, gene_trees = gene_trees_file,root.species.trees = FALSE, tree_root = tree_root,
+                                           output_csv_file_path = quarnet_results_file, number_of_simulated_replicates = n_julia_reps)
+          # Run the script in Julia to calculate the adequacy of each tree for the quartet concordance factors calculated from the gene trees
+          julia_command <- paste0("Julia ",new_folder, "apply_GoF_test.jl")
+          system(julia_command)
+        }
       }
       
       # Assemble the file name for the RF distances csv file
