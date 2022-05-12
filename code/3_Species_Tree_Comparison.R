@@ -54,12 +54,12 @@ dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "AP
                            c("LA4116", "LA2951", "LA4126"))
 
 # Set which datasets and which tests to run
-compare_ASTRAL_trees <- c("Vanderpool2020", "Whelan2017")
+compare_ASTRAL_trees <- c("Vanderpool2020", "Whelan2017", "1KP")
 compare_IQTREE_trees <- c("Vanderpool2020", "Whelan2017")
 tests_to_run <- list("Vanderpool2020" = c("allTests", "geneconv"),
                      "Pease2016" = c("allTests", "geneconv"),
                      "Whelan2017" = c("geneconv"),
-                     "1KP" = c())
+                     "1KP" = c("PHI", "maxchi"))
 new.ASTRAL.terminal.branch.length <- 0.1
 n_julia_reps <- 100
 run_julia_deep_trees <- FALSE
@@ -131,6 +131,9 @@ for (dataset in compare_ASTRAL_trees){
   # Extract the names of the ASTRAL species trees and the .txt files containing the list of gene trees
   species_tree_folder <- paste0(tree_dir, dataset, "/", "species_trees", "/")
   all_species_trees_files <- list.files(species_tree_folder, recursive = TRUE)
+  # Remove any trees from initial incorrect GENECONV run
+  all_species_trees_files <- grep("Old_Geneconv", all_species_trees_files, invert = TRUE, value = TRUE)
+  all_species_trees_files <- grep("Old_geneconv", all_species_trees_files, invert = TRUE, value = TRUE)
   
   # Identify which tests to run for this dataset
   dataset_tests <- tests_to_run[[dataset]]
@@ -461,14 +464,22 @@ for (dataset in compare_IQTREE_trees){
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_gof_results <- grep("QuarNetGoF_test_results.csv", all_output_files, value = TRUE)
 all_gof_results <- grep("collated", all_gof_results, value = TRUE, invert = TRUE)
-all_gof_results <- grep("zz_", all_gof_results, value = TRUE, invert = TRUE) # Remove old test runs
+# Remove old test runs
+all_gof_results <- grep("zz_", all_gof_results, value = TRUE, invert = TRUE)
+all_gof_results <- grep("00_", all_gof_results, value = TRUE, invert = TRUE)
+all_gof_results <- grep("Old_geneconv", all_gof_results, value = TRUE, invert = TRUE)
+all_gof_results <- grep("Old_Geneconv", all_gof_results, value = TRUE, invert = TRUE)
+# Remove any dataset not in the input_names vector
 all_gof_results <- all_gof_results[grepl(paste(input_names, collapse = "|"), all_gof_results)]
-if (length(all_gof_results) > 0){
+# Order by dataset/tree estimation method for nice output csvs
+ordered_gof_results <- c(rev(grep("Vanderpool2020", all_gof_results, value = TRUE)), rev(grep("Pease2016", all_gof_results, value = TRUE)),
+                        rev(grep("Whelan2017", all_gof_results, value = TRUE)), rev(grep("1KP", all_gof_results, value = TRUE)))
+if (length(ordered_gof_results) > 0){
   print("Collating QuarNet GoF test results")
   # Attach directory name to file names
-  all_gof_results <- paste0(output_dir, all_gof_results)
+  ordered_gof_results <- paste0(output_dir, ordered_gof_results)
   # Open and collate the csv files
-  gof_results_list <- lapply(all_gof_results, read.csv)
+  gof_results_list <- lapply(ordered_gof_results, read.csv)
   gof_results_df <- do.call(rbind, gof_results_list)
   # Output compiled csv
   gof_results_df_name <- paste0(output_dir, "03_AllDatasets_collated_ComparisonTrees_QuarNetGoF_test_results.csv")
@@ -480,14 +491,22 @@ if (length(all_gof_results) > 0){
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_au_results <- grep("AU_test_results.csv", all_output_files, value = TRUE)
 all_au_results <- grep("collated", all_au_results, value = TRUE, invert = TRUE)
-all_au_results <- grep("zz_", all_au_results, value = TRUE, invert = TRUE) # Remove old test runs
+# Remove old test runs
+all_au_results <- grep("zz_", all_au_results, value = TRUE, invert = TRUE)
+all_au_results <- grep("00_", all_au_results, value = TRUE, invert = TRUE)
+all_au_results <- grep("Old_geneconv", all_au_results, value = TRUE, invert = TRUE)
+all_au_results <- grep("Old_Geneconv", all_au_results, value = TRUE, invert = TRUE)
+# Remove any dataset not in the input_names vector
 all_au_results <- all_au_results[grepl(paste(input_names, collapse = "|"), all_au_results)]
-if (length(all_au_results) > 0){
+# Order by dataset/tree estimation method for nice output csvs
+ordered_au_results <- c(rev(grep("Vanderpool2020", all_au_results, value = TRUE)), rev(grep("Pease2016", all_au_results, value = TRUE)),
+                        rev(grep("Whelan2017", all_au_results, value = TRUE)), rev(grep("1KP", all_au_results, value = TRUE)))
+if (length(ordered_au_results) > 0){
   print("Collating AU test results")
   # Attach directory name to file paths
-  all_au_results <- paste0(output_dir, all_au_results)
+  ordered_au_results <- paste0(output_dir, ordered_au_results)
   # Open and collate the csv files
-  au_results_list <- lapply(all_au_results, read.csv)
+  au_results_list <- lapply(ordered_au_results, read.csv)
   au_results_df <- do.call(rbind, au_results_list)
   # Output compiled csv
   au_results_df_name <- paste0(output_dir, "03_AllDatasets_collated_ComparisonTrees_AU_test_results.csv")
@@ -499,14 +518,24 @@ if (length(all_au_results) > 0){
 all_output_files <- list.files(output_dir, recursive = TRUE)
 all_rf_results <- grep("tree_RF_distances.csv", all_output_files, value = TRUE)
 all_rf_results <- grep("collated", all_rf_results, value = TRUE, invert = TRUE)
-all_rf_results <- grep("zz_", all_rf_results, value = TRUE, invert = TRUE) # Remove old test runs
+# Remove old test runs
+all_rf_results <- grep("zz_", all_rf_results, value = TRUE, invert = TRUE)
+all_rf_results <- grep("00_", all_rf_results, value = TRUE, invert = TRUE)
+all_rf_results <- grep("Old_geneconv", all_rf_results, value = TRUE, invert = TRUE)
+all_rf_results <- grep("Old_Geneconv", all_rf_results, value = TRUE, invert = TRUE)
+# Remove any dataset not in the input_names vector
 all_rf_results <- all_rf_results[grepl(paste(input_names, collapse = "|"), all_rf_results)]
-if (length(all_rf_results) > 0){
+# Order by dataset/tree estimation method for nice output csvs
+ordered_rf_results <- c(rev(grep("Vanderpool2020/AUtest", all_rf_results, value = TRUE)), rev(grep("Pease2016/AUtest", all_rf_results, value = TRUE)),
+                        rev(grep("Whelan2017/AUtest", all_rf_results, value = TRUE)), rev(grep("1KP/AUtest", all_rf_results, value = TRUE)),
+                        rev(grep("Vanderpool2020/quarnetGoFtest", all_rf_results, value = TRUE)), rev(grep("Pease2016/quarnetGoFtest", all_rf_results, value = TRUE)),
+                        rev(grep("Whelan2017/quarnetGoFtest", all_rf_results, value = TRUE)),rev(grep("1KP/quarnetGoFtest", all_rf_results, value = TRUE)))
+if (length(ordered_rf_results) > 0){
   print("Collating RF/wRF distance results")
   # Attach directory name to file names
-  all_rf_results <- paste0(output_dir, all_rf_results)
+  ordered_rf_results <- paste0(output_dir, ordered_rf_results)
   # Open and collate the csv files
-  rf_results_list <- lapply(all_rf_results, read.csv)
+  rf_results_list <- lapply(ordered_rf_results, read.csv)
   rf_results_df <- do.call(rbind, rf_results_list)
   # Output compiled csv
   rf_results_df_name <- paste0(output_dir, "03_AllDatasets_collated_RF_wRF_distances_results.csv")
