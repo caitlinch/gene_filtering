@@ -1,7 +1,13 @@
 ### empirical_treelikeness/code/1_TestStatistics_EmpiricalData.R
-## R program to apply recombination detection methods to transcriptomes from empirical data
-## A number of additional software packages are required: IQ-Tree2, PHIPack and GeneConv
-# Caitlin Cherryh 2021
+## R program to apply recombination detection methods to empirical data
+# Caitlin Cherryh 2022
+
+## Additional software packages are required:
+##     - IQTREE2 (Minh et. al. 2020) (http://www.iqtree.org/)
+##     - PHIPack (Bruen et. al. 2006) (https://www.maths.otago.ac.nz/~dbryant/software.html)
+##     - GeneConv (Sawyer 1989) (https://www.math.wustl.edu/~sawyer/geneconv/)
+
+
 
 ##### Step 1: Set file paths and run variables #####
 # input_names       <- set name(s) for the dataset(s)

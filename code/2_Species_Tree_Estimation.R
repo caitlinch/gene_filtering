@@ -1,11 +1,13 @@
 ### gene_filtering/code/2_Species_Tree_Estimation.R
-## R program to estimate trees from recombinant or non-recombinant loci
-# Caitlin Cherryh 2021
+## R program to estimate trees from subsets of loci that pass or fail tests for recombination
+# Caitlin Cherryh 2022
 
 ## Additional software packages are required:
 ##     - ASTRAL (Zhang et. al. 2019) (https://github.com/smirarab/ASTRAL)
 ##     - IQTREE2 (Minh et. al. 2020) (http://www.iqtree.org/)
 ##     - RAxML-ng (Kozlov et. al. 2019) (https://github.com/amkozlov/raxml-ng)
+
+
 
 ##### Step 1: Set file paths and run variables #####
 # input_names       <- set name(s) for the dataset(s) - make sure input_names is in same order as alignment_dir 
@@ -36,40 +38,6 @@
 # We estimated concatenated trees in IQ-Tree for the two shallow datasets (Vanderpool2020 and Pease2016) as the deep datasets were too large to reasonably run
 # We estimated concatenated trees in RAxML-NG for the 1000 Plants deep dataset (1KP)
 
-# # To run this program: 
-# # 1. Delete the lines below that include Caitlin's paths/variables
-# # 2. Uncomment lines 25 to 43 inclusive and fill with your own variable names
-# input_names <- c( "1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
-# alignment_dir <- ""
-# csv_data_dir <- ""
-# output_dir <- ""
-# maindir <- "/path/to/gene_filtering/"
-# # Create a vector with all of the executable file paths:
-# # exec_paths <- c("/path/to/ASTRAL_executable","/path/to/IQ-Tree_executable")
-# # names(exec_paths) <- c("ASTRAL","IQTree")
-# # To access a path: exec_paths[["name"]]
-# exec_paths <- c()
-# names(exec_paths) <- c("ASTRAL","IQTree")
-# datasets_to_copy_loci_ASTRAL_IQTREE <-  c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
-# datasets_to_copy_loci_RAxML <- c("1KP")
-# datasets_to_estimate_ASTRAL_trees <- c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
-# datasets_to_estimate_IQTREE_trees <- c("Whelan2017", "Vanderpool2020", "Pease2016")
-# datasets_to_estimate_RAxML_trees <- c("1KP")
-# dataset_tests_to_run <- list("1KP" = c("PHI", "maxchi"),
-#                              "Whelan2017" = c("PHI", "maxchi", "geneconv"),
-#                              "Vanderpool2020" = c("PHI", "maxchi", "geneconv", "all"),
-#                              "Pease2016" = c("PHI", "maxchi", "geneconv", "all"))
-# # List of trees to estimate for each dataset
-# dataset_trees_to_estimate <- list("1KP" = c("PHI,pass", "maxchi,pass"),
-#                                   "Whelan2017" = c("PHI", "maxchi", "geneconv,pass", "geneconv,fail"),
-#                                   "Vanderpool2020" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
-#                                                        "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"),
-#                                   "Pease2016" = c("PHI,pass", "PHI,fail", "maxchi,pass", "maxchi,fail",
-#                                                   "geneconv,pass", "geneconv,fail", "all,pass", "all,fail"))
-# partition.by.codon.position <- FALSE
-# use.modelfinder.models.for.partitions <- TRUE
-# use.free.rate.models.for.deep.datasets <- TRUE
-
 ### Caitlin's paths ###
 run_location = "local"
 
@@ -95,7 +63,6 @@ if (run_location == "local"){
   
   # Select number of cores for parallelisation
   cores.to.use = 1
-  
 } else if (run_location=="server"){
   # Datasets/dataset information
   input_names <- c( "1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
@@ -118,7 +85,6 @@ if (run_location == "local"){
   
   # Select number of cores for parallelisation
   cores.to.use = 45
-  
 }
 
 # Select datasets to run analysis and collect results
@@ -850,6 +816,5 @@ for (dataset in datasets_to_estimate_RAxML_trees){
     system(raxml_call)
   }
 }
-
 
 
