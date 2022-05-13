@@ -7,6 +7,13 @@
 ##     - PHIPack (Bruen et. al. 2006) (https://www.maths.otago.ac.nz/~dbryant/software.html)
 ##     - GeneConv (Sawyer 1989) (https://www.math.wustl.edu/~sawyer/geneconv/)
 
+## This script:
+# 1. Generates a data frame with one row per locus, including all parameters necessary to estimate a gene tree for that locus
+# 2. Applies the recombination detection methods to each locus: PHI and MaxChi (implemented in PHIPack; GeneConv (implemented in GeneConv)
+# 3. Estimates a gene tree for each locus
+# 4. Saves all gene trees to a separate folder
+# 5. Identifies loci to exclude from further analysis (based on warnings from IQ-Tree .log and .iqtree files)
+
 
 
 ##### Step 1: Set file paths and run variables #####

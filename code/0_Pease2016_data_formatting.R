@@ -1,17 +1,10 @@
-# empirical_treelikeness/code/0_Pease2016_data_formatting.R
-# Caitlin Cherryh, 2021
+## empirical_treelikeness/code/0_Pease2016_data_formatting.R
 ## This script recreates the 100kb genomic window alignments used to estimate gene trees in Pease et al (2016)
+# Caitlin Cherryh, 2022
 
 ## Pease et al (2016) paper: 
 #       Pease, J. B., Haak, D. C., Hahn, M. W., Moyle, L. 2016, Phylogenomics reveals three sources of adaptive variation during a rapid radiation, PLOS Biology, 14(2):e1002379
 #       https://doi.org/10.1371/journal.pbio.1002379
-
-## This script:
-# 1. Uses mvftools to read in the HQ alignment mvf.gz file from the Pease et al (2016) datadryad and output 100kb genomic windows as .phy alignments 
-# 2. Collect information about the RAxML run and the models used for each window to estimate an ML gene tree
-# 3. Identify which temporary .phy alignment matches to which window
-# 4. Copy the 2745 alignments used for the Pease et al (2016) ASTRAL gene tree analysis into a fresh folder, labelled with the corresponding genomic window 
-# 5. Output a summary of which temporary .phy alignment matches to which window
 
 ## This script requires:
 #     - RAxML: https://github.com/stamatak/standard-RAxML
@@ -19,7 +12,16 @@
 #     - the Pease_etal_Tomato29acc_HQ.mvf.gz file from the datadryad for Pease et al (2016): https://datadryad.org/stash/dataset/doi:10.5061/dryad.182dv
 #     - the Pease_etal_TomatoPhylo_100kbTrees.txt file from the datadryad for Pease et al (2016), inside the Pease_etal_TomatoPhylo_GeneTrees folder
 
-#### Specify parameters ####
+## This script:
+# 1. Uses mvftools to read in the HQ alignment mvf.gz file from the Pease et al (2016) datadryad and output 100kb genomic windows as .phy alignments 
+# 2. Collects information about the RAxML run and the models used for each window to estimate an ML gene tree
+# 3. Identifies which temporary .phy alignment matches to which window
+# 4. Copies the 2745 alignments used for the Pease et al (2016) ASTRAL gene tree analysis into a fresh folder, labelled with the corresponding genomic window 
+# 5. Outputs a summary of which temporary .phy alignment matches to which window
+
+
+
+#### 1. Specify parameters ####
 # raxml_path                    <- path to RAxML executable
 # mvftools_path                 <- path to mvftools/mvftools.py program
 # Pease2016_100kb_windows_path  <- path to the Pease_etal_TomatoPhylo_100kbTrees.txt file from the datadryad for Pease et al (2016)
@@ -30,6 +32,7 @@
 # run.mvf.tools                 <- whether to run mvftools InferTree to create alignments for genomic windows. 
 #                                  TRUE if want to run, FALSE if have already run/do not want to run
 
+### Caitlin's paths ###
 raxml_path <- "/Users/caitlincherryh/Documents/Executables/standard-RAxML/raxmlHPC-AVX2"
 mvftools_path <- "/Users/caitlincherryh/Documents/Executables/mvftools/mvftools.py"
 Pease2016_100kb_windows_path <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/Pease_etal_TomatoPhylo_100kbTrees.txt"
@@ -38,12 +41,17 @@ Pease2016_alignments_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTree
 alignment_output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/all_window_alignments/"
 summary_output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Pease2016/"
 run.mvf.tools = FALSE
+### End of Caitlin's paths ###
 
-#### Open packages ####
+
+
+#### 2. Open packages ####
 library(ape)
 library(phangorn)
 
-#### Functions ####
+
+
+#### 3. Functions ####
 # For one temp .phy file, open it and extract information about the alignment and corresponding tree
 Pease.extract.info <- function(datetime, mvftools_output_files){
   # Extract files using datetime
@@ -147,7 +155,9 @@ Pease.get.astral.window <- function(index, complete_windows_df, infertree_df, al
   return(op_row)
 }
 
-#### Code body ####
+
+
+#### 4. Code body ####
 # Set working directory to Pease2016 alignment folder so that the windows will be unfolded there
 setwd(Pease2016_alignments_folder) 
 mvftools_command <- paste0("python3 ", mvftools_path,

@@ -1,15 +1,22 @@
 ### empirical_treelikeness/code/3_Species_Tree_Comparison.R
 ## R program to identify the best fitting tree for a candidate dataset
+# Caitlin Cherryh 2022
+
 ## Additional software/packages required:
 #     - IQ-Tree (http://www.iqtree.org/)
 #     - Julia (https://julialang.org/)
 #     - PhyloNetworks.jl (https://github.com/crsl4/PhyloNetworks.jl)
 #     - QuartetNetworkGoodnessFit.jl (https://github.com/cecileane/QuartetNetworkGoodnessFit.jl)
-# Caitlin Cherryh 2021
+
+## This script:
+# 1. Compares fit of ASTRAL trees within data subsets using the QuartetNetworkGoodnessFit.jl test, and compares tree topology within each subset
+# 2. Compares fit of maximum likelihood trees within data subsets using the AU test in IQ-Tree, and compares tree topology within each subset
+# 3. Collates all QuartetNetworkGoodnessFit.jl, AU test results, and tree topology results into a separate .csv folder
+
 
 
 ##### Step 1: Set file paths and run variables #####
-### Input parameters
+## Input parameters
 # input_names               <- set name(s) for the dataset(s) - make sure input_names is in same order as alignment_dir and dataset_tree_roots
 #                              (e.g. for 2 datasets, put same dataset first and same dataset last for each variable)
 # dataset_tree_roots        <- set which taxa is outgroup for each dataset
@@ -33,7 +40,7 @@
 # n_julia_reps <- 100
 # run_julia_deep_trees <- FALSE
 
-### File and directory locations
+## File and directory locations
 # alignment_dir             <- the folder(s) containing the alignments for each loci (in the same order as the input_names vector)
 # csv_data_dir              <- directory containing the .csv file results from script 1_RecombinationDetection_empiricalTreelikeness.R
 # tree_dir                  <- directory containing species trees output from script 2_Species_Tree_Estimation.R
@@ -43,7 +50,8 @@
 ### Software locations
 # iqtree_path               <- location of IQ-Tree executable 
 
-### Set input parameters
+### Caitlin's paths ###
+## Set input parameters
 # Set dataset names and tree roots for datasets
 input_names <- c("1KP", "Whelan2017","Vanderpool2020", "Pease2016")
 dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
@@ -63,7 +71,6 @@ tests_to_run <- list("Vanderpool2020" = c("allTests", "geneconv"),
 new.ASTRAL.terminal.branch.length <- 0.1
 n_julia_reps <- 100
 run_julia_deep_trees <- FALSE
-
 
 ## Set file/directory/software locations for the computer in use
 run = "local"
@@ -94,7 +101,7 @@ if (run == "local"){
   ## Software locations
   iqtree_path <- "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree"
 }
-
+### End of Caitlin's paths ###
 
 
 
@@ -107,11 +114,9 @@ source(paste0(maindir,"code/func_analysis.R"))
 
 
 
-
 ##### Step 3: Prepare for analysis #####
 names(dataset_tree_roots) <- input_names
 names(alignment_dir) <- input_names
-
 
 
 
@@ -305,7 +310,6 @@ for (dataset in compare_ASTRAL_trees){
 
 
 
-
 ##### Step 5: Compare IQ-Tree trees #####
 # Iterate through each dataset
 for (dataset in compare_IQTREE_trees){
@@ -464,9 +468,6 @@ for (dataset in compare_IQTREE_trees){
 
 
 
-
-
-
 ##### Step 6: Collate csv files #####
 ## Collate and output ASTRAL results files ##
 # Find all QuarNetGoF_test_results.csv files (and remove the collated results file from the list of files to combine)
@@ -550,4 +551,6 @@ if (length(ordered_rf_results) > 0){
   rf_results_df_name <- paste0(output_dir, "03_AllDatasets_collated_RF_wRF_distances_results.csv")
   write.csv(rf_results_df, file = rf_results_df_name, row.names = FALSE)
 }
+
+
 

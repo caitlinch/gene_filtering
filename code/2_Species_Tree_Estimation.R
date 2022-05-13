@@ -7,6 +7,10 @@
 ##     - IQTREE2 (Minh et. al. 2020) (http://www.iqtree.org/)
 ##     - RAxML-ng (Kozlov et. al. 2019) (https://github.com/amkozlov/raxml-ng)
 
+## This script:
+# 1. Collates and processes a data frame containing all recombination detection results from the raw output of code/script 1_Recombination_Detection.R
+# 2. Estimates a species tree for each dataset subset specified in ASTRAL, IQ-Tree, or RAxML (or any combination thereof)
+
 
 
 ##### Step 1: Set file paths and run variables #####

@@ -1,26 +1,42 @@
 ### empirical_treelikeness/5_Plots.R
 ## R program to plot and explore results of the treelikeness test statistics on empirical data
-# Caitlin Cherryh 2021
+# Caitlin Cherryh 2022
+
+## This script requires:
+#     - DensiTree (Bouckaert 2010) (https://www.cs.auckland.ac.nz/~remco/DensiTree/)
+
+## This script:
+# 1. Creates a variety of plots and figures
+
 
 
 ##### Step 1: Set the file paths for input and output files, and necessary functions/directories #####
-print("Set filepaths")
-# maindir             <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
-# plots_dir           <- for saving plots and analyses. This file should contain a folder for each dataset (where the folder name and corresponding dataset name are identical)
-# species_tree_folder <- folder containing the species trees estimated in ASTRAL and IQ-Tree
-# treelikeness_file   <- file containing results of recombination detection tests
-# datasets            <- set name(s) for the dataset(s)
+# maindir                 <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+# plot_dir                <- for saving plots and analyses. This file should contain a folder for each dataset (where the folder name and corresponding dataset name are identical)
+# species_tree_folder     <- folder containing the species trees estimated in ASTRAL and IQ-Tree
+# treelikeness_file       <- file containing results of recombination detection tests
+# datasets                <- set name(s) for the dataset(s)
+# roots                   <- set which taxa is outgroup for each dataset
+# n_tips                  <- number of tips in each tree
+# taxa_order              <- order of taxa for plotting (if desired)
+# densitree_path          <- path to DensiTree software executable for making DensiTree figures
+# datasets_for_densitree  <- which datasets you want to create figures for using DensiTree
 
+### Caitlin's paths ###
 # Folders and filepaths
 maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/" # where the empirical treelikeness code is
 plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
 species_tree_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
 treelikeness_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/02_AllDatasets_collated_RecombinationDetection_TrimmedLoci.csv"
 
-# Datasets
+# Dataset information
 datasets <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
-roots <- c("Pease2016" = "LA4116", "Vanderpool2020" = "Mus_musculus", "1KP" = "BAJW", 
-           "Whelan2017" = "Salpingoeca_pyxidium")
+roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
+                "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
+                "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
+              c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
+              c("Mus_musculus"), 
+              c("LA4116", "LA2951", "LA4126"))
 n_tips <- c("Pease2016" = 29, "Vanderpool2020" = 29)
 taxa_order <- list("Pease2016" = c("LA4116", "LA4126", "LA2951", "LA3778", "LA0716", "LA1777", "LA0407", "LA4117", "LA1782", "LA2964", 
                                    "LA0444", "LA0107", "LA1358", "LA2744", "LA1364", "LA1316", "LA1028", "LA2172", "LA2133", "LA1322",
@@ -32,32 +48,21 @@ taxa_order <- list("Pease2016" = c("LA4116", "LA4126", "LA2951", "LA3778", "LA07
                                         "Cercocebus_atys", "Mandrillus_leucophaeus", "Papio_anubis", "Theropithecus_gelada", "Macaca_nemestrina",
                                         "Macaca_fascicularis", "Macaca_mulatta", "Nomascus_leucogenys", "Pongo_abelii", "Gorilla_gorilla",
                                         "Homo_sapiens", "Pan_paniscus", "Pan_troglodytes"))
-# Determine which plots to create
-datasets_for_densitree <- c("Pease2016", "Vanderpool2020")
-datasets_for_boxplots <- c("Pease2016", "Vanderpool2020")
-datasets_to_compare_tree_topologies <- c("Pease2016", "Vanderpool2020")
-
-# Software
+# DensiTree paths/variables
 densitree_path <- "/Users/caitlincherryh/Documents/Executables/Densitree/DensiTree.v2.2.7.jar"
+datasets_for_densitree <- c("Pease2016", "Vanderpool2020")
+### End of Caitlin's paths ###
 
 
 
 #### Step 2: Open files and packages ####
 # Open packages
-print("Open packages ")
 library(ggplot2)
 #library(cowplot)
 #library(reshape2) # functions: melt, recast
 library(ape) # functions: read.tree, Ntip, root
 library(phangorn) # functions: treedist, densiTree
 library(phytools) # functions: nodeHeights (to rescale tree height)
-
-#library(ips)
-#library(treespace) # phylogenetic tree exploration
-#library(adegraphics) # improved graphical functionalities from ade4 (multivariate data analysis)
-#library(adegenet) # toolkit for exploring genomic and genetic data
-#library(rgl) # for interactive 3D plots
-
 # Source functions
 source(paste0(maindir,"code/func_plots.R"))
 
@@ -104,8 +109,6 @@ for (dataset in datasets[datasets %in% datasets_for_densitree]){
   densiTree(none_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
             direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.02, cex = 1)
   dev.off()
-  
-  
   
   # Want to compare the pass/fail trees for each test
   tests <- c("PHI", "maxchi", "geneconv", "allTests")

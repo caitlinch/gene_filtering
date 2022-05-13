@@ -1,20 +1,13 @@
 ### empirical_treelikeness/4_DataAnalysis.R
 ## R program to plot and explore results of the treelikeness test statistics on empirical data
-# Final result is a reformatted csv file and a number of graphs
-# Caitlin Cherryh 2021
+# Caitlin Cherryh 2022
+
+## This script:
+# 1. Creates a variety of plots and figures
 
 
 
-##### Step 1: Open packages #####
-library(ape)
-library(distory)
-library(ggplot2)
-library(patchwork)
-
-
-
-##### Step 2: Set the file paths for input and output files, and necessary functions/directories #####
-print("set filepaths")
+##### Step 1: Set the file paths for input and output files, and necessary functions/directories #####
 # maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
 # tree_data_dir     <- Location of the gene trees
 # test_data_dir     <- Location of the results from the AU test and QuartetNetwork Goodness of Fit tests
@@ -24,8 +17,10 @@ print("set filepaths")
 # dataset_tree_roots        <- set which taxa is outgroup for each dataset
 # tests_to_run              <- a list, with a vector for each dataset specifying which of the recombination detection methods should be tested 
 #                              Options: "allTests", "PHI", "maxchi" and "geneconv"
+# datasets_to_identify_distinct_edges <- which datasets to run the distinct.edges function on (to investigate the branches that appear in one tree but not the other)
 # plotting                  <- whether to plot figures (TRUE = yes, FALSE = no)
 
+### Caitlin's paths ###
 maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/" # where the empirical treelikeness code is
 tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees"
 test_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
@@ -41,14 +36,20 @@ tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv
 
 datasets_to_identify_distinct_edges <- c()
 plotting = TRUE
+### End of Caitlin's paths ###
 
+
+
+##### Step 2: Open packages #####
+library(ape)
+library(distory)
+library(ggplot2)
+library(patchwork)
 
 
 
 ##### Step 3: Source function files and prepare variables for analysis #####
-print("Source function files")
 source(paste0(maindir, "code/func_analysis.R"))
-
 
 
 
@@ -126,8 +127,6 @@ for (dataset in datasets_to_identify_distinct_edges){
       astral_trees <- grep(".tre", grep(".ASTRAL", test_trees, value = TRUE), value = TRUE)
       pass_tree_file <- paste0(dataset_tree_dir, grep("pass", astral_trees, value = TRUE))
       none_tree_file <- paste0(dataset_tree_dir, grep("NoTest", grep(".tre", grep(".ASTRAL", all_files, value = TRUE), value = TRUE), value = TRUE))
-      print(Ntip(read.tree(none_tree_file)))
-      print(Ntip(read.tree(pass_tree_file)))
       # Create dataframes
       # Want to collect the information about splits present in one tree but not the other (i.e. in T_all,pass vs T_None)
       test_df_pass_astral <- compare.distinct.edges.of.two.trees(tree_file_1 = pass_tree_file, tree_file_2 = none_tree_file, tree1_name = "Pass", 
@@ -153,6 +152,7 @@ for (dataset in datasets_to_identify_distinct_edges){
 }
 
 
+
 ##### Step 5: Compare the posterior probabilities/ bootstraps of the trees #####
 # Open the .csv file containing branch lengths/support for all analyses for all four datasets
 node_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges.csv")
@@ -170,15 +170,12 @@ if (file.exists(node_df_filename) == FALSE){
   node_df <- read.csv(node_df_filename)
 }
 
-
-
 if (plotting == TRUE){
   #### Create new folder for plots ####
   plot_dir <- paste0(output_dir, "plots/")
   if (dir.exists(plot_dir) == FALSE){
     dir.create(plot_dir)
   }
-  
   
   #### Create new columns to facilitate plotting ####
   # Create a new factored dataset columns for nice plotting
@@ -258,7 +255,6 @@ if (plotting == TRUE){
   ggsave(filename = paste0(plot_dir, "ASTRAL_posteriorProbability_conflicting_branches.png"), plot = p, device = "png", units = "in", width = 8, height = 10)
   
   
-  
   #### Create a lovely plot of posterior probability support values for the ASTRAL trees
   # Break pp_df into three sections to plot: one for Tomatoes/Primates, one for Metazoans, and one for Plants
   pp1_df <- pp_df[((pp_df$dataset_fac == "Primates") | (pp_df$dataset_fac == "Tomatoes")),]
@@ -305,7 +301,6 @@ if (plotting == TRUE){
   ggsave(filename = paste0(plot_dir, "ASTRAL_edgeLength_conflicting_branches.png"), plot = p, device = "png", units = "in", width = 8, height = 10)
   
   
-  
   #### Create a lovely plot of ultrafast bootstrap support values for the maximum likelihood trees
   # Break pp_df into three sections to plot: one for Tomatoes/Primates, one for Metazoans, and one for Plants
   bs1_df <- bs_df[((bs_df$dataset_fac == "Primates") | (bs_df$dataset_fac == "Tomatoes")),]
@@ -338,7 +333,6 @@ if (plotting == TRUE){
   p = p1 + p2 + plot_layout(ncol = 1, heights = c(8, 4))
   ggsave(filename = paste0(plot_dir, "ML_ultrafastBootstrapSupport_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 8)
   ggsave(filename = paste0(plot_dir, "ML_ultrafastBootstrapSupport_conflicting_branches.png"), plot = p, device = "png", units = "in", width = 8, height = 8)
-  
   
   
   #### Create a lovely plot of edge lengths for the maximum likelihood trees
