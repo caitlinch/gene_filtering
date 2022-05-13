@@ -54,7 +54,7 @@ dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "AP
                            c("LA4116", "LA2951", "LA4126"))
 
 # Set which datasets and which tests to run
-compare_ASTRAL_trees <- c("Vanderpool2020", "Whelan2017")
+compare_ASTRAL_trees <- c()
 compare_IQTREE_trees <- c("Vanderpool2020", "Whelan2017")
 tests_to_run <- list("Vanderpool2020" = c("allTests", "geneconv"),
                      "Pease2016" = c("allTests", "geneconv"),
@@ -315,11 +315,15 @@ for (dataset in compare_IQTREE_trees){
   # Extract the names of the ASTRAL species trees and the .txt files containing the list of gene trees
   species_tree_folder <- paste0(tree_dir, dataset, "/", "species_trees", "/")
   all_species_trees_files <- list.files(species_tree_folder, recursive = TRUE)
-  
-  # Find all IQ-Tree trees and partition files for this dataset
+  # Remove any trees from initial incorrect GENECONV run
+  all_species_trees_files <- grep("Old_Geneconv", all_species_trees_files, invert = TRUE, value = TRUE)
+  all_species_trees_files <- grep("Old_geneconv", all_species_trees_files, invert = TRUE, value = TRUE)
+  # Find all files for this dataset
   all_IQTree_files <- grep("IQTREE", all_species_trees_files, value = TRUE)
+  # Find all IQ-Tree trees and partition files for this dataset
   all_IQTree_partitions <- grep(".nex.", grep("partitions.nex", all_IQTree_files, value = TRUE), value = TRUE, invert = TRUE)
   all_IQTree_trees <- grep("contree", all_IQTree_files, value = TRUE)
+
   
   # If dataset was run using RAxML-NG, find the bestTree files (the trees) and the IQ-Tree partitions for the no free rate model runs
   if (dataset == "1KP"){
