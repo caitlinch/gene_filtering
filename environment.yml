@@ -1,4 +1,4 @@
-name: empirical_treelikeness
+name: gene_filtering
 channels:
   - conda-forge
   - bioconda
