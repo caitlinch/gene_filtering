@@ -12,46 +12,22 @@
 # cores_to_use      <- the number of cores to use for parallelisation. 1 for a single core (wholly sequential), or higher if using parallelisation.
 # iqtree_num_threads<- specify number of cores for IQ-Tree to use during tree estimation. May be number, or set as "AUTO" for IQ-Tree to choose best number of threads
 # exec_folder       <- the folder containing the software executables needed for analysis (PhiPack, GeneConv)
-# exec_paths        <- location to each executable within the folder. Attach the names of the executables so the paths can be accessed by name
+# exec_paths        <- location to each software executables needed for analysis (PhiPack, GeneConv). To attach names: names(exec_paths) <- c("PHIPack","GeneConv","IQTree"). To access a path: exec_paths[["name"]]
 
 # Set which datasets you want to run through which analyses
 # If do not want to run that part of the analysis, assign empty vector i.e. datasets_to_run <- c()
 # If want to run specific datasets through that part of the analysis, assign only those. E.g. if you have datasets "Trees", "Animals" and "Fungi" and
 #    want to run only "Trees" and "Fungi": datasets_to_run <- c("Trees", "Fungi")
 # If want to run all of the datasets, assign all names i.e. datasets_to_run <- input_names
-# create_information_dataframe <- whether to gather information about each dataset required to run further analysis
+
+#   create_information_dataframe <- whether to gather information about each dataset required to run further analysis
 #                              <- this information includes loci name, best model for each loci, location of alignment for each loci, etc
 #                              <- if TRUE, program will collect all these variables in a dataframe and output a .csv containing this dataframe
 #                              <- if FALSE, this step will be skipped
-# datasets_to_run   <- Out of the input names, select which datasets will have the treelikeness analysis run and the results collated. If running all, set datasets_to_run <- input_names
-# datasets_to_collect_trees <- Out of the input names, select which datasets will have the maximum likelihood trees from IQ-Tree collected and saved in a separate folder for easy downloading. 
+#   datasets_to_run   <- Out of the input names, select which datasets will have the treelikeness analysis run and the results collated. If running all, set datasets_to_run <- input_names
+#   datasets_to_collect_trees <- Out of the input names, select which datasets will have the maximum likelihood trees from IQ-Tree collected and saved in a separate folder for easy downloading. 
 #                             If saving all, set datasets_to_run <- input_names
-# datasets_to_check <- Out of the input names, select whuich datasets to collect the warnings from the IQ-Tree gene tree estimation log files
-
-# # To run this program: 
-# # 1. Delete the lines that include Caitlin's paths/variables
-# # 2. Uncomment lines 31 to 54 inclusive and fill with your own variable names
-# input_names <- ""
-# input_dir <- ""
-# best_model_paths <- ""
-# output_dir <- ""
-# maindir <- ""
-# cores_to_use <- 1
-# iqtree_num_threads <- "AUTO"
-# # Create a vector with all of the executable file paths using the following lines as a template:
-# # exec_folder <- "/path/to/executables/folder/"
-# # exec_paths <- c("PHIPack_executable", "GeneConv_executable, "IQ-Tree_executable")
-# # exec_paths <- paste0(exec_folder,exec_paths)
-# # names(exec_paths) <- c("PHIPack","GeneConv","IQTree")
-# # To access a path: exec_paths[["name"]]
-# exec_folder <- ""
-# exec_paths <- c()
-# exec_paths <- paste0(exec_folder, exec_paths)
-# create_information_dataframe <- TRUE
-# datasets_to_run <- ""
-# datasets_to_collate <- ""
-# datasets_to_collect_trees <- ""
-# datasets_to_check <- ""
+#   datasets_to_check <- Out of the input names, select whuich datasets to collect the warnings from the IQ-Tree gene tree estimation log files
 
 ### Caitlin's paths ###
 run_location = "local"
@@ -76,13 +52,6 @@ if (run_location == "local"){
   # set number of cores for parallelisation
   cores_to_use = 1
   iqtree_num_threads = "AUTO"
-  
-  # Select which analyses to apply to each dataset
-  create_information_dataframe <- TRUE
-  datasets_to_run <- c("Whelan2017")
-  datasets_to_collect_trees <- c("Whelan2017")
-  datasets_to_check <- c("Whelan2017")
-  
 } else if (run_location=="server"){
   input_names <- c("1KP", "Whelan2017", "Vanderpool2020", "Pease2016")
   input_dir <- c("/data/caitlin/empirical_treelikeness/Data_1KP/",
@@ -99,17 +68,19 @@ if (run_location == "local"){
                   "/data/caitlin/executables/GENECONV_v1.81_unix.source/geneconv", 
                   "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree")
   names(exec_paths) <- c("PHIPack","GeneConv","IQTree")
+  # Extend the executable paths
+  exec_paths <- paste0(exec_folder, exec_paths)
   
   # set number of cores for parallelisation
   cores_to_use = 30
   iqtree_num_threads = "AUTO"
-  
-  # Select which analyses to apply to each dataset
-  create_information_dataframe <- TRUE
-  datasets_to_run <- c("Whelan2017")
-  datasets_to_collect_trees <- c()
-  datasets_to_check <- c("Whelan2017")
 }
+
+# Select which analyses to apply to each dataset
+create_information_dataframe <- TRUE
+datasets_to_run <- input_names
+datasets_to_collect_trees <- input_names
+datasets_to_check <- input_names
 ### End Caitlin's paths ###
 
 
@@ -124,6 +95,7 @@ print("sourcing functions")
 source(paste0(maindir,"code/func_recombination_detection.R"))
 source(paste0(maindir,"code/func_empirical.R"))
 source(paste0(maindir,"code/func_analysis.R"))
+
 
 
 ##### Step 3: Extract names and locations of loci #####
@@ -352,14 +324,5 @@ if (setequal(datasets_to_check, input_names) == TRUE){
   exclusion_op_name <- paste0(output_dir, "01_", paste(datasets_to_check, collapse = "_"), "_IQ-Tree_warnings_LociToExclude.csv")
   write.csv(exclusion_df, exclusion_op_name, row.names = FALSE) 
 }
-
-
-
-
-
-
-
-
-
 
 
