@@ -352,23 +352,24 @@ for (dataset in compare_IQTREE_trees){
     
     # Assemble the filename for the results file 
     au_results_file <- paste0(new_folder, dataset, "_", test, "_AU_test_results.csv")
+    
+    # Collect the trees for this test
+    test_IQTREE_trees <- grep(test, all_IQTree_trees, value = TRUE)
+    # Sort the files into the following order: test pass, test fail, no test
+    three_trees_location <- c(grep("pass", test_IQTREE_trees, value = TRUE), grep("fail", test_IQTREE_trees, value = TRUE), 
+                              grep("NoTest", all_IQTree_trees, value = TRUE))
+    three_trees_location <- paste0(species_tree_folder, three_trees_location)
+    # Read in the three trees
+    three_trees_text <- unlist(lapply(three_trees_location, readLines))
+    # Write the three trees into one file, inside the new folder for the AU test
+    three_trees_path <- paste0(new_folder, dataset, "_", test, "three_trees_Pass-Fail-NoTest.tree")
+    write(three_trees_text, three_trees_path)
+    
     # If the file does not exist, run the tests
     if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
       ### Apply the AU test
       # Check whether the results file for this test exists already
       if (file.exists(au_results_file) == FALSE){
-        # Collect files for this test: three trees and the partition file (containing the loci that pass the test)
-        test_IQTREE_trees <- grep(test, all_IQTree_trees, value = TRUE)
-        # Sort the files into the following order: test pass, test fail, no test
-        three_trees_location <- c(grep("pass", test_IQTREE_trees, value = TRUE), grep("fail", test_IQTREE_trees, value = TRUE), 
-                                  grep("NoTest", all_IQTree_trees, value = TRUE))
-        three_trees_location <- paste0(species_tree_folder, three_trees_location)
-        # Read in the three trees
-        three_trees_text <- unlist(lapply(three_trees_location, readLines))
-        # Write the three trees into one file, inside the new folder for the AU test
-        three_trees_path <- paste0(new_folder, dataset, "_", test, "three_trees_Pass-Fail-NoTest.tree")
-        write(three_trees_text, three_trees_path)
-        
         # Find the partitions file containing the location of the loci that pass the test
         test_pass_partition_file <- grep("pass", grep(test, all_IQTree_partitions, value = TRUE), value = TRUE)
         # Write the new name for the partition file
