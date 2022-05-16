@@ -137,8 +137,9 @@ for (dataset in compare_ASTRAL_trees){
   species_tree_folder <- paste0(tree_dir, dataset, "/", "species_trees", "/")
   all_species_trees_files <- list.files(species_tree_folder, recursive = TRUE)
   # Remove any trees from initial incorrect GENECONV run
-  all_species_trees_files <- grep("Old_Geneconv", all_species_trees_files, invert = TRUE, value = TRUE)
+  all_species_trees_files <- grep("old_geneconv", all_species_trees_files, invert = TRUE, value = TRUE)
   all_species_trees_files <- grep("Old_geneconv", all_species_trees_files, invert = TRUE, value = TRUE)
+  all_species_trees_files <- grep("Old_Geneconv", all_species_trees_files, invert = TRUE, value = TRUE)
   
   # Identify which tests to run for this dataset
   dataset_tests <- tests_to_run[[dataset]]
@@ -320,8 +321,9 @@ for (dataset in compare_IQTREE_trees){
   species_tree_folder <- paste0(tree_dir, dataset, "/", "species_trees", "/")
   all_species_trees_files <- list.files(species_tree_folder, recursive = TRUE)
   # Remove any trees from initial incorrect GENECONV run
-  all_species_trees_files <- grep("Old_Geneconv", all_species_trees_files, invert = TRUE, value = TRUE)
+  all_species_trees_files <- grep("old_geneconv", all_species_trees_files, invert = TRUE, value = TRUE)
   all_species_trees_files <- grep("Old_geneconv", all_species_trees_files, invert = TRUE, value = TRUE)
+  all_species_trees_files <- grep("Old_Geneconv", all_species_trees_files, invert = TRUE, value = TRUE)
   # Find all files for this dataset
   all_IQTree_files <- grep("IQTREE", all_species_trees_files, value = TRUE)
   # Find all IQ-Tree trees and partition files for this dataset
@@ -477,6 +479,7 @@ all_gof_results <- grep("collated", all_gof_results, value = TRUE, invert = TRUE
 # Remove old test runs
 all_gof_results <- grep("zz_", all_gof_results, value = TRUE, invert = TRUE)
 all_gof_results <- grep("00_", all_gof_results, value = TRUE, invert = TRUE)
+all_gof_results <- grep("old_geneconv", all_gof_results, value = TRUE, invert = TRUE)
 all_gof_results <- grep("Old_geneconv", all_gof_results, value = TRUE, invert = TRUE)
 all_gof_results <- grep("Old_Geneconv", all_gof_results, value = TRUE, invert = TRUE)
 # Remove any dataset not in the input_names vector
@@ -504,6 +507,7 @@ all_au_results <- grep("collated", all_au_results, value = TRUE, invert = TRUE)
 # Remove old test runs
 all_au_results <- grep("zz_", all_au_results, value = TRUE, invert = TRUE)
 all_au_results <- grep("00_", all_au_results, value = TRUE, invert = TRUE)
+all_au_results <- grep("old_geneconv", all_au_results, value = TRUE, invert = TRUE)
 all_au_results <- grep("Old_geneconv", all_au_results, value = TRUE, invert = TRUE)
 all_au_results <- grep("Old_Geneconv", all_au_results, value = TRUE, invert = TRUE)
 # Remove any dataset not in the input_names vector
@@ -531,6 +535,7 @@ all_rf_results <- grep("collated", all_rf_results, value = TRUE, invert = TRUE)
 # Remove old test runs
 all_rf_results <- grep("zz_", all_rf_results, value = TRUE, invert = TRUE)
 all_rf_results <- grep("00_", all_rf_results, value = TRUE, invert = TRUE)
+all_rf_results <- grep("old_geneconv", all_rf_results, value = TRUE, invert = TRUE)
 all_rf_results <- grep("Old_geneconv", all_rf_results, value = TRUE, invert = TRUE)
 all_rf_results <- grep("Old_Geneconv", all_rf_results, value = TRUE, invert = TRUE)
 # Remove any dataset not in the input_names vector
