@@ -58,8 +58,6 @@ datasets_for_densitree <- c("Pease2016", "Vanderpool2020")
 #### Step 2: Open files and packages ####
 # Open packages
 library(ggplot2)
-#library(cowplot)
-#library(reshape2) # functions: melt, recast
 library(ape) # functions: read.tree, Ntip, root
 library(phangorn) # functions: treedist, densiTree
 library(phytools) # functions: nodeHeights (to rescale tree height)
