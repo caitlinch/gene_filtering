@@ -7,7 +7,11 @@ dependencies:
   - r=4.0
   - r-base=4.0.3
   - r-ape
+  - r-distory
+  - r-ggplot2
+  - r-patchwork
   - r-phangorn
-  - r-seqinr
   - r-phytools
   - r-phylotools
+  - r-seqinr
+  
