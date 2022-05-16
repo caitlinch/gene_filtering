@@ -63,17 +63,17 @@ dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "AP
 
 # Set which datasets and which tests to run
 compare_ASTRAL_trees <- c()
-compare_IQTREE_trees <- c("Vanderpool2020", "Whelan2017")
-tests_to_run <- list("Vanderpool2020" = c("allTests", "geneconv"),
+compare_IQTREE_trees <- c("Pease2016")
+tests_to_run <- list("Vanderpool2020" = c(),
                      "Pease2016" = c("allTests", "geneconv"),
-                     "Whelan2017" = c("geneconv"),
+                     "Whelan2017" = c(),
                      "1KP" = c())
 new.ASTRAL.terminal.branch.length <- 0.1
 n_julia_reps <- 100
 run_julia_deep_trees <- FALSE
 
 ## Set file/directory/software locations for the computer in use
-run = "local"
+run = "server"
 if (run == "local"){
   ## File and directory locations
   alignment_dir <- c("/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/alignments/alignments-FAA-masked_genes/",
