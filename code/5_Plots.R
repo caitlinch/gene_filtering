@@ -54,8 +54,6 @@ library(ape) # functions: read.tree, Ntip, root
 library(ggplot2) # for nice plots
 library(ggtree) # for plotting phylogenetic trees
 library(patchwork) # for collating plots
-library(phangorn) # functions: treedist, densiTree
-library(phytools) # functions: nodeHeights (to rescale tree height)
 # Source functions
 source(paste0(maindir,"code/func_plots.R"))
 
@@ -183,4 +181,49 @@ ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf", height = 10,
 
 
 #### Step 4: Plotting Tomatoes dataset ####
+tomatoes_tree_folder <- paste0(species_tree_folder, "Pease2016/species_trees/")
+tomatoes_tree_files <- paste0(tomatoes_tree_folder, list.files(tomatoes_tree_folder, recursive = TRUE))
+tomatoes_tree_files <- grep("old_geneconv|Old_geneconv|Old_Geneconv|00_|zz_", tomatoes_tree_files, invert = TRUE, value = TRUE)
+tomatoes_astral_trees <- grep("species\\.tre", tomatoes_tree_files, value = TRUE)
+tomatoes_concat_trees <- grep("nex.contree", tomatoes_tree_files, value = TRUE)
+
+## ASTRAL Peruvianum topologies
+# Need:
+#     1. NoTest (identical to F,GENECONV and F,All tests)
+#     2. P,PHI
+#     3. F,PHI
+#     4. P,MaxChi
+#     5. F,MaxChi
+#     6. P,GENECONV
+#     7. P,All tests
+
+# Find file for each tree
+tt1_file <- grep("NoTest", tomatoes_astral_trees, value = TRUE)
+tt2_file <- grep("PHI_pass", tomatoes_astral_trees, value = TRUE)
+tt3_file <- grep("PHI_fail", tomatoes_astral_trees, value = TRUE)
+tt4_file <- grep("maxchi_pass", tomatoes_astral_trees, value = TRUE)
+tt5_file <- grep("maxchi_fail", tomatoes_astral_trees, value = TRUE)
+tt6_file <- grep("geneconv_pass", tomatoes_astral_trees, value = TRUE)
+tt7_file <- grep("allTests_pass", tomatoes_astral_trees, value = TRUE)
+# Open each tree
+tt1 <- read.tree(tt1_file)
+tt2 <- read.tree(tt2_file)
+tt3 <- read.tree(tt3_file)
+tt4 <- read.tree(tt4_file)
+tt5 <- read.tree(tt5_file)
+tt6 <- read.tree(tt6_file)
+tt7 <- read.tree(tt7_file)
+# Rename tip labels to have scientific names (not just numbers)
+tt1$tip.label <- rename.tomato.tips(tt1$tip.label)
+tt2$tip.label <- rename.tomato.tips(tt2$tip.label)
+tt3$tip.label <- rename.tomato.tips(tt3$tip.label)
+tt4$tip.label <- rename.tomato.tips(tt4$tip.label)
+tt5$tip.label <- rename.tomato.tips(tt5$tip.label)
+tt6$tip.label <- rename.tomato.tips(tt6$tip.label)
+tt7$tip.label <- rename.tomato.tips(tt7$tip.label)
+# Remove clades that remain identical for trees tt2 - tt7
+
+
+
+
 
