@@ -100,11 +100,11 @@ for (dataset in datasets_to_identify_distinct_edges){
                                                                tree1_name = "Fail", tree2_name = "None", test_name = test, 
                                                                dataset_name = dataset, support_value_type_name = "BS")
       } else if (dataset == "Whelan2017" | dataset == "1KP"){
-        print("Compare IQ-Tree trees")
         ## ML trees: Create dataframe detailing differences in posterior probabilities between the two trees
         # If dataset is 1KP, collect RAxML trees estimated with no free rate models
         # For other datasets, collect IQ-Tree trees (no restrictions on models)
         if (dataset == "1KP"){
+          print("Compare ML trees")
           # Get the list of trees estimated in RAxML-NG for this dataset
           # Get the list of trees estimated in IQ-Tree for this dataset
           raxml_trees <- grep("bestTree", all_files, value = TRUE)
@@ -114,6 +114,7 @@ for (dataset in datasets_to_identify_distinct_edges){
           none_tree_file <- paste0(dataset_tree_dir, grep("NoTest", raxml_trees, value = TRUE))
           pass_tree_file <- paste0(dataset_tree_dir, grep("pass", test_trees, value = TRUE))
         } else {
+          print("Compare IQ-Tree trees")
           # Get the list of trees estimated in IQ-Tree for this dataset
           test_trees <- grep(test, all_files, value = TRUE)
           iq_trees <- grep(".contree", test_trees, value = TRUE)
