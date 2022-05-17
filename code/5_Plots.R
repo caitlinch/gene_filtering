@@ -192,10 +192,9 @@ tomatoes_concat_trees <- grep("nex.contree", tomatoes_tree_files, value = TRUE)
 #     1. NoTest (identical to F,GENECONV and F,All tests)
 #     2. P,PHI
 #     3. F,PHI
-#     4. P,MaxChi
+#     4. P,MaxChi (identical to P,GENECONV)
 #     5. F,MaxChi
-#     6. P,GENECONV
-#     7. P,All tests
+#     6. P,All tests
 
 # Find file for each tree
 tt1_file <- grep("NoTest", tomatoes_astral_trees, value = TRUE)
@@ -203,44 +202,48 @@ tt2_file <- grep("PHI_pass", tomatoes_astral_trees, value = TRUE)
 tt3_file <- grep("PHI_fail", tomatoes_astral_trees, value = TRUE)
 tt4_file <- grep("maxchi_pass", tomatoes_astral_trees, value = TRUE)
 tt5_file <- grep("maxchi_fail", tomatoes_astral_trees, value = TRUE)
-tt6_file <- grep("geneconv_pass", tomatoes_astral_trees, value = TRUE)
-tt7_file <- grep("allTests_pass", tomatoes_astral_trees, value = TRUE)
+tt6_file <- grep("allTests_pass", tomatoes_astral_trees, value = TRUE)
 # Open each tree
 tt1 <- read.tree(tt1_file)
+tt1_small <- read.tree(tt1_file)
 tt2 <- read.tree(tt2_file)
 tt3 <- read.tree(tt3_file)
 tt4 <- read.tree(tt4_file)
 tt5 <- read.tree(tt5_file)
 tt6 <- read.tree(tt6_file)
-tt7 <- read.tree(tt7_file)
 # Reroot tree 1 at proper outgroup
 tt1 <- root(tt1, outgroup = roots[["Pease2016"]])
-# Reformat tomato clades for trees 2-7
+# Reformat tomato clades for trees 1-6
+tt1_small <- reformat.congruent.clades(tt1_small)
 tt2 <- reformat.congruent.clades(tt2)
 tt3 <- reformat.congruent.clades(tt3)
 tt4 <- reformat.congruent.clades(tt4)
 tt5 <- reformat.congruent.clades(tt5)
 tt6 <- reformat.congruent.clades(tt6)
-tt7 <- reformat.congruent.clades(tt7)
 # Rename tip labels to have scientific names (not just numbers)
 tt1$tip.label <- rename.tomato.tips(tt1$tip.label)
+tt1_small$tip.label <- rename.tomato.tips(tt1_small$tip.label)
 tt2$tip.label <- rename.tomato.tips(tt2$tip.label)
 tt3$tip.label <- rename.tomato.tips(tt3$tip.label)
 tt4$tip.label <- rename.tomato.tips(tt4$tip.label)
 tt5$tip.label <- rename.tomato.tips(tt5$tip.label)
 tt6$tip.label <- rename.tomato.tips(tt6$tip.label)
-tt7$tip.label <- rename.tomato.tips(tt7$tip.label)
 # Add small tips of 0.1 to each branch (ASTRAL does not add terminal branch lengths)
 tt1$edge.length[which(is.nan(tt1$edge.length))] <- 0.2
+tt1_small$edge.length[which(is.nan(tt1_small$edge.length))] <- 0.2
 tt2$edge.length[which(is.nan(tt2$edge.length))] <- 0.2
 tt3$edge.length[which(is.nan(tt3$edge.length))] <- 0.2
 tt4$edge.length[which(is.nan(tt4$edge.length))] <- 0.2
 tt5$edge.length[which(is.nan(tt5$edge.length))] <- 0.2
 tt6$edge.length[which(is.nan(tt6$edge.length))] <- 0.2
-tt7$edge.length[which(is.nan(tt7$edge.length))] <- 0.2
-# Create a small plot of each tree
-p1 <- ggtree(tt1, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 150, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+# Save plot of the unfiltered tree ## NEED TO ADD CLADE LABELS
+p1 <- ggtree(tt1, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.3, size = 0.5) +
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 150, 6, 6)) + theme(axis.text.x = element_text(size = 15))
+p1_name <- paste0(plot_dir, "Tomatoes_ASTRAL_NoTest_plot")
+ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf")
+# Create a small plot of each of the six trees
+p1 <- ggtree(tt1_small, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
 p2 <- ggtree(tt2, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
           coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
 p3 <- ggtree(tt3, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
@@ -251,10 +254,61 @@ p5 <- ggtree(tt5, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6
   coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
 p6 <- ggtree(tt6, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
   coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
-p7 <- ggtree(tt7, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
-# Save plot of the unfiltered tree
-p1_name <- paste0(plot_dir, "Tomatoes_ASTRAL_NoTest")
-ggsave(filename = paste0(p_name, ".pdf"), plot = p1, device = "pdf")
+# Create a patchwork of the trees tt2-tt7
+quilt <- (p1 | p2)/(p3 | p4)/(p5 | p6) +
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+quilt_name <- paste0(plot_dir, "Tomatoes_ASTRAL_Peruvianum_comparison_plots")
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 13, width = 10, units = "in")
+
+
+## IQ-Tree Peruvianum topologies
+# Need:
+#     1. NoTest (P,PHI; P,MaxChi; P,GENECONV; F, All tests)
+#     2. F,PHI (identical to F,MaxChi)
+#     3. F,Geneconv
+#     4. P,All tests
+tt1_file <- grep("NoTest", tomatoes_concat_trees, value = TRUE)
+tt2_file <- grep("PHI_fail", tomatoes_concat_trees, value = TRUE)
+tt3_file <- grep("geneconv_fail", tomatoes_concat_trees, value = TRUE)
+tt4_file <- grep("allTests_pass", tomatoes_concat_trees, value = TRUE)
+# Open each tree
+tt1 <- read.tree(tt1_file)
+tt1_small <- read.tree(tt1_file)
+tt2 <- read.tree(tt2_file)
+tt3 <- read.tree(tt3_file)
+tt4 <- read.tree(tt4_file)
+# Reroot tree 1 at proper outgroup
+tt1 <- root(tt1, outgroup = roots[["Pease2016"]])
+# Reformat tomato clades for trees 1-4
+tt1_small <- reformat.congruent.clades(tt1_small)
+tt2 <- reformat.congruent.clades(tt2)
+tt3 <- reformat.congruent.clades(tt3)
+tt4 <- reformat.congruent.clades(tt4)
+# Rename tip labels to have scientific names (not just numbers)
+tt1$tip.label <- rename.tomato.tips(tt1$tip.label)
+tt1_small$tip.label <- rename.tomato.tips(tt1_small$tip.label)
+tt2$tip.label <- rename.tomato.tips(tt2$tip.label)
+tt3$tip.label <- rename.tomato.tips(tt3$tip.label)
+tt4$tip.label <- rename.tomato.tips(tt4$tip.label)
+# Save plot of the unfiltered tree ## NEED TO ADD CLADE LABELS
+p1 <- ggtree(tt1, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.001, size = 0.5) + 
+        coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 160, 6, 6)) + theme(axis.text.x = element_text(size = 12))
+p1_name <- paste0(plot_dir, "Tomatoes_CONCAT_NoTest_plot")
+ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf")
+# Create small plot of each of the four trees
+p1 <- ggtree(tt1_small, size = 0.75) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 160, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+p2 <- ggtree(tt2, size = 0.75) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 160, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+p3 <- ggtree(tt3, size = 0.75) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 160, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+p4 <- ggtree(tt4, size = 0.75) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 160, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+# Create a patchwork of the trees tt2-tt7
+quilt <- (p1 | p2)/(p3 | p4) +
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+quilt_name <- paste0(plot_dir, "Tomatoes_CONCAT_Peruvianum_comparison_plots")
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 13, width = 10, units = "in")
+
 
 
