@@ -22,24 +22,24 @@
 
 ### Caitlin's paths ###
 maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
-tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees"
+tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
 test_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
 output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
 
-input_names <- c("1KP", "Whelan2017","Vanderpool2020", "Pease2016")
+input_names <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
 dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
                              "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
                              "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
                            c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
                            c("Mus_musculus"), 
                            c("LA4116", "LA2951", "LA4126"))
-tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
-                     "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
+tests_to_run <- list("Vanderpool2020" = c("PHI", "maxchi", "geneconv", "allTests"),
+                     "Pease2016" = c("PHI", "maxchi", "geneconv", "allTests"),
                      "Whelan2017" = c("PHI", "maxchi", "geneconv"),
                      "1KP" = c("PHI", "maxchi"))
 
-datasets_to_identify_distinct_edges <- c()
-plotting = TRUE
+datasets_to_identify_distinct_edges <- input_names
+plotting = FALSE
 ### End of Caitlin's paths ###
 
 
@@ -66,7 +66,10 @@ if (dir.exists(node_output_dir) == FALSE){
 for (dataset in datasets_to_identify_distinct_edges){
   # Identify file containing species trees
   dataset_tree_dir <- paste0(tree_data_dir, dataset, "/species_trees/")
-  all_files <- list.files(dataset_tree_dir, recursive = TRUE)
+  # Collect all files
+  dataset_tree_dir_files <- list.files(dataset_tree_dir, recursive = TRUE)
+  # Remove any trees or files from old GENECONV/All tests runs
+  all_files <- grep("old_geneconv|Old_geneconv|Old_Geneconv|00_|zz_", dataset_tree_dir_files, invert = TRUE, value = TRUE)
   
   dataset_tests <- tests_to_run[[dataset]]
   # Iterate through each test and identify that information
@@ -79,7 +82,7 @@ for (dataset in datasets_to_identify_distinct_edges){
     if (file.exists(test_df_filename) == FALSE){
       
       # Run IQ-Tree for shallow datasets with completed IQ-Tree species trees
-      if (dataset == "Vanderpool2020" | dataset == "Pease2016" | (dataset == "Whelan2017" & test == "geneconv")){
+      if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
         print("Compare IQ-Tree trees")
         ## IQ-Tree trees: Create dataframe detailing differences in posterior probabilities between the two trees
         # Get the list of trees estimated in IQ-Tree for this dataset
@@ -96,7 +99,7 @@ for (dataset in datasets_to_identify_distinct_edges){
         test_df_fail_iq <- compare.distinct.edges.of.two.trees(tree_file_1 = fail_tree_file, tree_file_2 = none_tree_file, 
                                                                tree1_name = "Fail", tree2_name = "None", test_name = test, 
                                                                dataset_name = dataset, support_value_type_name = "BS")
-      } else if ((dataset == "Whelan2017" & test != "geneconv") | dataset == "1KP"){
+      } else if (dataset == "Whelan2017" | dataset == "1KP"){
         print("Compare IQ-Tree trees")
         ## ML trees: Create dataframe detailing differences in posterior probabilities between the two trees
         # If dataset is 1KP, collect RAxML trees estimated with no free rate models
@@ -135,8 +138,8 @@ for (dataset in datasets_to_identify_distinct_edges){
       # Want to collect the information about splits present in one tree but not the other (i.e. in T_all,pass vs T_None)
       test_df_pass_astral <- compare.distinct.edges.of.two.trees(tree_file_1 = pass_tree_file, tree_file_2 = none_tree_file, tree1_name = "Pass", 
                                                                  tree2_name = "None", test_name = test, dataset_name = dataset, support_value_type_name = "PP")
-      # Run fail tree for shallow datasets and Whelan2017 geneconv only
-      if (dataset == "Vanderpool2020" | dataset == "Pease2016" | (dataset == "Whelan2017" & test == "geneconv")){
+      # Run fail tree for shallow datasets only
+      if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
         fail_tree_file <- paste0(dataset_tree_dir, grep("fail", astral_trees, value = TRUE))
         test_df_fail_astral <- compare.distinct.edges.of.two.trees(tree_file_1 = fail_tree_file, tree_file_2 = none_tree_file, tree1_name = "Fail", 
                                                                    tree2_name = "None", test_name = test, dataset_name = dataset, support_value_type_name = "PP")
@@ -144,7 +147,7 @@ for (dataset in datasets_to_identify_distinct_edges){
       
       print("Saving dataframe")
       # Combine all four dataframes into one
-      if (dataset == "Vanderpool2020" | dataset == "Pease2016" | (dataset == "Whelan2017" & test == "geneconv")){
+      if (dataset == "Vanderpool2020" | dataset == "Pease2016"){
         test_df <- rbind(test_df_pass_iq, test_df_fail_iq, test_df_pass_astral, test_df_fail_astral)
       } else {
         test_df <- rbind(test_df_pass_iq, test_df_pass_astral)
