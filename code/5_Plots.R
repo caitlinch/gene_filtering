@@ -22,7 +22,7 @@
 ### Caitlin's paths ###
 # Folders and filepaths
 maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
-plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
+plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/"
 species_tree_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
 
 # Dataset information
@@ -50,9 +50,10 @@ taxa_order <- list("Pease2016" = c("LA4116", "LA4126", "LA2951", "LA3778", "LA07
 
 #### Step 2: Open files and packages ####
 # Open packages
-library(ggplot2)
-library(ggtree) 
 library(ape) # functions: read.tree, Ntip, root
+library(ggplot2) # for nice plots
+library(ggtree) # for plotting phylogenetic trees
+library(patchwork) # for collating plots
 library(phangorn) # functions: treedist, densiTree
 library(phytools) # functions: nodeHeights (to rescale tree height)
 # Source functions
@@ -73,6 +74,7 @@ primate_astral_no_test_tree_file <- grep("NoTest", primate_astral_trees, value =
 primate_astral_no_test_tree <- read.tree(file = primate_astral_no_test_tree_file)
 # Reroot tree
 primate_astral_no_test_tree <- root(primate_astral_no_test_tree, outgroup = roots[["Vanderpool2020"]])
+
 
 
 ## Primate Plot 2: ASTRAL variable clade (Cebidae)
@@ -106,13 +108,59 @@ pt1$edge.length[which(is.nan(pt1$edge.length))] <- 0.1
 pt2$edge.length[which(is.nan(pt2$edge.length))] <- 0.1
 pt3$edge.length[which(is.nan(pt3$edge.length))] <- 0.1
 # Create plot for each topology
-ggtree(pt1) + geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.1) + xlim(-0.1, 1.2)
-ggtree(pt2) + geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.1) + xlim(-0.1, 1.2)
-ggtree(pt3) + geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.1) + xlim(-0.1, 1.2)
+p1_0 <- ggtree(pt1, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + geom_rootedge(rootedge = 0.1, size = 1) + xlim(-0.1, 1.2)
+p2 <- ggtree(pt2, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + geom_rootedge(rootedge = 0.1, size = 1) + xlim(-0.1, 1.2)
+p3 <- ggtree(pt3, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + geom_rootedge(rootedge = 0.1, size = 1) + xlim(-0.1, 1.2)
+# Flip pt1 branch so all 3 plots have same order
+p1 <- flip(p1_0, 2, 3)
+# Create plot name 
+p_name <- paste0(plot_dir, "Primates_ASTRAL_Cebidae_variable_clade_a.NoTest_b.F.maxchi_c.F.PHI_plot")
+# Assemble plot in patchwork
+p <- p1 + p2 + p3 + 
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 60))
+# Save plot
+ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf", height = 10, width = 32, units = "in")
 
 
 ## Primate Plot 3: CONCAT No Test
+# Assemble file path and open tree
+pt1_file <- grep("NoTest", primate_concat_trees, value = TRUE)
+pt1 <- read.tree(pt1_file)
+# Remove underscores from tips
+pt1$tip.label <- gsub("_", " ", pt1$tip.label)
+# Create plot name
+p_name <- paste0(plot_dir, "Primates_CONCAT_NoTest_plot")
+
+
 
 ## Primate Plot 4: CONCAT variable clade (Papionini)
+# Three possible topologies:
+#   1. No Test; P,PHI; P,MaxChi; P,GENECONV; P,All tests; F,MaxChi; F,GENECONV; and F,All tests 
+#   2. F,PHI
 
+# Assemble one file path to one tree for each possible topology
+pt1_file <- grep("NoTest", primate_concat_trees, value = TRUE)
+pt2_file <- grep("PHI_fail", primate_concat_trees, value = TRUE)
+# Open one tree from each of the possible topologies
+pt1 <- read.tree(file = pt1_file)
+pt2 <- read.tree(file = pt2_file)
+# Root trees (as in Vanderpool 2020 paper)
+pt1 <- root(pt1, outgroup = roots[["Vanderpool2020"]])
+pt2 <- root(pt2, outgroup = roots[["Vanderpool2020"]])
+# Drop all tips except the four tips inside the variable clade
+pt1 <- keep.tip(pt1, c("Cercocebus_atys", "Mandrillus_leucophaeus", "Papio_anubis", "Theropithecus_gelada"))
+pt2 <- keep.tip(pt2, c("Cercocebus_atys", "Mandrillus_leucophaeus", "Papio_anubis", "Theropithecus_gelada"))
+# Rename tips to remove underscores
+pt1$tip.label <- gsub("_", " ", pt1$tip.label)
+pt2$tip.label <- gsub("_", " ", pt2$tip.label)
+# Create plot for each topology
+p1 <- ggtree(pt1, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 8)+ geom_rootedge(rootedge = 0.0005, size = 1) + xlim(-0.0005, 0.01)
+p2 <- ggtree(pt2, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 8)+ geom_rootedge(rootedge = 0.0005, size = 1) + xlim(-0.0005, 0.025)
+# Create plot name 
+p_name <- paste0(plot_dir, "Primates_CONCAT_Papionini_variable_clade_a.NoTest_b.F.PHI_plot")
+# Assemble plot in patchwork
+p <- p1 + p2 +
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 45))
+# Save plot
+ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf", height = 10, width = 15, units = "in")
 
