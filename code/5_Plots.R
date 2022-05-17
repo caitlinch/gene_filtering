@@ -72,7 +72,7 @@ primate_concat_trees <- grep("nex.contree", primate_tree_files, value = TRUE)
 primate_astral_no_test_tree_file <- grep("NoTest", primate_astral_trees, value = TRUE)
 primate_astral_no_test_tree <- read.tree(file = primate_astral_no_test_tree_file)
 # Reroot tree
-primate_astral_no_test_tree <- root(primate_astral_no_test_tree, outgroup = )
+primate_astral_no_test_tree <- root(primate_astral_no_test_tree, outgroup = roots[["Vanderpool2020"]])
 
 
 ## Primate Plot 2: ASTRAL variable clade (Cebidae)
@@ -89,6 +89,26 @@ pt3_file <- grep("PHI_fail", primate_astral_trees, value = TRUE)
 pt1 <- read.tree(file = pt1_file)
 pt2 <- read.tree(file = pt2_file)
 pt3 <- read.tree(file = pt3_file)
+# Root trees (as in Vanderpool 2020 paper)
+pt1 <- root(pt1, outgroup = roots[["Vanderpool2020"]])
+pt2 <- root(pt2, outgroup = roots[["Vanderpool2020"]])
+pt3 <- root(pt3, outgroup = roots[["Vanderpool2020"]])
+# Drop all tips except the four tips inside the variable clade
+pt1 <- keep.tip(pt1, c("Callithrix_jacchus", "Aotus_nancymaae", "Saimiri_boliviensis", "Cebus_capucinus_imitator"))
+pt2 <- keep.tip(pt2, c("Callithrix_jacchus", "Aotus_nancymaae", "Saimiri_boliviensis", "Cebus_capucinus_imitator"))
+pt3 <- keep.tip(pt3, c("Callithrix_jacchus", "Aotus_nancymaae", "Saimiri_boliviensis", "Cebus_capucinus_imitator"))
+# Rename tips to remove underscores
+pt1$tip.label <- gsub("_", " ", pt1$tip.label)
+pt2$tip.label <- gsub("_", " ", pt2$tip.label)
+pt3$tip.label <- gsub("_", " ", pt3$tip.label)
+# Change edge.length to 0.1
+pt1$edge.length[which(is.nan(pt1$edge.length))] <- 0.1
+pt2$edge.length[which(is.nan(pt2$edge.length))] <- 0.1
+pt3$edge.length[which(is.nan(pt3$edge.length))] <- 0.1
+# Create plot for each topology
+ggtree(pt1) + geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.1) + xlim(-0.1, 1.2)
+ggtree(pt2) + geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.1) + xlim(-0.1, 1.2)
+ggtree(pt3) + geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.1) + xlim(-0.1, 1.2)
 
 
 ## Primate Plot 3: CONCAT No Test
