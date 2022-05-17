@@ -62,8 +62,8 @@ dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "AP
                            c("LA4116", "LA2951", "LA4126"))
 
 # Set which datasets and which tests to run
-compare_ASTRAL_trees <- c()
-compare_IQTREE_trees <- c()
+compare_ASTRAL_trees <- c("Pease2016", "Vanderpool2020", "Whelan2017", "1KP")
+compare_IQTREE_trees <- c("Pease2016", "Vanderpool2020", "Whelan2017", "1KP")
 tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                      "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
                      "Whelan2017" = c("PHI", "maxchi", "geneconv"),
@@ -329,7 +329,7 @@ for (dataset in compare_IQTREE_trees){
   # Find all IQ-Tree trees and partition files for this dataset
   all_IQTree_partitions <- grep(".nex.", grep("partitions.nex", all_IQTree_files, value = TRUE), value = TRUE, invert = TRUE)
   all_IQTree_trees <- grep("contree", all_IQTree_files, value = TRUE)
-
+  
   
   # If dataset was run using RAxML-NG, find the bestTree files (the trees) and the IQ-Tree partitions for the no free rate model runs
   if (dataset == "1KP"){
@@ -487,7 +487,7 @@ all_gof_results <- grep("Old_Geneconv", all_gof_results, value = TRUE, invert = 
 all_gof_results <- all_gof_results[grepl(paste(input_names, collapse = "|"), all_gof_results)]
 # Order by dataset/tree estimation method for nice output csvs
 ordered_gof_results <- c(rev(grep("Vanderpool2020", all_gof_results, value = TRUE)), rev(grep("Pease2016", all_gof_results, value = TRUE)),
-                        rev(grep("Whelan2017", all_gof_results, value = TRUE)), rev(grep("1KP", all_gof_results, value = TRUE)))
+                         rev(grep("Whelan2017", all_gof_results, value = TRUE)), rev(grep("1KP", all_gof_results, value = TRUE)))
 if (length(ordered_gof_results) > 0){
   print("Collating QuarNet GoF test results")
   # Attach directory name to file names
@@ -542,10 +542,10 @@ all_rf_results <- grep("Old_Geneconv", all_rf_results, value = TRUE, invert = TR
 # Remove any dataset not in the input_names vector
 all_rf_results <- all_rf_results[grepl(paste(input_names, collapse = "|"), all_rf_results)]
 # Order by dataset/tree estimation method for nice output csvs
-ordered_rf_results <- c(rev(grep("Vanderpool2020/AUtest", all_rf_results, value = TRUE)), rev(grep("Pease2016/AUtest", all_rf_results, value = TRUE)),
-                        rev(grep("Whelan2017/AUtest", all_rf_results, value = TRUE)), rev(grep("1KP/AUtest", all_rf_results, value = TRUE)),
-                        rev(grep("Vanderpool2020/quarnetGoFtest", all_rf_results, value = TRUE)), rev(grep("Pease2016/quarnetGoFtest", all_rf_results, value = TRUE)),
-                        rev(grep("Whelan2017/quarnetGoFtest", all_rf_results, value = TRUE)),rev(grep("1KP/quarnetGoFtest", all_rf_results, value = TRUE)))
+ordered_rf_results <- c(rev(grep("Vanderpool2020/quarnetGoFtest", all_rf_results, value = TRUE)), rev(grep("Pease2016/quarnetGoFtest", all_rf_results, value = TRUE)),
+                        rev(grep("Whelan2017/quarnetGoFtest", all_rf_results, value = TRUE)),rev(grep("1KP/quarnetGoFtest", all_rf_results, value = TRUE)),
+                        rev(grep("Vanderpool2020/AUtest", all_rf_results, value = TRUE)), rev(grep("Pease2016/AUtest", all_rf_results, value = TRUE)),
+                        rev(grep("Whelan2017/AUtest", all_rf_results, value = TRUE)), rev(grep("1KP/AUtest", all_rf_results, value = TRUE)))
 if (length(ordered_rf_results) > 0){
   print("Collating RF/wRF distance results")
   # Attach directory name to file names
