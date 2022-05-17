@@ -69,12 +69,22 @@ primate_astral_trees <- grep("species\\.tre", primate_tree_files, value = TRUE)
 primate_concat_trees <- grep("nex.contree", primate_tree_files, value = TRUE)
 
 ## Primate Plot 1: ASTRAL No Test
-# Open Primates ASTRAL No Test tree
-primate_astral_no_test_tree_file <- grep("NoTest", primate_astral_trees, value = TRUE)
-primate_astral_no_test_tree <- read.tree(file = primate_astral_no_test_tree_file)
-# Reroot tree
-primate_astral_no_test_tree <- root(primate_astral_no_test_tree, outgroup = roots[["Vanderpool2020"]])
-
+# Assemble file path and open tree
+pt1_file <- grep("NoTest", primate_astral_trees, value = TRUE)
+pt1 <- read.tree(pt1_file)
+# Root tree (as in Vanderpool 2020 paper)
+pt1 <- root(pt1, outgroup = roots[["Vanderpool2020"]])
+# Change edge.length to 0.5
+pt1$edge.length[which(is.nan(pt1$edge.length))] <- 0.5
+# Remove underscores from tips
+pt1$tip.label <- gsub("_", " ", pt1$tip.label)
+# Create plot
+p <- ggtree(pt1) + geom_tiplab(offset = 0.002, geom = "text", size = 4.5) + scale_y_reverse() +  scale_x_continuous(breaks = seq(0,15,3)) +
+        coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 180, 6, 6)) + theme(axis.text.x = element_text(size = 12))
+# Create plot name
+p_name <- paste0(plot_dir, "Primates_ASTRAL_NoTest_plot")
+# Save plot
+ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf")
 
 
 ## Primate Plot 2: ASTRAL variable clade (Cebidae)
@@ -117,7 +127,7 @@ p1 <- flip(p1_0, 2, 3)
 p_name <- paste0(plot_dir, "Primates_ASTRAL_Cebidae_variable_clade_a.NoTest_b.F.maxchi_c.F.PHI_plot")
 # Assemble plot in patchwork
 p <- p1 + p2 + p3 + 
-  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 60))
+        plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 60))
 # Save plot
 ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf", height = 10, width = 32, units = "in")
 
@@ -126,11 +136,17 @@ ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf", height = 10,
 # Assemble file path and open tree
 pt1_file <- grep("NoTest", primate_concat_trees, value = TRUE)
 pt1 <- read.tree(pt1_file)
+# Root tree (as in Vanderpool 2020 paper)
+pt1 <- root(pt1, outgroup = roots[["Vanderpool2020"]])
 # Remove underscores from tips
 pt1$tip.label <- gsub("_", " ", pt1$tip.label)
+# Create plot
+p <- ggtree(pt1) + geom_tiplab(offset = 0.002, geom = "text", size = 5) + scale_y_reverse() +  
+        coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 120, 6, 6)) + theme(axis.text.x = element_text(size = 15))
 # Create plot name
 p_name <- paste0(plot_dir, "Primates_CONCAT_NoTest_plot")
-
+# Save plot
+ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf")
 
 
 ## Primate Plot 4: CONCAT variable clade (Papionini)
@@ -160,7 +176,11 @@ p2 <- ggtree(pt2, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 8)+ 
 p_name <- paste0(plot_dir, "Primates_CONCAT_Papionini_variable_clade_a.NoTest_b.F.PHI_plot")
 # Assemble plot in patchwork
 p <- p1 + p2 +
-  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 45))
+        plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 45))
 # Save plot
 ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf", height = 10, width = 15, units = "in")
+
+
+
+#### Step 4: Plotting Tomatoes dataset ####
 
