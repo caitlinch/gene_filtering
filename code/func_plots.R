@@ -144,13 +144,14 @@ reformat.congruent.clades <- function(tom_tree){
   Esculentum = "SL2.50"
   Arcanum = "LA1322"
   Hirsutum = "LA0407"
-  Outgroup = "LA4116"
+  Clade_Outgroup = c("LA4116")
+  root_outgroup = c("LA4116", "LA4126", "LA2951")
   # Collate the list of taxa to keep
-  taxa_to_keep <- c(Peruvianum, Esculentum, Arcanum, Hirsutum, Outgroup)
+  taxa_to_keep <- c(Peruvianum, Esculentum, Arcanum, Hirsutum, Clade_Outgroup)
+  # Root at outgroup
+  tom_tree <- root(tom_tree, root_outgroup)
   # Drop all other taxa
   tom_tree <- keep.tip(tom_tree, taxa_to_keep)
-  # Root at outgroup
-  tom_tree <- root(tom_tree, "LA4116")
   # Rename the remaining taxa into the clade name
   tom_tree$tip.label[which(tom_tree$tip.label == "SL2.50")] <- "Esculentum clade"
   tom_tree$tip.label[which(tom_tree$tip.label == "LA1322")] <- "Arcanum clade"
