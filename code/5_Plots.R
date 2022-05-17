@@ -1,9 +1,6 @@
 ### gene_filtering/5_Plots.R
-## R program to plot and explore results of the treelikeness test statistics on empirical data
+## R program to plot and explore results of the gene filtering project
 # Caitlin Cherryh 2022
-
-## This script requires:
-#     - DensiTree (Bouckaert 2010) (https://www.cs.auckland.ac.nz/~remco/DensiTree/)
 
 ## This script:
 # 1. Creates a variety of plots and figures
@@ -27,16 +24,15 @@
 maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
 plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
 species_tree_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
-treelikeness_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/02_AllDatasets_collated_RecombinationDetection_TrimmedLoci.csv"
 
 # Dataset information
 datasets <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
-roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
-                "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
-                "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
-              c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
-              c("Mus_musculus"), 
-              c("LA4116", "LA2951", "LA4126"))
+roots <- list("1KP" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
+                        "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
+                        "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
+              "Whelan2017" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
+              "Vanderpool2020" = c("Mus_musculus"), 
+              "Pease2016" = c("LA4116", "LA2951", "LA4126"))
 n_tips <- c("Pease2016" = 29, "Vanderpool2020" = 29)
 taxa_order <- list("Pease2016" = c("LA4116", "LA4126", "LA2951", "LA3778", "LA0716", "LA1777", "LA0407", "LA4117", "LA1782", "LA2964", 
                                    "LA0444", "LA0107", "LA1358", "LA2744", "LA1364", "LA1316", "LA1028", "LA2172", "LA2133", "LA1322",
@@ -48,9 +44,6 @@ taxa_order <- list("Pease2016" = c("LA4116", "LA4126", "LA2951", "LA3778", "LA07
                                         "Cercocebus_atys", "Mandrillus_leucophaeus", "Papio_anubis", "Theropithecus_gelada", "Macaca_nemestrina",
                                         "Macaca_fascicularis", "Macaca_mulatta", "Nomascus_leucogenys", "Pongo_abelii", "Gorilla_gorilla",
                                         "Homo_sapiens", "Pan_paniscus", "Pan_troglodytes"))
-# DensiTree paths/variables
-densitree_path <- "/Users/caitlincherryh/Documents/Executables/Densitree/DensiTree.v2.2.7.jar"
-datasets_for_densitree <- c("Pease2016", "Vanderpool2020")
 ### End of Caitlin's paths ###
 
 
@@ -58,6 +51,7 @@ datasets_for_densitree <- c("Pease2016", "Vanderpool2020")
 #### Step 2: Open files and packages ####
 # Open packages
 library(ggplot2)
+library(ggtree) 
 library(ape) # functions: read.tree, Ntip, root
 library(phangorn) # functions: treedist, densiTree
 library(phytools) # functions: nodeHeights (to rescale tree height)
@@ -66,102 +60,39 @@ source(paste0(maindir,"code/func_plots.R"))
 
 
 
-#### Step 3: Preparation for plotting ####
-# Open the treelikeness_df
-treelikeness_df <- read.csv(treelikeness_file, stringsAsFactors = FALSE)
+#### Step 3: Plotting Primates dataset ####
+primate_tree_folder <- paste0(species_tree_folder, "Vanderpool2020/species_trees/")
+primate_tree_files <- paste0(primate_tree_folder, list.files(primate_tree_folder, recursive = TRUE))
+primate_tree_files <- grep("old_geneconv|Old_geneconv|Old_Geneconv|00_|zz_", primate_tree_files, invert = TRUE, value = TRUE)
+primate_astral_trees <- grep("species\\.tre", primate_tree_files, value = TRUE)
+primate_concat_trees <- grep("nex.contree", primate_tree_files, value = TRUE)
+
+## Primate Plot 1: ASTRAL No Test
+# Open Primates ASTRAL No Test tree
+primate_astral_no_test_tree_file <- grep("NoTest", primate_astral_trees, value = TRUE)
+primate_astral_no_test_tree <- read.tree(file = primate_astral_no_test_tree_file)
+# Reroot tree
+primate_astral_no_test_tree <- root(primate_astral_no_test_tree, outgroup = )
 
 
+## Primate Plot 2: ASTRAL variable clade (Cebidae)
+# Three possible topologies:
+#   1. No Test; P,PHI; P,MaxChi; P,GENECONV; and P,All tests 
+#   2. F, MaxChi 
+#   3. F,PHI; F,GENECONV; and F,All tests
 
-#### Step 4: Constructing cloudograms from the filtered loci sets ####
-# Make a folder to store the cloudograms in 
-cloudogram_folder <- paste0(plot_dir, "cloudograms/")
-if (dir.exists(cloudogram_folder) == FALSE){dir.create(cloudogram_folder)}
+# Assemble one file path to one tree for each possible topology
+pt1_file <- grep("NoTest", primate_astral_trees, value = TRUE)
+pt2_file <- grep("maxchi_fail", primate_astral_trees, value = TRUE)
+pt3_file <- grep("PHI_fail", primate_astral_trees, value = TRUE)
+# Open one tree from each of the possible topologies
+pt1 <- read.tree(file = pt1_file)
+pt2 <- read.tree(file = pt2_file)
+pt3 <- read.tree(file = pt3_file)
 
-# Iterate through the datasets 
-for (dataset in datasets[datasets %in% datasets_for_densitree]){
-  # Find the folder for this dataset
-  dataset_trees_folder <- paste0(species_tree_folder, dataset, "/species_trees/")
-  dataset_files <- list.files(dataset_trees_folder)
-  dataset_gene_trees <- paste0(dataset_trees_folder, grep(".txt", dataset_files, value = TRUE))
-  
-  # Plot a densitree of the NoTest gene trees for this dataset
-  # Get all gene trees from dataset and open as a multiphylo object
-  none_file <- grep("NoTest", dataset_gene_trees, value = TRUE)
-  none_trees <- read.tree(none_file)
-  # Remove any trees that are missing taxa
-  none_tree_tips <- unlist(lapply(1:length(none_trees), function(i,trees){Ntip(trees[[i]])}, trees = none_trees))
-  none_trees_to_remove <- which(none_tree_tips != n_tips[[dataset]])
-  if (length(none_trees_to_remove) > 0){
-    none_trees_to_keep <- setdiff(1:length(none_trees), none_trees_to_remove)
-    none_trees <- none_trees[none_trees_to_keep]
-  }
-  # Reroot the trees and standardise the length
-  none_trees <- root(none_trees, outgroup = roots[[dataset]], resolve.root = TRUE)
-  none_trees <- rescale.multiphylo(none_trees, 1)
-  # Plot a densitree for the NoTest gene trees
-  png(filename = paste0(cloudogram_folder, dataset, "_NoTest_Trees_cloudogram.png"), width = 500, height = 500)
-  densiTree(none_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
-            direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.02, cex = 1)
-  dev.off()
-  cairo_pdf(filename = paste0(cloudogram_folder, dataset, "_NoTest_Trees_cloudogram.pdf"))
-  densiTree(none_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
-            direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.02, cex = 1)
-  dev.off()
-  
-  # Want to compare the pass/fail trees for each test
-  tests <- c("PHI", "maxchi", "geneconv", "allTests")
-  test = "PHI"
-  for (test in tests){
-    # Find gene tree sets that passed/failed the test
-    pass_test_file <- grep("pass", grep(test, dataset_gene_trees, value = TRUE), value = TRUE)
-    fail_test_file <- grep("fail", grep(test, dataset_gene_trees, value = TRUE), value = TRUE)
-    
-    # Open gene tree sets as multiphylo objects
-    pass_trees <- read.tree(pass_test_file)
-    fail_trees <- read.tree(fail_test_file)
-    
-    # Remove trees that do not include every taxa
-    # Identify number of tips on tree
-    pass_tree_tips <- unlist(lapply(1:length(pass_trees), function(i,trees){Ntip(trees[[i]])}, trees = pass_trees))
-    fail_tree_tips <- unlist(lapply(1:length(fail_trees), function(i,trees){Ntip(trees[[i]])}, trees = fail_trees))
-    # Find trees with missing tips
-    pass_trees_to_remove <- which(pass_tree_tips != n_tips[[dataset]])
-    fail_trees_to_remove <- which(fail_tree_tips != n_tips[[dataset]])
-    # Remove trees with missing tips
-    if (length(pass_trees_to_remove) > 0){
-      pass_trees_to_keep <- setdiff(1:length(pass_trees), pass_trees_to_remove)
-      pass_trees <- pass_trees[pass_trees_to_keep]
-    }
-    if (length(fail_trees_to_remove) > 0){
-      fail_trees_to_keep <- setdiff(1:length(fail_trees), fail_trees_to_remove)
-      fail_trees <- fail_trees[fail_trees_to_keep]
-    }
-    
-    # Root all trees
-    pass_trees <- root(pass_trees, outgroup = roots[[dataset]], resolve.root = TRUE)
-    fail_trees <- root(fail_trees, outgroup = roots[[dataset]], resolve.root = TRUE)
-    
-    # Scale trees to have the same length
-    pass_trees <- rescale.multiphylo(pass_trees, 1)
-    fail_trees <- rescale.multiphylo(fail_trees, 1)
-    
-    # Plot gene trees that passed test as a densiTree
-    png(filename = paste0(cloudogram_folder, dataset, "_", test, "_passTrees_cloudogram.png"), width = 500, height = 500)
-    densiTree(pass_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
-              direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.02, cex = 1)
-    dev.off()
-    cairo_pdf(filename = paste0(cloudogram_folder, dataset, "_", test, "_passTrees_cloudogram.pdf"))
-    densiTree(pass_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
-              direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.02, cex = 1)
-    dev.off()
-    # Plot gene trees that failed test as a densiTree
-    png(filename = paste0(cloudogram_folder, dataset, "_", test, "_failTrees_cloudogram.png"), width = 500, height = 500)
-    densiTree(fail_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
-              direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.02, cex = 1)
-    dev.off()
-    cairo_pdf(filename = paste0(cloudogram_folder, dataset, "_", test, "_failTrees_cloudogram.pdf"))
-    densiTree(fail_trees, col = "steelblue", type = "cladogram", alpha = 0.03, scale.bar = FALSE, consensus = taxa_order[[dataset]], 
-              direction = "rightwards", scaleX = TRUE, adj = 1, label.offset = 0.02, cex = 1)
-    dev.off()
-  }
-}
+
+## Primate Plot 3: CONCAT No Test
+
+## Primate Plot 4: CONCAT variable clade (Papionini)
+
+
