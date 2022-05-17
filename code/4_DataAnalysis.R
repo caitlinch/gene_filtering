@@ -27,12 +27,12 @@ test_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_da
 output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
 
 input_names <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
-dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
-                             "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
-                             "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
-                           c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
-                           c("Mus_musculus"), 
-                           c("LA4116", "LA2951", "LA4126"))
+dataset_tree_roots <- list("1KP" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
+                                     "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
+                                     "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
+                           "Whelan2017" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
+                           "Vanderpool2020" = c("Mus_musculus"), 
+                           "Pease2016" = c("LA4116", "LA2951", "LA4126"))
 tests_to_run <- list("Vanderpool2020" = c("PHI", "maxchi", "geneconv", "allTests"),
                      "Pease2016" = c("PHI", "maxchi", "geneconv", "allTests"),
                      "Whelan2017" = c("PHI", "maxchi", "geneconv"),
@@ -387,7 +387,7 @@ if (plotting == TRUE){
   p = p1 + p2 + p3 + plot_layout(ncol = 1, heights = c(8, 4, 4))
   ggsave(filename = paste0(plot_dir, "ML_edgeLength_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 10)
   ggsave(filename = paste0(plot_dir, "ML_edgeLength_conflicting_branches.png"), plot = p, device = "png", units = "in", width = 8, height = 10)
-
+  
 }
 
 
