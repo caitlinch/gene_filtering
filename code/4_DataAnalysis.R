@@ -1,4 +1,4 @@
-### empirical_treelikeness/4_DataAnalysis.R
+### gene_filtering/4_DataAnalysis.R
 ## R program to plot and explore results of the treelikeness test statistics on empirical data
 # Caitlin Cherryh 2022
 
@@ -8,7 +8,7 @@
 
 
 ##### Step 1: Set the file paths for input and output files, and necessary functions/directories #####
-# maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+# maindir           <- "gene_filtering" repository location (github.com/caitlinch/gene_filtering)
 # tree_data_dir     <- Location of the gene trees
 # test_data_dir     <- Location of the results from the AU test and QuartetNetwork Goodness of Fit tests
 # output_dir        <- for saving collated output and results from treelikeness analysis.
@@ -21,14 +21,18 @@
 # plotting                  <- whether to plot figures (TRUE = yes, FALSE = no)
 
 ### Caitlin's paths ###
-maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/" # where the empirical treelikeness code is
+maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
 tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees"
 test_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
 output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
 
 input_names <- c("1KP", "Whelan2017","Vanderpool2020", "Pease2016")
-dataset_tree_roots <- c("1KP"="BAJW", "Whelan2017"="Salpingoeca_pyxidium", "Vanderpool2020"="Mus_musculus", "Pease2016"="LA4116")
-
+dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
+                             "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
+                             "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
+                           c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
+                           c("Mus_musculus"), 
+                           c("LA4116", "LA2951", "LA4126"))
 tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                      "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
                      "Whelan2017" = c("PHI", "maxchi", "geneconv"),

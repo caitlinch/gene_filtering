@@ -1,4 +1,4 @@
-### empirical_treelikeness/code/3_Species_Tree_Comparison.R
+### gene_filtering/code/3_Species_Tree_Comparison.R
 ## R program to identify the best fitting tree for a candidate dataset
 # Caitlin Cherryh 2022
 
@@ -42,10 +42,10 @@
 
 ## File and directory locations
 # alignment_dir             <- the folder(s) containing the alignments for each loci (in the same order as the input_names vector)
-# csv_data_dir              <- directory containing the .csv file results from script 1_RecombinationDetection_empiricalTreelikeness.R
+# csv_data_dir              <- directory containing the .csv file results from script 1_RecombinationDetection.R
 # tree_dir                  <- directory containing species trees output from script 2_Species_Tree_Estimation.R
 # output_dir                <- where the coalescent/concatenated trees and tree comparisons will be stored 
-# main_dir                  <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+# main_dir                  <- "gene_filtering" repository location (github.com/caitlinch/gene_filtering)
 
 ### Software locations
 # iqtree_path               <- location of IQ-Tree executable 

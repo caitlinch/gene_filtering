@@ -1,6 +1,6 @@
-### empirical_treelikeness/code/func_analysis.R
-## R functions to analyse empirical treelikeness data
-# Caitlin Cherryh 2021
+### gene_filtering/code/func_analysis.R
+## R functions to analyse gene_filtering project data
+# Caitlin Cherryh 2022
 
 library(ape)
 library(phangorn)

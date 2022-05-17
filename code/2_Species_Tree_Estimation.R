@@ -19,7 +19,7 @@
 # alignment_dir     <- the folder(s) containing the alignments for each loci (should be vector with same length as input_names, with directories in same order as for input_names)
 # csv_data_dir      <- directory containing the .csv file results from script 1_RecombinationDetection.R
 # output_dir        <- where the coalescent/concatenated trees and tree comparisons will be stored 
-# maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/gene_filtering)
+# maindir           <- "gene_filtering" repository location (github.com/caitlinch/gene_filtering)
 # exec_paths        <- location to the software executables needed for analysis (ASTRAL and IQTREE)
 # datasets_to_copy_loci_ASTRAL_IQTREE <- Out of the input names, select which datasets to copy loci trees for tree estimation in ASTRAL or IQ-Tree
 # datasets_to_copy_loci_RAxML <- Out of the input names, select which datasets to copy loci trees for tree estimation in RAxML-NG
@@ -78,7 +78,7 @@ if (run_location == "local"){
                      "/data/caitlin/empirical_treelikeness/Data_Pease2016/")
   csv_data_dir <- "/data/caitlin/empirical_treelikeness/Output/"
   output_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
-  maindir <- "/data/caitlin/empirical_treelikeness/" # where the empirical_treelikeness repository is
+  maindir <- "/data/caitlin/empirical_treelikeness/"
   
   # Create a vector with all of the executable file paths in this order: ASTRAL, IQ-Tree
   # To access a path: exec_paths[["name"]]

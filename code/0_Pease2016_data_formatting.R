@@ -1,4 +1,4 @@
-## empirical_treelikeness/code/0_Pease2016_data_formatting.R
+## gene_filtering/code/0_Pease2016_data_formatting.R
 ## This script recreates the 100kb genomic window alignments used to estimate gene trees in Pease et al (2016)
 # Caitlin Cherryh, 2022
 

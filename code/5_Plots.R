@@ -1,4 +1,4 @@
-### empirical_treelikeness/5_Plots.R
+### gene_filtering/5_Plots.R
 ## R program to plot and explore results of the treelikeness test statistics on empirical data
 # Caitlin Cherryh 2022
 
@@ -11,7 +11,7 @@
 
 
 ##### Step 1: Set the file paths for input and output files, and necessary functions/directories #####
-# maindir                 <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+# maindir                 <- "gene_filtering" repository location (github.com/caitlinch/gene_filtering)
 # plot_dir                <- for saving plots and analyses. This file should contain a folder for each dataset (where the folder name and corresponding dataset name are identical)
 # species_tree_folder     <- folder containing the species trees estimated in ASTRAL and IQ-Tree
 # treelikeness_file       <- file containing results of recombination detection tests
@@ -24,7 +24,7 @@
 
 ### Caitlin's paths ###
 # Folders and filepaths
-maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/" # where the empirical treelikeness code is
+maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
 plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
 species_tree_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
 treelikeness_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/02_AllDatasets_collated_RecombinationDetection_TrimmedLoci.csv"

@@ -1,6 +1,6 @@
-### empirical_treelikeness/code/func_plots.R
+### gene_filtering/code/func_plots.R
 ## R functions to facilitate nice plotting
-# Caitlin Cherryh 2021
+# Caitlin Cherryh 2022
 
 library(phytools) # Functions: nodeHeights
 

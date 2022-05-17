@@ -1,6 +1,6 @@
-### empirical_treelikeness/code/func_recombination_detection.R
+### gene_filtering/code/func_recombination_detection.R
 ## R functions to process loci from empirical phylogenetic datasets and apply recombination detection methods
-# Caitlin Cherryh 2021
+# Caitlin Cherryh 2022
 
 library(seqinr)
 library(ape)

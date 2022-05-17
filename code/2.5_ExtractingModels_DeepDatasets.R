@@ -1,4 +1,4 @@
-### empirical_treelikeness/code/2.5_ExtractingModels_DeepDataset.R
+### gene_filtering/code/2.5_ExtractingModels_DeepDataset.R
 ## R program to estimate trees from treelike or non-treelike loci
 # Caitlin Cherryh 2022
 
@@ -12,7 +12,7 @@
 #                      (e.g. for 2 datasets, put same dataset first and same dataset last)
 # gene_tree_dir     <- directory containing the results from estimating the gene tree for each locus in IQ-Tree
 # output_dir        <- where the output csv file will be stored
-# maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+# maindir           <- "gene_filtering" repository location (github.com/caitlinch/gene_filtering)
 
 ### Caitlin's paths ###
 run_location = "server"

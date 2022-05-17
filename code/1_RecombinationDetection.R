@@ -1,4 +1,4 @@
-### empirical_treelikeness/code/1_TestStatistics_EmpiricalData.R
+### gene_filtering/code/1_TestStatistics_EmpiricalData.R
 ## R program to apply recombination detection methods to empirical data
 # Caitlin Cherryh 2022
 
@@ -21,7 +21,7 @@
 # input_dir         <- the folder(s) containing the empirical data
 # best_model_paths  <- set path to file containing the best model of substitution for each loci. Set to NA to allow ModelFinder in IQ-Tree to choose best model.
 # output_dir        <- for collated output and results. This file should contain a folder for each input_name (where the folder name and corresponding input_name are identical)
-# maindir           <- "empirical_treelikeness" repository location (github.com/caitlinch/empirical_treelikeness)
+# maindir           <- "gene_filtering" repository location (github.com/caitlinch/gene_filtering)
 # cores_to_use      <- the number of cores to use for parallelisation. 1 for a single core (wholly sequential), or higher if using parallelisation.
 # iqtree_num_threads<- specify number of cores for IQ-Tree to use during tree estimation. May be number, or set as "AUTO" for IQ-Tree to choose best number of threads
 # exec_folder       <- the folder containing the software executables needed for analysis (PhiPack, GeneConv)
