@@ -78,7 +78,7 @@ pt1$edge.length[which(is.nan(pt1$edge.length))] <- 0.5
 pt1$tip.label <- gsub("_", " ", pt1$tip.label)
 # Create plot
 p <- ggtree(pt1) + geom_tiplab(offset = 0.002, geom = "text", size = 4.5) + scale_y_reverse() +  scale_x_continuous(breaks = seq(0,15,3)) +
-        coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 180, 6, 6)) + theme(axis.text.x = element_text(size = 12))
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 180, 6, 6)) + theme(axis.text.x = element_text(size = 12))
 # Create plot name
 p_name <- paste0(plot_dir, "Primates_ASTRAL_NoTest_plot")
 # Save plot
@@ -125,7 +125,7 @@ p1 <- flip(p1_0, 2, 3)
 p_name <- paste0(plot_dir, "Primates_ASTRAL_Cebidae_variable_clade_a.NoTest_b.F.maxchi_c.F.PHI_plot")
 # Assemble plot in patchwork
 p <- p1 + p2 + p3 + 
-        plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 60))
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 60))
 # Save plot
 ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf", height = 10, width = 32, units = "in")
 
@@ -140,7 +140,7 @@ pt1 <- root(pt1, outgroup = roots[["Vanderpool2020"]])
 pt1$tip.label <- gsub("_", " ", pt1$tip.label)
 # Create plot
 p <- ggtree(pt1) + geom_tiplab(offset = 0.002, geom = "text", size = 5) + scale_y_reverse() +  
-        coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 120, 6, 6)) + theme(axis.text.x = element_text(size = 15))
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 120, 6, 6)) + theme(axis.text.x = element_text(size = 15))
 # Create plot name
 p_name <- paste0(plot_dir, "Primates_CONCAT_NoTest_plot")
 # Save plot
@@ -174,7 +174,7 @@ p2 <- ggtree(pt2, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 8)+ 
 p_name <- paste0(plot_dir, "Primates_CONCAT_Papionini_variable_clade_a.NoTest_b.F.PHI_plot")
 # Assemble plot in patchwork
 p <- p1 + p2 +
-        plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 45))
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 45))
 # Save plot
 ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf", height = 10, width = 15, units = "in")
 
@@ -213,6 +213,15 @@ tt4 <- read.tree(tt4_file)
 tt5 <- read.tree(tt5_file)
 tt6 <- read.tree(tt6_file)
 tt7 <- read.tree(tt7_file)
+# Reroot tree 1 at proper outgroup
+tt1 <- root(tt1, outgroup = roots[["Pease2016"]])
+# Reformat tomato clades for trees 2-7
+tt2 <- reformat.congruent.clades(tt2)
+tt3 <- reformat.congruent.clades(tt3)
+tt4 <- reformat.congruent.clades(tt4)
+tt5 <- reformat.congruent.clades(tt5)
+tt6 <- reformat.congruent.clades(tt6)
+tt7 <- reformat.congruent.clades(tt7)
 # Rename tip labels to have scientific names (not just numbers)
 tt1$tip.label <- rename.tomato.tips(tt1$tip.label)
 tt2$tip.label <- rename.tomato.tips(tt2$tip.label)
@@ -221,9 +230,31 @@ tt4$tip.label <- rename.tomato.tips(tt4$tip.label)
 tt5$tip.label <- rename.tomato.tips(tt5$tip.label)
 tt6$tip.label <- rename.tomato.tips(tt6$tip.label)
 tt7$tip.label <- rename.tomato.tips(tt7$tip.label)
-# Remove clades that remain identical for trees tt2 - tt7
-
-
-
+# Add small tips of 0.1 to each branch (ASTRAL does not add terminal branch lengths)
+tt1$edge.length[which(is.nan(tt1$edge.length))] <- 0.2
+tt2$edge.length[which(is.nan(tt2$edge.length))] <- 0.2
+tt3$edge.length[which(is.nan(tt3$edge.length))] <- 0.2
+tt4$edge.length[which(is.nan(tt4$edge.length))] <- 0.2
+tt5$edge.length[which(is.nan(tt5$edge.length))] <- 0.2
+tt6$edge.length[which(is.nan(tt6$edge.length))] <- 0.2
+tt7$edge.length[which(is.nan(tt7$edge.length))] <- 0.2
+# Create a small plot of each tree
+p1 <- ggtree(tt1, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 150, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+p2 <- ggtree(tt2, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
+          coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+p3 <- ggtree(tt3, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+p4 <- ggtree(tt4, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+p5 <- ggtree(tt5, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+p6 <- ggtree(tt6, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+p7 <- ggtree(tt7, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+# Save plot of the unfiltered tree
+p1_name <- paste0(plot_dir, "Tomatoes_ASTRAL_NoTest")
+ggsave(filename = paste0(p_name, ".pdf"), plot = p1, device = "pdf")
 
 
