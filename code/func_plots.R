@@ -177,7 +177,7 @@ find.one.tomato.tip <- function(single_tip, include.genus = FALSE){
 
 
 # Quick function to remove the sections of the tomato tree that remain identical
-reformat.congruent.clades <- function(tom_tree){
+reformat.congruent.tomato.clades <- function(tom_tree){
   # Want to keep all Peruvianum species:
   Peruvianum = c("LA1364", "LA2744", "LA1358", "LA0107", "LA0444", "LA2964", "LA1782", "LA4117")
   # Want to keep one tip from each other clade:
@@ -260,3 +260,118 @@ color.code.tomato.clades <- function(tom_tree, taxa.numbers = FALSE, trimmed = T
   return(tip_lab_df)
 }
 
+
+
+# Quick function to remove the sections of the Metazoan tree that are not interesting
+reformat.congruent.metazoan.clades <- function(m_tree, trim = FALSE){
+  if (trim == FALSE){
+    # Keep all species in all clades
+    Bilateria = c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster",
+                  "Daphnia_pulex")
+    Cnidaria = c("Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera",
+                 "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona",
+                 "Craseo_lathetica", "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla")
+    Placozoa = c("Trichoplax_adhaerens")
+    Porifera = c("Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum",
+                 "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
+                 "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans",
+                 "Kirkpatrickia_variolosa")
+    Ctenophora = c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata",
+                   "Pleurobrachia_pileus", "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA",
+                   "Callianira_Antarctica", "Mertensiidae_sp_Antarctica", "Mertensiidae_sp_Washington_USA", "Cydippida_sp",
+                   "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica", "Beroe_ovata",
+                   "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina",
+                   "Ocyropsis_sp_Florida_USA", "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", 
+                   "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris", "Ctenophora_sp_Florida_USA")
+    Clade_Outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
+    # Collate the list of taxa to keep
+    taxa_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
+  } else if (trim == TRUE){
+    # Keep all Ctenophora species and one species from each other clade
+    Bilateria = "Homo_sapiens"
+    Cnidaria = "Hydra_vulgaris"
+    Placozoa = "Trichoplax_adhaerens"
+    Porifera = "Cliona_varians"
+    Ctenophora = c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata",
+                   "Pleurobrachia_pileus", "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA",
+                   "Callianira_Antarctica", "Mertensiidae_sp_Antarctica", "Mertensiidae_sp_Washington_USA", "Cydippida_sp",
+                   "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica", "Beroe_ovata",
+                   "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina",
+                   "Ocyropsis_sp_Florida_USA", "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", 
+                   "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris", "Ctenophora_sp_Florida_USA")
+    Clade_Outgroup = "Salpingoeca_rosetta"
+    # Collate the list of taxa to keep
+    taxa_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
+  }
+  
+  # Root at outgroup
+  root_outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
+  m_tree <- root(m_tree, root_outgroup)
+  
+  # If trimming, drop taxa and rename clades
+  if (trim == TRUE){
+    # Drop all other taxa
+    m_tree <- keep.tip(m_tree, taxa_to_keep)
+    # Rename the remaining taxa into the clade name
+    m_tree$tip.label[which(m_tree$tip.label == "Salpingoeca_rosetta")] <- "Choanoflagellata"
+    m_tree$tip.label[which(m_tree$tip.label == "Cliona_varians")] <- "Porifera"
+    m_tree$tip.label[which(m_tree$tip.label == "Trichoplax_adhaerens")] <- "Placozoa"
+    m_tree$tip.label[which(m_tree$tip.label == "Hydra_vulgaris")] <- "Cnidaria"
+    m_tree$tip.label[which(m_tree$tip.label == "Homo_sapiens")] <- "Bilateria"
+  }
+  # Return the reformatted tree
+  return(m_tree)
+}
+
+
+# Quick function to color code Metazoan clades
+color.code.tomato.clades <- function(m_tree, trimmed = TRUE){
+  if (trimmed == FALSE){
+    # Keep all species in all clades
+    Bilateria = c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster",
+                  "Daphnia_pulex")
+    Cnidaria = c("Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera",
+                 "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona",
+                 "Craseo_lathetica", "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla")
+    Placozoa = c("Trichoplax_adhaerens")
+    Porifera = c("Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum",
+                 "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
+                 "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans",
+                 "Kirkpatrickia_variolosa")
+    Ctenophora = c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata",
+                   "Pleurobrachia_pileus", "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA",
+                   "Callianira_Antarctica", "Mertensiidae_sp_Antarctica", "Mertensiidae_sp_Washington_USA", "Cydippida_sp",
+                   "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica", "Beroe_ovata",
+                   "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina",
+                   "Ocyropsis_sp_Florida_USA", "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", 
+                   "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris", "Ctenophora_sp_Florida_USA")
+    Clade_Outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
+  } else if (trimmed == TRUE){
+    # Keep all Ctenophora species and one species from each other clade
+    Bilateria = "Homo_sapiens"
+    Cnidaria = "Hydra_vulgaris"
+    Placozoa = "Trichoplax_adhaerens"
+    Porifera = "Cliona_varians"
+    Ctenophora = c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata",
+                   "Pleurobrachia_pileus", "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA",
+                   "Callianira_Antarctica", "Mertensiidae_sp_Antarctica", "Mertensiidae_sp_Washington_USA", "Cydippida_sp",
+                   "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica", "Beroe_ovata",
+                   "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina",
+                   "Ocyropsis_sp_Florida_USA", "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", 
+                   "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris", "Ctenophora_sp_Florida_USA")
+    Clade_Outgroup = "Salpingoeca_rosetta"
+}
+  
+  # Create dataframe with tip information
+  tip_df <- data.frame(taxa = c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup),
+                       clade = c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
+                                 rep("Porifera", length(Porifera)), rep("Ctenophora", length(Ctenophora)), rep("Clade_Outgroup", length(Clade_Outgroup))),
+                       color = c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
+                                 rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("black", length(Clade_Outgroup))) )
+  tip_lab_df <- dplyr::mutate(tip_df, 
+                              lab = glue('italic("{taxa}")'),
+                              name = glue("<i style='color:{color}'>{taxa}</i>") ) 
+  
+  # Return the tip label dataframe
+  return(tip_lab_df)
+}
