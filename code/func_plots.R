@@ -163,5 +163,58 @@ reformat.congruent.clades <- function(tom_tree){
 
 
 
-
+# Quick function to colour code clades in tomatoes dataset
+color.code.tomato.clades <- function(tom_tree, taxa.numbers = FALSE, trimmed = TRUE){
+  # Which tips are in which clade:
+  if (trimmed == FALSE){
+    # Include all taxa
+    if (taxa.numbers == TRUE){
+      # Build data frame from taxa numbers
+      Esculentum = c("SL2.50", "LA0436", "LA3909", "LA0429", "LA3124", "LA3475", "LA2933", "LA1269", "LA1589")
+      Arcanum = c("LA1322", "LA2133", "LA2172", "LA1028", "LA1316")
+      Peruvianum = c("LA1364", "LA2744", "LA1358", "LA0107", "LA0444", "LA2964", "LA1782", "LA4117")
+      Hirsutum = c("LA0407", "LA1777", "LA0716", "LA3778")
+      Clade_Outgroup = c("LA4116", "LA4126", "LA2951")
+    } else if (taxa.numbers == FALSE){
+      # Build dataframe from taxa names
+      Esculentum = c("S. lyco. 'Heinz 1706'", "S. cheesmaniae 0436", "S. galapagense 3909", "S. galapagense 0429", 
+                     "S. cheesmaniae 3124", "Solanum lycopersicum 3475", "S. lycopersicum 2933", "S. pimpinellifolium 1269",
+                     "S. pimpinellifolium 1589")
+      Arcanum = c("S. neorickii 1322", "S. neorickii 2133", "S. arcanum 2172", "S. chmielewskii 1028", "S. chmielewskii 1316")
+      Peruvianum = c("S. huaylasense 1364", "S. peruvianum 2744", "S. huaylasense 1358", "S. corneliomuelleri 0107", 
+                     "S. corneliomuelleri 0444", "S. peruvianum 2964", "S. chilense 1782", "S. chilense 4117A")
+      Hirsutum = c("S. habrochaites 0407", "S. habrochaites 1777", "S. pennellii 0716", "S. pennellii 3778")
+      Clade_Outgroup = c("S. sitiens 4116", "S. lycopersicoides 4126", "S. lycopersicoides 2951")
+    }
+  } else if (trimmed == TRUE){
+    # Taxa have been trimmed to one species per each group, except for Peruvianum (includes all Peruvianum species)
+    if (taxa.numbers == TRUE){
+      # Build data frame from taxa numbers
+      Esculentum = "Esculentum clade"
+      Arcanum = "Arcanum clade"
+      Peruvianum = c("LA1364", "LA2744", "LA1358", "LA0107", "LA0444", "LA2964", "LA1782", "LA4117")
+      Hirsutum = "Hirsutum clade"
+      Clade_Outgroup = "Outgroup"
+    } else if (taxa.numbers == FALSE){
+      # Build dataframe from taxa names
+      Esculentum = "Esculentum clade"
+      Arcanum = "Arcanum clade"
+      Peruvianum = c("S. huaylasense 1364", "S. peruvianum 2744", "S. huaylasense 1358", "S. corneliomuelleri 0107", 
+                     "S. corneliomuelleri 0444", "S. peruvianum 2964", "S. chilense 1782", "S. chilense 4117A")
+      Hirsutum = "Hirsutum clade"
+      Clade_Outgroup = "Outgroup"
+    }
+  }
+  
+  # Create dataframe with tip information
+  tip_lab_df <- data.frame(lab = c(Esculentum, Arcanum, Peruvianum, Hirsutum, Clade_Outgroup),
+                           clade = c(rep("Esculentum", length(Esculentum)), rep("Arcanum", length(Arcanum)), rep("Peruvianum", length(Peruvianum)), 
+                                     rep("Hirsutum", length(Hirsutum)), rep("Clade_Outgroup", length(Clade_Outgroup))),
+                           color = c(rep("firebrick3", length(Esculentum)), rep("goldenrod3", length(Arcanum)), rep("darkgreen", length(Peruvianum)), 
+                                     rep("darkslateblue", length(Hirsutum)), rep("black", length(Clade_Outgroup))))
+  tip_lab_df$richtext <- paste0("<i style='color:", tip_lab_df$color, "'> ", tip_lab_df$lab)
+  
+  # Return the tip label dataframe
+  return(tip_lab_df)
+}
 
