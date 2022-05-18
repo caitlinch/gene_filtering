@@ -3,6 +3,7 @@
 # Caitlin Cherryh 2022
 
 library(phytools) # Functions: nodeHeights
+library(dplyr)
 
 # Given a dataframe containing columns with treelikeness test statistic/statistical test values, this function creates a new column
 #     for each test statistic/statistical test stating whether each value is treelike or non-treelike
@@ -78,6 +79,45 @@ rescale.multiphylo <- function(trees, scaled_length){
     trees[[i]] <- rescale.tree.length(trees[[i]], scaled_length)
   }
   return(trees)
+}
+
+
+
+# Quick function to colour code clades in primates dataset
+color.code.primate.clades <- function(p_tree, concatenated = TRUE){
+  # Set which clade differs and which taxa remain identical
+  if (concatenated == TRUE){
+    variable_species <- c("Cercocebus atys","Mandrillus leucophaeus","Papio anubis","Theropithecus gelada")
+    congruent_species <- c("Aotus nancymaae","Saimiri boliviensis","Cebus capucinus imitator","Callithrix jacchus",
+                           "Carlito syrichta","Otolemur garnettii","Microcebus murinus","Propithecus coquereli",
+                           "Galeopterus variegatus","Tupaia chinensis","Mus musculus","Nomascus leucogenys",
+                           "Pongo abelii","Gorilla gorilla","Homo sapiens","Pan paniscus","Pan troglodytes",
+                           "Chlorocebus sabaeus","Macaca nemestrina","Macaca fascicularis","Macaca mulatta",
+                           "Colobus angolensis palliatus","Piliocolobus tephrosceles","Rhinopithecus bieti",
+                           "Rhinopithecus roxellana")
+  } else if (concatenated == FALSE){
+    variable_species <- c("Aotus nancymaae","Saimiri boliviensis","Cebus capucinus imitator","Callithrix jacchus")
+    congruent_species <- c("Carlito syrichta","Otolemur garnettii","Microcebus murinus","Propithecus coquereli",
+                           "Galeopterus variegatus","Tupaia chinensis","Mus musculus","Nomascus leucogenys",
+                           "Pongo abelii","Gorilla gorilla","Homo sapiens","Pan paniscus","Pan troglodytes",
+                           "Chlorocebus sabaeus","Macaca nemestrina","Macaca fascicularis","Macaca mulatta",
+                           "Cercocebus atys","Mandrillus leucophaeus","Papio anubis","Theropithecus gelada",
+                           "Colobus angolensis palliatus","Piliocolobus tephrosceles","Rhinopithecus bieti",
+                           "Rhinopithecus roxellana")
+  }
+  
+  # Create dataframe with tip information
+  tip_df <- data.frame(taxa = c(variable_species, congruent_species),
+                       clade = c(rep("Variable", length(variable_species)), rep("Congruent", length(congruent_species)) ),
+                       color = c(rep("gray60", length(variable_species)), rep("black", length(congruent_species)) ) 
+  )
+  tip_lab_df <- dplyr::mutate(tip_df, 
+                              lab = glue('italic("{taxa}")'),
+                              name = glue("<i style='color:{color}'>{taxa}</i>") )
+  
+  # Return the tip label dataframe
+  return(tip_lab_df)
+  
 }
 
 
@@ -214,8 +254,7 @@ color.code.tomato.clades <- function(tom_tree, taxa.numbers = FALSE, trimmed = T
                                  rep("navy", length(Hirsutum)), rep("black", length(Clade_Outgroup))))
   tip_lab_df <- dplyr::mutate(tip_df, 
                               lab = glue('italic("{taxa}")'),
-                              name = glue("<i style='color:{color}'>{taxa}</i>")
-  ) 
+                              name = glue("<i style='color:{color}'>{taxa}</i>") ) 
   
   # Return the tip label dataframe
   return(tip_lab_df)

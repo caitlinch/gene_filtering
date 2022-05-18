@@ -66,9 +66,17 @@ pt1 <- root(pt1, outgroup = roots[["Vanderpool2020"]])
 pt1$edge.length[which(is.nan(pt1$edge.length))] <- 0.5
 # Remove underscores from tips
 pt1$tip.label <- gsub("_", " ", pt1$tip.label)
+# Color code incongruent clade
+pt1_labs <-color.code.primate.clades(pt1, concatenated = FALSE)
 # Create plot
-p <- ggtree(pt1) + geom_tiplab(offset = 0.002, geom = "text", size = 4.5) + scale_y_reverse() +  scale_x_continuous(breaks = seq(0,15,3)) +
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 180, 6, 6)) + theme(axis.text.x = element_text(size = 12))
+p <- ggtree(pt1) %<+% pt1_labs +
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0.002, geom = "text", size = 5) + 
+  scale_y_reverse() +  
+  scale_x_continuous(breaks = seq(0,15,3)) +
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 180, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 12)) +
+  scale_color_manual(values = c(Variable = "gray50", Congruent = "black"))
 # Create plot name
 p_name <- paste0(plot_dir, "Primates_ASTRAL_NoTest_plot")
 # Save plot
@@ -128,9 +136,16 @@ pt1 <- read.tree(pt1_file)
 pt1 <- root(pt1, outgroup = roots[["Vanderpool2020"]])
 # Remove underscores from tips
 pt1$tip.label <- gsub("_", " ", pt1$tip.label)
+# Color code incongruent clade
+pt1_labs <-color.code.primate.clades(pt1, concatenated = TRUE)
 # Create plot
-p <- ggtree(pt1) + geom_tiplab(offset = 0.002, geom = "text", size = 5) + scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 120, 6, 6)) + theme(axis.text.x = element_text(size = 15))
+p <- ggtree(pt1) %<+% pt1_labs +
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0.002, geom = "text", size = 5.5) + 
+  scale_y_reverse() +  
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 120, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 15)) +
+  scale_color_manual(values = c(Variable = "gray50", Congruent = "black"))
 # Create plot name
 p_name <- paste0(plot_dir, "Primates_CONCAT_NoTest_plot")
 # Save plot
@@ -226,9 +241,10 @@ tt3$edge.length[which(is.nan(tt3$edge.length))] <- 0.2
 tt4$edge.length[which(is.nan(tt4$edge.length))] <- 0.2
 tt5$edge.length[which(is.nan(tt5$edge.length))] <- 0.2
 tt6$edge.length[which(is.nan(tt6$edge.length))] <- 0.2
-# Save plot of the unfiltered tree ## NEED TO ADD CLADE LABELS
+# Color code clades
 tt1_labs <- color.code.tomato.clades(tt1, taxa.numbers = FALSE, trimmed = FALSE)
 tt1_small_labs <- color.code.tomato.clades(tt1, taxa.numbers = FALSE, trimmed = TRUE)
+# Save plot of the unfiltered tree
 # To colour code tip labels without richtext:
 #     ggtree(tt1_small) %<+% tt1_small_labs + xlim(NA, 6) + geom_tiplab(aes(label=lab), parse=T)
 # To colour code tip labels with richtext:
@@ -240,8 +256,7 @@ p1 <- ggtree(tt1) %<+% tt1_labs +
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 150, 6, 6)) + 
   theme(axis.text.x = element_text(size = 15)) +
-  scale_color_manual(values = c(Esculentum = "#CC79A7", Arcanum = "#E69F00", Peruvianum = "#009E73", Hirsutum = "#56B4E9", Clade_Outgroup = "#000000"))
-
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
 p1_name <- paste0(plot_dir, "Tomatoes_ASTRAL_NoTest_plot")
 ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf")
 # Create a small plot of each of the six trees
@@ -266,7 +281,7 @@ p3 <- ggtree(tt3) %<+% tt1_small_labs +
   theme_tree2(plot.margin=margin(6, 175, 6, 6)) + 
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
-p4 <- ggtree(tt3) %<+% tt1_small_labs + 
+p4 <- ggtree(tt4) %<+% tt1_small_labs + 
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
   geom_rootedge(rootedge = 0.2, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
@@ -323,20 +338,48 @@ tt1_small$tip.label <- rename.tomato.tips(tt1_small$tip.label)
 tt2$tip.label <- rename.tomato.tips(tt2$tip.label)
 tt3$tip.label <- rename.tomato.tips(tt3$tip.label)
 tt4$tip.label <- rename.tomato.tips(tt4$tip.label)
-# Save plot of the unfiltered tree ## NEED TO ADD CLADE LABELS
-p1 <- ggtree(tt1, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.001, size = 0.5) + 
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 160, 6, 6)) + theme(axis.text.x = element_text(size = 12))
+# Color code clades
+tt1_labs <- color.code.tomato.clades(tt1, taxa.numbers = FALSE, trimmed = FALSE)
+tt1_small_labs <- color.code.tomato.clades(tt1, taxa.numbers = FALSE, trimmed = TRUE)
+# Save plot of the unfiltered tree
+p1 <- ggtree(tt1) %<+% tt1_labs +
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.001, size = 0.5) +
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 12)) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
 p1_name <- paste0(plot_dir, "Tomatoes_CONCAT_NoTest_plot")
 ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf")
 # Create small plot of each of the four trees
-p1 <- ggtree(tt1_small, size = 0.75) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.005, size = 0.5) + 
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 160, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
-p2 <- ggtree(tt2, size = 0.75) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.005, size = 0.5) + 
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 160, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
-p3 <- ggtree(tt3, size = 0.75) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.005, size = 0.5) + 
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 160, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
-p4 <- ggtree(tt4, size = 0.75) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.005, size = 0.5) + 
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 160, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+p1 <- ggtree(tt1_small, size = 0.75) %<+% tt1_small_labs + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+p2 <- ggtree(tt2, size = 0.75) %<+% tt1_small_labs + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+p3 <-ggtree(tt3, size = 0.75) %<+% tt1_small_labs + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+p4 <- ggtree(tt4, size = 0.75) %<+% tt1_small_labs + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
 # Create a patchwork of the trees tt2-tt7
 quilt <- (p1 | p2)/(p3 | p4) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
