@@ -33,17 +33,6 @@ roots <- list("1KP" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", 
               "Whelan2017" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
               "Vanderpool2020" = c("Mus_musculus"), 
               "Pease2016" = c("LA4116", "LA2951", "LA4126"))
-n_tips <- c("Pease2016" = 29, "Vanderpool2020" = 29)
-taxa_order <- list("Pease2016" = c("LA4116", "LA4126", "LA2951", "LA3778", "LA0716", "LA1777", "LA0407", "LA4117", "LA1782", "LA2964", 
-                                   "LA0444", "LA0107", "LA1358", "LA2744", "LA1364", "LA1316", "LA1028", "LA2172", "LA2133", "LA1322",
-                                   "LA1589", "LA1269", "LA2933", "SL2.50", "LA3475", "LA3124", "LA0429", "LA3909", "LA0436"),
-                   "Vanderpool2020" = c("Mus_musculus", "Tupaia_chinensis", "Galeopterus_variegatus", "Otolemur_garnettii",
-                                        "Propithecus_coquereli", "Microcebus_murinus", "Carlito_syrichta", "Callithrix_jacchus",
-                                        "Aotus_nancymaae", "Cebus_capucinus_imitator", "Saimiri_boliviensis", "Colobus_angolensis_palliatus",
-                                        "Piliocolobus_tephrosceles", "Rhinopithecus_bieti", "Rhinopithecus_roxellana", "Chlorocebus_sabaeus",
-                                        "Cercocebus_atys", "Mandrillus_leucophaeus", "Papio_anubis", "Theropithecus_gelada", "Macaca_nemestrina",
-                                        "Macaca_fascicularis", "Macaca_mulatta", "Nomascus_leucogenys", "Pongo_abelii", "Gorilla_gorilla",
-                                        "Homo_sapiens", "Pan_paniscus", "Pan_troglodytes"))
 ### End of Caitlin's paths ###
 
 
