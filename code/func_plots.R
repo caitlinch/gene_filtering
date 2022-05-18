@@ -263,8 +263,8 @@ color.code.tomato.clades <- function(tom_tree, taxa.numbers = FALSE, trimmed = T
 
 
 # Quick function to remove the sections of the Metazoan tree that are not interesting
-reformat.congruent.metazoan.clades <- function(m_tree, trim = FALSE){
-  if (trim == FALSE){
+reformat.congruent.metazoan.clades <- function(m_tree, trim = "FALSE"){
+  if (trim == "FALSE"){
     # Keep all species in all clades
     Bilateria = c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster",
                   "Daphnia_pulex")
@@ -286,7 +286,7 @@ reformat.congruent.metazoan.clades <- function(m_tree, trim = FALSE){
     Clade_Outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
     # Collate the list of taxa to keep
     taxa_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
-  } else if (trim == TRUE){
+  } else if (trim == "Keep_Ctenophora"){
     # Keep all Ctenophora species and one species from each other clade
     Bilateria = "Homo_sapiens"
     Cnidaria = "Hydra_vulgaris"
@@ -302,6 +302,16 @@ reformat.congruent.metazoan.clades <- function(m_tree, trim = FALSE){
     Clade_Outgroup = "Salpingoeca_rosetta"
     # Collate the list of taxa to keep
     taxa_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
+  } else if (trim == "Trim_all"){
+    # Keep one species from each clade
+    Bilateria = "Homo_sapiens"
+    Cnidaria = "Hydra_vulgaris"
+    Placozoa = "Trichoplax_adhaerens"
+    Porifera = "Cliona_varians"
+    Ctenophora = "Dryodora_glandiformis"
+    Clade_Outgroup = "Salpingoeca_rosetta"
+    # Collate the list of taxa to keep
+    taxa_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
   }
   
   # Root at outgroup
@@ -309,7 +319,7 @@ reformat.congruent.metazoan.clades <- function(m_tree, trim = FALSE){
   m_tree <- root(m_tree, root_outgroup)
   
   # If trimming, drop taxa and rename clades
-  if (trim == TRUE){
+  if (trim == "Keep_Ctenophora"){
     # Drop all other taxa
     m_tree <- keep.tip(m_tree, taxa_to_keep)
     # Rename the remaining taxa into the clade name
@@ -318,7 +328,18 @@ reformat.congruent.metazoan.clades <- function(m_tree, trim = FALSE){
     m_tree$tip.label[which(m_tree$tip.label == "Trichoplax_adhaerens")] <- "Placozoa"
     m_tree$tip.label[which(m_tree$tip.label == "Hydra_vulgaris")] <- "Cnidaria"
     m_tree$tip.label[which(m_tree$tip.label == "Homo_sapiens")] <- "Bilateria"
+  } else if (trim == "Trim_all") {
+    # Drop all other taxa
+    m_tree <- keep.tip(m_tree, taxa_to_keep)
+    # Rename the remaining taxa into the clade name
+    m_tree$tip.label[which(m_tree$tip.label == "Salpingoeca_rosetta")] <- "Choanoflagellata"
+    m_tree$tip.label[which(m_tree$tip.label == "Cliona_varians")] <- "Porifera"
+    m_tree$tip.label[which(m_tree$tip.label == "Trichoplax_adhaerens")] <- "Placozoa"
+    m_tree$tip.label[which(m_tree$tip.label == "Hydra_vulgaris")] <- "Cnidaria"
+    m_tree$tip.label[which(m_tree$tip.label == "Dryodora_glandiformis")] <- "Ctenophora"
+    m_tree$tip.label[which(m_tree$tip.label == "Homo_sapiens")] <- "Bilateria"
   }
+  
   # Return the reformatted tree
   return(m_tree)
 }
