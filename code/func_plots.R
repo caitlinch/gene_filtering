@@ -360,19 +360,40 @@ color.code.metazoan.clades <- function(m_tree, trimmed = TRUE){
                    "Ocyropsis_sp_Florida_USA", "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", 
                    "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris", "Ctenophora_sp_Florida_USA")
     Clade_Outgroup = "Salpingoeca_rosetta"
-}
+  }
   
   # Create dataframe with tip information
-  tip_df <- data.frame(taxa = c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup),
-                       taxa_prettyprint = gsub("_" ," ", c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)),
+  all_taxa <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
+  all_taxa_split <- strsplit(all_taxa, "_")
+  
+  tip_df <- data.frame(taxa = all_taxa,
+                       taxa_prettyprint = gsub("_" ," ", all_taxa),
+                       generic_name = sapply(all_taxa_split, "[[", 1),
+                       generic_initial = sapply(all_taxa_split, get.specific.taxa.name, 1), 
+                       specific_name = unlist(all_taxa_split)[c(FALSE, TRUE)],
                        clade = c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
                                  rep("Porifera", length(Porifera)), rep("Ctenophora", length(Ctenophora)), rep("Clade_Outgroup", length(Clade_Outgroup))),
                        color = c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
                                  rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("black", length(Clade_Outgroup))) )
   tip_lab_df <- dplyr::mutate(tip_df, 
-                              lab = glue('italic("{taxa_prettyprint}")'),
-                              name = glue("<i style='color:{color}'>{taxa_prettyprint}</i>") ) 
+                              short_lab = glue('italic("{generic_initial} {specific_name}")'),
+                              long_lab = glue('italic("{taxa_prettyprint}")'),
+                              short_name = glue("<i style='color:{color}'>{generic_initial} {specific_name}</i>"),
+                              long_name = glue("<i style='color:{color}'>{taxa_prettyprint}</i>") ) 
   
   # Return the tip label dataframe
   return(tip_lab_df)
 }
+
+# Small function to get 2nd word onwards from taxa name for metazoan species
+get.specific.taxa.name <- function(t, n){
+  if (length(t) > n) {
+    new_t <- paste(t[(n + 1):length(t)], collapse = " ")
+  }
+  else {
+    new_t <- paste(t, collapse = " ")
+  }
+  return(new_t)
+}
+
+
