@@ -325,7 +325,7 @@ reformat.congruent.metazoan.clades <- function(m_tree, trim = FALSE){
 
 
 # Quick function to color code Metazoan clades
-color.code.tomato.clades <- function(m_tree, trimmed = TRUE){
+color.code.metazoan.clades <- function(m_tree, trimmed = TRUE){
   if (trimmed == FALSE){
     # Keep all species in all clades
     Bilateria = c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster",
@@ -364,13 +364,14 @@ color.code.tomato.clades <- function(m_tree, trimmed = TRUE){
   
   # Create dataframe with tip information
   tip_df <- data.frame(taxa = c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup),
+                       taxa_prettyprint = gsub("_" ," ", c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)),
                        clade = c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
                                  rep("Porifera", length(Porifera)), rep("Ctenophora", length(Ctenophora)), rep("Clade_Outgroup", length(Clade_Outgroup))),
                        color = c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
                                  rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("black", length(Clade_Outgroup))) )
   tip_lab_df <- dplyr::mutate(tip_df, 
-                              lab = glue('italic("{taxa}")'),
-                              name = glue("<i style='color:{color}'>{taxa}</i>") ) 
+                              lab = glue('italic("{taxa_prettyprint}")'),
+                              name = glue("<i style='color:{color}'>{taxa_prettyprint}</i>") ) 
   
   # Return the tip label dataframe
   return(tip_lab_df)
