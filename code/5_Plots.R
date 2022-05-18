@@ -395,26 +395,38 @@ metazoan_tree_files <- grep("old_geneconv|Old_geneconv|Old_Geneconv|00_|zz_", me
 metazoan_astral_trees <- grep("species\\.tre", metazoan_tree_files, value = TRUE)
 metazoan_concat_trees <- grep("nex.contree", metazoan_tree_files, value = TRUE)
 
-## Plotting differences in topology for ASTRAL trees
+## Plot Metazoan ASTRAL tree
+
+## Plot Metazoan CONCAT tree
+
+## Plotting differences in topology for CONCAT trees
 # Find files
-mt1_file <- grep("NoTest", metazoan_astral_trees, value = TRUE)
-mt2_file <- grep("PHI", metazoan_astral_trees, value = TRUE)
-mt3_file <- grep("maxchi", metazoan_astral_trees, value = TRUE)
-mt4_file <- grep("geneconv", metazoan_astral_trees, value = TRUE)
+mt1_file <- grep("NoTest", metazoan_concat_trees, value = TRUE)
+mt2_file <- grep("geneconv", metazoan_concat_trees, value = TRUE)
 # Open trees
 mt1 <- read.tree(mt1_file)
 mt2 <- read.tree(mt2_file)
-mt3 <- read.tree(mt3_file)
-mt4 <- read.tree(mt4_file)
-# Reroot trees
-mt1 <- root(mt1, roots[["Whelan2017"]])
-mt2 <- root(mt2, roots[["Whelan2017"]])
-mt3 <- root(mt3, roots[["Whelan2017"]])
-mt4 <- root(mt4, roots[["Whelan2017"]])
-# Keep tips within Ctenophora only
-
-
-## Plotting difference in topology for IQ-Tree trees
+# Root tree and drop tips from clades (keep tips within Ctenophora only, keep one species per other clade)
+mt1 <- reformat.congruent.metazoan.clades(mt1, trim = "Trim_all")
+mt2 <- reformat.congruent.metazoan.clades(mt2, trim = "Trim_all")
+# Relabel clades
+mt1_labs <- color.code.metazoan.clades(mt1, trimmed = "Trim_all")
+mt2_labs <- color.code.metazoan.clades(mt2, trimmed = "Trim_all")
+# Plot using ggtree
+p1 <- ggtree(tt1_small, size = 0.75) %<+% tt1_small_labs + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+p2 <- ggtree(tt2, size = 0.75) %<+% tt1_small_labs + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
 
 
 
