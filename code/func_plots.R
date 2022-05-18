@@ -367,6 +367,15 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
                    "Ocyropsis_sp_Florida_USA", "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", 
                    "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris", "Ctenophora_sp_Florida_USA")
     Clade_Outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
+    # Prepare columns for dataframe creation
+    taxa_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
+    taxa_groups <- c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
+                     rep("Porifera", length(Porifera)), rep("Ctenophora", length(Ctenophora)), rep("Clade_Outgroup", length(Clade_Outgroup)))
+    taxa_colors <- c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
+                     rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("black", length(Clade_Outgroup)))
+    clades_to_keep <- c()
+    clade_groups <- c()
+    clade_colors <- c()
   } else if (trimmed == "Keep_Ctenophora"){
     # Keep all Ctenophora species and one species from each other clade
     Bilateria = "Bilateria"
@@ -381,37 +390,82 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
                    "Ocyropsis_sp_Florida_USA", "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", 
                    "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris", "Ctenophora_sp_Florida_USA")
     Clade_Outgroup = "Choanoflagellata"
-  } else if (trim == "Trim_all"){
+    # Prepare columns for dataframe creation
+    taxa_to_keep <- Ctenophora
+    taxa_groups <- rep("Ctenophora", length(Ctenophora))
+    taxa_colors <- rep("blue", length(Ctenophora))
+    clades_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Clade_Outgroup)
+    clade_groups <- c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
+                      rep("Porifera", length(Porifera)), rep("Clade_Outgroup", length(Clade_Outgroup)))
+    clade_colors <- c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
+                      rep("yellow", length(Porifera)), rep("black", length(Clade_Outgroup)))
+  } else if (trimmed == "Trim_all"){
     # Keep one species from each clade
     Bilateria = "Bilateria"
     Cnidaria = "Cnidaria"
     Placozoa = "Placozoa"
     Porifera = "Porifera"
-    Ctenophora = "Dryodora_glandiformis"
+    Ctenophora = "Ctenophora"
     Clade_Outgroup = "Choanoflagellata"
-    # Collate the list of taxa to keep
-    taxa_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
+    # Prepare columns for dataframe creation
+    taxa_to_keep <- c()
+    taxa_clades <- c()
+    taxa_colors <- c()
+    clades_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
+    clade_groups <- c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
+                      rep("Porifera", length(Porifera)), rep("Ctenophora", length(Ctenophora)), rep("Clade_Outgroup", length(Clade_Outgroup)))
+    clade_colors <- c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
+                      rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("black", length(Clade_Outgroup)))
+  }
+  
+  # Create dataframe with tip information for taxa
+  if (length(taxa_to_keep) == 0){
+    taxa_lab_df <- NA
+  } else if (length(taxa_to_keep) > 0) {
+    all_taxa <- taxa_to_keep
+    all_taxa_split <- strsplit(all_taxa, "_")
+    taxa_tip_df <- data.frame(taxa = all_taxa,
+                              taxa_prettyprint = gsub("_" ," ", all_taxa),
+                              generic_name = sapply(all_taxa_split, "[[", 1),
+                              generic_initial = sapply(all_taxa_split, get.specific.taxa.name, 1), 
+                              specific_name = unlist(all_taxa_split)[c(FALSE, TRUE)],
+                              clade = taxa_groups,
+                              color = taxa_colors)
+    taxa_lab_df <- dplyr::mutate(taxa_tip_df, 
+                                 short_lab = glue('italic("{generic_initial} {specific_name}")'),
+                                 long_lab = glue('italic("{taxa_prettyprint}")'),
+                                 short_name = glue("<i style='color:{color}'>{generic_initial} {specific_name}</i>"),
+                                 long_name = glue("<i style='color:{color}'>{taxa_prettyprint}</i>") ) 
+  }
+  
+  # Create dataframe with tip information for taxa
+  if (length(clades_to_keep) == 0){
+    clade_lab_df <- NA
+  } else if (length(clades_to_keep) > 0) {
+    clades <- clades_to_keep
+    clade_tip_df <- data.frame(taxa = clades,
+                               taxa_prettyprint = clades,
+                               generic_name = clades,
+                               generic_initial = clades, 
+                               specific_name = rep("", length(clades)),
+                               clade = clade_groups,
+                               color = clade_colors)
+    clade_lab_df <- dplyr::mutate(clade_tip_df, 
+                                  short_lab = glue('italic("{taxa_prettyprint}")'),
+                                  long_lab = glue('italic("{taxa_prettyprint}")'),
+                                  short_name = glue("<i style='color:{color}'>{taxa_prettyprint}</i>"),
+                                  long_name = glue("<i style='color:{color}'>{taxa_prettyprint}</i>") ) 
   }
 
-  # Create dataframe with tip information
-  all_taxa <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
-  all_taxa_split <- strsplit(all_taxa, "_")
-  
-  tip_df <- data.frame(taxa = all_taxa,
-                       taxa_prettyprint = gsub("_" ," ", all_taxa),
-                       generic_name = sapply(all_taxa_split, "[[", 1),
-                       generic_initial = sapply(all_taxa_split, get.specific.taxa.name, 1), 
-                       specific_name = unlist(all_taxa_split)[c(FALSE, TRUE)],
-                       clade = c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
-                                 rep("Porifera", length(Porifera)), rep("Ctenophora", length(Ctenophora)), rep("Clade_Outgroup", length(Clade_Outgroup))),
-                       color = c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
-                                 rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("black", length(Clade_Outgroup))) )
-  tip_lab_df <- dplyr::mutate(tip_df, 
-                              short_lab = glue('italic("{generic_initial} {specific_name}")'),
-                              long_lab = glue('italic("{taxa_prettyprint}")'),
-                              short_name = glue("<i style='color:{color}'>{generic_initial} {specific_name}</i>"),
-                              long_name = glue("<i style='color:{color}'>{taxa_prettyprint}</i>") ) 
-  
+  # Attach dataframes (if they both exist), or else pick the one that does exist
+  if ((class(clade_lab_df) == "data.frame") & (class(taxa_lab_df) == "data.frame")){
+    tip_lab_df <- rbind(taxa_lab_df, clade_lab_df)
+  } else if ((class(clade_lab_df) == "logical") & (class(taxa_lab_df) == "data.frame")){
+    tip_lab_df <- taxa_lab_df
+  } else if ((class(clade_lab_df) == "data.frame") & (class(taxa_lab_df) == "logical")){
+    tip_lab_df <- clade_lab_df
+  }
+
   # Return the tip label dataframe
   return(tip_lab_df)
 }
