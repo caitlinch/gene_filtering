@@ -369,10 +369,10 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
     Clade_Outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
   } else if (trimmed == "Keep_Ctenophora"){
     # Keep all Ctenophora species and one species from each other clade
-    Bilateria = "Homo_sapiens"
-    Cnidaria = "Hydra_vulgaris"
-    Placozoa = "Trichoplax_adhaerens"
-    Porifera = "Cliona_varians"
+    Bilateria = "Bilateria"
+    Cnidaria = "Cnidaria"
+    Placozoa = "Placozoa"
+    Porifera = "Porifera"
     Ctenophora = c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata",
                    "Pleurobrachia_pileus", "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA",
                    "Callianira_Antarctica", "Mertensiidae_sp_Antarctica", "Mertensiidae_sp_Washington_USA", "Cydippida_sp",
@@ -380,19 +380,19 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
                    "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina",
                    "Ocyropsis_sp_Florida_USA", "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", 
                    "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris", "Ctenophora_sp_Florida_USA")
-    Clade_Outgroup = "Salpingoeca_rosetta"
+    Clade_Outgroup = "Choanoflagellata"
   } else if (trim == "Trim_all"){
     # Keep one species from each clade
-    Bilateria = "Homo_sapiens"
-    Cnidaria = "Hydra_vulgaris"
-    Placozoa = "Trichoplax_adhaerens"
-    Porifera = "Cliona_varians"
+    Bilateria = "Bilateria"
+    Cnidaria = "Cnidaria"
+    Placozoa = "Placozoa"
+    Porifera = "Porifera"
     Ctenophora = "Dryodora_glandiformis"
-    Clade_Outgroup = "Salpingoeca_rosetta"
+    Clade_Outgroup = "Choanoflagellata"
     # Collate the list of taxa to keep
     taxa_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
   }
-  
+
   # Create dataframe with tip information
   all_taxa <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
   all_taxa_split <- strsplit(all_taxa, "_")
