@@ -178,7 +178,7 @@ color.code.tomato.clades <- function(tom_tree, taxa.numbers = FALSE, trimmed = T
     } else if (taxa.numbers == FALSE){
       # Build dataframe from taxa names
       Esculentum = c("S. lyco. 'Heinz 1706'", "S. cheesmaniae 0436", "S. galapagense 3909", "S. galapagense 0429", 
-                     "S. cheesmaniae 3124", "Solanum lycopersicum 3475", "S. lycopersicum 2933", "S. pimpinellifolium 1269",
+                     "S. cheesmaniae 3124", "S. lycopersicum 3475", "S. lycopersicum 2933", "S. pimpinellifolium 1269",
                      "S. pimpinellifolium 1589")
       Arcanum = c("S. neorickii 1322", "S. neorickii 2133", "S. arcanum 2172", "S. chmielewskii 1028", "S. chmielewskii 1316")
       Peruvianum = c("S. huaylasense 1364", "S. peruvianum 2744", "S. huaylasense 1358", "S. corneliomuelleri 0107", 
@@ -207,12 +207,15 @@ color.code.tomato.clades <- function(tom_tree, taxa.numbers = FALSE, trimmed = T
   }
   
   # Create dataframe with tip information
-  tip_lab_df <- data.frame(lab = c(Esculentum, Arcanum, Peruvianum, Hirsutum, Clade_Outgroup),
-                           clade = c(rep("Esculentum", length(Esculentum)), rep("Arcanum", length(Arcanum)), rep("Peruvianum", length(Peruvianum)), 
-                                     rep("Hirsutum", length(Hirsutum)), rep("Clade_Outgroup", length(Clade_Outgroup))),
-                           color = c(rep("firebrick3", length(Esculentum)), rep("goldenrod3", length(Arcanum)), rep("darkgreen", length(Peruvianum)), 
-                                     rep("darkslateblue", length(Hirsutum)), rep("black", length(Clade_Outgroup))))
-  tip_lab_df$richtext <- paste0("<i style='color:", tip_lab_df$color, "'> ", tip_lab_df$lab)
+  tip_df <- data.frame(taxa = c(Esculentum, Arcanum, Peruvianum, Hirsutum, Clade_Outgroup),
+                       clade = c(rep("Esculentum", length(Esculentum)), rep("Arcanum", length(Arcanum)), rep("Peruvianum", length(Peruvianum)), 
+                                 rep("Hirsutum", length(Hirsutum)), rep("Clade_Outgroup", length(Clade_Outgroup))),
+                       color = c(rep("firebrick3", length(Esculentum)), rep("goldenrod3", length(Arcanum)), rep("darkgreen", length(Peruvianum)), 
+                                 rep("navy", length(Hirsutum)), rep("black", length(Clade_Outgroup))))
+  tip_lab_df <- dplyr::mutate(tip_df, 
+                              lab = glue('italic("{taxa}")'),
+                              name = glue("<i style='color:{color}'>{taxa}</i>")
+  ) 
   
   # Return the tip label dataframe
   return(tip_lab_df)

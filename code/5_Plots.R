@@ -42,6 +42,7 @@ roots <- list("1KP" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", 
 library(ape) # functions: read.tree, Ntip, root
 library(ggplot2) # for nice plots
 library(ggtree) # for plotting phylogenetic trees
+library(ggtext) # for nice tree plots
 library(patchwork) # for collating plots
 # Source functions
 source(paste0(maindir,"code/func_plots.R"))
@@ -226,23 +227,66 @@ tt4$edge.length[which(is.nan(tt4$edge.length))] <- 0.2
 tt5$edge.length[which(is.nan(tt5$edge.length))] <- 0.2
 tt6$edge.length[which(is.nan(tt6$edge.length))] <- 0.2
 # Save plot of the unfiltered tree ## NEED TO ADD CLADE LABELS
-p1 <- ggtree(tt1, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.3, size = 0.5) +
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 150, 6, 6)) + theme(axis.text.x = element_text(size = 15))
+tt1_labs <- color.code.tomato.clades(tt1, taxa.numbers = FALSE, trimmed = FALSE)
+tt1_small_labs <- color.code.tomato.clades(tt1, taxa.numbers = FALSE, trimmed = TRUE)
+# To colour code tip labels without richtext:
+#     ggtree(tt1_small) %<+% tt1_small_labs + xlim(NA, 6) + geom_tiplab(aes(label=lab), parse=T)
+# To colour code tip labels with richtext:
+#    ggtree(tt1_small) %<+% tt1_small_labs + geom_richtext(data=td_filter(isTip), aes(label = name), label.color=NA) + hexpand(.3)
+# For more details, see: https://yulab-smu.top/treedata-book/faq.html#faq-formatting-label
+p1 <- ggtree(tt1) %<+% tt1_labs +
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.3, size = 0.5) +
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 150, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 15)) +
+  scale_color_manual(values = c(Esculentum = "#CC79A7", Arcanum = "#E69F00", Peruvianum = "#009E73", Hirsutum = "#56B4E9", Clade_Outgroup = "#000000"))
+
 p1_name <- paste0(plot_dir, "Tomatoes_ASTRAL_NoTest_plot")
 ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf")
 # Create a small plot of each of the six trees
-p1 <- ggtree(tt1_small, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
-p2 <- ggtree(tt2, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
-          coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
-p3 <- ggtree(tt3, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
-p4 <- ggtree(tt4, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
-p5 <- ggtree(tt5, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
-p6 <- ggtree(tt6, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.2, size = 0.5) + 
-  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 175, 6, 6)) + theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+p1 <- ggtree(tt1_small) %<+% tt1_small_labs + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.2, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 175, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+p2 <- ggtree(tt2) %<+% tt1_small_labs + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.2, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 175, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+p3 <- ggtree(tt3) %<+% tt1_small_labs + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.2, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 175, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+p4 <- ggtree(tt3) %<+% tt1_small_labs + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.2, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 175, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+p5 <- ggtree(tt5) %<+% tt1_small_labs + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.2, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 175, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+p6 <- ggtree(tt6) %<+% tt1_small_labs + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_rootedge(rootedge = 0.2, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 175, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
 # Create a patchwork of the trees tt2-tt7
 quilt <- (p1 | p2)/(p3 | p4)/(p5 | p6) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
@@ -281,7 +325,7 @@ tt3$tip.label <- rename.tomato.tips(tt3$tip.label)
 tt4$tip.label <- rename.tomato.tips(tt4$tip.label)
 # Save plot of the unfiltered tree ## NEED TO ADD CLADE LABELS
 p1 <- ggtree(tt1, size = 0.5) +  geom_tiplab(offset = 0, geom = "text", size = 6) + geom_rootedge(rootedge = 0.001, size = 0.5) + 
-        coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 160, 6, 6)) + theme(axis.text.x = element_text(size = 12))
+  coord_cartesian(clip = 'off') + theme_tree2(plot.margin=margin(6, 160, 6, 6)) + theme(axis.text.x = element_text(size = 12))
 p1_name <- paste0(plot_dir, "Tomatoes_CONCAT_NoTest_plot")
 ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf")
 # Create small plot of each of the four trees
@@ -298,6 +342,14 @@ quilt <- (p1 | p2)/(p3 | p4) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 quilt_name <- paste0(plot_dir, "Tomatoes_CONCAT_Peruvianum_comparison_plots")
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 13, width = 10, units = "in")
+
+
+
+#### Step 5: Plotting Metazoan dataset ####
+## Plotting differences in topology for ASTRAL trees
+
+
+## Plotting difference in topology for IQ-Tree trees
 
 
 
