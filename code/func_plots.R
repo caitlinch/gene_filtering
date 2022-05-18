@@ -346,8 +346,8 @@ reformat.congruent.metazoan.clades <- function(m_tree, trim = "FALSE"){
 
 
 # Quick function to color code Metazoan clades
-color.code.metazoan.clades <- function(m_tree, trimmed = TRUE){
-  if (trimmed == FALSE){
+color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
+  if (trimmed == "FALSE"){
     # Keep all species in all clades
     Bilateria = c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster",
                   "Daphnia_pulex")
@@ -367,7 +367,7 @@ color.code.metazoan.clades <- function(m_tree, trimmed = TRUE){
                    "Ocyropsis_sp_Florida_USA", "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", 
                    "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris", "Ctenophora_sp_Florida_USA")
     Clade_Outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
-  } else if (trimmed == TRUE){
+  } else if (trimmed == "Keep_Ctenophora"){
     # Keep all Ctenophora species and one species from each other clade
     Bilateria = "Homo_sapiens"
     Cnidaria = "Hydra_vulgaris"
@@ -381,6 +381,16 @@ color.code.metazoan.clades <- function(m_tree, trimmed = TRUE){
                    "Ocyropsis_sp_Florida_USA", "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", 
                    "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris", "Ctenophora_sp_Florida_USA")
     Clade_Outgroup = "Salpingoeca_rosetta"
+  } else if (trim == "Trim_all"){
+    # Keep one species from each clade
+    Bilateria = "Homo_sapiens"
+    Cnidaria = "Hydra_vulgaris"
+    Placozoa = "Trichoplax_adhaerens"
+    Porifera = "Cliona_varians"
+    Ctenophora = "Dryodora_glandiformis"
+    Clade_Outgroup = "Salpingoeca_rosetta"
+    # Collate the list of taxa to keep
+    taxa_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
   }
   
   # Create dataframe with tip information
