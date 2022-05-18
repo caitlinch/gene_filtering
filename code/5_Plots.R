@@ -219,12 +219,12 @@ tt6 <- read.tree(tt6_file)
 # Reroot tree 1 at proper outgroup
 tt1 <- root(tt1, outgroup = roots[["Pease2016"]])
 # Reformat tomato clades for trees 1-6
-tt1_small <- reformat.congruent.clades(tt1_small)
-tt2 <- reformat.congruent.clades(tt2)
-tt3 <- reformat.congruent.clades(tt3)
-tt4 <- reformat.congruent.clades(tt4)
-tt5 <- reformat.congruent.clades(tt5)
-tt6 <- reformat.congruent.clades(tt6)
+tt1_small <- reformat.congruent.tomato.clades(tt1_small)
+tt2 <- reformat.congruent.tomato.clades(tt2)
+tt3 <- reformat.congruent.tomato.clades(tt3)
+tt4 <- reformat.congruent.tomato.clades(tt4)
+tt5 <- reformat.congruent.tomato.clades(tt5)
+tt6 <- reformat.congruent.tomato.clades(tt6)
 # Rename tip labels to have scientific names (not just numbers)
 tt1$tip.label <- rename.tomato.tips(tt1$tip.label)
 tt1_small$tip.label <- rename.tomato.tips(tt1_small$tip.label)
@@ -328,10 +328,10 @@ tt4 <- read.tree(tt4_file)
 # Reroot tree 1 at proper outgroup
 tt1 <- root(tt1, outgroup = roots[["Pease2016"]])
 # Reformat tomato clades for trees 1-4
-tt1_small <- reformat.congruent.clades(tt1_small)
-tt2 <- reformat.congruent.clades(tt2)
-tt3 <- reformat.congruent.clades(tt3)
-tt4 <- reformat.congruent.clades(tt4)
+tt1_small <- reformat.congruent.tomato.clades(tt1_small)
+tt2 <- reformat.congruent.tomato.clades(tt2)
+tt3 <- reformat.congruent.tomato.clades(tt3)
+tt4 <- reformat.congruent.tomato.clades(tt4)
 # Rename tip labels to have scientific names (not just numbers)
 tt1$tip.label <- rename.tomato.tips(tt1$tip.label)
 tt1_small$tip.label <- rename.tomato.tips(tt1_small$tip.label)
@@ -389,7 +389,29 @@ ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", heig
 
 
 #### Step 5: Plotting Metazoan dataset ####
+metazoan_tree_folder <- paste0(species_tree_folder, "Whelan2017/species_trees/")
+metazoan_tree_files <- paste0(metazoan_tree_folder, list.files(metazoan_tree_folder, recursive = TRUE))
+metazoan_tree_files <- grep("old_geneconv|Old_geneconv|Old_Geneconv|00_|zz_", metazoan_tree_files, invert = TRUE, value = TRUE)
+metazoan_astral_trees <- grep("species\\.tre", metazoan_tree_files, value = TRUE)
+metazoan_concat_trees <- grep("nex.contree", metazoan_tree_files, value = TRUE)
+
 ## Plotting differences in topology for ASTRAL trees
+# Find files
+mt1_file <- grep("NoTest", metazoan_astral_trees, value = TRUE)
+mt2_file <- grep("PHI", metazoan_astral_trees, value = TRUE)
+mt3_file <- grep("maxchi", metazoan_astral_trees, value = TRUE)
+mt4_file <- grep("geneconv", metazoan_astral_trees, value = TRUE)
+# Open trees
+mt1 <- read.tree(mt1_file)
+mt2 <- read.tree(mt2_file)
+mt3 <- read.tree(mt3_file)
+mt4 <- read.tree(mt4_file)
+# Reroot trees
+mt1 <- root(mt1, roots[["Whelan2017"]])
+mt2 <- root(mt2, roots[["Whelan2017"]])
+mt3 <- root(mt3, roots[["Whelan2017"]])
+mt4 <- root(mt4, roots[["Whelan2017"]])
+# Keep tips within Ctenophora only
 
 
 ## Plotting difference in topology for IQ-Tree trees
