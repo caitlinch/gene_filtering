@@ -250,7 +250,7 @@ color.code.tomato.clades <- function(tom_tree, taxa.numbers = FALSE, trimmed = T
   # Create dataframe with tip information
   tip_df <- data.frame(taxa = c(Esculentum, Arcanum, Peruvianum, Hirsutum, Clade_Outgroup),
                        clade = c(rep("Esculentum", length(Esculentum)), rep("Arcanum", length(Arcanum)), rep("Peruvianum", length(Peruvianum)), 
-                                 rep("Hirsutum", length(Hirsutum)), rep("Clade_Outgroup", length(Clade_Outgroup))),
+                                 rep("Hirsutum", length(Hirsutum)), rep("Outgroup", length(Clade_Outgroup))),
                        color = c(rep("firebrick3", length(Esculentum)), rep("goldenrod3", length(Arcanum)), rep("darkgreen", length(Peruvianum)), 
                                  rep("navy", length(Hirsutum)), rep("black", length(Clade_Outgroup))))
   tip_lab_df <- dplyr::mutate(tip_df, 
