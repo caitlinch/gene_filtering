@@ -230,7 +230,7 @@ tt3$tip.label <- rename.tomato.tips(tt3$tip.label)
 tt4$tip.label <- rename.tomato.tips(tt4$tip.label)
 tt5$tip.label <- rename.tomato.tips(tt5$tip.label)
 tt6$tip.label <- rename.tomato.tips(tt6$tip.label)
-# Add small tips of 0.1 to each branch (ASTRAL does not add terminal branch lengths)
+# Add small tips of 0.2 to each branch (ASTRAL does not add terminal branch lengths)
 tt1$edge.length[which(is.nan(tt1$edge.length))] <- 0.2
 tt1_small$edge.length[which(is.nan(tt1_small$edge.length))] <- 0.2
 tt2$edge.length[which(is.nan(tt2$edge.length))] <- 0.2
@@ -392,8 +392,112 @@ metazoan_astral_trees <- grep("ASTRAL", metazoan_tree_files, value = TRUE)
 metazoan_concat_trees <- grep("CONCAT", metazoan_tree_files, value = TRUE)
 
 ## Plot Metazoan ASTRAL tree
+# Find files
+mt1_file <- grep("NoTest", metazoan_astral_trees, value = TRUE)
+# Open trees
+mt1 <- read.tree(mt1_file)
+# Root tree and drop tips from clades (keep tips within Ctenophora only, keep one species per other clade)
+mt1 <- reformat.congruent.metazoan.clades(mt1, trim = "FALSE")
+# Add small tips of 0.1 to each branch (ASTRAL does not add terminal branch lengths)
+mt1$edge.length[which(is.nan(mt1$edge.length))] <- 0.2
+# Relabel clades
+mt1_labs <- color.code.metazoan.clades(mt1, trimmed = "FALSE")
+# Plot and save
+p1 <- ggtree(mt1) %<+% mt1_labs +
+  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 4) + 
+  geom_rootedge(rootedge = 0.001, size = 0.5) +
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 12)) +
+  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
+                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60"))
+p1_name <- paste0(plot_dir, "Metazoan_ASTRAL_NoTest_plot")
+ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf", width = 8, height = 10, units = "in")
+
+
+## Plotting differences in topology for CONCAT trees
+# Find files
+mt1_file <- grep("NoTest", metazoan_astral_trees, value = TRUE)
+mt2_file <- grep("PHI", metazoan_astral_trees, value = TRUE)
+mt3_file <- grep("maxchi", metazoan_astral_trees, value = TRUE)
+mt4_file <- grep("geneconv", metazoan_astral_trees, value = TRUE)
+# Open trees
+mt1 <- read.tree(mt1_file)
+mt2 <- read.tree(mt2_file)
+mt3 <- read.tree(mt3_file)
+mt4 <- read.tree(mt4_file)
+# Root tree and drop tips from clades (keep tips within Ctenophora only, keep one species per other clade)
+mt1 <- reformat.congruent.metazoan.clades(mt1, trim = "Keep_Ctenophora")
+mt2 <- reformat.congruent.metazoan.clades(mt2, trim = "Keep_Ctenophora")
+mt3 <- reformat.congruent.metazoan.clades(mt3, trim = "Keep_Ctenophora")
+mt4 <- reformat.congruent.metazoan.clades(mt4, trim = "Keep_Ctenophora")
+# Add small tips of 0.2 to each branch (ASTRAL does not add terminal branch lengths)
+mt1$edge.length[which(is.nan(mt1$edge.length))] <- 0.2
+mt2$edge.length[which(is.nan(mt2$edge.length))] <- 0.2
+mt3$edge.length[which(is.nan(mt3$edge.length))] <- 0.2
+mt4$edge.length[which(is.nan(mt4$edge.length))] <- 0.2
+# Relabel clades
+mt_labs <- color.code.metazoan.clades(mt1, trimmed = "Keep_Ctenophora")
+# Plot using ggtree
+p1 <- ggtree(mt1, size = 0.4) %<+% mt_labs + 
+  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
+                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+p2 <- ggtree(mt2, size = 0.4) %<+% mt_labs + 
+  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
+                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+p3 <- ggtree(mt3, size = 0.4) %<+% mt_labs + 
+  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
+                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+p4 <- ggtree(mt4, size = 0.4) %<+% mt_labs + 
+  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
+                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+quilt <- (p1 | p2) / (p3 | p4) +
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+quilt_name <- paste0(plot_dir, "Metazoan_ASTRAL_Ctenophora_comparison_plots")
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", width = 8, height = 10, units = "in")
+
 
 ## Plot Metazoan CONCAT tree
+# Find files
+mt1_file <- grep("NoTest", metazoan_concat_trees, value = TRUE)
+# Open trees
+mt1 <- read.tree(mt1_file)
+# Root tree and drop tips from clades (keep tips within Ctenophora only, keep one species per other clade)
+mt1 <- reformat.congruent.metazoan.clades(mt1, trim = "FALSE")
+# Relabel clades
+mt1_labs <- color.code.metazoan.clades(mt1, trimmed = "FALSE")
+# Plot and save
+p1 <- ggtree(mt1) %<+% mt1_labs +
+  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 4) + 
+  geom_rootedge(rootedge = 0.001, size = 0.5) +
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 12)) +
+  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
+                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+p1_name <- paste0(plot_dir, "Metazoan_CONCAT_NoTest_plot")
+ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf", width = 8, height = 10, units = "in")
+
 
 ## Plotting differences in topology for CONCAT trees
 # Find files
@@ -410,22 +514,76 @@ mt1_labs <- color.code.metazoan.clades(mt1, trimmed = "Trim_all")
 mt2_labs <- color.code.metazoan.clades(mt2, trimmed = "Trim_all")
 # Plot using ggtree
 p1 <- ggtree(mt1, size = 0.75) %<+% mt1_labs + 
-  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_tiplab(aes(label = short_lab), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 8) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
 p2 <- ggtree(mt2, size = 0.75) %<+% mt2_labs + 
-  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
+  geom_tiplab(aes(label = short_lab), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 8) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
 quilt <- (p1 | p2) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 quilt_name <- paste0(plot_dir, "Metazoan_CONCAT_topology_comparison_plots")
-ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 13, width = 10, units = "in")
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf")
+
+## Plotting differences in topology for CONCAT trees
+# Find files
+mt1_file <- grep("NoTest", metazoan_concat_trees, value = TRUE)
+mt2_file <- grep("PHI", metazoan_concat_trees, value = TRUE)
+mt3_file <- grep("maxchi", metazoan_concat_trees, value = TRUE)
+mt4_file <- grep("geneconv", metazoan_concat_trees, value = TRUE)
+# Open trees
+mt1 <- read.tree(mt1_file)
+mt2 <- read.tree(mt2_file)
+mt3 <- read.tree(mt3_file)
+mt4 <- read.tree(mt4_file)
+# Root tree and drop tips from clades (keep tips within Ctenophora only, keep one species per other clade)
+mt1 <- reformat.congruent.metazoan.clades(mt1, trim = "Keep_Ctenophora")
+mt2 <- reformat.congruent.metazoan.clades(mt2, trim = "Keep_Ctenophora")
+mt3 <- reformat.congruent.metazoan.clades(mt3, trim = "Keep_Ctenophora")
+mt4 <- reformat.congruent.metazoan.clades(mt4, trim = "Keep_Ctenophora")
+# Relabel clades
+mt_labs <- color.code.metazoan.clades(mt1, trimmed = "Keep_Ctenophora")
+# Plot using ggtree
+p1 <- ggtree(mt1, size = 0.4) %<+% mt_labs + 
+  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
+                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+p2 <- ggtree(mt2, size = 0.4) %<+% mt_labs + 
+  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
+                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+p3 <- ggtree(mt3, size = 0.4) %<+% mt_labs + 
+  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
+                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+p4 <- ggtree(mt4, size = 0.4) %<+% mt_labs + 
+  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) + 
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
+                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+quilt <- (p1 | p2) / (p3 | p4) +
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+quilt_name <- paste0(plot_dir, "Metazoan_CONCAT_Ctenophora_comparison_plots")
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", width = 8, height = 10, units = "in")
 
 

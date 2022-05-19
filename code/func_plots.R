@@ -4,6 +4,7 @@
 
 library(phytools) # Functions: nodeHeights
 library(dplyr)
+library(glue)
 
 # Given a dataframe containing columns with treelikeness test statistic/statistical test values, this function creates a new column
 #     for each test statistic/statistical test stating whether each value is treelike or non-treelike
@@ -370,9 +371,9 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
     # Prepare columns for dataframe creation
     taxa_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
     taxa_groups <- c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
-                     rep("Porifera", length(Porifera)), rep("Ctenophora", length(Ctenophora)), rep("Clade_Outgroup", length(Clade_Outgroup)))
+                     rep("Porifera", length(Porifera)), rep("Ctenophora", length(Ctenophora)), rep("Choanoflagellata", length(Clade_Outgroup)))
     taxa_colors <- c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
-                     rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("black", length(Clade_Outgroup)))
+                     rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("gray", length(Clade_Outgroup)))
     clades_to_keep <- c()
     clade_groups <- c()
     clade_colors <- c()
@@ -396,9 +397,9 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
     taxa_colors <- rep("blue", length(Ctenophora))
     clades_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Clade_Outgroup)
     clade_groups <- c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
-                      rep("Porifera", length(Porifera)), rep("Clade_Outgroup", length(Clade_Outgroup)))
+                      rep("Porifera", length(Porifera)), rep("Choanoflagellata", length(Clade_Outgroup)))
     clade_colors <- c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
-                      rep("yellow", length(Porifera)), rep("black", length(Clade_Outgroup)))
+                      rep("yellow", length(Porifera)), rep("gray", length(Clade_Outgroup)))
   } else if (trimmed == "Trim_all"){
     # Keep one species from each clade
     Bilateria = "Bilateria"
@@ -413,9 +414,9 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
     taxa_colors <- c()
     clades_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
     clade_groups <- c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
-                      rep("Porifera", length(Porifera)), rep("Ctenophora", length(Ctenophora)), rep("Clade_Outgroup", length(Clade_Outgroup)))
+                      rep("Porifera", length(Porifera)), rep("Ctenophora", length(Ctenophora)), rep("Choanoflagellata", length(Clade_Outgroup)))
     clade_colors <- c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
-                      rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("black", length(Clade_Outgroup)))
+                      rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("gray", length(Clade_Outgroup)))
   }
   
   # Create dataframe with tip information for taxa
@@ -427,8 +428,9 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
     taxa_tip_df <- data.frame(taxa = all_taxa,
                               taxa_prettyprint = gsub("_" ," ", all_taxa),
                               generic_name = sapply(all_taxa_split, "[[", 1),
-                              generic_initial = sapply(all_taxa_split, get.specific.taxa.name, 1), 
-                              specific_name = unlist(all_taxa_split)[c(FALSE, TRUE)],
+                              generic_initial =  as.character(sapply(sapply(all_taxa_split, "[[", 1), 
+                                                                     function(x){toupper(paste(substring(x, 1, 1), collapse = ""))})), 
+                              specific_name = sapply(all_taxa_split, get.specific.taxa.name, 1),
                               clade = taxa_groups,
                               color = taxa_colors)
     taxa_lab_df <- dplyr::mutate(taxa_tip_df, 
