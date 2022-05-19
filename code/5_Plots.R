@@ -112,9 +112,12 @@ pt1$edge.length[which(is.nan(pt1$edge.length))] <- 0.1
 pt2$edge.length[which(is.nan(pt2$edge.length))] <- 0.1
 pt3$edge.length[which(is.nan(pt3$edge.length))] <- 0.1
 # Create plot for each topology
-p1_0 <- ggtree(pt1, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + geom_rootedge(rootedge = 0.1, size = 1) + xlim(-0.1, 1.2)
-p2 <- ggtree(pt2, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + geom_rootedge(rootedge = 0.1, size = 1) + xlim(-0.1, 1.2)
-p3 <- ggtree(pt3, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + geom_rootedge(rootedge = 0.1, size = 1) + xlim(-0.1, 1.2)
+p1_0 <- ggtree(pt1, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + 
+  geom_rootedge(rootedge = 0.1, size = 1) + xlim(-0.1, 1.2)
+p2 <- ggtree(pt2, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + 
+  geom_rootedge(rootedge = 0.1, size = 1) + xlim(-0.1, 1.2)
+p3 <- ggtree(pt3, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + 
+  geom_rootedge(rootedge = 0.1, size = 1) + xlim(-0.1, 1.2)
 # Flip pt1 branch so all 3 plots have same order
 p1 <- flip(p1_0, 2, 3)
 # Create plot name 
@@ -171,8 +174,10 @@ pt2 <- keep.tip(pt2, c("Cercocebus_atys", "Mandrillus_leucophaeus", "Papio_anubi
 pt1$tip.label <- gsub("_", " ", pt1$tip.label)
 pt2$tip.label <- gsub("_", " ", pt2$tip.label)
 # Create plot for each topology
-p1 <- ggtree(pt1, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 8)+ geom_rootedge(rootedge = 0.0005, size = 1) + xlim(-0.0005, 0.01)
-p2 <- ggtree(pt2, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 8)+ geom_rootedge(rootedge = 0.0005, size = 1) + xlim(-0.0005, 0.025)
+p1 <- ggtree(pt1, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 8) + 
+  geom_rootedge(rootedge = 0.0005, size = 1) + xlim(-0.0005, 0.01)
+p2 <- ggtree(pt2, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 8) + 
+  geom_rootedge(rootedge = 0.0005, size = 1) + xlim(-0.0005, 0.025)
 # Create plot name 
 p_name <- paste0(plot_dir, "Primates_CONCAT_Papionini_variable_clade_a.NoTest_b.F.PHI_plot")
 # Assemble plot in patchwork
@@ -253,7 +258,9 @@ p1 <- ggtree(tt1) %<+% tt1_labs +
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 150, 6, 6)) + 
   theme(axis.text.x = element_text(size = 15)) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
+                                Peruvianum = "darkgreen", Hirsutum = "navy", 
+                                Clade_Outgroup = "black"))
 p1_name <- paste0(plot_dir, "Tomatoes_ASTRAL_NoTest_plot")
 ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf")
 # Create a small plot of each of the six trees
@@ -262,43 +269,61 @@ p1 <- ggtree(tt1_small) %<+% tt1_small_labs +
   geom_rootedge(rootedge = 0.2, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 175, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
+                                Peruvianum = "darkgreen", Hirsutum = "navy", 
+                                Clade_Outgroup = "black"))
 p2 <- ggtree(tt2) %<+% tt1_small_labs + 
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
   geom_rootedge(rootedge = 0.2, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 175, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
+                                Peruvianum = "darkgreen", Hirsutum = "navy", 
+                                Clade_Outgroup = "black"))
 p3 <- ggtree(tt3) %<+% tt1_small_labs + 
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
   geom_rootedge(rootedge = 0.2, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 175, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
+                                Peruvianum = "darkgreen", Hirsutum = "navy", 
+                                vClade_Outgroup = "black"))
 p4 <- ggtree(tt4) %<+% tt1_small_labs + 
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
   geom_rootedge(rootedge = 0.2, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 175, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
+                                Peruvianum = "darkgreen", Hirsutum = "navy", 
+                                Clade_Outgroup = "black"))
 p5 <- ggtree(tt5) %<+% tt1_small_labs + 
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
   geom_rootedge(rootedge = 0.2, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 175, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
+                                Peruvianum = "darkgreen", Hirsutum = "navy", 
+                                Clade_Outgroup = "black"))
 p6 <- ggtree(tt6) %<+% tt1_small_labs + 
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
   geom_rootedge(rootedge = 0.2, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 175, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
+                                Peruvianum = "darkgreen", Hirsutum = "navy", 
+                                Clade_Outgroup = "black"))
 # Create a patchwork of the trees tt2-tt7
 quilt <- (p1 | p2)/(p3 | p4)/(p5 | p6) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
@@ -345,7 +370,9 @@ p1 <- ggtree(tt1) %<+% tt1_labs +
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
   theme(axis.text.x = element_text(size = 12)) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
+                                Peruvianum = "darkgreen", Hirsutum = "navy", 
+                                Clade_Outgroup = "black"))
 p1_name <- paste0(plot_dir, "Tomatoes_CONCAT_NoTest_plot")
 ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf")
 # Create small plot of each of the four trees
@@ -354,29 +381,41 @@ p1 <- ggtree(tt1_small, size = 0.75) %<+% tt1_small_labs +
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
+                                Peruvianum = "darkgreen", Hirsutum = "navy", 
+                                Clade_Outgroup = "black"))
 p2 <- ggtree(tt2, size = 0.75) %<+% tt1_small_labs + 
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
+                                Peruvianum = "darkgreen", Hirsutum = "navy",
+                                Clade_Outgroup = "black"))
 p3 <-ggtree(tt3, size = 0.75) %<+% tt1_small_labs + 
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
+                                Peruvianum = "darkgreen", Hirsutum = "navy", 
+                                Clade_Outgroup = "black"))
 p4 <- ggtree(tt4, size = 0.75) %<+% tt1_small_labs + 
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
+  scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
+                                Peruvianum = "darkgreen", Hirsutum = "navy", 
+                                Clade_Outgroup = "black"))
 # Create a patchwork of the trees tt2-tt7
 quilt <- (p1 | p2)/(p3 | p4) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
@@ -408,9 +447,11 @@ p1 <- ggtree(mt1) %<+% mt1_labs +
   geom_rootedge(rootedge = 0.001, size = 0.5) +
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 12)) +
   scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60"))
+                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60")) +
+  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp."))) + 
+  theme(axis.text.x = element_text(size = 15), legend.position = "left", 
+        legend.title = element_text(size = 15), legend.text = element_text (size = 12))
 p1_name <- paste0(plot_dir, "Metazoan_ASTRAL_NoTest_plot")
 ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf", width = 8, height = 10, units = "in")
 
@@ -452,7 +493,8 @@ p2 <- ggtree(mt2, size = 0.4) %<+% mt_labs +
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
                                 Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
 p3 <- ggtree(mt3, size = 0.4) %<+% mt_labs + 
@@ -460,7 +502,8 @@ p3 <- ggtree(mt3, size = 0.4) %<+% mt_labs +
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
                                 Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
 p4 <- ggtree(mt4, size = 0.4) %<+% mt_labs + 
@@ -468,7 +511,8 @@ p4 <- ggtree(mt4, size = 0.4) %<+% mt_labs +
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
                                 Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
 quilt <- (p1 | p2) / (p3 | p4) +
@@ -488,13 +532,15 @@ mt1 <- reformat.congruent.metazoan.clades(mt1, trim = "FALSE")
 mt1_labs <- color.code.metazoan.clades(mt1, trimmed = "FALSE")
 # Plot and save
 p1 <- ggtree(mt1) %<+% mt1_labs +
-  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 4) + 
+  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 4) + 
   geom_rootedge(rootedge = 0.001, size = 0.5) +
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 12)) +
   scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60")) +
+  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp."))) + 
+  theme(axis.text.x = element_text(size = 15), legend.position = "left", 
+        legend.title = element_text(size = 15), legend.text = element_text (size = 12))
 p1_name <- paste0(plot_dir, "Metazoan_CONCAT_NoTest_plot")
 ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf", width = 8, height = 10, units = "in")
 
@@ -518,13 +564,15 @@ p1 <- ggtree(mt1, size = 0.75) %<+% mt1_labs +
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white"))
 p2 <- ggtree(mt2, size = 0.75) %<+% mt2_labs + 
   geom_tiplab(aes(label = short_lab), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 8) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white"))
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white"))
 quilt <- (p1 | p2) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 quilt_name <- paste0(plot_dir, "Metazoan_CONCAT_topology_comparison_plots")
@@ -554,25 +602,28 @@ p1 <- ggtree(mt1, size = 0.4) %<+% mt_labs +
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "gray60"))
 p2 <- ggtree(mt2, size = 0.4) %<+% mt_labs + 
   geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "gray60"))
 p3 <- ggtree(mt3, size = 0.4) %<+% mt_labs + 
   geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "gray60"))
 p4 <- ggtree(mt4, size = 0.4) %<+% mt_labs + 
   geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
@@ -580,7 +631,7 @@ p4 <- ggtree(mt4, size = 0.4) %<+% mt_labs +
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "gray60"))
 quilt <- (p1 | p2) / (p3 | p4) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 quilt_name <- paste0(plot_dir, "Metazoan_CONCAT_Ctenophora_comparison_plots")
