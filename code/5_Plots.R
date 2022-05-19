@@ -9,21 +9,18 @@
 
 ##### Step 1: Set the file paths for input and output files, and necessary functions/directories #####
 # maindir                 <- "gene_filtering" repository location (github.com/caitlinch/gene_filtering)
-# plot_dir                <- for saving plots and analyses. This file should contain a folder for each dataset (where the folder name and corresponding dataset name are identical)
-# species_tree_folder     <- folder containing the species trees estimated in ASTRAL and IQ-Tree
-# treelikeness_file       <- file containing results of recombination detection tests
+# plot_dir                <- for saving plots and analyses.
 # datasets                <- set name(s) for the dataset(s)
 # roots                   <- set which taxa is outgroup for each dataset
-# n_tips                  <- number of tips in each tree
-# taxa_order              <- order of taxa for plotting (if desired)
-# densitree_path          <- path to DensiTree software executable for making DensiTree figures
-# datasets_for_densitree  <- which datasets you want to create figures for using DensiTree
 
 ### Caitlin's paths ###
 # Folders and filepaths
-maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
-plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/"
-species_tree_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
+# # For work computer:
+# maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
+# plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/"
+# For laptop:
+maindir <- "/Users/caitlin/Repositories/gene_filtering/"
+plot_dir <- "/Users/caitlin/Documents/PhD/Ch01_EmpiricalTreelikeness/plots/"
 
 # Dataset information
 datasets <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
@@ -46,13 +43,14 @@ library(ggtext) # for nice tree plots
 library(patchwork) # for collating plots
 # Source functions
 source(paste0(maindir,"code/func_plots.R"))
+# Assemble folder for species trees
+species_tree_folder <- paste0(maindir, "trees/")
 
 
 
 #### Step 3: Plotting Primates dataset ####
-primate_tree_folder <- paste0(species_tree_folder, "Vanderpool2020/species_trees/")
-primate_tree_files <- paste0(primate_tree_folder, list.files(primate_tree_folder, recursive = TRUE))
-primate_tree_files <- grep("old_geneconv|Old_geneconv|Old_Geneconv|00_|zz_", primate_tree_files, invert = TRUE, value = TRUE)
+tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
+primate_tree_files <- grep("Primates", tree_files, invert = TRUE, value = TRUE)
 primate_astral_trees <- grep("species\\.tre", primate_tree_files, value = TRUE)
 primate_concat_trees <- grep("nex.contree", primate_tree_files, value = TRUE)
 
@@ -186,9 +184,8 @@ ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf", height = 10,
 
 
 #### Step 4: Plotting Tomatoes dataset ####
-tomatoes_tree_folder <- paste0(species_tree_folder, "Pease2016/species_trees/")
-tomatoes_tree_files <- paste0(tomatoes_tree_folder, list.files(tomatoes_tree_folder, recursive = TRUE))
-tomatoes_tree_files <- grep("old_geneconv|Old_geneconv|Old_Geneconv|00_|zz_", tomatoes_tree_files, invert = TRUE, value = TRUE)
+tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
+tomatoes_tree_files <- grep("Tomatoes", tree_files, invert = TRUE, value = TRUE)
 tomatoes_astral_trees <- grep("species\\.tre", tomatoes_tree_files, value = TRUE)
 tomatoes_concat_trees <- grep("nex.contree", tomatoes_tree_files, value = TRUE)
 
@@ -389,9 +386,8 @@ ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", heig
 
 
 #### Step 5: Plotting Metazoan dataset ####
-metazoan_tree_folder <- paste0(species_tree_folder, "Whelan2017/species_trees/")
-metazoan_tree_files <- paste0(metazoan_tree_folder, list.files(metazoan_tree_folder, recursive = TRUE))
-metazoan_tree_files <- grep("old_geneconv|Old_geneconv|Old_Geneconv|00_|zz_", metazoan_tree_files, invert = TRUE, value = TRUE)
+tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
+metazoan_tree_files <- grep("Metazoans", tree_files, invert = TRUE, value = TRUE)
 metazoan_astral_trees <- grep("species\\.tre", metazoan_tree_files, value = TRUE)
 metazoan_concat_trees <- grep("nex.contree", metazoan_tree_files, value = TRUE)
 
