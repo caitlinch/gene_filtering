@@ -50,9 +50,9 @@ species_tree_folder <- paste0(maindir, "trees/")
 
 #### Step 3: Plotting Primates dataset ####
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
-primate_tree_files <- grep("Primates", tree_files, invert = TRUE, value = TRUE)
-primate_astral_trees <- grep("species\\.tre", primate_tree_files, value = TRUE)
-primate_concat_trees <- grep("nex.contree", primate_tree_files, value = TRUE)
+primate_tree_files <- grep("Primates", tree_files, value = TRUE)
+primate_astral_trees <- grep("ASTRAL", primate_tree_files, value = TRUE)
+primate_concat_trees <- grep("CONCAT", primate_tree_files, value = TRUE)
 
 ## Primate Plot 1: ASTRAL No Test
 # Assemble file path and open tree
@@ -185,9 +185,9 @@ ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf", height = 10,
 
 #### Step 4: Plotting Tomatoes dataset ####
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
-tomatoes_tree_files <- grep("Tomatoes", tree_files, invert = TRUE, value = TRUE)
-tomatoes_astral_trees <- grep("species\\.tre", tomatoes_tree_files, value = TRUE)
-tomatoes_concat_trees <- grep("nex.contree", tomatoes_tree_files, value = TRUE)
+tomatoes_tree_files <- grep("Tomatoes", tree_files, value = TRUE)
+tomatoes_astral_trees <- grep("ASTRAL", tomatoes_tree_files, value = TRUE)
+tomatoes_concat_trees <- grep("CONCAT", tomatoes_tree_files, value = TRUE)
 
 ## ASTRAL Peruvianum topologies
 # Need:
@@ -387,9 +387,9 @@ ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", heig
 
 #### Step 5: Plotting Metazoan dataset ####
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
-metazoan_tree_files <- grep("Metazoans", tree_files, invert = TRUE, value = TRUE)
-metazoan_astral_trees <- grep("species\\.tre", metazoan_tree_files, value = TRUE)
-metazoan_concat_trees <- grep("nex.contree", metazoan_tree_files, value = TRUE)
+metazoan_tree_files <- grep("Metazoan", tree_files, value = TRUE)
+metazoan_astral_trees <- grep("ASTRAL", metazoan_tree_files, value = TRUE)
+metazoan_concat_trees <- grep("CONCAT", metazoan_tree_files, value = TRUE)
 
 ## Plot Metazoan ASTRAL tree
 
@@ -409,20 +409,23 @@ mt2 <- reformat.congruent.metazoan.clades(mt2, trim = "Trim_all")
 mt1_labs <- color.code.metazoan.clades(mt1, trimmed = "Trim_all")
 mt2_labs <- color.code.metazoan.clades(mt2, trimmed = "Trim_all")
 # Plot using ggtree
-p1 <- ggtree(tt1_small, size = 0.75) %<+% tt1_small_labs + 
+p1 <- ggtree(mt1, size = 0.75) %<+% mt1_labs + 
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
-p2 <- ggtree(tt2, size = 0.75) %<+% tt1_small_labs + 
+p2 <- ggtree(mt2, size = 0.75) %<+% mt2_labs + 
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", Peruvianum = "darkgreen", Hirsutum = "navy", Clade_Outgroup = "black"))
-
+quilt <- (p1 | p2) +
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+quilt_name <- paste0(plot_dir, "Metazoan_CONCAT_topology_comparison_plots")
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 13, width = 10, units = "in")
 
 
