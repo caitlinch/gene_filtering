@@ -456,7 +456,7 @@ p1_name <- paste0(plot_dir, "Metazoan_ASTRAL_NoTest_plot")
 ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf", width = 8, height = 10, units = "in")
 
 
-## Plotting differences in topology for CONCAT trees
+## Plotting differences in topology for ASTRAL trees
 # Find files
 mt1_file <- grep("NoTest", metazoan_astral_trees, value = TRUE)
 mt2_file <- grep("PHI", metazoan_astral_trees, value = TRUE)
@@ -485,9 +485,10 @@ p1 <- ggtree(mt1, size = 0.4) %<+% mt_labs +
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
+  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
+        axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60"))
 p2 <- ggtree(mt2, size = 0.4) %<+% mt_labs + 
   geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
@@ -496,7 +497,7 @@ p2 <- ggtree(mt2, size = 0.4) %<+% mt_labs +
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
         axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60"))
 p3 <- ggtree(mt3, size = 0.4) %<+% mt_labs + 
   geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
@@ -505,7 +506,7 @@ p3 <- ggtree(mt3, size = 0.4) %<+% mt_labs +
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
         axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60"))
 p4 <- ggtree(mt4, size = 0.4) %<+% mt_labs + 
   geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
@@ -514,7 +515,7 @@ p4 <- ggtree(mt4, size = 0.4) %<+% mt_labs +
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
         axis.ticks.x = element_line(colour = "white")) +
   scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "black"))
+                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60"))
 quilt <- (p1 | p2) / (p3 | p4) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 quilt_name <- paste0(plot_dir, "Metazoan_ASTRAL_Ctenophora_comparison_plots")
@@ -545,7 +546,7 @@ p1_name <- paste0(plot_dir, "Metazoan_CONCAT_NoTest_plot")
 ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf", width = 8, height = 10, units = "in")
 
 
-## Plotting differences in topology for CONCAT trees
+## Plotting differences in relationships between clades for CONCAT trees
 # Find files
 mt1_file <- grep("NoTest", metazoan_concat_trees, value = TRUE)
 mt2_file <- grep("geneconv", metazoan_concat_trees, value = TRUE)
@@ -578,7 +579,8 @@ quilt <- (p1 | p2) +
 quilt_name <- paste0(plot_dir, "Metazoan_CONCAT_topology_comparison_plots")
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf")
 
-## Plotting differences in topology for CONCAT trees
+
+## Plotting differences in Ctenophora topology for CONCAT trees
 # Find files
 mt1_file <- grep("NoTest", metazoan_concat_trees, value = TRUE)
 mt2_file <- grep("PHI", metazoan_concat_trees, value = TRUE)
