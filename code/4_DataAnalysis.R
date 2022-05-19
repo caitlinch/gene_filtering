@@ -22,14 +22,10 @@
 # plotting                  <- whether to plot figures (TRUE = yes, FALSE = no)
 
 ### Caitlin's paths ###
-# # For work computer:
-# maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
-# tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
-# test_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
-# output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
-# # For laptop:
-maindir <- "/Users/caitlin/Repositories/gene_filtering/"
-plot_dir <- "/Users/caitlin/Documents/PhD/Ch01_EmpiricalTreelikeness/plots/"
+maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
+tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
+test_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
+output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
 
 input_names <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
 dataset_tree_roots <- list("1KP" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
@@ -266,8 +262,7 @@ if (plotting == TRUE){
   # Combine each plot into one big plot
   p = p1 + p2 + p3 + plot_layout(ncol = 1, heights = c(8, 4, 4))
   ggsave(filename = paste0(plot_dir, "ASTRAL_posteriorProbability_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 10)
-  ggsave(filename = paste0(plot_dir, "ASTRAL_posteriorProbability_conflicting_branches.png"), plot = p, device = "png", units = "in", width = 8, height = 10)
-  
+
   
   #### Create a lovely plot of posterior probability support values for the ASTRAL trees
   # Break pp_df into three sections to plot: one for Tomatoes/Primates, one for Metazoans, and one for Plants
@@ -312,8 +307,7 @@ if (plotting == TRUE){
   # Combine each plot into one big plot
   p = p1 + p2 + p3 + plot_layout(ncol = 1, heights = c(8, 4, 4))
   ggsave(filename = paste0(plot_dir, "ASTRAL_edgeLength_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 10)
-  ggsave(filename = paste0(plot_dir, "ASTRAL_edgeLength_conflicting_branches.png"), plot = p, device = "png", units = "in", width = 8, height = 10)
-  
+
   
   #### Create a lovely plot of ultrafast bootstrap support values for the maximum likelihood trees
   # Break pp_df into three sections to plot: one for Tomatoes/Primates, one for Metazoans, and one for Plants
@@ -346,8 +340,7 @@ if (plotting == TRUE){
   # Combine each plot into one big plot
   p = p1 + p2 + plot_layout(ncol = 1, heights = c(8, 4))
   ggsave(filename = paste0(plot_dir, "ML_ultrafastBootstrapSupport_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 8)
-  ggsave(filename = paste0(plot_dir, "ML_ultrafastBootstrapSupport_conflicting_branches.png"), plot = p, device = "png", units = "in", width = 8, height = 8)
-  
+
   
   #### Create a lovely plot of edge lengths for the maximum likelihood trees
   # Break pp_df into three sections to plot: one for Tomatoes/Primates, one for Metazoans, and one for Plants
@@ -392,8 +385,6 @@ if (plotting == TRUE){
   # Combine each plot into one big plot
   p = p1 + p2 + p3 + plot_layout(ncol = 1, heights = c(8, 4, 4))
   ggsave(filename = paste0(plot_dir, "ML_edgeLength_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 10)
-  ggsave(filename = paste0(plot_dir, "ML_edgeLength_conflicting_branches.png"), plot = p, device = "png", units = "in", width = 8, height = 10)
-  
 }
 
 
