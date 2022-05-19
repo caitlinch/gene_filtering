@@ -15,12 +15,8 @@
 
 ### Caitlin's paths ###
 # Folders and filepaths
-# # For work computer:
-# maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
-# plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/"
-# For laptop:
-maindir <- "/Users/caitlin/Repositories/gene_filtering/"
-plot_dir <- "/Users/caitlin/Documents/PhD/Ch01_EmpiricalTreelikeness/plots/"
+maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
+plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/"
 
 # Dataset information
 datasets <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
