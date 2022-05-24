@@ -222,7 +222,7 @@ find.loci.tree.path <- function(loci_name, loci_tree_folder){
 
 
 # This function takes an alignment and calculates the AU test using IQ-Tree
-perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, three_trees_path, iqtree_path){
+perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, three_trees_path, iqtree_path, trim.taxa = FALSE){
   copy_path <- paste0(output_folder, loci_name, ".fasta")
   alignment_path <- copy_path
   # If the log file doesn't exist, run IQ-Tree
@@ -232,6 +232,34 @@ perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, t
     loci_file <- paste0(data_folder, grep(loci_name, all_data_files, value = TRUE))
     # Copy the file into the output folder
     file.copy(from = loci_file, to = copy_path, overwrite = FALSE, copy.mode = TRUE)
+    
+    # Make sure alignment and trees have same number of tips
+    if (trim.taxa == TRUE) {
+      # Get number of taxa and list of taxa from three_trees_path
+      three_trees <- read.tree(three_trees_path)
+      ntip_three_trees <- Ntip(three_trees)[1]
+      three_trees_taxa <- three_trees[[1]]$tip.label
+      
+      # Get number of taxa and list of taxa from alignment
+      f <- read.FASTA(alignment_path)
+      alignment_taxa <- names(f)
+      
+      # Drop tips from three trees that are not in the alignment
+      new_three_trees <- three_trees
+      for (i in 1:length(new_three_trees)){
+        new_three_trees[[i]] <- keep.tip(three_trees[[i]], alignment_taxa)
+      }
+      
+      # Save new three trees file
+      new_three_trees_path <- paste0(output_folder, loci_name, "_three_trees_trimmed.txt")
+      write.tree(new_three_trees, file = new_three_trees_path)
+      
+      # Set path for three trees to new trimmed path
+      three_trees_path <- new_three_trees_path
+    } else {
+      three_trees_path <- three_trees_path
+    }
+    
     # # List all files and identify tree path
     # all_files <- list.files(loci_folder)
     # tree_path <- grep(".treefile", all_files, value = TRUE)
