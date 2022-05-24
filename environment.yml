@@ -8,8 +8,10 @@ dependencies:
   - r-base=4.0.3
   - r-ape
   - r-distory
+  - r-dplyr
   - r-ggplot2
   - r-ggtext
+  - r-glue
   - r-patchwork
   - r-phangorn
   - r-phytools
