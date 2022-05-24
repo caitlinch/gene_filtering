@@ -482,40 +482,47 @@ if (plot_primate_loci == TRUE){
   comp_df$test_id <- "Comparison"
   au_df <- rbind(cebidae_df, comp_df)
   au_df <- au_df[,c("locus", "test_id", "tree1_log_likelihood", "tree2_log_likelihood",  "tree3_log_likelihood", 
-                        "sum_log_likelihood", "best_tree", "one_tree_best", "tree1_likelihood_proportion", "tree2_likelihood_proportion", 
-                        "tree3_likelihood_proportion")]
+                    "sum_log_likelihood", "best_tree", "one_tree_best", "tree1_likelihood_proportion", "tree2_likelihood_proportion", 
+                    "tree3_likelihood_proportion")]
   
   ## Calculate likelihood weights for the AU tests
   lw_list <- lapply(1:nrow(au_df),calculate.likelihood.weights, au_df)
   lw_df <- as.data.frame(do.call(rbind,lw_list))
-  
+  au_df$tree1_likelihood_weight <- lw_df$tree1_likelihood_weight
+  au_df$tree2_likelihood_weight <- lw_df$tree2_likelihood_weight
+  au_df$tree3_likelihood_weight <- lw_df$tree3_likelihood_weight
   
   ## Make a pretty ternary plot
-  ggtern(data = cebidae_df, mapping = aes(tree1_likelihood_proportion, tree2_likelihood_proportion, tree3_likelihood_proportion)) + 
-    geom_point() +
-    labs(title = "Likelihood weights for the 3 possible topologies of Cebidae" ,
+  t1 <- ggtern(data = au_df[au_df$test_id == "Cebidae",], mapping = aes(tree2_likelihood_weight, tree1_likelihood_weight, tree3_likelihood_weight)) + 
+    geom_point(alpha = 0.3) +
+    labs(title = "a.", 
+         subtitle = "Likelihood weights for the 3 possible\ntopologies of Cebidae" ,
          L = "Tree 2",
          T = "Tree 1",
          R = "Tree 3") + 
     limit_tern(1,1,1) +
-    scale_L_continuous(breaks = seq(0,1,0.10), labels = seq(0,1,0.10), minor_breaks = seq(0,1,0.05)) +
-    scale_T_continuous(breaks = seq(0,1,0.10), labels = seq(0,1,0.10), minor_breaks = seq(0,1,0.05)) +
-    scale_R_continuous(breaks = seq(0,1,0.10), labels = seq(0,1,0.10), minor_breaks = seq(0,1,0.05)) +
+    scale_L_continuous(breaks = seq(0,1,0.20), labels = seq(0,1,0.20), minor_breaks = seq(0,1,0.10)) +
+    scale_T_continuous(breaks = seq(0,1,0.20), labels = seq(0,1,0.20), minor_breaks = seq(0,1,0.10)) +
+    scale_R_continuous(breaks = seq(0,1,0.20), labels = seq(0,1,0.20), minor_breaks = seq(0,1,0.10)) +
     theme_bw() + 
-    theme(plot.title = element_text(hjust = 0.5))
+    theme(plot.title = element_text(hjust = 0, size = 30), plot.subtitle = element_text(hjust = 0.5, size = 20),
+          axis.title = element_text(size = 15))
   
-  ggtern(data = comp_df, mapping = aes(tree1_likelihood_proportion, tree2_likelihood_proportion, tree3_likelihood_proportion)) + 
-    geom_point() +
-    labs(title = "Likelihood weights for the 3 possible topologies around a deep split",
+  t2 <- ggtern(data = au_df[au_df$test_id == "Comparison",], mapping = aes(tree2_likelihood_weight, tree1_likelihood_weight, tree3_likelihood_weight)) + 
+    geom_point(alpha = 0.3) +
+    labs(title = "b.",
+         subtitle = "Likelihood weights for the 3 possible\ntopologies around a deep split",
          L = "Tree 2",
          T = "Species tree",
          R = "Tree 3") + 
     limit_tern(1,1,1) +
-    scale_L_continuous(breaks = seq(0,1,0.10), labels = seq(0,1,0.10), minor_breaks = seq(0,1,0.05)) +
-    scale_T_continuous(breaks = seq(0,1,0.10), labels = seq(0,1,0.10), minor_breaks = seq(0,1,0.05)) +
-    scale_R_continuous(breaks = seq(0,1,0.10), labels = seq(0,1,0.10), minor_breaks = seq(0,1,0.05)) +
+    scale_L_continuous(breaks = seq(0,1,0.20), labels = seq(0,1,0.20), minor_breaks = seq(0,1,0.10)) +
+    scale_T_continuous(breaks = seq(0,1,0.20), labels = seq(0,1,0.20), minor_breaks = seq(0,1,0.10)) +
+    scale_R_continuous(breaks = seq(0,1,0.20), labels = seq(0,1,0.20), minor_breaks = seq(0,1,0.10)) +
     theme_bw() + 
-    theme(plot.title = element_text(hjust = 0.5))
+    theme(plot.title = element_text(hjust = 0, size = 30), plot.subtitle = element_text(hjust = 0.5, size = 20),
+          axis.title = element_text(size = 15))
+  
 }
 
 
