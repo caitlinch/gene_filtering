@@ -17,11 +17,14 @@ If you replicate any part of these analyses or use functions from these scripts,
 + Scripts
     + All scripts necessary to completely replicate this analysis are included in the `code/` folder
     + Each script contains a detailed description and a list of software necessary to run that script
-+ Trees
-    + Species trees are included in the `/trees` folder. 
++ Species and subset trees
+    + Species trees are included in the `species_trees/` folder. 
     + Each tree is labelled by the dataset, the test for recombination estimation, and the tree estimation method (e.g. `Tomatoes_PHI_pass_ASTRAL_species.tre` means the tree is estimated from the Tomato dataset loci that passed the PHI test using the summary coalescent method ASTRAL-III).
++ Comparison trees
+    + Trees used to investigate the Primates dataset included in the `primate_tree_topologies/` folder
+    + These trees are used with script `code/4_DataAnalysis.R` to perform an AU test for each loci to identify the best topology (out of a set of three) around two branches within the Primates tree
 + Output
-    + `.csv` files containing output from each stage of the analysis can be found in the `/output` folder
+    + `.csv` files containing output from each stage of the analysis can be found in the `output/` folder
 + Instructions for replication
     + Instructions for replicating these analyses, along with details about the datasets and software used, are in this `README.md` file.
 
