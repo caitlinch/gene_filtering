@@ -9,6 +9,7 @@ dependencies:
   - r-ape
   - r-distory
   - r-ggplot2
+  - r-ggtext
   - r-patchwork
   - r-phangorn
   - r-phytools
