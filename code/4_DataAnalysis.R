@@ -73,7 +73,7 @@ tests_to_run <- list("Vanderpool2020" = c("PHI", "maxchi", "geneconv", "allTests
 datasets_to_identify_distinct_edges <- c()
 plot_distinct_edges = FALSE
 check_primate_loci = FALSE
-plot_primate_loci = TRUE
+plot_primate_loci = FALSE
 ### End of Caitlin's paths ###
 
 
