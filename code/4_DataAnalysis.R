@@ -31,7 +31,7 @@
 
 ### Caitlin's paths ###
 location = "local"
-if (location == "local"){
+if (location == "server"){
   maindir             <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
   tree_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
   test_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
