@@ -12,14 +12,17 @@
 # tree_data_dir     <- Location of the gene trees
 # test_data_dir     <- Location of the results from the AU test and QuartetNetwork Goodness of Fit tests
 # output_dir        <- for saving collated output and results from treelikeness analysis.
-#
-# input_names               <- set name(s) for the dataset(s)
-# dataset_tree_roots        <- set which taxa is outgroup for each dataset
-# tests_to_run              <- a list, with a vector for each dataset specifying which of the recombination detection methods should be tested 
-#                              Options: "allTests", "PHI", "maxchi" and "geneconv"
+# iqtree_path       <- location of IQ-Tree2 executable
+
+# input_names                         <- set name(s) for the dataset(s)
+# dataset_tree_roots                  <- set which taxa is outgroup for each dataset
+# tests_to_run                        <- a list, with a vector for each dataset specifying which of the recombination detection methods should be tested 
+#                                           Options: "allTests", "PHI", "maxchi" and "geneconv"
 # datasets_to_identify_distinct_edges <- which datasets to run the distinct.edges function on (to investigate the branches that appear in one tree but not the other)
-#                                     <- To run all, set to = input_names OR to run none, set to = c()
-# plotting                  <- whether to plot figures (TRUE = yes, FALSE = no)
+#                                           To run all, set to = input_names OR to run none, set to = c()
+# plotting                            <- whether to plot figures (TRUE = yes, FALSE = no)
+# check_primate_stochasticity         <- whether to apply the AU test to each loci within the Primates dataset
+# plot_primate_stochasticity          <- whether to plot results of the AU test from loci within the Primates dataset
 
 ### Caitlin's paths ###
 location = "server"
@@ -402,6 +405,23 @@ if (plotting == TRUE){
   p = p1 + p2 + p3 + plot_layout(ncol = 1, heights = c(8, 4, 4))
   ggsave(filename = paste0(plot_dir, "ML_edgeLength_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 10)
 }
+
+
+
+#### Step 6: Investigate topology of primates dataset ####
+ if (check_primate_stochasticity == TRUE){
+   
+ }
+
+if (plot_primate_stochasticity == TRUE){
+  
+}
+
+
+
+
+
+
 
 
 
