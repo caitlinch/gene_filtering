@@ -505,8 +505,8 @@ if (plot_primate_loci == TRUE){
     scale_T_continuous(breaks = seq(0,1,0.20), labels = seq(0,1,0.20), minor_breaks = seq(0,1,0.10)) +
     scale_R_continuous(breaks = seq(0,1,0.20), labels = seq(0,1,0.20), minor_breaks = seq(0,1,0.10)) +
     theme_bw() + 
-    theme(plot.title = element_text(hjust = 0, size = 30), plot.subtitle = element_text(hjust = 0.5, size = 20),
-          axis.title = element_text(size = 15))
+    theme(plot.title = element_text(hjust = 0, size = 30), plot.subtitle = element_text(hjust = 0.5, size = 14),
+          axis.title = element_text(size = 13))
   t1_plot_name <- paste0(check_plots_dir, "ternary_likelihood_weights_a_Cebidae.pdf")
   ggsave(filename = t1_plot_name, plot = t1, device = "pdf")
   
@@ -522,11 +522,15 @@ if (plot_primate_loci == TRUE){
     scale_T_continuous(breaks = seq(0,1,0.20), labels = seq(0,1,0.20), minor_breaks = seq(0,1,0.10)) +
     scale_R_continuous(breaks = seq(0,1,0.20), labels = seq(0,1,0.20), minor_breaks = seq(0,1,0.10)) +
     theme_bw() + 
-    theme(plot.title = element_text(hjust = 0, size = 30), plot.subtitle = element_text(hjust = 0.5, size = 20),
-          axis.title = element_text(size = 15))
+    theme(plot.title = element_text(hjust = 0, size = 30), plot.subtitle = element_text(hjust = 0.5, size = 14),
+          axis.title = element_text(size = 13))
   t2_plot_name <- paste0(check_plots_dir, "ternary_likelihood_weights_b_deep_split.pdf")
   ggsave(filename = t2_plot_name, plot = t2, device = "pdf")
   
+  # Use grid.arrange to save both plots next to each other
+  quilt <- grid.arrange(t1, t2, ncol = 2)
+  quilt_name <- paste0(check_plots_dir, "ternary_likelihood_weights.pdf")
+  ggsave(filename = quilt_name, plot = quilt, device = "pdf", width = 10, height = 5, units = "in")
 }
 
 
