@@ -514,7 +514,7 @@ calculate.likelihood.weights <- function(row_number, lw_df){
   lw3 <- exp(ll3-max_ll)/(exp(0) + exp(mid_ll-max_ll) + exp(min_ll - max_ll))
   # Construct a one-row dataframe
   row_df <- data.frame(locus = row$locus, tree1_likelihood_weight = lw1, tree2_likelihood_weight = lw2,
-                       tree3_likelihood_weight = lw3, tree_proportion = row$tree_proportion)
+                       tree3_likelihood_weight = lw3)
   return(row_df)
 }
 
