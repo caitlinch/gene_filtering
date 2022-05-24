@@ -507,6 +507,8 @@ if (plot_primate_loci == TRUE){
     theme_bw() + 
     theme(plot.title = element_text(hjust = 0, size = 30), plot.subtitle = element_text(hjust = 0.5, size = 20),
           axis.title = element_text(size = 15))
+  t1_plot_name <- paste0(check_plots_dir, "ternary_likelihood_weights_a_Cebidae.pdf")
+  ggsave(filename = t1_plot_name, plot = t1, device = "pdf")
   
   t2 <- ggtern(data = au_df[au_df$test_id == "Comparison",], mapping = aes(tree2_likelihood_weight, tree1_likelihood_weight, tree3_likelihood_weight)) + 
     geom_point(alpha = 0.3) +
@@ -522,6 +524,8 @@ if (plot_primate_loci == TRUE){
     theme_bw() + 
     theme(plot.title = element_text(hjust = 0, size = 30), plot.subtitle = element_text(hjust = 0.5, size = 20),
           axis.title = element_text(size = 15))
+  t2_plot_name <- paste0(check_plots_dir, "ternary_likelihood_weights_b_deep_split.pdf")
+  ggsave(filename = t2_plot_name, plot = t2, device = "pdf")
   
 }
 
