@@ -24,13 +24,13 @@
 #                                           Options: "allTests", "PHI", "maxchi" and "geneconv"
 
 # datasets_to_identify_distinct_edges <- which datasets to run the distinct.edges function on (to investigate the branches that appear in one tree but not the other)
-#                                           To run all, set to = input_names OR to run none, set to = c()
-# plotting                            <- whether to plot figures (TRUE = yes, FALSE = no)
+#                                           To run all, set to = input_names. To run none, set to = c()
+# plot_distinct_edges                 <- whether to plot figures (TRUE = yes, FALSE = no)
 # check_primate_loci                  <- whether to apply the AU test to each loci within the Primates dataset (TRUE = yes, FALSE = no)
 # plot_primate_loci                   <- whether to plot results of the AU test from loci within the Primates dataset (TRUE = yes, FALSE = no)
 
 ### Caitlin's paths ###
-location = "server"
+location = "local"
 if (location == "local"){
   maindir             <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
   tree_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
@@ -71,16 +71,16 @@ tests_to_run <- list("Vanderpool2020" = c("PHI", "maxchi", "geneconv", "allTests
                      "1KP" = c("PHI", "maxchi"))
 
 datasets_to_identify_distinct_edges <- c()
-plotting = FALSE
-check_primate_loci = TRUE
-plot_primate_loci = FALSE
+plot_distinct_edges = FALSE
+check_primate_loci = FALSE
+plot_primate_loci = TRUE
 ### End of Caitlin's paths ###
 
 
 
 ##### Step 2: Open packages and set directories #####
 # Open packages
-if ( (length(datasets_to_identify_distinct_edges) > 0) | (plotting == TRUE) ){
+if ( (length(datasets_to_identify_distinct_edges) > 0) | (plot_distinct_edges == TRUE) ){
   library(ape)
   library(distory)
   library(ggplot2)
@@ -199,7 +199,7 @@ for (dataset in datasets_to_identify_distinct_edges){
 
 
 ##### Step 5: Compare the posterior probabilities/ bootstraps of the trees #####
-if (plotting == TRUE){
+if (plot_distinct_edges == TRUE){
   #### Open the .csv file containing branch lengths/support for all analyses for all four datasets
   node_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges.csv")
   if (file.exists(node_df_filename) == FALSE){
@@ -468,9 +468,54 @@ if (check_primate_loci == TRUE){
 }
 
 if (plot_primate_loci == TRUE){
-  ## Make a new folder to save all the output files
+  ## Make new folders to save all the output files
+  check_dir <- paste0(output_dir, "check_primates/")
+  if (dir.exists(check_dir) == FALSE){ dir.create(check_dir) }
   check_plots_dir <- paste0(output_dir, "check_primates/plots/")
   if (dir.exists(check_plots_dir) == FALSE){ dir.create(check_plots_dir) }
+  
+  ## Open the two Primates loci AU test dataframes and bind the rows together into one large dataframe
+  au_csvs <- paste0(check_dir, list.files(check_dir, pattern = "04_Primates"))
+  cebidae_df <- read.csv(grep("Cebidae", au_csvs, value = TRUE))
+  cebidae_df$test_id <- "Cebidae"
+  comp_df <- read.csv(grep("Comparison", au_csvs, value = TRUE))
+  comp_df$test_id <- "Comparison"
+  au_df <- rbind(cebidae_df, comp_df)
+  au_df <- au_df[,c("locus", "test_id", "tree1_log_likelihood", "tree2_log_likelihood",  "tree3_log_likelihood", 
+                        "sum_log_likelihood", "best_tree", "one_tree_best", "tree1_likelihood_proportion", "tree2_likelihood_proportion", 
+                        "tree3_likelihood_proportion")]
+  
+  ## Calculate likelihood weights for the AU tests
+  lw_list <- lapply(1:nrow(au_df),calculate.likelihood.weights, au_df)
+  lw_df <- as.data.frame(do.call(rbind,lw_list))
+  
+  
+  ## Make a pretty ternary plot
+  ggtern(data = cebidae_df, mapping = aes(tree1_likelihood_proportion, tree2_likelihood_proportion, tree3_likelihood_proportion)) + 
+    geom_point() +
+    labs(title = "Likelihood weights for the 3 possible topologies of Cebidae" ,
+         L = "Tree 2",
+         T = "Tree 1",
+         R = "Tree 3") + 
+    limit_tern(1,1,1) +
+    scale_L_continuous(breaks = seq(0,1,0.10), labels = seq(0,1,0.10), minor_breaks = seq(0,1,0.05)) +
+    scale_T_continuous(breaks = seq(0,1,0.10), labels = seq(0,1,0.10), minor_breaks = seq(0,1,0.05)) +
+    scale_R_continuous(breaks = seq(0,1,0.10), labels = seq(0,1,0.10), minor_breaks = seq(0,1,0.05)) +
+    theme_bw() + 
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  ggtern(data = comp_df, mapping = aes(tree1_likelihood_proportion, tree2_likelihood_proportion, tree3_likelihood_proportion)) + 
+    geom_point() +
+    labs(title = "Likelihood weights for the 3 possible topologies around a deep split",
+         L = "Tree 2",
+         T = "Species tree",
+         R = "Tree 3") + 
+    limit_tern(1,1,1) +
+    scale_L_continuous(breaks = seq(0,1,0.10), labels = seq(0,1,0.10), minor_breaks = seq(0,1,0.05)) +
+    scale_T_continuous(breaks = seq(0,1,0.10), labels = seq(0,1,0.10), minor_breaks = seq(0,1,0.05)) +
+    scale_R_continuous(breaks = seq(0,1,0.10), labels = seq(0,1,0.10), minor_breaks = seq(0,1,0.05)) +
+    theme_bw() + 
+    theme(plot.title = element_text(hjust = 0.5))
 }
 
 
