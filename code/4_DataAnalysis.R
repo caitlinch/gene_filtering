@@ -420,59 +420,53 @@ if (plotting == TRUE){
 
 
 #### Step 6: Investigate topology of primates dataset ####
- if (check_primate_loci == TRUE){
-   # If you are running the AU test, you need to include some extra file paths
-   # If you are running multiple datasets on the AU test, provide a path for each dataset (i.e. AU_output_folder <- c("/path/to/op1", "/path/to/op2")) in the SAME ORDER
-   #   as the datasets are in `datasets_apply_AU_test`
-   # datasets_apply_AU_test <- Out of the input names, which datasets will you apply the AU test (https://doi.org/10.1080/10635150290069913). If running all, set datasets_to_run <- input_names
-   # AU_test_id <- phrase to include in output .csv file (so you can easily identify it)
-   # AU_test_loci_csv <- a csv file containing the a column called `loci_name` that contains the list of all loci to test with the AU test
-   # AU_output_folder <- A folder to put the output from the AU test (IQ-Tree log files, copy of alignment)
-   # AU_results_folder <- A folder to output the results of the AU test - for each loci, there will be a csv file containing the log likelihood for each tree topology
-   # three_trees_path <- A file containing the tree topologies to test using the AU test (called three_trees_path because our analysis compared three three topologies)
-   
-   # Parameters to perform AU test - needed if one or more dataset names included in datasets_apply_AU_test
-   AU_test_id <- "ComparisonTrees"
-   AU_test_loci_csv <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/all_species_trees/all_loci_loci.csv"
-   AU_output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_ComparisonTrees_AU_tests/"
-   AU_results_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_ComparisonTrees_AU_test_results/"
-   three_trees_path <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/possible_trees/ComparisonTrees_three_possible_topologies.txt"
-   
-   ##### Step 6: Apply the AU test to each locus #####
-   # Run the AU test
-   if (length(datasets_apply_AU_test) > 0){
-     # Assign each variable names based on which datasets will be run
-     names(AU_test_loci_csv) <- datasets_apply_AU_test
-     names(AU_output_folder) <- datasets_apply_AU_test
-     names(AU_results_folder) <- datasets_apply_AU_test
-     names(three_trees_path) <- datasets_apply_AU_test
-     # Now, iterate through the datasets
-     for (dataset in datasets_apply_AU_test){
-       for (id in AU_test_id){
-         # Open the AU_test_loci_csv
-         AU_test_df <- read.csv(AU_test_loci_csv[dataset], stringsAsFactors = FALSE)
-         # Get all loci from this file
-         loci_names <- AU_test_df$loci_name
-         # Get the directory containing the loci for this dataset from the input_dir object
-         data_folder <- input_dir[dataset]
-         # Run the analysis on all of those files
-         # Note that we can't run the analysis on ALL files - because the tree we provided has 29 tips
-         # We would have to selectively drop tips and input the file again for each locus with a different set of tips
-         lapply(loci_names, perform.AU.test, data_folder, AU_output_folder[dataset], AU_results_folder[dataset], three_trees_path[dataset], exec_paths[["IQTree"]])
-         # Read in all the csv files and combine them
-         all_AU_csvs <- paste0(AU_results_folder[dataset],list.files(AU_results_folder[dataset]))
-         all_csvs <- lapply(all_AU_csvs, read.csv, stringsAsFactors = FALSE, row.names = 1)
-         AU_df <- as.data.frame(do.call(rbind, all_csvs))
-         AU_df_name <- paste0(output_dirs[dataset], dataset, "_", AU_test_id,"_AU_test_collated.csv")
-         write.csv(AU_df, file = AU_df_name)
-       }
-     }
-   }
-   
- }
+if (check_primate_loci == TRUE){
+  ## Make a new folder to save all the output files
+  check_dir <- paste0(output_dir, "check_primates/")
+  if (dir.exists(check_dir) == FALSE){ dir.create(check_dir) }
+  
+  ## Assemble a list of all loci names
+  all_loci <- gsub("\\.fa", "", list.files(primate_data_dir))
+  
+  ## Set the details for each run
+  AU_test_ids <- c("Cebidae", "Comparison")
+  AU_test_details <- list("Cebidae" = c(name = "Cebidae", tree_path = cebidae_trees, output_directory = paste0(check_dir, "AU_cebidae_trees/")),
+                          "Comparison" = c(name = "Comparison", tree_path = comparison_trees, output_directory = paste0(check_dir, "AU_comparison_trees/")) )
+  
+  # Have to run the AU test for each loci twice: one for the three trees in cebidae_trees, and once for the three trees in comparison_trees
+  # Now, iterate through the datasets
+  for (id in AU_test_ids){
+    ## Set folder for this set of AU test runs
+    id_dir <- AU_test_details[[id]][["output_directory"]]
+    if (dir.exists(id_dir) == FALSE){ dir.create(id_dir) }
+    
+    ## Set folders and parameters for running AU test
+    # Set output folder
+    output_folder <- paste0(AU_test_details[[id]][["output_directory"]], "output/")
+    if (dir.exists(output_folder) == FALSE){ dir.create(output_folder) }
+    # Set folder for saving CSV files
+    csv_folder <- paste0(AU_test_details[[id]][["output_directory"]], "csvs/")
+    if (dir.exists(csv_folder) == FALSE){ dir.create(csv_folder) }
+    # Set tree topologies to compare
+    three_trees_path <- AU_test_details[[id]][["tree_path"]]
+    
+    ## Perform AU test
+    lapply(all_loci[1:5], perform.AU.test, primate_data_dir, output_folder, csv_folder, three_trees_path, iqtree_path, trim.taxa = TRUE)
+
+    ## Read in all the csv files and combine them
+    all_AU_csvs <- paste0(csv_folder,list.files(csv_folder))
+    all_csvs <- lapply(all_AU_csvs, read.csv, stringsAsFactors = FALSE, row.names = 1)
+    AU_df <- as.data.frame(do.call(rbind, all_csvs))
+    AU_df_name <- paste0(check_dir, "Primates_", AU_test_ids,"_AU_test_collated.csv")
+    write.csv(AU_df, file = AU_df_name)
+  }
+  
+}
 
 if (plot_primate_loci == TRUE){
-  
+  ## Make a new folder to save all the output files
+  check_plots_dir <- paste0(output_dir, "check_primates/plots/")
+  if (dir.exists(check_plots_dir) == FALSE){ dir.create(check_plots_dir) }
 }
 
 
