@@ -30,8 +30,8 @@
 # plot_primate_loci                   <- whether to plot results of the AU test from loci within the Primates dataset (TRUE = yes, FALSE = no)
 
 ### Caitlin's paths ###
-location = "local"
-if (location == "server"){
+location = "server"
+if (location == "local"){
   maindir             <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
   tree_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
   test_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
@@ -42,8 +42,10 @@ if (location == "server"){
   
   iqtree_path       <- "/Users/caitlincherryh/Documents/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
   
+  num_threads       <- 1
+  
 } else if (location == "server"){
-  maindir             <- "/data/caitlin/empirical_treelikeness/code/"
+  maindir             <- "/data/caitlin/empirical_treelikeness/"
   tree_data_dir       <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
   test_data_dir       <- "/data/caitlin/empirical_treelikeness/Output_dataAnalysis/"
   output_dir          <- "/data/caitlin/empirical_treelikeness/Output/"
@@ -52,6 +54,8 @@ if (location == "server"){
   comparison_trees    <- paste0(maindir, "primate_tree_topologies/ComparisonTrees_three_possible_topologies.txt")
   
   iqtree_path       <- "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree"
+  
+  num_threads       <- 20
 }
 
 input_names <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
@@ -68,8 +72,8 @@ tests_to_run <- list("Vanderpool2020" = c("PHI", "maxchi", "geneconv", "allTests
 
 datasets_to_identify_distinct_edges <- c()
 plotting = FALSE
-check_primate_stochasticity = TRUE
-plot_primate_stochasticity = FALSE
+check_primate_loci = TRUE
+plot_primate_loci = FALSE
 ### End of Caitlin's paths ###
 
 
@@ -82,6 +86,7 @@ if ( (length(datasets_to_identify_distinct_edges) > 0) | (plotting == TRUE) ){
   library(ggplot2)
   library(patchwork)
 }
+library(parallel)
 
 
 ##### Step 3: Source function files and prepare variables for analysis #####
@@ -451,16 +456,15 @@ if (check_primate_loci == TRUE){
     three_trees_path <- AU_test_details[[id]][["tree_path"]]
     
     ## Perform AU test
-    lapply(all_loci[1:5], perform.AU.test, primate_data_dir, output_folder, csv_folder, three_trees_path, iqtree_path, trim.taxa = TRUE)
-
-    ## Read in all the csv files and combine them
+    mclapply(all_loci, perform.AU.test, primate_data_dir, output_folder, csv_folder, three_trees_path, iqtree_path, trim.taxa = TRUE, mc.cores = num_threads)
+    
+    ## Read in all the csv files for this AU_test_id and combine them
     all_AU_csvs <- paste0(csv_folder,list.files(csv_folder))
     all_csvs <- lapply(all_AU_csvs, read.csv, stringsAsFactors = FALSE, row.names = 1)
     AU_df <- as.data.frame(do.call(rbind, all_csvs))
-    AU_df_name <- paste0(check_dir, "Primates_", AU_test_ids,"_AU_test_collated.csv")
+    AU_df_name <- paste0(check_dir, "Primates_", id,"_AU_test_collated.csv")
     write.csv(AU_df, file = AU_df_name)
   }
-  
 }
 
 if (plot_primate_loci == TRUE){
