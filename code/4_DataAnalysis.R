@@ -22,10 +22,18 @@
 # plotting                  <- whether to plot figures (TRUE = yes, FALSE = no)
 
 ### Caitlin's paths ###
-maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
-tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
-test_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
-output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
+location = "server"
+if (location == "local"){
+  maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
+  tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
+  test_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
+  output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
+} else if (location == "server"){
+  maindir <- "/data/caitlin/empirical_treelikeness/code/"
+  tree_data_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
+  test_data_dir <- "/data/caitlin/empirical_treelikeness/Output_dataAnalysis/"
+  output_dir <- "/data/caitlin/empirical_treelikeness/Output/"
+}
 
 input_names <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
 dataset_tree_roots <- list("1KP" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
@@ -41,17 +49,19 @@ tests_to_run <- list("Vanderpool2020" = c("PHI", "maxchi", "geneconv", "allTests
 
 datasets_to_identify_distinct_edges <- c()
 plotting = FALSE
+
 ### End of Caitlin's paths ###
 
 
 
 ##### Step 2: Open packages and set directories #####
 # Open packages
-library(ape)
-library(distory)
-library(ggplot2)
-library(patchwork)
-
+if ( (length(datasets_to_identify_distinct_edges) > 0) | (plotting == TRUE) ){
+  library(ape)
+  library(distory)
+  library(ggplot2)
+  library(patchwork)
+}
 
 
 ##### Step 3: Source function files and prepare variables for analysis #####
@@ -262,7 +272,7 @@ if (plotting == TRUE){
   # Combine each plot into one big plot
   p = p1 + p2 + p3 + plot_layout(ncol = 1, heights = c(8, 4, 4))
   ggsave(filename = paste0(plot_dir, "ASTRAL_posteriorProbability_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 10)
-
+  
   
   #### Create a lovely plot of posterior probability support values for the ASTRAL trees
   # Break pp_df into three sections to plot: one for Tomatoes/Primates, one for Metazoans, and one for Plants
@@ -307,7 +317,7 @@ if (plotting == TRUE){
   # Combine each plot into one big plot
   p = p1 + p2 + p3 + plot_layout(ncol = 1, heights = c(8, 4, 4))
   ggsave(filename = paste0(plot_dir, "ASTRAL_edgeLength_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 10)
-
+  
   
   #### Create a lovely plot of ultrafast bootstrap support values for the maximum likelihood trees
   # Break pp_df into three sections to plot: one for Tomatoes/Primates, one for Metazoans, and one for Plants
@@ -340,7 +350,7 @@ if (plotting == TRUE){
   # Combine each plot into one big plot
   p = p1 + p2 + plot_layout(ncol = 1, heights = c(8, 4))
   ggsave(filename = paste0(plot_dir, "ML_ultrafastBootstrapSupport_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 8)
-
+  
   
   #### Create a lovely plot of edge lengths for the maximum likelihood trees
   # Break pp_df into three sections to plot: one for Tomatoes/Primates, one for Metazoans, and one for Plants
