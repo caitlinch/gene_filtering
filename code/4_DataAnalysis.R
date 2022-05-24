@@ -8,39 +8,50 @@
 
 
 ##### Step 1: Set the file paths for input and output files, and necessary functions/directories #####
-# maindir           <- "gene_filtering" repository location (github.com/caitlinch/gene_filtering)
-# tree_data_dir     <- Location of the gene trees
-# test_data_dir     <- Location of the results from the AU test and QuartetNetwork Goodness of Fit tests
-# output_dir        <- for saving collated output and results from treelikeness analysis.
-# iqtree_path       <- location of IQ-Tree2 executable
+# maindir             <- "gene_filtering" repository location (github.com/caitlinch/gene_filtering)
+# tree_data_dir       <- Location of the gene trees
+# test_data_dir       <- Location of the results from the AU test and QuartetNetwork Goodness of Fit tests
+# output_dir          <- for saving collated output and results from treelikeness analysis.
+# primate_data_dir    <- directory containing alignments for individual loci from the Vanderpool et. al. (2020) Primates dataset
+# cebidae_trees       <- text file containing the three possible topologies for the Cebidae clade in the Primates dataset
+# comparison_trees    <- text file containing the three possible topologies around a deep split within the Primates dataset
+
+# iqtree_path         <- location of IQ-Tree2 executable
 
 # input_names                         <- set name(s) for the dataset(s)
 # dataset_tree_roots                  <- set which taxa is outgroup for each dataset
 # tests_to_run                        <- a list, with a vector for each dataset specifying which of the recombination detection methods should be tested 
 #                                           Options: "allTests", "PHI", "maxchi" and "geneconv"
+
 # datasets_to_identify_distinct_edges <- which datasets to run the distinct.edges function on (to investigate the branches that appear in one tree but not the other)
 #                                           To run all, set to = input_names OR to run none, set to = c()
 # plotting                            <- whether to plot figures (TRUE = yes, FALSE = no)
-# check_primate_stochasticity         <- whether to apply the AU test to each loci within the Primates dataset
-# plot_primate_stochasticity          <- whether to plot results of the AU test from loci within the Primates dataset
+# check_primate_loci                  <- whether to apply the AU test to each loci within the Primates dataset (TRUE = yes, FALSE = no)
+# plot_primate_loci                   <- whether to plot results of the AU test from loci within the Primates dataset (TRUE = yes, FALSE = no)
 
 ### Caitlin's paths ###
-location = "server"
+location = "local"
 if (location == "local"){
-  maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
-  tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
-  test_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
-  output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
+  maindir             <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
+  tree_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
+  test_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
+  output_dir          <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
+  primate_data_dir    <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/"
+  cebidae_trees       <- paste0(maindir, "primate_tree_topologies/Cebidae_three_possible_topologies.txt")
+  comparison_trees    <- paste0(maindir, "primate_tree_topologies/ComparisonTrees_three_possible_topologies.txt")
   
-  iqtree_path <- "/Users/caitlincherryh/Documents/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
+  iqtree_path       <- "/Users/caitlincherryh/Documents/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
+  
 } else if (location == "server"){
-  maindir <- "/data/caitlin/empirical_treelikeness/code/"
-  tree_data_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
-  test_data_dir <- "/data/caitlin/empirical_treelikeness/Output_dataAnalysis/"
-  output_dir <- "/data/caitlin/empirical_treelikeness/Output/"
+  maindir             <- "/data/caitlin/empirical_treelikeness/code/"
+  tree_data_dir       <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
+  test_data_dir       <- "/data/caitlin/empirical_treelikeness/Output_dataAnalysis/"
+  output_dir          <- "/data/caitlin/empirical_treelikeness/Output/"
+  primate_data_dir    <- "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/"
+  cebidae_trees       <- paste0(maindir, "primate_tree_topologies/Cebidae_three_possible_topologies.txt")
+  comparison_trees    <- paste0(maindir, "primate_tree_topologies/ComparisonTrees_three_possible_topologies.txt")
   
-  iqtree_path <- "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree"
-  
+  iqtree_path       <- "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree"
 }
 
 input_names <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
@@ -58,7 +69,7 @@ tests_to_run <- list("Vanderpool2020" = c("PHI", "maxchi", "geneconv", "allTests
 datasets_to_identify_distinct_edges <- c()
 plotting = FALSE
 check_primate_stochasticity = TRUE
-plot_primate_stochasticity = TRUE
+plot_primate_stochasticity = FALSE
 ### End of Caitlin's paths ###
 
 
@@ -183,23 +194,23 @@ for (dataset in datasets_to_identify_distinct_edges){
 
 
 ##### Step 5: Compare the posterior probabilities/ bootstraps of the trees #####
-# Open the .csv file containing branch lengths/support for all analyses for all four datasets
-node_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges.csv")
-if (file.exists(node_df_filename) == FALSE){
-  # Collate dataframe of conflicting/congruent branches from all four datasets
-  all_csvs <- list.files(node_output_dir)
-  all_csvs <- grep("\\.csv", all_csvs, value = TRUE)
-  all_csvs <- grep("Collated", all_csvs, value = TRUE, invert = TRUE)
-  all_csvs <- paste0(node_output_dir, all_csvs)
-  all_csv_dfs <- lapply(all_csvs, read.csv)
-  node_df <- as.data.frame(do.call(rbind, all_csv_dfs))
-  write.csv(node_df, file = node_df_filename)
-} else {
-  # Open collated dataframe
-  node_df <- read.csv(node_df_filename)
-}
-
 if (plotting == TRUE){
+  #### Open the .csv file containing branch lengths/support for all analyses for all four datasets
+  node_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges.csv")
+  if (file.exists(node_df_filename) == FALSE){
+    # Collate dataframe of conflicting/congruent branches from all four datasets
+    all_csvs <- list.files(node_output_dir)
+    all_csvs <- grep("\\.csv", all_csvs, value = TRUE)
+    all_csvs <- grep("Collated", all_csvs, value = TRUE, invert = TRUE)
+    all_csvs <- paste0(node_output_dir, all_csvs)
+    all_csv_dfs <- lapply(all_csvs, read.csv)
+    node_df <- as.data.frame(do.call(rbind, all_csv_dfs))
+    write.csv(node_df, file = node_df_filename)
+  } else {
+    # Open collated dataframe
+    node_df <- read.csv(node_df_filename)
+  }
+  
   #### Create new folder for plots ####
   plot_dir <- paste0(output_dir, "plots/")
   if (dir.exists(plot_dir) == FALSE){
@@ -409,11 +420,58 @@ if (plotting == TRUE){
 
 
 #### Step 6: Investigate topology of primates dataset ####
- if (check_primate_stochasticity == TRUE){
+ if (check_primate_loci == TRUE){
+   # If you are running the AU test, you need to include some extra file paths
+   # If you are running multiple datasets on the AU test, provide a path for each dataset (i.e. AU_output_folder <- c("/path/to/op1", "/path/to/op2")) in the SAME ORDER
+   #   as the datasets are in `datasets_apply_AU_test`
+   # datasets_apply_AU_test <- Out of the input names, which datasets will you apply the AU test (https://doi.org/10.1080/10635150290069913). If running all, set datasets_to_run <- input_names
+   # AU_test_id <- phrase to include in output .csv file (so you can easily identify it)
+   # AU_test_loci_csv <- a csv file containing the a column called `loci_name` that contains the list of all loci to test with the AU test
+   # AU_output_folder <- A folder to put the output from the AU test (IQ-Tree log files, copy of alignment)
+   # AU_results_folder <- A folder to output the results of the AU test - for each loci, there will be a csv file containing the log likelihood for each tree topology
+   # three_trees_path <- A file containing the tree topologies to test using the AU test (called three_trees_path because our analysis compared three three topologies)
+   
+   # Parameters to perform AU test - needed if one or more dataset names included in datasets_apply_AU_test
+   AU_test_id <- "ComparisonTrees"
+   AU_test_loci_csv <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/all_species_trees/all_loci_loci.csv"
+   AU_output_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_ComparisonTrees_AU_tests/"
+   AU_results_folder <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/Vanderpool2020_ComparisonTrees_AU_test_results/"
+   three_trees_path <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Vanderpool2020/possible_trees/ComparisonTrees_three_possible_topologies.txt"
+   
+   ##### Step 6: Apply the AU test to each locus #####
+   # Run the AU test
+   if (length(datasets_apply_AU_test) > 0){
+     # Assign each variable names based on which datasets will be run
+     names(AU_test_loci_csv) <- datasets_apply_AU_test
+     names(AU_output_folder) <- datasets_apply_AU_test
+     names(AU_results_folder) <- datasets_apply_AU_test
+     names(three_trees_path) <- datasets_apply_AU_test
+     # Now, iterate through the datasets
+     for (dataset in datasets_apply_AU_test){
+       for (id in AU_test_id){
+         # Open the AU_test_loci_csv
+         AU_test_df <- read.csv(AU_test_loci_csv[dataset], stringsAsFactors = FALSE)
+         # Get all loci from this file
+         loci_names <- AU_test_df$loci_name
+         # Get the directory containing the loci for this dataset from the input_dir object
+         data_folder <- input_dir[dataset]
+         # Run the analysis on all of those files
+         # Note that we can't run the analysis on ALL files - because the tree we provided has 29 tips
+         # We would have to selectively drop tips and input the file again for each locus with a different set of tips
+         lapply(loci_names, perform.AU.test, data_folder, AU_output_folder[dataset], AU_results_folder[dataset], three_trees_path[dataset], exec_paths[["IQTree"]])
+         # Read in all the csv files and combine them
+         all_AU_csvs <- paste0(AU_results_folder[dataset],list.files(AU_results_folder[dataset]))
+         all_csvs <- lapply(all_AU_csvs, read.csv, stringsAsFactors = FALSE, row.names = 1)
+         AU_df <- as.data.frame(do.call(rbind, all_csvs))
+         AU_df_name <- paste0(output_dirs[dataset], dataset, "_", AU_test_id,"_AU_test_collated.csv")
+         write.csv(AU_df, file = AU_df_name)
+       }
+     }
+   }
    
  }
 
-if (plot_primate_stochasticity == TRUE){
+if (plot_primate_loci == TRUE){
   
 }
 
