@@ -28,11 +28,16 @@ if (location == "local"){
   tree_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
   test_data_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
   output_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
+  
+  iqtree_path <- "/Users/caitlincherryh/Documents/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
 } else if (location == "server"){
   maindir <- "/data/caitlin/empirical_treelikeness/code/"
   tree_data_dir <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
   test_data_dir <- "/data/caitlin/empirical_treelikeness/Output_dataAnalysis/"
   output_dir <- "/data/caitlin/empirical_treelikeness/Output/"
+  
+  iqtree_path <- "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree"
+  
 }
 
 input_names <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
@@ -49,7 +54,8 @@ tests_to_run <- list("Vanderpool2020" = c("PHI", "maxchi", "geneconv", "allTests
 
 datasets_to_identify_distinct_edges <- c()
 plotting = FALSE
-
+check_primate_stochasticity = TRUE
+plot_primate_stochasticity = TRUE
 ### End of Caitlin's paths ###
 
 
