@@ -643,3 +643,119 @@ quilt_name <- paste0(plot_dir, "Metazoan_CONCAT_Ctenophora_comparison_plots")
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", width = 8, height = 10, units = "in")
 
 
+#### Step 6: Plotting differences in Primate trees for supplementary data ####
+## Get the paths for the tree files
+cebidae_tree_file <- paste0(maindir, "primate_tree_topologies/Cebidae_three_possible_topologies.txt")
+comparison_tree_file <- paste0(maindir, "primate_tree_topologies/ComparisonTrees_three_possible_topologies.txt")
+comparison_clade_file <- paste0(maindir, "primate_tree_topologies/ComparisonTrees_Clades_phylo.txt")
+
+# Palettes
+palette1 <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#999999")
+palette2 <- c("#D81B60", "#1E88E5", "#E0A800", "#004D40", "#b1b1b1")
+
+## Plot Cebidae trees
+cebidae_trees <- read.tree(cebidae_tree_file)
+# Root tree (as in Vanderpool 2020 paper)
+cebidae_trees <- root(cebidae_trees, outgroup = roots[["Vanderpool2020"]])
+# Create color scheme
+cebidae_df <- color.code.comparison.clades(cebidae_trees, variable = "Cebidae")
+
+# Plot each tree
+p1 <- ggtree(cebidae_trees[[1]])  %<+% cebidae_df + 
+  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13)) +
+  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4], clade_e = palette2[5]))
+
+p2 <- ggtree(cebidae_trees[[2]])  %<+% cebidae_df + 
+  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13)) +
+  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4], clade_e = palette2[5]))
+
+p3 <- ggtree(cebidae_trees[[3]])  %<+% cebidae_df + 
+  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13)) +
+  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4], clade_e = palette2[5]))
+
+# Assemble patchwork
+quilt <- p1 / p2 / p3 +
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+# Create plot name
+quilt_name <- paste0(plot_dir, "Primates_comparison_trees_Cebidae_clade")
+# Save plot
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 15, width = 7, units = "in")
+
+
+## Plot comparison trees
+comparison_trees <- read.tree(comparison_tree_file)
+# Root tree (as in Vanderpool 2020 paper)
+comparison_trees <- root(comparison_trees, outgroup = roots[["Vanderpool2020"]])
+# Create color scheme
+comparison_df <- color.code.comparison.clades(comparison_trees, variable = "Comparison")
+
+# Plot each tree
+p1 <- ggtree(comparison_trees[[1]])  %<+% comparison_df + 
+  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13)) +
+  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4]))
+
+p2 <- ggtree(comparison_trees[[2]])  %<+% comparison_df + 
+  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13)) +
+  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4]))
+
+p3 <- ggtree(comparison_trees[[3]])  %<+% comparison_df + 
+  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13)) +
+  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4]))
+
+# Assemble patchwork
+quilt <- p1 / p2 / p3 +
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+# Create plot name
+quilt_name <- paste0(plot_dir, "Primates_comparison_trees_deep_branch")
+# Save plot
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 15, width = 7, units = "in")
+
+
+## Plot comparison tree clades
+# Open clades as phylo objects
+comparison_clades <- read.tree(comparison_clade_file)
+# Make labels for each clade
+c1_labs <- comparison.clade.tip.labels(comparison_clades[[1]])
+c2_labs <- comparison.clade.tip.labels(comparison_clades[[2]])
+c3_labs <- comparison.clade.tip.labels(comparison_clades[[3]])
+c4_labs <- comparison.clade.tip.labels(comparison_clades[[4]])
+
+# Plot each  clade
+p1 <- textGrob(c1_labs$clean_taxa_names[[1]], gp = gpar(fontface = "italic", size = 12))
+
+p2 <- ggtree(comparison_clades[2])  %<+% c2_labs + 
+  geom_tiplab(aes(label = lab), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  xlim(0, 7.5)
+
+p3 <- ggtree(comparison_clades[3])  %<+% c3_labs + 
+  geom_tiplab(aes(label = lab), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  xlim(0, 9)
+
+p4 <- ggtree(comparison_clades[4])  %<+% c4_labs + 
+  geom_tiplab(aes(label = lab), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  xlim(0, 30)
+
+# Assemble patchwork 
+quilt = (p2 + p1) / (p3 | p4) + plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+# Create plot name
+quilt_name <- paste0(plot_dir, "Primates_comparison_trees_deep_branch_individal_clades")
+# Save plot
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf",)
