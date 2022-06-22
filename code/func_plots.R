@@ -84,7 +84,7 @@ rescale.multiphylo <- function(trees, scaled_length){
 
 
 
-# Quick function to colour code clades in primates dataset
+# Quick function to colour code clades in primates dataset based on tree estimation method
 color.code.primate.clades <- function(p_tree, concatenated = TRUE){
   # Set which clade differs and which taxa remain identical
   if (concatenated == TRUE){
@@ -118,8 +118,70 @@ color.code.primate.clades <- function(p_tree, concatenated = TRUE){
   
   # Return the tip label dataframe
   return(tip_lab_df)
-  
 }
+
+# Quick function to colour code clades in primates dataset for supplementary figures (based on likelihood for each tree topology)
+color.code.comparison.clades <- function(p_tree, variable = "Cebidae"){
+  if (variable == "Cebidae"){
+    clade_a <- c("Callithrix_jacchus")
+    clade_b <- c("Aotus_nancymaae")
+    clade_c <- c("Saimiri_boliviensis","Cebus_capucinus_imitator")
+    clade_d <- c("Carlito_syrichta", "Galeopterus_variegatus", "Mus_musculus", "Tupaia_chinensis", "Microcebus_murinus", "Propithecus_coquereli",
+                 "Otolemur_garnettii")
+    clade_e <- c("Cercocebus_atys", "Mandrillus_leucophaeus", "Papio_anubis", "Theropithecus_gelada", "Macaca_fascicularis", "Macaca_mulatta",
+                 "Macaca_nemestrina", "Chlorocebus_sabaeus", "Colobus_angolensis_palliatus", "Piliocolobus_tephrosceles", "Rhinopithecus_bieti",
+                 "Rhinopithecus_roxellana", "Gorilla_gorilla", "Homo_sapiens", "Pan_paniscus", "Pan_troglodytes", "Pongo_abelii", "Nomascus_leucogenys")
+    taxa_names <- c(clade_a, clade_b, clade_c, clade_d, clade_e)
+    clean_taxa_names <- gsub("_", " ", taxa_names)
+    
+    # Create dataframe with tip information
+    tip_df <- data.frame(taxa = taxa_names,
+                         clean_taxa_names = clean_taxa_names,
+                         clade = c(rep("clade_a", length(clade_a)), rep("clade_b", length(clade_b)),
+                                   rep("clade_c", length(clade_c)), rep("clade_d", length(clade_d)),
+                                   rep("clade_e", length(clade_e))),
+                         color = c(rep("Sky blue", length(clade_a)), rep("Orange", length(clade_b)),
+                                   rep("Bluish green", length(clade_c)), rep("Black", length(clade_d)),
+                                   rep("Gray60", length(clade_e))) ) 
+    
+  } else if (variable == "Comparison"){
+    clade_a <- c("Carlito_syrichta")
+    clade_b <- c("Callithrix_jacchus", "Aotus_nancymaae", "Cebus_capucinus_imitator", "Saimiri_boliviensis")
+    clade_c <- c("Galeopterus_variegatus", "Mus_musculus", "Tupaia_chinensis", "Microcebus_murinus", "Propithecus_coquereli", "Otolemur_garnettii")
+    clade_d <- c("Cercocebus_atys", "Mandrillus_leucophaeus", "Papio_anubis", "Theropithecus_gelada", "Macaca_fascicularis", "Macaca_mulatta",
+                 "Macaca_nemestrina", "Chlorocebus_sabaeus", "Colobus_angolensis_palliatus", "Piliocolobus_tephrosceles", "Rhinopithecus_bieti",
+                 "Rhinopithecus_roxellana", "Gorilla_gorilla", "Homo_sapiens", "Pan_paniscus", "Pan_troglodytes", "Pongo_abelii", "Nomascus_leucogenys")
+    taxa_names <- c(clade_a, clade_b, clade_c, clade_d)
+    clean_taxa_names <- gsub("_", " ", taxa_names)
+    
+    # Create dataframe with tip information
+    tip_df <- data.frame(taxa = taxa_names,
+                         clean_taxa_names = clean_taxa_names,
+                         clade = c(rep("clade_a", length(clade_a)), rep("clade_b", length(clade_b)),
+                                   rep("clade_c", length(clade_c)), rep("clade_d", length(clade_d))),
+                         color = c(rep("Sky blue", length(clade_a)), rep("Orange", length(clade_b)),
+                                   rep("Bluish green", length(clade_c)), rep("Gray60", length(clade_d))) )
+  }
+  
+  tip_lab_df <- dplyr::mutate(tip_df, 
+                              lab = glue('italic("{clean_taxa_names}")'),
+                              name = glue("<i style='color:{color}'>{clean_taxa_names}</i>") )
+  
+  # Return the tip label dataframe
+  return(tip_lab_df)
+}
+
+# # Quick function to nicely label clades from deep split supplementary figure
+comparison.clade.tip.labels <- function(clade_tree){
+  taxa <- clade_tree$tip.label
+  clean_taxa_names <- gsub("_", " ", taxa)
+  tip_df <- data.frame(taxa = taxa,
+                       clean_taxa_names = clean_taxa_names)
+  tip_lab_df <- dplyr::mutate(tip_df, 
+                              lab = glue('italic("{clean_taxa_names}")'))
+  return(tip_lab_df)
+}
+
 
 
 
@@ -458,7 +520,7 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
                                   short_name = glue("<i style='color:{color}'>{taxa_prettyprint}</i>"),
                                   long_name = glue("<i style='color:{color}'>{taxa_prettyprint}</i>") ) 
   }
-
+  
   # Attach dataframes (if they both exist), or else pick the one that does exist
   if ((class(clade_lab_df) == "data.frame") & (class(taxa_lab_df) == "data.frame")){
     tip_lab_df <- rbind(taxa_lab_df, clade_lab_df)
@@ -467,7 +529,7 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
   } else if ((class(clade_lab_df) == "data.frame") & (class(taxa_lab_df) == "logical")){
     tip_lab_df <- clade_lab_df
   }
-
+  
   # Return the tip label dataframe
   return(tip_lab_df)
 }
