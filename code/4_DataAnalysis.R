@@ -12,6 +12,7 @@
 # tree_data_dir       <- Location of the gene trees
 # test_data_dir       <- Location of the results from the AU test and QuartetNetwork Goodness of Fit tests
 # output_dir          <- for saving collated output and results from treelikeness analysis.
+# plot_dir            <- for saving outlier branch plots
 # primate_data_dir    <- directory containing alignments for individual loci from the Vanderpool et. al. (2020) Primates dataset
 # cebidae_trees       <- text file containing the three possible topologies for the Cebidae clade in the Primates dataset
 # comparison_trees    <- text file containing the three possible topologies around a deep split within the Primates dataset
@@ -36,9 +37,8 @@ if (location == "local"){
   tree_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
   test_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
   output_dir          <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
+  plot_dir            <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/"
   primate_data_dir    <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/"
-  cebidae_trees       <- paste0(maindir, "primate_tree_topologies/Cebidae_three_possible_topologies.txt")
-  comparison_trees    <- paste0(maindir, "primate_tree_topologies/ComparisonTrees_three_possible_topologies.txt")
   
   iqtree_path       <- "/Users/caitlincherryh/Documents/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
   
@@ -49,14 +49,16 @@ if (location == "local"){
   tree_data_dir       <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
   test_data_dir       <- "/data/caitlin/empirical_treelikeness/Output_dataAnalysis/"
   output_dir          <- "/data/caitlin/empirical_treelikeness/Output/"
+  plot_dir            <- output_dir
   primate_data_dir    <- "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/"
-  cebidae_trees       <- paste0(maindir, "primate_tree_topologies/Cebidae_three_possible_topologies.txt")
-  comparison_trees    <- paste0(maindir, "primate_tree_topologies/ComparisonTrees_three_possible_topologies.txt")
   
   iqtree_path       <- "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree"
   
   num_threads       <- 20
 }
+
+cebidae_trees       <- paste0(maindir, "primate_tree_topologies/Cebidae_three_possible_topologies.txt")
+comparison_trees    <- paste0(maindir, "primate_tree_topologies/ComparisonTrees_three_possible_topologies.txt")
 
 input_names <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
 dataset_tree_roots <- list("1KP" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
@@ -495,15 +497,83 @@ if (identify_outlier_edges == TRUE){
   # Get list of trees
   all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
   
-  # Identify each outlier branch
+  # Identify each outlier branch within the tree
   for (i in 1:nrow(outlier_df)){
+    # Get the row for this branch
+    row <- outlier_df[i, ]
+    # Identify and open the correct tree
     tree_file <- determine.outlier.tree.file(i, outlier_df, all_trees)
     tree <- read.tree(tree_file)
+    # Subset the tree at the nodes on either end of the branch
+    big_clade <- extract.clade(tree, row$node1)
+    little_clade <- extract.clade(tree, row$node2)
+    # Assemble file names for plotting
+    plot_id <- determine.outlier.plot.name(i, outlier_df)
+    big_clade_plot_path <- paste0(outlier_plot_dir, sprintf("%03d_", i), plot_id, "node", row$node1, "_bigClade_OutlierBranch_plot")
+    little_clade_plot_path <- paste0(outlier_plot_dir, sprintf("%03d_", i), plot_id, "node", row$node2, "_littleClade_OutlierBranch_plot")
+    # Save big clade plot
+    pdf(file = paste0(big_clade_plot_path, ".pdf"))
+    plot.phylo(big_clade)
+    dev.off()
+    # Save little clade plot
+    pdf(file = paste0(little_clade_plot_path, ".pdf"))
+    plot(little_clade)
+    dev.off()
   }
   
-  
-  
 } # End identify_outlier_edges code
+
+## Pretty plotting for Outlier Branch 1
+# Identify tree files
+notest_tree_file <- grep("ASTRAL", grep("NoTest", grep("Metazoan", all_trees, value = TRUE), value = TRUE), value = TRUE)
+test_tree_file <- grep("ASTRAL", grep("geneconv_pass", grep("Metazoan", all_trees, value = TRUE), value = TRUE), value = TRUE)
+# Open trees and drop taxa
+keep_tips <- c("Ocyropsis_sp_Florida_USA", "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", 
+               "Beroe_abyssicola", "Beroe_sp_Antarctica", "Beroe_ovata","Beroe_sp_Queensland_Australia", 
+               "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina",
+               "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera",
+               "Cestum_veneris", "Ctenophora_sp_Florida_USA")
+notest_tree <- read.tree(notest_tree_file)
+notest_tree <- keep.tip(notest_tree, keep_tips)
+test_tree <- read.tree(test_tree_file)
+test_tree <- keep.tip(test_tree, keep_tips)
+# Change NaN edge lengths to 0.1
+notest_tree$edge.length[is.nan(notest_tree$edge.length)] <- 0.1
+test_tree$edge.length[is.nan(test_tree$edge.length)] <- 0.1
+# Prepare labels
+lab_df <- data.frame(taxa = keep_tips,
+                     clean_taxa = gsub("_", " ", keep_tips),
+                     color = c("A", (rep("B", length(keep_tips) - 1)) ) )
+lab_df <- dplyr::mutate(lab_df, 
+                        lab = glue('italic("{clean_taxa}")'))
+# Plot each tree as a ggtree 
+p1 <- ggtree(notest_tree)  %<+% lab_df + 
+  geom_tiplab(aes(label = lab, color = color), size = 4, parse = T, show.legend = F) + 
+  geom_rootedge(rootedge = 0.5) +
+  geom_text2(aes(subset = !isTip, label=label), nudge_x = -0.09, nudge_y = 0.20, color = "Gray55") +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 170, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13, color = "White"),
+        axis.ticks.x = element_blank(),
+        axis.line.x = element_blank()) +
+  scale_color_manual(values = c(A = "Gray60", B = "Black"))
+
+p2 <- ggtree(test_tree)  %<+% lab_df + 
+  geom_tiplab(aes(label = lab, color = color), size = 4, parse = T, show.legend = F) + 
+  geom_rootedge(rootedge = 0.5) +
+  geom_text2(aes(subset = !isTip, label=label), nudge_x = -0.08, nudge_y = 0.20, color = "Gray55") +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 170, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13, color = "White"),
+        axis.ticks.x = element_blank(),
+        axis.line.x = element_blank()) +
+  scale_color_manual(values = c(A = "Gray60", B = "Black"))
+
+quilt <- (p1 / p2) +
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+plot_id <- determine.outlier.plot.name(1, outlier_df)
+quilt_name <- paste0(plot_dir, sprintf("%03d_", 1), plot_id, "OutlierBranch_plot")
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 10, units = "in")
 
 
 
