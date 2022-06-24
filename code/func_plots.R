@@ -546,3 +546,55 @@ get.specific.taxa.name <- function(t, n){
 }
 
 
+
+# Small function to determine which species tree is related to which outlier_df row
+determine.outlier.tree.file <- function(i, outlier_df, tree_file_paths){
+  # Extract row
+  row <- outlier_df[i,]
+  
+  # Determine dataset
+  if (row$dataset == "1KP") {
+    ds <- "Plants"
+  } else if (row$dataset == "Pease2016"){
+    ds <- "Tomatoes"
+  } else if (row$dataset == "Whelan2017"){
+    ds <- "Metazoan"
+  } else if (row$dataset == "Vanderpool2017"){
+    ds <- "Primates"
+  }
+  
+  # Determine tree estimation method
+  if (row$support_value_type == "PP"){
+    method = "ASTRAL"
+  } else if (row$support_value_type == "BS"){
+    method = "CONCAT"
+  }
+  
+  # Determine test
+  if (row$tree1 == "None"){
+    test = "NoTest"
+    test_full = "NoTest"
+  } else {
+    test = row$test
+  }
+  
+  # Determine whether test was pass or fail
+  if (test != "NoTest"){
+    test_bool <- row$tree1
+    if (test_bool == "Pass"){
+      test_type = "pass"
+    } else if (test_bool == "Fail"){
+      test_type = "fail"
+    }
+    test_full = paste0(test, "_", test_type)
+  }
+  
+  # Identify file that has the matching dataset, tree estimation method, and full_test (from vector of file paths)
+  row_file <- grep(ds, grep(method, grep(test_full, tree_file_paths, value = TRUE), value = TRUE), value = TRUE)
+  
+  # Return row file
+  return(row_file)
+}
+
+
+
