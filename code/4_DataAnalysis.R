@@ -575,6 +575,24 @@ plot_id <- determine.outlier.plot.name(1, outlier_df)
 quilt_name <- paste0(plot_dir, sprintf("%03d_", 1), plot_id, "OutlierBranch_plot")
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 10, units = "in")
 
+## Pretty plotting for Outlier Branch 2
+notest_tree_file <- grep("CONCAT", grep("NoTest", grep("Plants", all_trees, value = TRUE), value = TRUE), value = TRUE)
+test_tree_file <- grep("CONCAT", grep("maxchi_pass", grep("Plants", all_trees, value = TRUE), value = TRUE), value = TRUE)
+# Open trees and drop taxa
+notest_tree <- read.tree(notest_tree_file)
+test_tree <- read.tree(test_tree_file)
+# Drop unneeded taxa
+test_clade <- extract.clade(test_tree, 1657)
+keep_tips <- test_clade$tip.label
+notest_tree <- keep.tip(notest_tree, keep_tips)
+test_tree <- keep.tip(test_tree, keep_tips)
+# plot tree
+quilt = ggtree(notest_tree) + 
+  geom_tiplab(size = 4, parse = T, show.legend = F)
+plot_id <- determine.outlier.plot.name(2, outlier_df)
+quilt_name <- paste0(plot_dir, sprintf("%03d_", 2), plot_id, "OutlierBranch_plot")
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 40, width = 10, units = "in")
+
 
 
 ##### Step 7: Investigate topology of primates dataset ####
