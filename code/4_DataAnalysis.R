@@ -81,9 +81,10 @@ plot_primate_loci = FALSE
 
 ##### Step 2: Open packages and set directories #####
 # Open packages
-if ( (length(datasets_to_identify_distinct_edges) > 0) | (plot_distinct_edges == TRUE) ){
+if ( (length(datasets_to_identify_distinct_edges) > 0)){
   library(ape)
   library(distory)
+} else if (plot_distinct_edges == TRUE){
   library(ggplot2)
   library(patchwork)
 }
@@ -202,6 +203,7 @@ for (dataset in datasets_to_identify_distinct_edges){
 ##### Step 5: Compare the posterior probabilities/ bootstraps of the trees #####
 if (plot_distinct_edges == TRUE){
   #### Open the .csv file containing branch lengths/support for all analyses for all four datasets
+  node_output_dir <- paste0(output_dir, "node_comparisons/")
   node_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges.csv")
   if (file.exists(node_df_filename) == FALSE){
     # Collate dataframe of conflicting/congruent branches from all four datasets
@@ -427,8 +429,58 @@ if (plot_distinct_edges == TRUE){
 
 ##### Step 6: Identify outlier branches (ones with high support that are long compared to the average branch) #####
 if (identify_outlier_edges == TRUE){
+  # Assemble the filename for and open the completed "04_AllDatasets_Collated_ExtractDistinctEdges.csv" file created in Step 5
+  node_output_dir <- paste0(output_dir, "node_comparisons/")
+  node_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges.csv")
+  node_df <- read.csv(node_df_filename, stringsAsFactors = FALSE)
+  node_df <- node_df[, c("test", "dataset", "support_value_type", "tree1", "tree2", "edge_type", "edge_presence", "support_value", "edge_length", "node1", "node2")]
   
-}
+  # Create empty dataframe to append information to
+  outlier_df <- as.data.frame(matrix(data = NA, nrow = 0, ncol = 11))
+  names(outlier_df) <- c("test", "dataset", "support_value_type", "tree1", "tree2", "edge_type", "edge_presence", "support_value", "edge_length", "node1", "node2")
+  
+  # Iterate through the datasets one at a time
+  for (dataset in input_names){
+    print(dataset)
+    # Extract rows for only this dataset
+    dataset_df <- node_df[node_df$dataset == dataset,]
+    
+    # For IQ-Tree2 runs, identify conflicting branches with length more than 1 standard deviations above the mean (on a test by test basis)
+    tests <- unique(dataset_df$test)
+    for (t in tests){
+      print(t)
+      # Separate out rows from concatenated trees (IQ-Tree runs)
+      test_bs_df <- node_df[node_df$dataset == dataset & node_df$support_value_type == "BS" & node_df$test == t,]
+      # Calculate mean and standard deviation
+      mean_bs_edge_length <- mean(test_bs_df$edge_length)
+      sd_bs_edge_length <- sd(test_bs_df$edge_length)
+      # Identify outlier branches
+      outlier_bs_df <- test_bs_df[test_bs_df$edge_length > (mean_bs_edge_length + sd_bs_edge_length) & test_bs_df$edge_type == "Conflicting", ]
+      # If there are any outlier branches, add them to the outlier_df
+      if (nrow(outlier_bs_df) > 0){
+        outlier_df <- rbind(outlier_df, outlier_bs_df)
+      } # End rbind outliers
+    } # End iterating through tests for ultrafast bootstrap results
+    
+    # For ASTRAL-III runs, identify conflicting branches with length more than 1 standard deviations above the mean (on a test by test basis)
+    for (t in tests){
+      print(t)
+      # Separate out rows from coalescent trees (ASTRAL-III runs)
+      test_pp_df <- node_df[node_df$dataset == dataset & node_df$support_value_type == "PP" & node_df$test == t,]
+      # Calculate mean and standard deviation
+      mean_pp_edge_length <- mean(test_pp_df$edge_length)
+      sd_pp_edge_length <- sd(test_pp_df$edge_length)
+      # Identify outlier branches
+      outlier_pp_df <- test_pp_df[test_pp_df$edge_length > (mean_pp_edge_length + sd_pp_edge_length) & test_pp_df$edge_type == "Conflicting", ]
+      # If there are any outlier branches, add them to the outlier_df
+      if (nrow(outlier_pp_df) > 0){
+        outlier_df <- rbind(outlier_df, outlier_pp_df)
+      } # End rbind outliers
+    } # End iterating through tests for posterior probability results
+    
+  } # End iterating through dataset
+  
+} # End identify_outlier_edges code
 
 
 
