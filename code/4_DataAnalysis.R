@@ -72,6 +72,7 @@ tests_to_run <- list("Vanderpool2020" = c("PHI", "maxchi", "geneconv", "allTests
 
 datasets_to_identify_distinct_edges <- c()
 plot_distinct_edges = FALSE
+identify_outlier_edges = TRUE
 check_primate_loci = FALSE
 plot_primate_loci = FALSE
 ### End of Caitlin's paths ###
@@ -424,7 +425,14 @@ if (plot_distinct_edges == TRUE){
 
 
 
-#### Step 6: Investigate topology of primates dataset ####
+##### Step 6: Identify outlier branches (ones with high support that are long compared to the average branch) #####
+if (identify_outlier_edges == TRUE){
+  
+}
+
+
+
+##### Step 7: Investigate topology of primates dataset ####
 if (check_primate_loci == TRUE){
   ## Make a new folder to save all the output files
   check_dir <- paste0(output_dir, "check_primates/")
