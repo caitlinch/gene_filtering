@@ -81,11 +81,13 @@ plot_primate_loci = FALSE
 
 ##### Step 2: Open packages and set directories #####
 # Open packages
-if ( (length(datasets_to_identify_distinct_edges) > 0)){
+if ( (length(datasets_to_identify_distinct_edges) > 0) | identify_outlier_edges == TRUE){
   library(ape)
   library(distory)
-} else if (plot_distinct_edges == TRUE){
+} 
+if (plot_distinct_edges == TRUE | identify_outlier_edges == TRUE){
   library(ggplot2)
+  library(ggtree)
   library(patchwork)
 }
 library(parallel)
@@ -429,6 +431,7 @@ if (plot_distinct_edges == TRUE){
 
 ##### Step 6: Identify outlier branches (ones with high support that are long compared to the average branch) #####
 if (identify_outlier_edges == TRUE){
+  ## Identify outlier edges
   # Assemble the filename for and open the completed "04_AllDatasets_Collated_ExtractDistinctEdges.csv" file created in Step 5
   node_output_dir <- paste0(output_dir, "node_comparisons/")
   node_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges.csv")
@@ -479,6 +482,26 @@ if (identify_outlier_edges == TRUE){
     } # End iterating through tests for posterior probability results
     
   } # End iterating through dataset
+  
+  # Save outlier branches in new csv
+  outlier_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges_OnlyOutliers.csv")
+  write.csv(outlier_df, file = outlier_df_filename, row.names = FALSE)
+  
+  ## Plot outlier edges
+  # Create new folder to plot in
+  outlier_plot_dir <- outlier_df_filename <- paste0(node_output_dir, "outlier_plots/")
+  if (dir.exists(outlier_plot_dir) == FALSE){dir.create(outlier_plot_dir)}
+  
+  # Get list of trees
+  all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
+  
+  # Identify each outlier branch
+  for (i in 1:nrow(outlier_df)){
+    tree_file <- determine.outlier.tree.file(i, outlier_df, all_trees)
+    tree <- read.tree(tree_file)
+  }
+  
+  
   
 } # End identify_outlier_edges code
 
