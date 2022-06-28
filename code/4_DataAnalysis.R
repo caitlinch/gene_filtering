@@ -19,6 +19,8 @@
 
 # iqtree_path         <- location of IQ-Tree2 executable
 
+# annotations_csv_file <- location of misc/annotations.csv file from the Leebens-Mack (2019) "Data from 1000 Plants Transcriptomes" data repository
+
 # input_names                         <- set name(s) for the dataset(s)
 # dataset_tree_roots                  <- set which taxa is outgroup for each dataset
 # tests_to_run                        <- a list, with a vector for each dataset specifying which of the recombination detection methods should be tested 
@@ -41,6 +43,8 @@ if (location == "local"){
   primate_data_dir    <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/"
   
   iqtree_path       <- "/Users/caitlincherryh/Documents/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
+  
+  annotation_csv_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/misc/annotations.csv"
   
   num_threads       <- 1
   
@@ -576,17 +580,26 @@ plot_id <- determine.outlier.plot.name(1, outlier_df)
 quilt_name <- paste0(plot_dir, sprintf("%03d_", 1), plot_id, "OutlierBranch_plot")
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 10, units = "in")
 
-## Pretty plotting for Outlier Branch 2
-notest_tree_file <- grep("CONCAT", grep("NoTest", grep("Plants", all_trees, value = TRUE), value = TRUE), value = TRUE)
-test_tree_file <- grep("CONCAT", grep("maxchi_pass", grep("Plants", all_trees, value = TRUE), value = TRUE), value = TRUE)
+## Pretty plotting for Plants comparing deep ASTRAL trees (distinct edges 2:8 - movement of taxa YGAT)
+notest_tree_file <- grep("ASTRAL", grep("NoTest", grep("Plants", all_trees, value = TRUE), value = TRUE), value = TRUE)
+test_tree_file <- grep("ASTRAL", grep("PHI_pass", grep("Plants", all_trees, value = TRUE), value = TRUE), value = TRUE)
 # Open trees and drop taxa
 notest_tree <- read.tree(notest_tree_file)
 test_tree <- read.tree(test_tree_file)
+# Get list of taxa involved
+keep_tips <- c("YGAT", "VNMY", "AXPJ", "KCPT", "TXMP", "VXOD", "HNCF", "BVOF", "BHYC", "AEPI", "MYVH", "POZS", "OODC", "XPBC", "HBUQ", "ZBVT", "CKDK", "TVCU",
+               "FWCQ", "OSIP", "BNDE", "NFXV", "RVGH", "ZTLR", "RPPC", "PXYR", "RHAU", "PAZJ", "VVPY", "XNLP", "Manes_v4.1", "NJLF", "LPGY", "COAQ", "EZZT",
+               "SIZE", "ZIWB", "Poptr_v3.0", "INQX", "RZTJ", "LFOG", "TDTF", "GLVK", "IEPQ", "KKDQ")
 # Drop unneeded taxa
-test_clade <- extract.clade(test_tree, 1657)
-keep_tips <- test_clade$tip.label
 notest_tree <- keep.tip(notest_tree, keep_tips)
 test_tree <- keep.tip(test_tree, keep_tips)
+# Use the annotation_csv_file to extract the relevant tips and tip full names/classifications
+annotations_df <- read.csv(annotation_csv_file)
+lab_df <- annotations_df[which(annotations_df$Code %in% keep_tips),]
+lab_df <- lab_df[match(keep_tips, lab_df$Code),]
+# Use lab_df as labels for the ggtree plots
+
+
 # plot tree
 quilt = ggtree(notest_tree) + 
   geom_tiplab(size = 4, parse = T, show.legend = F)
