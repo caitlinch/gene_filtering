@@ -587,25 +587,53 @@ test_tree_file <- grep("ASTRAL", grep("PHI_pass", grep("Plants", all_trees, valu
 notest_tree <- read.tree(notest_tree_file)
 test_tree <- read.tree(test_tree_file)
 # Get list of taxa involved
-keep_tips <- c("YGAT", "VNMY", "AXPJ", "KCPT", "TXMP", "VXOD", "HNCF", "BVOF", "BHYC", "AEPI", "MYVH", "POZS", "OODC", "XPBC", "HBUQ", "ZBVT", "CKDK", "TVCU",
-               "FWCQ", "OSIP", "BNDE", "NFXV", "RVGH", "ZTLR", "RPPC", "PXYR", "RHAU", "PAZJ", "VVPY", "XNLP", "Manes_v4.1", "NJLF", "LPGY", "COAQ", "EZZT",
-               "SIZE", "ZIWB", "Poptr_v3.0", "INQX", "RZTJ", "LFOG", "TDTF", "GLVK", "IEPQ", "KKDQ")
+keep_tips <- c("YGAT", "VNMY", "RVGH", "ZTLR", "RPPC", "AXPJ", "KCPT", "TXMP", "VXOD", "HNCF", "BVOF", "BHYC", "AEPI", "MYVH", "POZS", 
+               "OODC", "XPBC", "HBUQ", "ZBVT", "CKDK", "TVCU","FWCQ", "OSIP", "BNDE", "NFXV", "PXYR", "RHAU", "PAZJ", "VVPY", "XNLP",
+               "Manes_v4.1", "NJLF", "LPGY", "COAQ", "EZZT", "SIZE", "ZIWB", "Poptr_v3.0", "INQX", "RZTJ", "LFOG", "TDTF", "GLVK", 
+               "IEPQ", "KKDQ")
 # Drop unneeded taxa
 notest_tree <- keep.tip(notest_tree, keep_tips)
 test_tree <- keep.tip(test_tree, keep_tips)
+# Add arbitrary terminal branch length (ASTRAL does not calculate terminal branch length therefore terminal branches have length of NA)
+notest_tree$edge.length[which(is.na(notest_tree$edge.length))] <- 0.1
+test_tree$edge.length[which(is.na(test_tree$edge.length))] <- 0.1
 # Use the annotation_csv_file to extract the relevant tips and tip full names/classifications
 annotations_df <- read.csv(annotation_csv_file)
 lab_df <- annotations_df[which(annotations_df$Code %in% keep_tips),]
 lab_df <- lab_df[match(keep_tips, lab_df$Code),]
+lab_df$Species[which(lab_df$Species == "Passiflora_sp")] <- "Passiflora sp"
 # Use lab_df as labels for the ggtree plots
+lab_df$Color <- c(rep("A", 5), rep("B", (length(keep_tips) - 5) ))
+lab_df <- dplyr::mutate(lab_df, 
+                        lab = glue('italic("{Species}")'))
 
+# Plot tree
+p1 <- ggtree(notest_tree, branch.length = "none")  %<+% lab_df + 
+  geom_tiplab(aes(label = lab, color = Color), size = 4, parse = T, show.legend = F) + 
+  geom_rootedge(rootedge = 0.5) +
+  geom_text2(aes(subset = !isTip, label=label), nudge_x = -0.6, nudge_y = 0.5, color = "Gray60", size = 3) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 170, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13, color = "White"),
+        axis.ticks.x = element_blank(),
+        axis.line.x = element_blank()) +
+  scale_color_manual(values = c(A = "Red", B = "Black"))
 
-# plot tree
-quilt = ggtree(notest_tree) + 
-  geom_tiplab(size = 4, parse = T, show.legend = F)
-plot_id <- determine.outlier.plot.name(2, outlier_df)
-quilt_name <- paste0(plot_dir, sprintf("%03d_", 2), plot_id, "OutlierBranch_plot")
-ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 40, width = 10, units = "in")
+p2 <- ggtree(test_tree, branch.length = "none")  %<+% lab_df + 
+  geom_tiplab(aes(label = lab, color = Color), size = 4, parse = T, show.legend = F) + 
+  geom_rootedge(rootedge = 0.5) +
+  geom_text2(aes(subset = !isTip, label=label), nudge_x = -0.6, nudge_y = 0.5, color = "Gray60", size = 3) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 170, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13, color = "White"),
+        axis.ticks.x = element_blank(),
+        axis.line.x = element_blank()) +
+  scale_color_manual(values = c(A = "Red", B = "Black"))
+
+# Save tree
+quilt <- (p1 + p2) + plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+quilt_name <- paste0(plot_dir, "Plants_SuppFigure_VNMY_YGAT_OutlierBranch_plot")
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", width = 12, height = 10, units = "in")
 
 
 
