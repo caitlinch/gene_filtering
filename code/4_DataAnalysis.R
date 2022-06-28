@@ -583,67 +583,6 @@ ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", heig
 
 
 
-##### Step 7: Investigate changes within Plants dataset from conflicting branches ####
-# For distinct edges in outlier_df, check whether there are any changes that result in movement of one taxa into a different classification
-# First, trim outlier_df to only Plants and remove rows from the NoTest trees
-plant_outlier_df <- outlier_df[outlier_df$dataset == "1KP",]
-# Get list of all tree files
-all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
-# Open annotations_df
-annotations_df <- read.csv(annotation_csv_file)
-
-# Look at each branch in turn:
-for (i in 1:nrow(plant_outlier_df)){
-  # Find correct tree file using row information and open tree
-  i_tree_file <- determine.outlier.tree.file(i, plant_outlier_df, all_trees)
-  i_tree <- read.tree(i_tree_file)
-  # Subset tree at larger node and at smaller node
-  i_large_clade <- extract.clade(i_tree, plant_outlier_df[i,10])
-  i_small_clade <- extract.clade(i_tree, plant_outlier_df[i,11])
-  # Extract list of taxa in larger clade
-  i_large_taxa <- i_large_clade$tip.label
-  # Get classifications of all taxa in larger clade
-  i_large_df <- annotations_df[which(annotations_df$Code %in% i_large_taxa),]
-  i_large_df <- i_large_df[match(i_large_taxa, i_large_df$Code),]
-  # Extract list of taxa in smaller clade
-  i_small_taxa <- i_small_clade$tip.label
-  # Get classifications of all taxa in smaller clade
-  i_small_df <- annotations_df[which(annotations_df$Code %in% i_small_taxa),]
-  i_small_df <- i_small_df[match(i_small_taxa, i_small_df$Code),]
-  # Print which clades are involved
-  print(i)
-  # print(plant_outlier_df[i,])
-  # print(unique(i_large_df$Very.Brief.Classification))
-  # print(unique(i_small_df$Very.Brief.Classification))
-  #print(nrow(i_small_df))
-  print(nrow(i_large_df))
-  # Open the notest tree
-  notest_tree_file <- grep("Plants", grep("CONCAT", grep("NoTest", all_trees, value = TRUE), value = TRUE), value = TRUE)
-  notest_tree <- read.tree(notest_tree_file)
-  # Trim to only the taxa involved in the small clade
-  notest_small_clade <- keep.tip(notest_tree, i_small_taxa)
-  # Root on first taxa from i_small_df
-  root_tip <- i_small_df$Code[1]
-  i_small_clade <- root(i_small_clade, root_tip)
-  notest_small_clade <- root(notest_small_clade, root_tip)
-  # Extract list of taxa in larger clade
-  i_small_taxa <- i_small_clade$tip.label
-  # Get classifications of all taxa in larger clade
-  i_small_df <- annotations_df[which(annotations_df$Code %in% i_small_taxa),]
-  i_small_df <- i_small_df[match(i_small_taxa, i_small_df$Code),]
-  # Get the annotations df in order for the notest_small_clade
-  notest_small_taxa <- notest_small_clade$tip.label
-  notest_small_df <- annotations_df[which(annotations_df$Code %in% notest_small_taxa),]
-  notest_small_df <- notest_small_df[match(notest_small_taxa, notest_small_df$Code),]
-  # Check whether the tips are in the same order in the i_small and notest_small clades
-  comp_df <- data.frame(i_taxa = i_small_df$Code, 
-                        notest_taxa = notest_small_df$Code)
-  same_order_vector <- comp_df$i_taxa == comp_df$notest_taxa
-  comp_df$same_order <- same_order_vector
-}
-
-
-
 ##### Step 8: Investigate topology of primates dataset ####
 if (check_primate_loci == TRUE){
   ## Make a new folder to save all the output files
