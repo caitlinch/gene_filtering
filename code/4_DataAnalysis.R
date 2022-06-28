@@ -97,6 +97,7 @@ library(parallel)
 
 ##### Step 3: Source function files and prepare variables for analysis #####
 source(paste0(maindir, "code/func_analysis.R"))
+source(paste0(maindir, "code/func_plots.R"))
 
 
 
