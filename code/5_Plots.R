@@ -28,6 +28,7 @@ roots <- list("1KP" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", 
               "Whelan2017" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
               "Vanderpool2020" = c("Mus_musculus"), 
               "Pease2016" = c("LA4116", "LA2951", "LA4126"))
+
 ### End of Caitlin's paths ###
 
 
@@ -39,6 +40,7 @@ library(ggplot2) # for nice plots
 library(ggtree) # for plotting phylogenetic trees
 library(ggtext) # for nice tree plots
 library(patchwork) # for collating plots
+library(phangorn) # for densiTree
 # Source functions
 source(paste0(maindir,"code/func_plots.R"))
 # Assemble folder for species trees
@@ -763,8 +765,10 @@ quilt_name <- paste0(plot_dir, "Primates_comparison_trees_deep_branch_individal_
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf",)
 
 
-## Pretty plotting for Plants comparing deep ASTRAL trees (distinct edges 2:8 - movement of taxa YGAT)
+#### Step 7: Pretty plotting for Plants comparing deep ASTRAL trees ####
+## Distinct edges 2:8 - movement of taxa YGAT
 ## Supplementary Figure 14
+
 # Get list of trees
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
 # Find trees
@@ -820,3 +824,35 @@ quilt <- (p1 + p2) + plot_annotation(tag_levels = "a", tag_suffix = ".") & theme
 quilt_name <- paste0(plot_dir, "Plants_SuppFigure_VNMY_YGAT_OutlierBranch_plot")
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", width = 12, height = 10, units = "in")
 
+
+#### Step 8: Cloudogram of tomato trees ####
+# Open file containing all tomato gene trees
+all_tomato_gene_trees_file <- paste0(maindir, "tomato_cloudogram/Tomatoes_all_gene_trees.txt")
+tomato_gts <- read.tree(all_tomato_gene_trees_file)
+# Open the coalescent species tree to be the consensus tree and root it
+consensus_tree_file <- paste0(maindir, "species_trees/Tomatoes_NoTest_ASTRAL_species.tre")
+consensus_tree <- read.tree(consensus_tree_file)
+consensus_tree <- root(consensus_tree, roots[["Pease2016"]])
+consensus_tree$edge.length[which(is.na(consensus_tree$edge.length))] <- 0.1
+# Change tip names
+consensus_tree$tip.label <- rename.tomato.tips(consensus_tree$tip.label)
+for (i in 1:length(tomato_gts)){
+  # Extract tree
+  i_tree <- tomato_gts[[i]]
+  # Get vector of new tip labels
+  i_new_tips <- rename.tomato.tips(i_tree$tip.label)
+  # Replace old tips with new tip labels
+  i_tree$tip.label <- i_new_tips
+  # Replace tree
+  tomato_gts[[i]] <- i_tree
+}
+# Get tip color list
+tip_color <- rep("Black", length(consensus_tree$tip.label))
+special_tips <- c(15, 18)
+tip_color[special_tips] <- "Red"
+# Plot densitree of all tomato gene trees
+plot_file <- paste0(plot_dir, "Tomatoes_all_gene_trees_densiTree_plot")
+pdf(file = paste0(plot_file, ".pdf"), width = 10, height = 10)
+densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.2, 
+          tip.color = tip_color, scale.bar = FALSE)
+dev.off()
