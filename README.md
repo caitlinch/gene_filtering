@@ -3,7 +3,7 @@
 
 Caitlin Cherryh
 
-Friday May 13, 2022
+Wednesday June 29, 2022
 
 ***
 ### Summary
@@ -123,7 +123,7 @@ For these analyses I used four empirical phylogenetic datasets:
 ### Citation information
 If you use these scripts, please cite this github repository:
 
-Cherryh, C. 2022. Gene Filtering. [Electronic resource: R code]. Available at: https://github.com/caitlinch/gene_filtering (Accessed: 13 May 2022)
+Cherryh, C. 2022. Gene Filtering v0.1.0. [Electronic resource: R code]. Available at: https://github.com/caitlinch/gene_filtering (Accessed: 29 June 2022)
 
 
 
