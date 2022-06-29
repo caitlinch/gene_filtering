@@ -193,7 +193,7 @@ rename.tomato.tips <- function(tip_vector){
 
 # Quick function to take in a single species number from the tomatoes tree and return full scientific name for that species
 find.one.tomato.tip <- function(single_tip, include.genus = FALSE){
-  tip_list <- list("SL2.50" = c("Solanum.lyco. 'Heinz 1706'", "S. lyco. 'Heinz 1706'", "Solanum.lycopersicum 'Heinz 1706'", "S. lycopersicum 'Heinz 1706'"),
+  tip_list <- list("SL2.50" = c("Solanum lyco. 'Heinz 1706'", "S. lyco. 'Heinz 1706'", "Solanum lycopersicum 'Heinz 1706'", "S. lycopersicum 'Heinz 1706'"),
                    "LA3475" = c("Solanum lycopersicum 3475", "S. lycopersicum 3475"),
                    "LA3124" = c("Solanum cheesmaniae 3124", "S. cheesmaniae 3124"),
                    "LA0429" = c("Solanum galapagense 0429", "S. galapagense 0429"),
