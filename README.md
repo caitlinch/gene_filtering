@@ -23,6 +23,9 @@ If you replicate any part of these analyses or use functions from these scripts,
 + Comparison trees
     + Trees used to investigate the Primates dataset included in the `primate_tree_topologies/` folder
     + These trees are used with script `code/4_DataAnalysis.R` to perform an AU test for each loci to identify the best topology (out of a set of three) around two branches within the Primates tree
++ Tomato gene trees
+    + Text file containing all gene trees for the Tomatoes dataset included in the `tomato_cloudogram/` folder
+    + Used with the script `code/5_Plots.R` to generate a cloudogram
 + Output
     + `.csv` files containing output from each stage of the analysis can be found in the `output/` folder
 + Instructions for replication
