@@ -20,7 +20,9 @@
 
 # iqtree_path         <- location of IQ-Tree2 executable
 
-# annotations_csv_file    <- location of misc/annotations.csv file from the Leebens-Mack (2019) "Data from 1000 Plants Transcriptomes" data repository
+# recombination_output_file <- location of results of recombination detection tests
+
+# 
 
 # input_names                         <- set name(s) for the dataset(s)
 # dataset_tree_roots                  <- set which taxa is outgroup for each dataset
@@ -45,7 +47,7 @@ if (location == "local"){
   
   iqtree_path       <- "/Users/caitlincherryh/Documents/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
   
-  annotation_csv_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/misc/annotations.csv"
+  recombination_output_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/01_AllDatasets_RecombinationDetection_complete_collated_results.csv"
   
   num_threads       <- 1
   
@@ -694,10 +696,23 @@ if (plot_primate_loci == TRUE){
 
 
 
-
-
-
-
-
-
+#### Step 9: Investigate expected number of recombination events ####
+# Open recombination_output_file
+output_df <- read.csv(recombination_output_file, stringsAsFactors = FALSE)
+# Trim to just primates dataset
+primates_df <- output_df[output_df$dataset == "Vanderpool2020", ]
+# Set potential recombination rates (see sources in paper associated with this repository)
+recombination_rates <- c(1.133, 1.144, 1.144, 0.649, 0.732, 0.739, 0.734, 0.838, 0.830, 0.25, 1.54, (0.434+0.442), (0.434-0.442), 0.434, (0.433+0.333), (0.433-0.333), 0.433)
+# Recombination rates are in cM/Mb
+# Convert primates_df number of base pairs into Mb
+primates_df$n_bp_mb <- primates_df$n_bp/10^6
+# Calculate expected number of recombination events to get results in cM - i.e. the length of an interval in which there is a 1% probability of recombination 
+primates_df$max_cM <- primates_df$n_bp_mb * max(recombination_rates)
+primates_df$min_cM <- primates_df$n_bp_mb * min(recombination_rates)
+primates_df$mean_cM <- primates_df$n_bp_mb * mean(recombination_rates)
+summary_mb <- summary(primates_df$mean_cM)
+mean_mb <- mean(primates_df$mean_cM)
+sd_mb <- sd(primates_df$mean_cM)
+# Find recombination probability
+p_recombination = 0.5*(1 - (1 / exp(primates_df$mean_cM / 50)) )
 
