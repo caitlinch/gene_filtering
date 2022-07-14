@@ -1,4 +1,4 @@
-# gene_filtering/code/0_Whelan2015_data_formatting.R
+# gene_filtering/code/0_Whelan2017_data_formatting.R
 ## This script separates the supermatrix from Whelan et al (2017) into fasta alignments for individual genes
 # Caitlin Cherryh, 2022
 
