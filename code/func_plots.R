@@ -625,10 +625,12 @@ determine.outlier.plot.name <- function(i, outlier_df){
 
 
 
-reformat.ASTRAL.tree.for.plotting <- function(tree, add.arbitrary.terminal.branches = FALSE, terminal.branch.length = 1, strip.nodes = FALSE){
+reformat.ASTRAL.tree.for.plotting <- function(tree, add.arbitrary.terminal.branches = FALSE, terminal.branch.length = 1, strip.nodes = FALSE,
+                                              scale.tree.length = FALSE, new.tree.length = 1){
   ## Function to nicely format an ASTRAL tree for plotting
   # ASTRAL does not output terminal branch lengths, so these are arbitrarily given the length 1
   # ASTRAL includes posterior probabilities: these are stripped
+  # Also have option to scale trees so they align nicely for ggdensitree
   
   # Add terminal branch lengths of arbitrary length
   if (add.arbitrary.terminal.branches == TRUE){
@@ -643,6 +645,11 @@ reformat.ASTRAL.tree.for.plotting <- function(tree, add.arbitrary.terminal.branc
   if (strip.nodes == TRUE){
     # Don't want node labels - for quartnetGoFtest, need just taxa and branch lengths
     tree$node.label <- NULL
+  }
+  
+  # Rescale tree length
+  if (scale.tree.length == TRUE){
+    tree$edge.length <- tree$edge.length / max(nodeHeights(tree)[,2]) * new.tree.length
   }
   
   # Return the tree
