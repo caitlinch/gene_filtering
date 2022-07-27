@@ -28,6 +28,12 @@ roots <- list("1KP" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", 
               "Whelan2017" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
               "Vanderpool2020" = c("Mus_musculus"), 
               "Pease2016" = c("LA4116", "LA2951", "LA4126"))
+roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
+                                    "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
+                                    "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
+                       "Metazoans" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
+                       "Primates" = c("Mus_musculus"), 
+                       "Tomatoes" = c("LA4116", "LA2951", "LA4126"))
 
 ### End of Caitlin's paths ###
 
@@ -871,13 +877,31 @@ all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "speci
 # Separate into individual datasets
 datasets <- c("Primates", "Tomatoes", "Metazoan", "Plants")
 tree_methods <- c("ASTRAL", "CONCAT")
+plot_data_df <- data.frame(row_id = 1:8,
+                           dataset = rep(datasets, each = 2),
+                           tree_method = rep(tree_methods, 4),
+                           add.terminal.branches = rep(c(TRUE, FALSE), 4),
+                           terminal.branch.length = rep(c(1, NA), 4),
+                           strip.nodes = FALSE,
+                           scale.tree.length = TRUE,
+                           new.tree.length = TRUE,
+                           alpha = c(0.4, 0.4, 0.4, 0.4, 0.6, 0.6, 0.6, 0.6),
+                           taxa_label_size = c(5,5,5,5,3,3,5,5),
+                           right_margin = c(180, 180, 180, 180, 180, 180, 180, 180))
+
+
+plot_records <- list(p1 = NA, p2 = NA, p3 = NA, p4 = NA, p5 = NA, p6 = NA, p7 = NA, p8 = NA)
 
 # Look at one combination of dataset and tree estimation method at a time
-ds = "Primates"
-tem = "ASTRAL"
+row_id = 7
+
+# Extract row information
+row <- plot_data_df[row_id, ]
+dataset = row$dataset
+tree_estimation_method = row$tree_method
 
 # Extract trees for that combination of dataset and tree method
-plot_tree_files <- grep(ds, grep(tem, all_trees, value = TRUE), value = TRUE)
+plot_tree_files <- grep(dataset, grep(tree_estimation_method, all_trees, value = TRUE), value = TRUE)
 # Extract text file for each tree
 plot_trees_text <- unlist(lapply(plot_tree_files, readLines))
 # Read trees into a multiphylo object
@@ -887,17 +911,45 @@ consensus_tree_file <- grep("NoTest", plot_tree_files, value = TRUE)
 # Open the consensus tree
 consensus_tree <- read.tree(consensus_tree_file)
 # Construct file name for this densitree plot
-densitree_name <- paste0(plot_dir, ds, "_", tem, "_densitree")
+densitree_name <- paste0(plot_dir, dataset, "_", tree_estimation_method, "_densitree")
 
-if (tem == "ASTRAL"){
+# Root trees
+plot_trees <- lapply(plot_trees, root, roots_by_group[[dataset]])
+class(plot_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
+consensus_tree <- root(consensus_tree, roots_by_group[[dataset]])
+
+if (tree_estimation_method == "ASTRAL"){
   # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
   plot_trees <- lapply(1:length(plot_trees), 
-                       function(i){plot_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(plot_trees[[i]], add.arbitrary.terminal.branches = TRUE, terminal.branch.length = 1, strip.nodes = FALSE)}
-  )
+                       function(i){plot_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(plot_trees[[i]], 
+                                                                                        add.arbitrary.terminal.branches = row$add.terminal.branches, 
+                                                                                        terminal.branch.length = row$terminal.branch.length, 
+                                                                                        strip.nodes = row$strip.nodes,
+                                                                                        scale.tree.length = row$scale.tree.length, 
+                                                                                        new.tree.length = row$new.tree.length)} )
   class(plot_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-  consensus_tree <- reformat.ASTRAL.tree.for.plotting(consensus_tree, add.arbitrary.terminal.branches = TRUE, terminal.branch.length = 1, strip.nodes = FALSE)
+  consensus_tree <- reformat.ASTRAL.tree.for.plotting(consensus_tree, 
+                                                      add.arbitrary.terminal.branches = row$add.terminal.branches, 
+                                                      terminal.branch.length = row$terminal.branch.length, 
+                                                      strip.nodes = row$strip.nodes,
+                                                      scale.tree.length = row$scale.tree.length, 
+                                                      new.tree.length = row$new.tree.length)
 }
 
+# Plot a nice densitree cladogram
+nice_densitree <- ggtree(plot_trees, branch.length = "none", alpha = 0.1, color = "steelblue") + 
+  geom_rootedge(rootedge = 0.5, alpha = row$alpha, color = "steelblue") +
+  geom_tiplab(show.legend = FALSE, offset = 0.002, geom = "text", size = 5) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, row$right_margin, 6, 6)) +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"))
+# Save the nice plot
+plot_records[[row_id]] <- nice_densitree
+
+
+
+##################################################
 # Save densitree  as pdf
 pdf(file = paste0(densitree_name, ".pdf"), width = 6, height = 6)
 densiTree(plot_trees, type = "cladogram", alpha = 0.5, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1, 
@@ -908,21 +960,6 @@ png(file = paste0(densitree_name, ".png"), width = 500, height = 500)
 densiTree(plot_trees, type = "cladogram", alpha = 0.5, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1, 
           tip.color = "black", scale.bar = FALSE)
 dev.off()
-
-ggtree(consensus_tree, branch.length = "none") + geom
-
-
-
-pt1_labs <-color.code.primate.clades(pt1, concatenated = FALSE)
-# Create plot
-p <- ggtree(pt1) %<+% pt1_labs +
-  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0.002, geom = "text", size = 5) + 
-  scale_y_reverse() +  
-  scale_x_continuous(breaks = seq(0,15,3)) +
-  coord_cartesian(clip = 'off') + 
-  theme_tree2(plot.margin=margin(6, 180, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 12)) +
-  scale_color_manual(values = c(Variable = "gray50", Congruent = "black"))
 
 
 
