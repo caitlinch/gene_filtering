@@ -625,7 +625,7 @@ determine.outlier.plot.name <- function(i, outlier_df){
 
 
 
-reformat.ASTRAL.tree.for.Julia <- function(tree, add.arbitrary.terminal.branches = FALSE, terminal.branch.length = 1, strip.nodes = FALSE){
+reformat.ASTRAL.tree.for.plotting <- function(tree, add.arbitrary.terminal.branches = FALSE, terminal.branch.length = 1, strip.nodes = FALSE){
   ## Function to nicely format an ASTRAL tree for plotting
   # ASTRAL does not output terminal branch lengths, so these are arbitrarily given the length 1
   # ASTRAL includes posterior probabilities: these are stripped
