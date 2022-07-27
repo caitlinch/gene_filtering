@@ -899,20 +899,30 @@ if (tem == "ASTRAL"){
 }
 
 # Save densitree  as pdf
-pdf(file = paste0(densitree_name, ".pdf"), width = 10, height = 10)
-densiTree(plot_trees, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.2, 
+pdf(file = paste0(densitree_name, ".pdf"), width = 6, height = 6)
+densiTree(plot_trees, type = "cladogram", alpha = 0.5, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1, 
           tip.color = "black", scale.bar = FALSE)
 dev.off()
 # Save densitree  as png
-png(file = paste0(densitree_name, ".png"), width = 900, height = 800)
-densiTree(plot_trees, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.5, 
+png(file = paste0(densitree_name, ".png"), width = 500, height = 500)
+densiTree(plot_trees, type = "cladogram", alpha = 0.5, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1, 
           tip.color = "black", scale.bar = FALSE)
 dev.off()
 
+ggtree(consensus_tree, branch.length = "none") + geom
 
 
 
-
+pt1_labs <-color.code.primate.clades(pt1, concatenated = FALSE)
+# Create plot
+p <- ggtree(pt1) %<+% pt1_labs +
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0.002, geom = "text", size = 5) + 
+  scale_y_reverse() +  
+  scale_x_continuous(breaks = seq(0,15,3)) +
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 180, 6, 6)) + 
+  theme(axis.text.x = element_text(size = 12)) +
+  scale_color_manual(values = c(Variable = "gray50", Congruent = "black"))
 
 
 
