@@ -878,18 +878,28 @@ tem = "ASTRAL"
 
 # Extract trees for that combination of dataset and tree method
 plot_tree_files <- grep(ds, grep(tem, all_trees, value = TRUE), value = TRUE)
-plot_trees <- lapply(plot_tree_files, read.tree)
-# Construct file name for this densitree
+# Extract text file for each tree
+plot_trees_text <- unlist(lapply(plot_tree_files, readLines))
+# Read trees into a multiphylo object
+plot_trees <- read.tree(text = plot_trees_text)
+# Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
+consensus_tree_file <- grep("NoTest", plot_tree_files, value = TRUE)
+# Open the consensus tree
+consensus_tree <- read.tree(consensus_tree_file)
+# Construct file name for this densitree plot
 densitree_name <- paste0(plot_dir, ds, "_", tem, "_densitree")
+
+# If tree estimation method is ASTRAL, add an arbitrary terminal branch length
+
 # Save densitree  as pdf
 pdf(file = paste0(densitree_name, ".pdf"), width = 10, height = 10)
-densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.2, 
-          tip.color = tip_color, scale.bar = FALSE)
+densiTree(plot_trees, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.2, 
+          tip.color = "black", scale.bar = FALSE)
 dev.off()
 # Save densitree  as png
 png(file = paste0(densitree_name, ".png"), width = 900, height = 800)
-densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.5, 
-          tip.color = tip_color, scale.bar = FALSE)
+densiTree(plot_trees, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.5, 
+          tip.color = "black", scale.bar = FALSE)
 dev.off()
 
 
