@@ -889,12 +889,14 @@ consensus_tree <- read.tree(consensus_tree_file)
 # Construct file name for this densitree plot
 densitree_name <- paste0(plot_dir, ds, "_", tem, "_densitree")
 
-# If tree estimation method is ASTRAL, add an arbitrary terminal branch length
-plot_trees <- lapply(1:length(plot_trees), 
-                     function(i){plot_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(plot_trees[[i]], add.arbitrary.terminal.branches = TRUE, terminal.branch.length = 1, strip.nodes = FALSE)}
-                     )
-class(plot_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-consensus_tree <- reformat.ASTRAL.tree.for.plotting(consensus_tree, add.arbitrary.terminal.branches = TRUE, terminal.branch.length = 1, strip.nodes = FALSE)
+if (tem == "ASTRAL"){
+  # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
+  plot_trees <- lapply(1:length(plot_trees), 
+                       function(i){plot_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(plot_trees[[i]], add.arbitrary.terminal.branches = TRUE, terminal.branch.length = 1, strip.nodes = FALSE)}
+  )
+  class(plot_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
+  consensus_tree <- reformat.ASTRAL.tree.for.plotting(consensus_tree, add.arbitrary.terminal.branches = TRUE, terminal.branch.length = 1, strip.nodes = FALSE)
+}
 
 # Save densitree  as pdf
 pdf(file = paste0(densitree_name, ".pdf"), width = 10, height = 10)
