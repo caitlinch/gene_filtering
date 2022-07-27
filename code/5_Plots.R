@@ -862,3 +862,48 @@ png(file = paste0(plot_file, ".png"), width = 900, height = 800)
 densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.5, 
           tip.color = tip_color, scale.bar = FALSE)
 dev.off()
+
+
+
+#### Step 9: Plotting key differences between all trees
+# Get all species trees
+all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
+# Separate into individual datasets
+datasets <- c("Primates", "Tomatoes", "Metazoan", "Plants")
+tree_methods <- c("ASTRAL", "CONCAT")
+
+# Look at one combination of dataset and tree estimation method at a time
+ds = "Primates"
+tem = "ASTRAL"
+
+# Extract trees for that combination of dataset and tree method
+plot_tree_files <- grep(ds, grep(tem, all_trees, value = TRUE), value = TRUE)
+plot_trees <- lapply(plot_tree_files, read.tree)
+# Construct file name for this densitree
+densitree_name <- paste0(plot_dir, ds, "_", tem, "_densitree")
+# Save densitree  as pdf
+pdf(file = paste0(densitree_name, ".pdf"), width = 10, height = 10)
+densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.2, 
+          tip.color = tip_color, scale.bar = FALSE)
+dev.off()
+# Save densitree  as png
+png(file = paste0(densitree_name, ".png"), width = 900, height = 800)
+densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.5, 
+          tip.color = tip_color, scale.bar = FALSE)
+dev.off()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
