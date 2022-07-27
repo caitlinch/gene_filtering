@@ -8,8 +8,8 @@ library(glue)
 
 
 
-# Open an alignment and return the number of phylogenetically informative sites and number of segregating sites in that alignment
 get.DNA.site.info <- function(loci_name, alignment_dir){
+  # Open an alignment and return the number of phylogenetically informative sites and number of segregating sites in that alignment
   all_als <- list.files(alignment_dir)
   aln <- paste0(alignment_dir, grep(loci_name, all_als, value = TRUE))
   f <- read.dna(aln, format = "fasta")
@@ -24,16 +24,18 @@ get.DNA.site.info <- function(loci_name, alignment_dir){
 
 
 
-
-# Rescale the total length (i.e. height) of a tree
 rescale.tree.length <- function(tree, scaled_length){
+  # Rescale the total length (i.e. height) of a tree
+  
   tree$edge.length <- tree$edge.length / max(nodeHeights(tree)[,2]) * scaled_length
   return(tree)
 }
 
 
-# Wrapper for feeding list of trees into rescale.tree.length using lapply
+
 rescale.multiphylo <- function(trees, scaled_length){
+  # Wrapper for feeding list of trees into rescale.tree.length using lapply
+  
   for (i in 1:length(trees)){
     trees[[i]] <- rescale.tree.length(trees[[i]], scaled_length)
   }
@@ -42,8 +44,9 @@ rescale.multiphylo <- function(trees, scaled_length){
 
 
 
-# Quick function to colour code clades in primates dataset based on tree estimation method
 color.code.primate.clades <- function(p_tree, concatenated = TRUE){
+  # Quick function to colour code clades in primates dataset based on tree estimation method
+  
   # Set which clade differs and which taxa remain identical
   if (concatenated == TRUE){
     variable_species <- c("Cercocebus atys","Mandrillus leucophaeus","Papio anubis","Theropithecus gelada")
@@ -78,8 +81,11 @@ color.code.primate.clades <- function(p_tree, concatenated = TRUE){
   return(tip_lab_df)
 }
 
-# Quick function to colour code clades in primates dataset for supplementary figures (based on likelihood for each tree topology)
+
+
 color.code.comparison.clades <- function(p_tree, variable = "Cebidae"){
+  # Quick function to colour code clades in primates dataset for supplementary figures (based on likelihood for each tree topology)
+  
   if (variable == "Cebidae"){
     clade_a <- c("Callithrix_jacchus")
     clade_b <- c("Aotus_nancymaae")
@@ -129,8 +135,10 @@ color.code.comparison.clades <- function(p_tree, variable = "Cebidae"){
   return(tip_lab_df)
 }
 
-# # Quick function to nicely label clades from deep split supplementary figure
+
+
 comparison.clade.tip.labels <- function(clade_tree){
+  # Quick function to nicely label clades from deep split supplementary figure
   taxa <- clade_tree$tip.label
   clean_taxa_names <- gsub("_", " ", taxa)
   tip_df <- data.frame(taxa = taxa,
@@ -142,15 +150,18 @@ comparison.clade.tip.labels <- function(clade_tree){
 
 
 
-
-# Quick function to take in vector of tomatoes species numbers and return 
 rename.tomato.tips <- function(tip_vector){
+  # Quick function to take in vector of tomatoes species numbers and return 
+  
   new_tip_names <- unlist(lapply(tip_vector, find.one.tomato.tip, include.genus = FALSE))
   return(new_tip_names)
 }
 
-# Quick function to take in a single species number from the tomatoes tree and return full scientific name for that species
+
+
 find.one.tomato.tip <- function(single_tip, include.genus = FALSE){
+  # Quick function to take in a single species number from the tomatoes tree and return full scientific name for that species
+  
   tip_list <- list("SL2.50" = c("Solanum lyco. 'Heinz 1706'", "S. lyco. 'Heinz 1706'", "Solanum lycopersicum 'Heinz 1706'", "S. lycopersicum 'Heinz 1706'"),
                    "LA3475" = c("Solanum lycopersicum 3475", "S. lycopersicum 3475"),
                    "LA3124" = c("Solanum cheesmaniae 3124", "S. cheesmaniae 3124"),
@@ -197,8 +208,9 @@ find.one.tomato.tip <- function(single_tip, include.genus = FALSE){
 
 
 
-# Quick function to remove the sections of the tomato tree that remain identical
 reformat.congruent.tomato.clades <- function(tom_tree){
+  # Quick function to remove the sections of the tomato tree that remain identical
+  
   # Want to keep all Peruvianum species:
   Peruvianum = c("LA1364", "LA2744", "LA1358", "LA0107", "LA0444", "LA2964", "LA1782", "LA4117")
   # Want to keep one tip from each other clade:
@@ -224,8 +236,9 @@ reformat.congruent.tomato.clades <- function(tom_tree){
 
 
 
-# Quick function to colour code clades in tomatoes dataset
 color.code.tomato.clades <- function(tom_tree, taxa.numbers = FALSE, trimmed = TRUE){
+  # Quick function to colour code clades in tomatoes dataset
+  
   # Which tips are in which clade:
   if (trimmed == FALSE){
     # Include all taxa
@@ -283,8 +296,9 @@ color.code.tomato.clades <- function(tom_tree, taxa.numbers = FALSE, trimmed = T
 
 
 
-# Quick function to remove the sections of the Metazoan tree that are not interesting
 reformat.congruent.metazoan.clades <- function(m_tree, trim = "FALSE"){
+  # Quick function to remove the sections of the Metazoan tree that are not interesting
+  
   if (trim == "FALSE"){
     # Keep all species in all clades
     Bilateria = c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster",
@@ -366,8 +380,10 @@ reformat.congruent.metazoan.clades <- function(m_tree, trim = "FALSE"){
 }
 
 
-# Quick function to color code Metazoan clades
+
 color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
+  # Quick function to color code Metazoan clades
+  
   if (trimmed == "FALSE"){
     # Keep all species in all clades
     Bilateria = c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster",
@@ -505,8 +521,9 @@ get.specific.taxa.name <- function(t, n){
 
 
 
-# Small function to determine which species tree is related to which outlier_df row
 determine.outlier.tree.file <- function(i, outlier_df, tree_file_paths){
+  # Small function to determine which species tree is related to which outlier_df row
+  
   # Extract row
   row <- outlier_df[i,]
   
@@ -554,8 +571,11 @@ determine.outlier.tree.file <- function(i, outlier_df, tree_file_paths){
   return(row_file)
 }
 
-# Small function to determine which species tree is related to which outlier_df row
+
+
 determine.outlier.plot.name <- function(i, outlier_df){
+  # Small function to determine which species tree is related to which outlier_df row
+  
   # Extract row
   row <- outlier_df[i,]
   
@@ -602,5 +622,32 @@ determine.outlier.plot.name <- function(i, outlier_df){
   # Return output file name
   return(op_file_name)
 }
+
+
+
+reformat.ASTRAL.tree.for.Julia <- function(tree, add.arbitrary.terminal.branches = FALSE, terminal.branch.length = 1, strip.nodes = FALSE){
+  ## Function to nicely format an ASTRAL tree for plotting
+  # ASTRAL does not output terminal branch lengths, so these are arbitrarily given the length 1
+  # ASTRAL includes posterior probabilities: these are stripped
+  
+  # Add terminal branch lengths of arbitrary length
+  if (add.arbitrary.terminal.branches == TRUE){
+    # Identify which edges correspond to terminal branches
+    n = length(tree$tip.label)
+    missing_branch_indexes <- sapply(1:n,function(x,y)   which(y==x),y=tree$edge[,2])
+    # Set length of terminal branches to 1 (or to whatever the terminal.branch.length variable is)
+    tree$edge.length[missing_branch_indexes] <- terminal.branch.length
+  }
+  
+  # Remove node support values
+  if (strip.nodes == TRUE){
+    # Don't want node labels - for quartnetGoFtest, need just taxa and branch lengths
+    tree$node.label <- NULL
+  }
+  
+  # Return the tree
+  return(tree)
+}
+
 
 
