@@ -968,19 +968,6 @@ for (row_id in 1:nrow(plot_data_df)){
 
 
 
-##################################################
-# Save densitree  as pdf
-pdf(file = paste0(densitree_name, ".pdf"), width = 6, height = 6)
-densiTree(plot_trees, type = "cladogram", alpha = 0.5, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1, 
-          tip.color = "black", scale.bar = FALSE)
-dev.off()
-# Save densitree  as png
-png(file = paste0(densitree_name, ".png"), width = 500, height = 500)
-densiTree(plot_trees, type = "cladogram", alpha = 0.5, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1, 
-          tip.color = "black", scale.bar = FALSE)
-dev.off()
-
-
 
 
 
