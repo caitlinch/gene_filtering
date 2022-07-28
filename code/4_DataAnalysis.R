@@ -499,7 +499,7 @@ if (identify_outlier_edges == TRUE){
   
   ## Plot outlier edges
   # Create new folder to plot in
-  outlier_plot_dir <- outlier_df_filename <- paste0(node_output_dir, "outlier_plots/")
+  outlier_plot_dir <- paste0(node_output_dir, "outlier_plots/")
   if (dir.exists(outlier_plot_dir) == FALSE){dir.create(outlier_plot_dir)}
   
   # Get list of trees
@@ -532,15 +532,20 @@ if (identify_outlier_edges == TRUE){
 } # End identify_outlier_edges code
 
 ## Pretty plotting for Outlier Branch 1
+# Get list of trees
+all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
+# Open the outlier dataframe
+outlier_df <- read.csv(outlier_df_filename)
+
 # Identify tree files
 notest_tree_file <- grep("ASTRAL", grep("NoTest", grep("Metazoan", all_trees, value = TRUE), value = TRUE), value = TRUE)
 test_tree_file <- grep("ASTRAL", grep("geneconv_pass", grep("Metazoan", all_trees, value = TRUE), value = TRUE), value = TRUE)
 # Open trees and drop taxa
-keep_tips <- c("Ocyropsis_sp_Florida_USA", "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", 
-               "Beroe_abyssicola", "Beroe_sp_Antarctica", "Beroe_ovata","Beroe_sp_Queensland_Australia", 
-               "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina",
-               "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera",
-               "Cestum_veneris", "Ctenophora_sp_Florida_USA")
+keep_tips <- c("Ocyropsis_sp_Florida_USA", "Bolinopsis_ashleyi", "Beroe_ovata", 
+               "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Beroe_abyssicola", 
+               "Beroe_sp_Antarctica","Beroe_sp_Queensland_Australia", "Beroe_forskalii",
+               "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Lobata_sp_Punta_Arenas_Argentina",
+               "Eurhamphaea_vexilligera", "Cestum_veneris", "Ctenophora_sp_Florida_USA")
 notest_tree <- read.tree(notest_tree_file)
 notest_tree <- keep.tip(notest_tree, keep_tips)
 test_tree <- read.tree(test_tree_file)
@@ -551,7 +556,7 @@ test_tree$edge.length[is.nan(test_tree$edge.length)] <- 0.1
 # Prepare labels
 lab_df <- data.frame(taxa = keep_tips,
                      clean_taxa = gsub("_", " ", keep_tips),
-                     color = c("A", (rep("B", length(keep_tips) - 1)) ) )
+                     color = c(rep("A", 1), rep("B", 2), (rep("C", length(keep_tips) - 3)) ) )
 lab_df <- dplyr::mutate(lab_df, 
                         lab = glue('italic("{clean_taxa}")'))
 # Plot each tree as a ggtree 
@@ -564,7 +569,7 @@ p1 <- ggtree(notest_tree)  %<+% lab_df +
   theme(axis.text.x = element_text(size = 13, color = "White"),
         axis.ticks.x = element_blank(),
         axis.line.x = element_blank()) +
-  scale_color_manual(values = c(A = "Gray60", B = "Black"))
+  scale_color_manual(values = c(A = "Red", B = "Gray50", C = "Black"))
 
 p2 <- ggtree(test_tree)  %<+% lab_df + 
   geom_tiplab(aes(label = lab, color = color), size = 4, parse = T, show.legend = F) + 
@@ -575,7 +580,7 @@ p2 <- ggtree(test_tree)  %<+% lab_df +
   theme(axis.text.x = element_text(size = 13, color = "White"),
         axis.ticks.x = element_blank(),
         axis.line.x = element_blank()) +
-  scale_color_manual(values = c(A = "Gray60", B = "Black"))
+  scale_color_manual(values = c(A = "Red", B = "Gray50", C = "Black"))
 
 quilt <- (p1 / p2) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
