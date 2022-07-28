@@ -892,6 +892,8 @@ plot_data_df <- data.frame(row_id = 1:8,
 # Create object to store plots in 
 plot_records <- list(p1 = NA, p2 = NA, p3 = NA, p4 = NA, p5 = NA, p6 = NA, p7 = NA, p8 = NA)
 
+# Fix tomatoes astral plot
+row_id <- 3
 # Look at one combination of dataset and tree estimation method at a time
 for (row_id in 1:nrow(plot_data_df)){
   
@@ -918,6 +920,7 @@ for (row_id in 1:nrow(plot_data_df)){
   class(plot_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
   consensus_tree <- root(consensus_tree, roots_by_group[[dataset]])
   
+  
   if (tree_estimation_method == "ASTRAL"){
     # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
     plot_trees <- lapply(1:length(plot_trees), 
@@ -936,14 +939,29 @@ for (row_id in 1:nrow(plot_data_df)){
                                                         new.tree.length = row$new.tree.length)
   }
   
-  # Plot a nice densitree cladogram
-  nice_densitree <- ggtree(plot_trees, branch.length = "none", alpha = 0.1, color = "steelblue") + 
-    geom_rootedge(rootedge = 0.5, alpha = row$alpha, color = "steelblue") +
+  
+  # Get the order for the tips and relabel the tips
+  if (dataset == "Primates"){
+    tip_order <- c()
+  } else if (dataset == "Tomatoes"){
+    tip_order <- c("LA3909", "LA0436", "LA0429", "LA3124", "LA3475", "SL2.50", "LA1589", "LA1269",
+                   "LA2933", "LA2133", "LA1322", "LA2172", "LA1316", "LA1028", "LA0444", "LA0107",
+                   "LA1358", "LA2964", "LA2744", "LA4117", "LA1782", "LA1364", "LA1777", "LA0407",
+                   "LA3778", "LA0716", "LA4126", "LA2951", "LA4116")
+  } else if (dataset == "Metazoans"){
+    tip_order <- c()
+  } else if (dataset == "Plants"){
+    tip_order <- c()
+  }
+  
+  # Plot a nice densitree of the species trees
+  nice_densitree <- ggdensitree(plot_trees, tip.order = tomato_tip_order, align.tips = TRUE, branch.length = "none", alpha = row$alpha, color = "steelblue") + 
     geom_tiplab(show.legend = FALSE, offset = 0.002, geom = "text", size = 5) +
     coord_cartesian(clip = 'off') +
     theme_tree2(plot.margin=margin(6, row$right_margin, 6, 6)) +
     theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
           axis.line.x = element_line(color = "white"))
+  
   # Save the nice plot
   plot_records[[row_id]] <- nice_densitree
 }
