@@ -889,63 +889,64 @@ plot_data_df <- data.frame(row_id = 1:8,
                            taxa_label_size = c(5,5,5,5,3,3,5,5),
                            right_margin = c(180, 180, 180, 180, 180, 180, 180, 180))
 
-
+# Create object to store plots in 
 plot_records <- list(p1 = NA, p2 = NA, p3 = NA, p4 = NA, p5 = NA, p6 = NA, p7 = NA, p8 = NA)
 
 # Look at one combination of dataset and tree estimation method at a time
-row_id = 7
-
-# Extract row information
-row <- plot_data_df[row_id, ]
-dataset = row$dataset
-tree_estimation_method = row$tree_method
-
-# Extract trees for that combination of dataset and tree method
-plot_tree_files <- grep(dataset, grep(tree_estimation_method, all_trees, value = TRUE), value = TRUE)
-# Extract text file for each tree
-plot_trees_text <- unlist(lapply(plot_tree_files, readLines))
-# Read trees into a multiphylo object
-plot_trees <- read.tree(text = plot_trees_text)
-# Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
-consensus_tree_file <- grep("NoTest", plot_tree_files, value = TRUE)
-# Open the consensus tree
-consensus_tree <- read.tree(consensus_tree_file)
-# Construct file name for this densitree plot
-densitree_name <- paste0(plot_dir, dataset, "_", tree_estimation_method, "_densitree")
-
-# Root trees
-plot_trees <- lapply(plot_trees, root, roots_by_group[[dataset]])
-class(plot_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-consensus_tree <- root(consensus_tree, roots_by_group[[dataset]])
-
-if (tree_estimation_method == "ASTRAL"){
-  # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
-  plot_trees <- lapply(1:length(plot_trees), 
-                       function(i){plot_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(plot_trees[[i]], 
-                                                                                        add.arbitrary.terminal.branches = row$add.terminal.branches, 
-                                                                                        terminal.branch.length = row$terminal.branch.length, 
-                                                                                        strip.nodes = row$strip.nodes,
-                                                                                        scale.tree.length = row$scale.tree.length, 
-                                                                                        new.tree.length = row$new.tree.length)} )
+for (row_id in 1:nrow(plot_data_df)){
+  
+  # Extract row information
+  row <- plot_data_df[row_id, ]
+  dataset = row$dataset
+  tree_estimation_method = row$tree_method
+  
+  # Extract trees for that combination of dataset and tree method
+  plot_tree_files <- grep(dataset, grep(tree_estimation_method, all_trees, value = TRUE), value = TRUE)
+  # Extract text file for each tree
+  plot_trees_text <- unlist(lapply(plot_tree_files, readLines))
+  # Read trees into a multiphylo object
+  plot_trees <- read.tree(text = plot_trees_text)
+  # Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
+  consensus_tree_file <- grep("NoTest", plot_tree_files, value = TRUE)
+  # Open the consensus tree
+  consensus_tree <- read.tree(consensus_tree_file)
+  # Construct file name for this densitree plot
+  densitree_name <- paste0(plot_dir, dataset, "_", tree_estimation_method, "_densitree")
+  
+  # Root trees
+  plot_trees <- lapply(plot_trees, root, roots_by_group[[dataset]])
   class(plot_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-  consensus_tree <- reformat.ASTRAL.tree.for.plotting(consensus_tree, 
-                                                      add.arbitrary.terminal.branches = row$add.terminal.branches, 
-                                                      terminal.branch.length = row$terminal.branch.length, 
-                                                      strip.nodes = row$strip.nodes,
-                                                      scale.tree.length = row$scale.tree.length, 
-                                                      new.tree.length = row$new.tree.length)
+  consensus_tree <- root(consensus_tree, roots_by_group[[dataset]])
+  
+  if (tree_estimation_method == "ASTRAL"){
+    # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
+    plot_trees <- lapply(1:length(plot_trees), 
+                         function(i){plot_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(plot_trees[[i]], 
+                                                                                          add.arbitrary.terminal.branches = row$add.terminal.branches, 
+                                                                                          terminal.branch.length = row$terminal.branch.length, 
+                                                                                          strip.nodes = row$strip.nodes,
+                                                                                          scale.tree.length = row$scale.tree.length, 
+                                                                                          new.tree.length = row$new.tree.length)} )
+    class(plot_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
+    consensus_tree <- reformat.ASTRAL.tree.for.plotting(consensus_tree, 
+                                                        add.arbitrary.terminal.branches = row$add.terminal.branches, 
+                                                        terminal.branch.length = row$terminal.branch.length, 
+                                                        strip.nodes = row$strip.nodes,
+                                                        scale.tree.length = row$scale.tree.length, 
+                                                        new.tree.length = row$new.tree.length)
+  }
+  
+  # Plot a nice densitree cladogram
+  nice_densitree <- ggtree(plot_trees, branch.length = "none", alpha = 0.1, color = "steelblue") + 
+    geom_rootedge(rootedge = 0.5, alpha = row$alpha, color = "steelblue") +
+    geom_tiplab(show.legend = FALSE, offset = 0.002, geom = "text", size = 5) +
+    coord_cartesian(clip = 'off') +
+    theme_tree2(plot.margin=margin(6, row$right_margin, 6, 6)) +
+    theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+          axis.line.x = element_line(color = "white"))
+  # Save the nice plot
+  plot_records[[row_id]] <- nice_densitree
 }
-
-# Plot a nice densitree cladogram
-nice_densitree <- ggtree(plot_trees, branch.length = "none", alpha = 0.1, color = "steelblue") + 
-  geom_rootedge(rootedge = 0.5, alpha = row$alpha, color = "steelblue") +
-  geom_tiplab(show.legend = FALSE, offset = 0.002, geom = "text", size = 5) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, row$right_margin, 6, 6)) +
-  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
-        axis.line.x = element_line(color = "white"))
-# Save the nice plot
-plot_records[[row_id]] <- nice_densitree
 
 
 
