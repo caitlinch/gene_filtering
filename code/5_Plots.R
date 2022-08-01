@@ -876,95 +876,96 @@ dev.off()
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
 # Separate into individual datasets
 datasets <- c("Primates", "Tomatoes", "Metazoan", "Plants")
-tree_methods <- c("ASTRAL", "CONCAT")
-plot_data_df <- data.frame(row_id = 1:8,
-                           dataset = rep(datasets, each = 2),
-                           tree_method = rep(tree_methods, 4),
-                           add.terminal.branches = rep(c(TRUE, FALSE), 4),
-                           terminal.branch.length = rep(c(1, NA), 4),
-                           strip.nodes = FALSE,
-                           scale.tree.length = TRUE,
-                           new.tree.length = TRUE,
-                           alpha = c(0.4, 0.4, 0.4, 0.4, 0.6, 0.6, 0.6, 0.6),
-                           taxa_label_size = c(5,5,5,5,3,3,5,5),
-                           right_margin = c(180, 180, 180, 180, 180, 180, 180, 180))
 
-# Create object to store plots in 
-plot_records <- list(p1 = NA, p2 = NA, p3 = NA, p4 = NA, p5 = NA, p6 = NA, p7 = NA, p8 = NA)
+# # From attempt at automation
+# tree_methods <- c("ASTRAL", "CONCAT")
+# plot_data_df <- data.frame(row_id = 1:8,
+#                            dataset = rep(datasets, each = 2),
+#                            tree_method = rep(tree_methods, 4),
+#                            add.terminal.branches = rep(c(TRUE, FALSE), 4),
+#                            terminal.branch.length = rep(c(1, NA), 4),
+#                            strip.nodes = FALSE,
+#                            scale.tree.length = TRUE,
+#                            new.tree.length = TRUE,
+#                            alpha = c(0.4, 0.4, 0.4, 0.4, 0.6, 0.6, 0.6, 0.6),
+#                            taxa_label_size = c(5,5,5,5,3,3,5,5),
+#                            right_margin = c(180, 180, 180, 180, 180, 180, 180, 180))
+# 
+# # Create object to store plots in 
+# plot_records <- list(p1 = NA, p2 = NA, p3 = NA, p4 = NA, p5 = NA, p6 = NA, p7 = NA, p8 = NA)
+# 
+# # Fix tomatoes astral plot
+# row_id <- 3
+# # Look at one combination of dataset and tree estimation method at a time
+# # Extract row information
+# row <- plot_data_df[row_id, ]
+# dataset = row$dataset
+# tree_estimation_method = row$tree_method
 
-# Fix tomatoes astral plot
-row_id <- 3
-# Look at one combination of dataset and tree estimation method at a time
-for (row_id in 1:nrow(plot_data_df)){
-  
-  # Extract row information
-  row <- plot_data_df[row_id, ]
-  dataset = row$dataset
-  tree_estimation_method = row$tree_method
-  
-  # Extract trees for that combination of dataset and tree method
-  plot_tree_files <- grep(dataset, grep(tree_estimation_method, all_trees, value = TRUE), value = TRUE)
-  # Extract text file for each tree
-  plot_trees_text <- unlist(lapply(plot_tree_files, readLines))
-  # Read trees into a multiphylo object
-  plot_trees <- read.tree(text = plot_trees_text)
-  # Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
-  consensus_tree_file <- grep("NoTest", plot_tree_files, value = TRUE)
-  # Open the consensus tree
-  consensus_tree <- read.tree(consensus_tree_file)
-  # Construct file name for this densitree plot
-  densitree_name <- paste0(plot_dir, dataset, "_", tree_estimation_method, "_densitree")
-  
-  # Root trees
-  plot_trees <- lapply(plot_trees, root, roots_by_group[[dataset]])
+## ggdensitree for Tomatoes dataset
+# Extract trees for that combination of dataset and tree method
+plot_tree_files <- grep("Tomatoes", value = TRUE)
+# Extract text file for each tree
+plot_trees_text <- unlist(lapply(plot_tree_files, readLines))
+# Read trees into a multiphylo object
+plot_trees <- read.tree(text = plot_trees_text)
+# Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
+consensus_tree_file <- grep("NoTest", plot_tree_files, value = TRUE)
+# Open the consensus tree
+consensus_tree <- read.tree(consensus_tree_file)
+# Construct file name for this densitree plot
+densitree_name <- paste0(plot_dir, dataset, "_", tree_estimation_method, "_densitree")
+
+# Root trees
+plot_trees <- lapply(plot_trees, root, roots_by_group[[dataset]])
+class(plot_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
+consensus_tree <- root(consensus_tree, roots_by_group[[dataset]])
+
+
+if (tree_estimation_method == "ASTRAL"){
+  # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
+  plot_trees <- lapply(1:length(plot_trees), 
+                       function(i){plot_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(plot_trees[[i]], 
+                                                                                        add.arbitrary.terminal.branches = row$add.terminal.branches, 
+                                                                                        terminal.branch.length = row$terminal.branch.length, 
+                                                                                        strip.nodes = row$strip.nodes,
+                                                                                        scale.tree.length = row$scale.tree.length, 
+                                                                                        new.tree.length = row$new.tree.length)} )
   class(plot_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-  consensus_tree <- root(consensus_tree, roots_by_group[[dataset]])
-  
-  
-  if (tree_estimation_method == "ASTRAL"){
-    # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
-    plot_trees <- lapply(1:length(plot_trees), 
-                         function(i){plot_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(plot_trees[[i]], 
-                                                                                          add.arbitrary.terminal.branches = row$add.terminal.branches, 
-                                                                                          terminal.branch.length = row$terminal.branch.length, 
-                                                                                          strip.nodes = row$strip.nodes,
-                                                                                          scale.tree.length = row$scale.tree.length, 
-                                                                                          new.tree.length = row$new.tree.length)} )
-    class(plot_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-    consensus_tree <- reformat.ASTRAL.tree.for.plotting(consensus_tree, 
-                                                        add.arbitrary.terminal.branches = row$add.terminal.branches, 
-                                                        terminal.branch.length = row$terminal.branch.length, 
-                                                        strip.nodes = row$strip.nodes,
-                                                        scale.tree.length = row$scale.tree.length, 
-                                                        new.tree.length = row$new.tree.length)
-  }
-  
-  
-  # Get the order for the tips and relabel the tips
-  if (dataset == "Primates"){
-    tip_order <- c()
-  } else if (dataset == "Tomatoes"){
-    tip_order <- c("LA3909", "LA0436", "LA0429", "LA3124", "LA3475", "SL2.50", "LA1589", "LA1269",
-                   "LA2933", "LA2133", "LA1322", "LA2172", "LA1316", "LA1028", "LA0444", "LA0107",
-                   "LA1358", "LA2964", "LA2744", "LA4117", "LA1782", "LA1364", "LA1777", "LA0407",
-                   "LA3778", "LA0716", "LA4126", "LA2951", "LA4116")
-  } else if (dataset == "Metazoans"){
-    tip_order <- c()
-  } else if (dataset == "Plants"){
-    tip_order <- c()
-  }
-  
-  # Plot a nice densitree of the species trees
-  nice_densitree <- ggdensitree(plot_trees, tip.order = tomato_tip_order, align.tips = TRUE, branch.length = "none", alpha = row$alpha, color = "steelblue") + 
-    geom_tiplab(show.legend = FALSE, offset = 0.002, geom = "text", size = 5) +
-    coord_cartesian(clip = 'off') +
-    theme_tree2(plot.margin=margin(6, row$right_margin, 6, 6)) +
-    theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
-          axis.line.x = element_line(color = "white"))
-  
-  # Save the nice plot
-  plot_records[[row_id]] <- nice_densitree
+  consensus_tree <- reformat.ASTRAL.tree.for.plotting(consensus_tree, 
+                                                      add.arbitrary.terminal.branches = row$add.terminal.branches, 
+                                                      terminal.branch.length = row$terminal.branch.length, 
+                                                      strip.nodes = row$strip.nodes,
+                                                      scale.tree.length = row$scale.tree.length, 
+                                                      new.tree.length = row$new.tree.length)
 }
+
+
+# Get the order for the tips and relabel the tips
+if (dataset == "Primates"){
+  tip_order <- c()
+} else if (dataset == "Tomatoes"){
+  tip_order <- c("LA3909", "LA0436", "LA0429", "LA3124", "LA3475", "SL2.50", "LA1589", "LA1269",
+                 "LA2933", "LA2133", "LA1322", "LA2172", "LA1316", "LA1028", "LA0444", "LA0107",
+                 "LA1358", "LA2964", "LA2744", "LA4117", "LA1782", "LA1364", "LA1777", "LA0407",
+                 "LA3778", "LA0716", "LA4126", "LA2951", "LA4116")
+} else if (dataset == "Metazoans"){
+  tip_order <- c()
+} else if (dataset == "Plants"){
+  tip_order <- c()
+}
+
+# Plot a nice densitree of the species trees
+nice_densitree <- ggdensitree(plot_trees, tip.order = tomato_tip_order, align.tips = TRUE, branch.length = "none", alpha = row$alpha, color = "steelblue") + 
+  geom_tiplab(show.legend = FALSE, offset = 0.002, geom = "text", size = 5) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, row$right_margin, 6, 6)) +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"))
+
+# Save the nice plot
+plot_records[[row_id]] <- nice_densitree
+
 
 
 
