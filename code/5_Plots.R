@@ -5,6 +5,9 @@
 ## This script:
 # 1. Creates a variety of plots and figures
 
+## ggtree notes:
+# To add node labels (for defining clade labels): geom_text(aes(label=node), hjust=-.3)
+# To add clade labels (for defining clades with a vertical bar): geom_cladelab(node=34, label="Clade")
 
 
 ##### Step 1: Set the file paths for input and output files, and necessary functions/directories #####
@@ -47,8 +50,10 @@ library(ggtree) # for plotting phylogenetic trees
 library(ggtext) # for nice tree plots
 library(patchwork) # for collating plots
 library(phangorn) # for densiTree
+
 # Source functions
 source(paste0(maindir,"code/func_plots.R"))
+
 # Assemble folder for species trees
 species_tree_folder <- paste0(maindir, "trees/")
 
@@ -955,6 +960,50 @@ quilt <- (astral_densitree + concat_densitree) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 10, height = 8, units = "in")
 
+# Plot a nice annotated densitree of the astral species trees
+astral_densitree <- ggdensitree(astral_trees, tip.order = labs$taxa, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
+  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.2) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 80, 6, 6)) +
+  labs(title = "ASTRAL species trees") +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"),
+        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
+  geom_cladelab(node = 42, label = "Hominidae", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen")+
+  geom_cladelab(node = 12, label = "Hylobatidae", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
+  geom_cladelab(node = 50, label = "Cercopithecinae", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
+  geom_cladelab(node = 47, label = "Colobinae", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
+  geom_cladelab(node = 32, label = "Cebidae", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
+  geom_cladelab(node = 5, label = "Tarsiiformes", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
+  geom_cladelab(node = 39, label = "Lemuriformes", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
+  geom_cladelab(node = 9, label = "Lorisiformes", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
+  geom_cladelab(node = 8, label = "Non-primates", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen")
+# Plot a nice annotated densitree of the concatenated species trees
+concat_densitree <- ggdensitree(concat_trees, tip.order = labs$taxa, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
+  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.2) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
+  labs(title = "Concatenated species trees") +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"),
+        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
+  geom_text(aes(label=node), hjust=-.3)
+# Construct file name for this densitree plot
+densitree_name <- paste0(plot_dir, "Primates_Species_tree_comparison_ggdensitree_annotated")
+# Assemble the figure
+quilt <- (astral_densitree + concat_densitree) + 
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 10, height = 8, units = "in")
+
+
+
+geom_cladelab(node = 151, label = "Choanoflagellata", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = 122, label = "Ctenophora", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "navy", barcolor = "navy") +
+  geom_cladelab(node = 100, label = "Porifera", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "goldenrod", barcolor = "goldenrod") +
+  geom_cladelab(node = 83, label = "Cnidaria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "firebrick", barcolor = "firebrick") +
+  geom_cladelab(node = 93, label = "Bilateria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "black", barcolor = "black") +
+  geom_cladelab(node = 22, label = "Placozoa", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen")
+
 
 ## ggdensitree for Tomatoes dataset ##
 # Extract trees for that combination of dataset and tree method
@@ -1065,7 +1114,7 @@ densitree_name <- paste0(plot_dir, "Tomatoes_Species_tree_comparison_ggdensitree
 # Assemble the figure
 quilt <- (astral_densitree + concat_densitree) + 
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
-ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 10, height = 8, units = "in")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 16, height = 8, units = "in")
 
 
 ## ggdensitree for Metazoans dataset ##
@@ -1156,7 +1205,42 @@ quilt <- (astral_densitree + concat_densitree) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 14, height = 14, units = "in")
 
-
+# Plot a nice annotated densitree of the astral species trees
+astral_densitree <- ggdensitree(astral_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
+  geom_tiplab(aes(label = short_lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 80, 6, 6)) +
+  labs(title = "ASTRAL species trees") +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"),
+        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
+  geom_cladelab(node = 151, label = "Choanoflagellata", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = 122, label = "Ctenophora", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "navy", barcolor = "navy") +
+  geom_cladelab(node = 100, label = "Porifera", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "goldenrod", barcolor = "goldenrod") +
+  geom_cladelab(node = 83, label = "Cnidaria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "firebrick", barcolor = "firebrick") +
+  geom_cladelab(node = 93, label = "Bilateria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "black", barcolor = "black") +
+  geom_cladelab(node = 22, label = "Placozoa", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen")
+# Plot a nice annotated densitree of the concatenated species trees
+concat_densitree <- ggdensitree(concat_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
+  geom_tiplab(aes(label = short_lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 80, 6, 6)) +
+  labs(title = "Concatenated species trees") +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"),
+        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
+  geom_cladelab(node = 151, label = "Choanoflagellata", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = 114, label = "Ctenophora", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "navy", barcolor = "navy") +
+  geom_cladelab(node = 90, label = "Porifera", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "goldenrod", barcolor = "goldenrod") +
+  geom_cladelab(node = 82, label = "Cnidaria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "firebrick", barcolor = "firebrick") +
+  geom_cladelab(node = 84, label = "Bilateria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "black", barcolor = "black") +
+  geom_cladelab(node = 62, label = "Placozoa", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen")
+# Construct file name for this densitree plot
+densitree_name <- paste0(plot_dir, "Metazoan_Species_tree_comparison_ggdensitree_annotated")
+# Assemble the figure
+quilt <- (astral_densitree + concat_densitree) + 
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 16.5, height = 12, units = "in")
 
 
 
