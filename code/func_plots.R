@@ -44,22 +44,34 @@ rescale.multiphylo <- function(trees, scaled_length){
 
 
 
-color.code.primate.clades <- function(p_tree, concatenated = TRUE){
+color.code.primate.clades <- function(p_tree, color = TRUE, concatenated = TRUE){
   # Quick function to colour code clades in primates dataset based on tree estimation method
   
   # Set which clade differs and which taxa remain identical
-  if (concatenated == TRUE){
-    variable_species <- c("Cercocebus atys","Mandrillus leucophaeus","Papio anubis","Theropithecus gelada")
+  if (color == TRUE){
+    if (concatenated == TRUE){
+      variable_species <- c("Cercocebus atys","Mandrillus leucophaeus","Papio anubis","Theropithecus gelada")
+      congruent_species <- c("Aotus nancymaae","Saimiri boliviensis","Cebus capucinus imitator","Callithrix jacchus",
+                             "Carlito syrichta","Otolemur garnettii","Microcebus murinus","Propithecus coquereli",
+                             "Galeopterus variegatus","Tupaia chinensis","Mus musculus","Nomascus leucogenys",
+                             "Pongo abelii","Gorilla gorilla","Homo sapiens","Pan paniscus","Pan troglodytes",
+                             "Chlorocebus sabaeus","Macaca nemestrina","Macaca fascicularis","Macaca mulatta",
+                             "Colobus angolensis palliatus","Piliocolobus tephrosceles","Rhinopithecus bieti",
+                             "Rhinopithecus roxellana")
+    } else if (concatenated == FALSE){
+      variable_species <- c("Aotus nancymaae","Saimiri boliviensis","Cebus capucinus imitator","Callithrix jacchus")
+      congruent_species <- c("Carlito syrichta","Otolemur garnettii","Microcebus murinus","Propithecus coquereli",
+                             "Galeopterus variegatus","Tupaia chinensis","Mus musculus","Nomascus leucogenys",
+                             "Pongo abelii","Gorilla gorilla","Homo sapiens","Pan paniscus","Pan troglodytes",
+                             "Chlorocebus sabaeus","Macaca nemestrina","Macaca fascicularis","Macaca mulatta",
+                             "Cercocebus atys","Mandrillus leucophaeus","Papio anubis","Theropithecus gelada",
+                             "Colobus angolensis palliatus","Piliocolobus tephrosceles","Rhinopithecus bieti",
+                             "Rhinopithecus roxellana")
+    }
+  } else if (color == FALSE){
+    variable_species <- c()
     congruent_species <- c("Aotus nancymaae","Saimiri boliviensis","Cebus capucinus imitator","Callithrix jacchus",
                            "Carlito syrichta","Otolemur garnettii","Microcebus murinus","Propithecus coquereli",
-                           "Galeopterus variegatus","Tupaia chinensis","Mus musculus","Nomascus leucogenys",
-                           "Pongo abelii","Gorilla gorilla","Homo sapiens","Pan paniscus","Pan troglodytes",
-                           "Chlorocebus sabaeus","Macaca nemestrina","Macaca fascicularis","Macaca mulatta",
-                           "Colobus angolensis palliatus","Piliocolobus tephrosceles","Rhinopithecus bieti",
-                           "Rhinopithecus roxellana")
-  } else if (concatenated == FALSE){
-    variable_species <- c("Aotus nancymaae","Saimiri boliviensis","Cebus capucinus imitator","Callithrix jacchus")
-    congruent_species <- c("Carlito syrichta","Otolemur garnettii","Microcebus murinus","Propithecus coquereli",
                            "Galeopterus variegatus","Tupaia chinensis","Mus musculus","Nomascus leucogenys",
                            "Pongo abelii","Gorilla gorilla","Homo sapiens","Pan paniscus","Pan troglodytes",
                            "Chlorocebus sabaeus","Macaca nemestrina","Macaca fascicularis","Macaca mulatta",
