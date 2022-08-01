@@ -403,7 +403,7 @@ reformat.congruent.metazoan.clades <- function(m_tree, trim = "FALSE"){
 
 
 
-color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
+color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE", color = TRUE){
   # Quick function to color code Metazoan clades
   
   if (trimmed == "FALSE"){
@@ -430,11 +430,17 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
     taxa_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
     taxa_groups <- c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
                      rep("Porifera", length(Porifera)), rep("Ctenophora", length(Ctenophora)), rep("Choanoflagellata", length(Clade_Outgroup)))
-    taxa_colors <- c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
-                     rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("gray", length(Clade_Outgroup)))
     clades_to_keep <- c()
     clade_groups <- c()
-    clade_colors <- c()
+    if (color == TRUE){
+      taxa_colors <- c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
+                       rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("gray", length(Clade_Outgroup)))
+      clade_colors <- c()
+    } else if (color == FALSE){
+      taxa_colors <- c(rep("black", length(Bilateria)), rep("black", length(Cnidaria)), rep("black", length(Placozoa)), 
+                       rep("black", length(Porifera)), rep("black", length(Ctenophora)), rep("black", length(Clade_Outgroup)))
+      clade_colors <- c()
+    }
   } else if (trimmed == "Keep_Ctenophora"){
     # Keep all Ctenophora species and one species from each other clade
     Bilateria = "Bilateria"
@@ -452,12 +458,18 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
     # Prepare columns for dataframe creation
     taxa_to_keep <- Ctenophora
     taxa_groups <- rep("Ctenophora", length(Ctenophora))
-    taxa_colors <- rep("blue", length(Ctenophora))
     clades_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Clade_Outgroup)
     clade_groups <- c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
                       rep("Porifera", length(Porifera)), rep("Choanoflagellata", length(Clade_Outgroup)))
-    clade_colors <- c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
-                      rep("yellow", length(Porifera)), rep("gray", length(Clade_Outgroup)))
+    if (color == TRUE){
+      taxa_colors <- rep("blue", length(Ctenophora))
+      clade_colors <- c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
+                        rep("yellow", length(Porifera)), rep("gray", length(Clade_Outgroup)))
+    } else if (color == FALSE){
+      taxa_colors <- rep("black", length(Ctenophora))
+      clade_colors <- c(rep("black", length(Bilateria)), rep("black", length(Cnidaria)), rep("black", length(Placozoa)), 
+                        rep("black", length(Porifera)), rep("black", length(Clade_Outgroup)))
+    }
   } else if (trimmed == "Trim_all"){
     # Keep one species from each clade
     Bilateria = "Bilateria"
@@ -469,12 +481,18 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE"){
     # Prepare columns for dataframe creation
     taxa_to_keep <- c()
     taxa_clades <- c()
-    taxa_colors <- c()
     clades_to_keep <- c(Bilateria, Cnidaria, Placozoa, Porifera, Ctenophora, Clade_Outgroup)
     clade_groups <- c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
                       rep("Porifera", length(Porifera)), rep("Ctenophora", length(Ctenophora)), rep("Choanoflagellata", length(Clade_Outgroup)))
+    if (color == TRUE){
+    taxa_colors <- c()
     clade_colors <- c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
                       rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("gray", length(Clade_Outgroup)))
+    } else if (color == FALSE){
+      taxa_colors <- c()
+      clade_colors <- c(rep("black", length(Bilateria)), rep("black", length(Cnidaria)), rep("black", length(Placozoa)), 
+                        rep("black", length(Porifera)), rep("black", length(Ctenophora)), rep("black", length(Clade_Outgroup)))
+    }
   }
   
   # Create dataframe with tip information for taxa
