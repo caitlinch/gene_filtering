@@ -510,7 +510,7 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE", color = TRUE){
                               clade = taxa_groups,
                               color = taxa_colors)
     taxa_lab_df <- dplyr::mutate(taxa_tip_df, 
-                                 short_lab = glue('italic("{generic_initial} {specific_name}")'),
+                                 short_lab = glue('italic("{generic_initial}. {specific_name}")'),
                                  long_lab = glue('italic("{taxa_prettyprint}")'),
                                  short_name = glue("<i style='color:{color}'>{generic_initial} {specific_name}</i>"),
                                  long_name = glue("<i style='color:{color}'>{taxa_prettyprint}</i>") ) 
