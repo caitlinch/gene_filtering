@@ -1076,11 +1076,25 @@ consensus_astral_tree <- reformat.ASTRAL.tree.for.plotting(consensus_astral_tree
                                                            scale.tree.length = FALSE, 
                                                            new.tree.length = NA)
 # Get the order for the tips (bottom species first, top species last)
-tomato_tip_order <- c("LA3909", "LA0436", "LA0429", "LA3124", "LA3475", "SL2.50", "LA1589", "LA1269",
-                      "LA2933", "LA2133", "LA1322", "LA2172", "LA1316", "LA1028", "LA1364", "LA1782",
-                      "LA4117", "LA2744", "LA2964", "LA1358", "LA0107", "LA0444", "LA1777", "LA0407",
-                      "LA3778", "LA0716", "LA4126", "LA2951", "LA4116")
-tomato_species_order <- rename.tomato.tips(tomato_tip_order)
+metazoans_tip_order <- c("Monosiga_ovata", "Acanthoeca_sp", "Monosiga_brevicolis", "Salpingoeca_rosetta", "Salpingoeca_pyxidium",
+                         "Beroe_abyssicola", "Beroe_sp_Antarctica", "Beroe_ovata", "Beroe_forskalii", "Beroe_sp_Queensland_Australia",
+                         "Lobata_sp_Punta_Arenas_Argentina", "Bolinopsis_ashleyi", "Ctenophora_sp_Florida_USA", "Cestum_veneris",
+                         "Eurhamphaea_vexilligera", "Mnemiopsis_leidyi", "Bolinopsis_infundibulum", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA", 
+                         "Ocyropsis_sp_Bimini_Bahamas", "Lobatolampea_tetragona", "Dryodora_glandiformis", "Cydippida_sp", "Mertensiidae_sp_Washington_USA",
+                         "Mertensiidae_sp_Antarctica", "Callianira_Antarctica", "Cydippida_sp_Maryland_USA", "Pleurobrachia_sp_South_Carolina_USA",
+                         "Pleurobrachia_bachei", "Pleurobrachia_pileus", "Hormiphora_californica", "Hormiphora_palmata", "Coeloplana_astericola",
+                         "Vallicula_sp", "Euplokamis_dunlapae",
+                         "Amphimedon_queenslandica", "Petrosia_ficiformis", "Crella_elegans", "Kirkpatrickia_variolosa", "Latrunculia_apicalis",
+                         "Mycale_phylophylla", "Pseudospongosorites_suberitoides", "Cliona_varians", "Spongilla_lacustris", "Chondrilla_nucula",
+                         "Ircinia_fasciculata", "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Hyalonema_populiferum",
+                         "Corticium_candelabrum", "Oscarella_carmela", "Sycon_ciliatum", "Sycon_coactum",
+                         "Trichoplax_adhaerens",
+                         "Nanomia_bijuga", "Agalma_elegans", "Abylopsis_tetragona", "Craseo_lathetica", "Physalia_physalia", "Hydra_oligactis",
+                         "Hydra_vulgaris", "Hydra_viridissima", "Periphyla_periphyla", "Aiptasia_pallida", "Hormathia_digitata", "Bolocera_tuediae",
+                         "Nematostella_vectensis", "Acropora_digitifera", "Eunicella_verrucosa",
+                         "Capitella_teleta", "Hemithris_psittacea", "Drosophila_melanogaster", "Daphnia_pulex", "Homo_sapiens", "Strongylocentrotus_purpatus")
+
+
 # Create labels for the tips
 tip_labels_df <- color.code.tomato.clades(consensus_astral_tree, taxa.numbers = FALSE, trimmed = FALSE, color = FALSE)
 # Reorder tip_labels_df to match tomato_species_order
