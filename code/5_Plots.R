@@ -969,40 +969,43 @@ astral_densitree <- ggdensitree(astral_trees, tip.order = labs$taxa, align.tips 
   theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
         axis.line.x = element_line(color = "white"),
         plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
-  geom_cladelab(node = 42, label = "Hominidae", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen")+
-  geom_cladelab(node = 12, label = "Hylobatidae", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
-  geom_cladelab(node = 50, label = "Cercopithecinae", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
-  geom_cladelab(node = 47, label = "Colobinae", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
-  geom_cladelab(node = 32, label = "Cebidae", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
-  geom_cladelab(node = 5, label = "Tarsiiformes", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
-  geom_cladelab(node = 39, label = "Lemuriformes", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
-  geom_cladelab(node = 9, label = "Lorisiformes", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen") +
-  geom_cladelab(node = 8, label = "Non-primates", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen")
+  geom_cladelab(node = 42, label = "Hominidae", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "deepskyblue", barcolor = "deepskyblue")+
+  geom_cladelab(node = 12, label = "Hylobatidae", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "steelblue3", barcolor = "steelblue3") +
+  geom_cladelab(node = 50, label = "Cercopithecinae", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "darkslategray4", barcolor = "darkslategray4") +
+  geom_cladelab(node = 47, label = "Colobinae", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "darkslategray3", barcolor = "darkslategray3") +
+  geom_cladelab(node = 32, label = "Cebidae", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "darkseagreen4", barcolor = "darkseagreen4") +
+  geom_cladelab(node = 5, label = "Tarsiiformes", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "springgreen4", barcolor = "springgreen4") +
+  geom_cladelab(node = 39, label = "Lemuriformes", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "olivedrab4", barcolor = "olivedrab4") +
+  geom_cladelab(node = 9, label = "Lorisiformes", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "olivedrab3", barcolor = "olivedrab3") +
+  geom_cladelab(node = 6, label = "Dermoptera", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "snow4", barcolor = "snow4") +
+  geom_cladelab(node = 8, label = "Scandentia", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "snow4", barcolor = "snow4") +
+  geom_cladelab(node = 7, label = "Rodentia", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "snow4", barcolor = "snow4")
 # Plot a nice annotated densitree of the concatenated species trees
 concat_densitree <- ggdensitree(concat_trees, tip.order = labs$taxa, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
   geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.2) +
   coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
+  theme_tree2(plot.margin=margin(6, 80, 6, 6)) +
   labs(title = "Concatenated species trees") +
   theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
         axis.line.x = element_line(color = "white"),
         plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
-  geom_text(aes(label=node), hjust=-.3)
+  geom_cladelab(node = 52, label = "Hominidae", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "deepskyblue", barcolor = "deepskyblue")+
+  geom_cladelab(node = 27, label = "Hylobatidae", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "steelblue3", barcolor = "steelblue3") +
+  geom_cladelab(node = 41, label = "Cercopithecinae", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "darkslategray4", barcolor = "darkslategray4") +
+  geom_cladelab(node = 48, label = "Colobinae", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "darkslategray3", barcolor = "darkslategray3") +
+  geom_cladelab(node = 32, label = "Cebidae", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "darkseagreen4", barcolor = "darkseagreen4") +
+  geom_cladelab(node = 3, label = "Tarsiiformes", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "springgreen4", barcolor = "springgreen4") +
+  geom_cladelab(node = 38, label = "Lemuriformes", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "olivedrab4", barcolor = "olivedrab4") +
+  geom_cladelab(node = 9, label = "Lorisiformes", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "olivedrab3", barcolor = "olivedrab3") +
+  geom_cladelab(node = 4, label = "Dermoptera", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "snow4", barcolor = "snow4") +
+  geom_cladelab(node = 6, label = "Scandentia", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "snow4", barcolor = "snow4") +
+  geom_cladelab(node = 5, label = "Rodentia", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "snow4", barcolor = "snow4")
 # Construct file name for this densitree plot
 densitree_name <- paste0(plot_dir, "Primates_Species_tree_comparison_ggdensitree_annotated")
 # Assemble the figure
 quilt <- (astral_densitree + concat_densitree) + 
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
-ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 10, height = 8, units = "in")
-
-
-
-geom_cladelab(node = 151, label = "Choanoflagellata", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
-  geom_cladelab(node = 122, label = "Ctenophora", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "navy", barcolor = "navy") +
-  geom_cladelab(node = 100, label = "Porifera", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "goldenrod", barcolor = "goldenrod") +
-  geom_cladelab(node = 83, label = "Cnidaria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "firebrick", barcolor = "firebrick") +
-  geom_cladelab(node = 93, label = "Bilateria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "black", barcolor = "black") +
-  geom_cladelab(node = 22, label = "Placozoa", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 14, height = 8, units = "in")
 
 
 ## ggdensitree for Tomatoes dataset ##
