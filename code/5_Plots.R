@@ -874,8 +874,7 @@ dev.off()
 #### Step 9: Plotting key differences between all trees ####
 # Get all species trees
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
-# Separate into individual datasets
-datasets <- c("Primates", "Tomatoes", "Metazoan", "Plants")
+
 
 ## ggdensitree for Primates dataset ##
 # Extract trees for that combination of dataset and tree method
@@ -894,8 +893,6 @@ consensus_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
 # Open the consensus tree
 consensus_astral_tree <- read.tree(consensus_astral_tree_file)
 consensus_concat_tree <- read.tree(consensus_concat_tree_file)
-# Construct file name for this densitree plot
-densitree_name <- paste0(plot_dir, "Primates_Species_tree_comparison_ggdensitree")
 # Root trees
 astral_trees <- lapply(astral_trees, root, roots_by_group[["Primates"]])
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
@@ -951,6 +948,8 @@ concat_densitree <- ggdensitree(concat_trees, tip.order = labs$taxa, align.tips 
   theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
         axis.line.x = element_line(color = "white"),
         plot.title = element_text(hjust = 0, size = 14, face = "bold"))
+# Construct file name for this densitree plot
+densitree_name <- paste0(plot_dir, "Primates_Species_tree_comparison_ggdensitree")
 # Assemble the figure
 quilt <- (astral_densitree + concat_densitree) + 
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
@@ -974,8 +973,6 @@ consensus_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
 # Open the consensus tree
 consensus_astral_tree <- read.tree(consensus_astral_tree_file)
 consensus_concat_tree <- read.tree(consensus_concat_tree_file)
-# Construct file name for this densitree plot
-densitree_name <- paste0(plot_dir, "Tomatoes_Species_tree_comparison_ggdensitree")
 # Root trees
 astral_trees <- lapply(astral_trees, root, roots_by_group[["Tomatoes"]])
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
@@ -1028,6 +1025,43 @@ concat_densitree <- ggdensitree(concat_trees, tip.order = tomato_tip_order, alig
   theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
         axis.line.x = element_line(color = "white"),
         plot.title = element_text(hjust = 0, size = 14, face = "bold"))
+# Construct file name for this densitree plot
+densitree_name <- paste0(plot_dir, "Tomatoes_Species_tree_comparison_ggdensitree")
+# Assemble the figure
+quilt <- (astral_densitree + concat_densitree) + 
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 10, height = 8, units = "in")
+
+# Plot a nice annotated densitree of the astral species trees
+astral_densitree <- ggdensitree(astral_trees, tip.order = tomato_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
+  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.5) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 110, 6, 6)) +
+  labs(title = "ASTRAL species trees") +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"),
+        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
+  geom_cladelab(node = 57, label = "sect.\nLycopersicoides", align = TRUE, horizontal = TRUE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "black", barcolor = "black") +
+  geom_cladelab(node = 47, label = "Hirsutum", align = TRUE, horizontal = FALSE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "navy", barcolor = "navy") +
+  geom_cladelab(node = 50, label = "Peruvianum", align = TRUE, horizontal = FALSE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "darkgreen", barcolor = "darkgreen") +
+  geom_cladelab(node = 40, label = "Arcanum", align = TRUE, horizontal = FALSE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "goldenrod3", barcolor = "goldenrod3") +
+  geom_cladelab(node = 36, label = "Esculentum", align = TRUE, horizontal = FALSE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "firebrick3", barcolor = "firebrick3")
+# Plot a nice annotated densitree of the concatenated species trees
+concat_densitree <- ggdensitree(concat_trees, tip.order = tomato_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
+  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.5) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 110, 6, 6)) +
+  labs(title = "Concatenated species trees") +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"),
+        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
+  geom_cladelab(node = 57, label = "sect.\nLycopersicoides", align = TRUE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "black", barcolor = "black") +
+  geom_cladelab(node = 44, label = "Hirsutum", align = TRUE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "navy", barcolor = "navy") +
+  geom_cladelab(node = 36, label = "Peruvianum", align = TRUE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "darkgreen", barcolor = "darkgreen") +
+  geom_cladelab(node = 48, label = "Arcanum", align = TRUE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "goldenrod3", barcolor = "goldenrod3") +
+  geom_cladelab(node = 33, label = "Esculentum", align = TRUE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "firebrick3", barcolor = "firebrick3")
+# Construct file name for this densitree plot
+densitree_name <- paste0(plot_dir, "Tomatoes_Species_tree_comparison_ggdensitree_annotated")
 # Assemble the figure
 quilt <- (astral_densitree + concat_densitree) + 
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
@@ -1051,8 +1085,6 @@ consensus_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
 # Open the consensus tree
 consensus_astral_tree <- read.tree(consensus_astral_tree_file)
 consensus_concat_tree <- read.tree(consensus_concat_tree_file)
-# Construct file name for this densitree plot
-densitree_name <- paste0(plot_dir, "Metazoan_Species_tree_comparison_ggdensitree")
 # Root trees
 astral_trees <- lapply(astral_trees, root, roots_by_group[["Metazoan"]])
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
@@ -1117,6 +1149,8 @@ concat_densitree <- ggdensitree(concat_trees, tip.order = metazoans_tip_order, a
   theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
         axis.line.x = element_line(color = "white"),
         plot.title = element_text(hjust = 0, size = 14, face = "bold"))
+# Construct file name for this densitree plot
+densitree_name <- paste0(plot_dir, "Metazoan_Species_tree_comparison_ggdensitree")
 # Assemble the figure
 quilt <- (astral_densitree + concat_densitree) + 
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
