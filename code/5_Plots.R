@@ -1096,14 +1096,12 @@ metazoans_tip_order <- c("Monosiga_ovata", "Acanthoeca_sp", "Monosiga_brevicolis
 
 
 # Create labels for the tips
-tip_labels_df <- color.code.tomato.clades(consensus_astral_tree, taxa.numbers = FALSE, trimmed = FALSE, color = FALSE)
+tip_labels_df <- color.code.metazoan.clades(consensus_concat_tree, trimmed = "FALSE", color = FALSE)
 # Reorder tip_labels_df to match tomato_species_order
-labs <- tip_labels_df[match(tomato_species_order, tip_labels_df$taxa),]
-# Replace taxa names with taxa numbers
-labs$taxa <- tomato_tip_order
+labs <- tip_labels_df[match(metazoans_tip_order, tip_labels_df$taxa),]
 # Plot a nice densitree of the astral species trees
-astral_densitree <- ggdensitree(astral_trees, tip.order = tomato_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
-  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.5) +
+astral_densitree <- ggdensitree(astral_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
+  geom_tiplab(aes(label = long_lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
   coord_cartesian(clip = 'off') +
   theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
   labs(title = "ASTRAL species trees") +
@@ -1111,8 +1109,8 @@ astral_densitree <- ggdensitree(astral_trees, tip.order = tomato_tip_order, alig
         axis.line.x = element_line(color = "white"),
         plot.title = element_text(hjust = 0, size = 14, face = "bold"))
 # Plot a nice densitree of the concatenated species trees
-concat_densitree <- ggdensitree(concat_trees, tip.order = tomato_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
-  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.5) +
+concat_densitree <- ggdensitree(concat_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
+  geom_tiplab(aes(label = long_lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
   coord_cartesian(clip = 'off') +
   theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
   labs(title = "Concatenated species trees") +
@@ -1122,7 +1120,7 @@ concat_densitree <- ggdensitree(concat_trees, tip.order = tomato_tip_order, alig
 # Assemble the figure
 quilt <- (astral_densitree + concat_densitree) + 
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
-ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 10, height = 8, units = "in")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 14, height = 14, units = "in")
 
 
 
