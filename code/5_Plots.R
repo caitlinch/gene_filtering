@@ -877,11 +877,9 @@ dev.off()
 
 
 #### Step 9: Plotting key differences between all trees ####
+## ggdensitree for Primates dataset ##
 # Get all species trees
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
-
-
-## ggdensitree for Primates dataset ##
 # Extract trees for that combination of dataset and tree method
 plot_tree_files <- grep("Primates", all_trees, value = TRUE)
 astral_trees_files <- grep("ASTRAL", plot_tree_files, value = TRUE)
@@ -893,18 +891,18 @@ concat_trees_text <- unlist(lapply(concat_trees_files, readLines))
 astral_trees <- read.tree(text = astral_trees_text)
 concat_trees <- read.tree(text = concat_trees_text)
 # Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
-consensus_astral_tree_file <- grep("NoTest", astral_trees_files, value = TRUE)
-consensus_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
+notest_astral_tree_file <- grep("NoTest", astral_trees_files, value = TRUE)
+notest_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
 # Open the consensus tree
-consensus_astral_tree <- read.tree(consensus_astral_tree_file)
-consensus_concat_tree <- read.tree(consensus_concat_tree_file)
+notest_astral_tree <- read.tree(notest_astral_tree_file)
+notest_concat_tree <- read.tree(notest_concat_tree_file)
 # Root trees
 astral_trees <- lapply(astral_trees, root, roots_by_group[["Primates"]])
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
 concat_trees <- lapply(concat_trees, root, roots_by_group[["Primates"]])
 class(concat_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-consensus_astral_tree <- root(consensus_astral_tree, roots_by_group[["Primates"]])
-consensus_concat_tree <- root(consensus_concat_tree, roots_by_group[["Primates"]])
+notest_astral_tree <- root(notest_astral_tree, roots_by_group[["Primates"]])
+notest_concat_tree <- root(notest_concat_tree, roots_by_group[["Primates"]])
 # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
 astral_trees <- lapply(1:length(astral_trees), 
                        function(i){astral_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(astral_trees[[i]], 
@@ -914,7 +912,7 @@ astral_trees <- lapply(1:length(astral_trees),
                                                                                           scale.tree.length = FALSE, 
                                                                                           new.tree.length = NA)} )
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-consensus_astral_tree <- reformat.ASTRAL.tree.for.plotting(consensus_astral_tree, 
+notest_astral_tree <- reformat.ASTRAL.tree.for.plotting(notest_astral_tree, 
                                                            add.arbitrary.terminal.branches = TRUE, 
                                                            terminal.branch.length = 1, 
                                                            strip.nodes = FALSE,
@@ -930,7 +928,7 @@ primates_tip_order <- c("Pan troglodytes", "Pan paniscus", "Homo sapiens", "Gori
                         "Propithecus coquereli", "Otolemur garnettii", "Galeopterus variegatus", "Tupaia chinensis",
                         "Mus musculus")
 # Create labels for the tips
-tip_labels_df <- color.code.primate.clades(consensus_concat_tree, color = FALSE)
+tip_labels_df <- color.code.primate.clades(notest_concat_tree, color = FALSE)
 # Reorder tip_labels_df to match tomato_species_order
 labs <- tip_labels_df[match(primates_tip_order, tip_labels_df$taxa),]
 # Replace taxa names with taxa numbers
@@ -959,7 +957,6 @@ densitree_name <- paste0(plot_dir, "Primates_Species_tree_comparison_ggdensitree
 quilt <- (astral_densitree + concat_densitree) + 
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 10, height = 8, units = "in")
-
 # Plot a nice annotated densitree of the astral species trees
 astral_densitree <- ggdensitree(astral_trees, tip.order = labs$taxa, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
   geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.2) +
@@ -1009,6 +1006,8 @@ ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", 
 
 
 ## ggdensitree for Tomatoes dataset ##
+# Get all species trees
+all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
 # Extract trees for that combination of dataset and tree method
 plot_tree_files <- grep("Tomatoes", all_trees, value = TRUE)
 astral_trees_files <- grep("ASTRAL", plot_tree_files, value = TRUE)
@@ -1020,18 +1019,18 @@ concat_trees_text <- unlist(lapply(concat_trees_files, readLines))
 astral_trees <- read.tree(text = astral_trees_text)
 concat_trees <- read.tree(text = concat_trees_text)
 # Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
-consensus_astral_tree_file <- grep("NoTest", astral_trees_files, value = TRUE)
-consensus_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
+notest_astral_tree_file <- grep("NoTest", astral_trees_files, value = TRUE)
+notest_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
 # Open the consensus tree
-consensus_astral_tree <- read.tree(consensus_astral_tree_file)
-consensus_concat_tree <- read.tree(consensus_concat_tree_file)
+notest_astral_tree <- read.tree(notest_astral_tree_file)
+notest_concat_tree <- read.tree(notest_concat_tree_file)
 # Root trees
 astral_trees <- lapply(astral_trees, root, roots_by_group[["Tomatoes"]])
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
 concat_trees <- lapply(concat_trees, root, roots_by_group[["Tomatoes"]])
 class(concat_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-consensus_astral_tree <- root(consensus_astral_tree, roots_by_group[["Tomatoes"]])
-consensus_concat_tree <- root(consensus_concat_tree, roots_by_group[["Tomatoes"]])
+notest_astral_tree <- root(notest_astral_tree, roots_by_group[["Tomatoes"]])
+notest_concat_tree <- root(notest_concat_tree, roots_by_group[["Tomatoes"]])
 # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
 astral_trees <- lapply(1:length(astral_trees), 
                        function(i){astral_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(astral_trees[[i]], 
@@ -1041,7 +1040,7 @@ astral_trees <- lapply(1:length(astral_trees),
                                                                                           scale.tree.length = FALSE, 
                                                                                           new.tree.length = NA)} )
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-consensus_astral_tree <- reformat.ASTRAL.tree.for.plotting(consensus_astral_tree, 
+notest_astral_tree <- reformat.ASTRAL.tree.for.plotting(notest_astral_tree, 
                                                            add.arbitrary.terminal.branches = TRUE, 
                                                            terminal.branch.length = 1, 
                                                            strip.nodes = FALSE,
@@ -1054,7 +1053,7 @@ tomato_tip_order <- c("LA3909", "LA0436", "LA0429", "LA3124", "LA3475", "SL2.50"
                       "LA3778", "LA0716", "LA4126", "LA2951", "LA4116")
 tomato_species_order <- rename.tomato.tips(tomato_tip_order)
 # Create labels for the tips
-tip_labels_df <- color.code.tomato.clades(consensus_astral_tree, taxa.numbers = FALSE, trimmed = FALSE, color = FALSE)
+tip_labels_df <- color.code.tomato.clades(notest_astral_tree, taxa.numbers = FALSE, trimmed = FALSE, color = FALSE)
 # Reorder tip_labels_df to match tomato_species_order
 labs <- tip_labels_df[match(tomato_species_order, tip_labels_df$taxa),]
 # Replace taxa names with taxa numbers
@@ -1083,7 +1082,6 @@ densitree_name <- paste0(plot_dir, "Tomatoes_Species_tree_comparison_ggdensitree
 quilt <- (astral_densitree + concat_densitree) + 
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 10, height = 8, units = "in")
-
 # Plot a nice annotated densitree of the astral species trees
 astral_densitree <- ggdensitree(astral_trees, tip.order = tomato_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
   geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.5) +
@@ -1121,6 +1119,8 @@ ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", 
 
 
 ## ggdensitree for Metazoans dataset ##
+# Get all species trees
+all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
 # Extract trees for that combination of dataset and tree method
 plot_tree_files <- grep("Metazoan", all_trees, value = TRUE)
 astral_trees_files <- grep("ASTRAL", plot_tree_files, value = TRUE)
@@ -1132,18 +1132,18 @@ concat_trees_text <- unlist(lapply(concat_trees_files, readLines))
 astral_trees <- read.tree(text = astral_trees_text)
 concat_trees <- read.tree(text = concat_trees_text)
 # Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
-consensus_astral_tree_file <- grep("NoTest", astral_trees_files, value = TRUE)
-consensus_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
+notest_astral_tree_file <- grep("NoTest", astral_trees_files, value = TRUE)
+notest_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
 # Open the consensus tree
-consensus_astral_tree <- read.tree(consensus_astral_tree_file)
-consensus_concat_tree <- read.tree(consensus_concat_tree_file)
+notest_astral_tree <- read.tree(notest_astral_tree_file)
+notest_concat_tree <- read.tree(notest_concat_tree_file)
 # Root trees
 astral_trees <- lapply(astral_trees, root, roots_by_group[["Metazoan"]])
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
 concat_trees <- lapply(concat_trees, root, roots_by_group[["Metazoan"]])
 class(concat_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-consensus_astral_tree <- root(consensus_astral_tree, roots_by_group[["Metazoan"]])
-consensus_concat_tree <- root(consensus_concat_tree, roots_by_group[["Metazoan"]])
+notest_astral_tree <- root(notest_astral_tree, roots_by_group[["Metazoan"]])
+notest_concat_tree <- root(notest_concat_tree, roots_by_group[["Metazoan"]])
 # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
 astral_trees <- lapply(1:length(astral_trees), 
                        function(i){astral_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(astral_trees[[i]], 
@@ -1153,7 +1153,7 @@ astral_trees <- lapply(1:length(astral_trees),
                                                                                           scale.tree.length = FALSE, 
                                                                                           new.tree.length = NA)} )
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-consensus_astral_tree <- reformat.ASTRAL.tree.for.plotting(consensus_astral_tree, 
+notest_astral_tree <- reformat.ASTRAL.tree.for.plotting(notest_astral_tree, 
                                                            add.arbitrary.terminal.branches = TRUE, 
                                                            terminal.branch.length = 1, 
                                                            strip.nodes = FALSE,
@@ -1177,10 +1177,133 @@ metazoans_tip_order <- c("Monosiga_ovata", "Acanthoeca_sp", "Monosiga_brevicolis
                          "Hydra_vulgaris", "Hydra_viridissima", "Periphyla_periphyla", "Aiptasia_pallida", "Hormathia_digitata", "Bolocera_tuediae",
                          "Nematostella_vectensis", "Acropora_digitifera", "Eunicella_verrucosa",
                          "Capitella_teleta", "Hemithris_psittacea", "Drosophila_melanogaster", "Daphnia_pulex", "Homo_sapiens", "Strongylocentrotus_purpatus")
-
-
 # Create labels for the tips
-tip_labels_df <- color.code.metazoan.clades(consensus_concat_tree, trimmed = "FALSE", color = FALSE)
+tip_labels_df <- color.code.metazoan.clades(notest_concat_tree, trimmed = "FALSE", color = FALSE)
+# Reorder tip_labels_df to match tomato_species_order
+labs <- tip_labels_df[match(metazoans_tip_order, tip_labels_df$taxa),]
+# Plot a nice densitree of the astral species trees
+astral_densitree <- ggdensitree(astral_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
+  geom_tiplab(aes(label = long_lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
+  labs(title = "ASTRAL species trees") +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"),
+        plot.title = element_text(hjust = 0, size = 14, face = "bold"))
+# Plot a nice densitree of the concatenated species trees
+concat_densitree <- ggdensitree(concat_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
+  geom_tiplab(aes(label = long_lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
+  labs(title = "Concatenated species trees") +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"),
+        plot.title = element_text(hjust = 0, size = 14, face = "bold"))
+# Construct file name for this densitree plot
+densitree_name <- paste0(plot_dir, "Metazoan_Species_tree_comparison_ggdensitree")
+# Assemble the figure
+quilt <- (astral_densitree + concat_densitree) + 
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 14, height = 14, units = "in")
+# Plot a nice annotated densitree of the astral species trees
+astral_densitree <- ggdensitree(astral_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
+  geom_tiplab(aes(label = short_lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 80, 6, 6)) +
+  labs(title = "ASTRAL species trees") +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"),
+        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
+  geom_cladelab(node = 151, label = "Choanoflagellata", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = 122, label = "Ctenophora", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "navy", barcolor = "navy") +
+  geom_cladelab(node = 100, label = "Porifera", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "goldenrod", barcolor = "goldenrod") +
+  geom_cladelab(node = 83, label = "Cnidaria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "firebrick", barcolor = "firebrick") +
+  geom_cladelab(node = 93, label = "Bilateria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "black", barcolor = "black") +
+  geom_cladelab(node = 22, label = "Placozoa", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen")
+# Plot a nice annotated densitree of the concatenated species trees
+concat_densitree <- ggdensitree(concat_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
+  geom_tiplab(aes(label = short_lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 80, 6, 6)) +
+  labs(title = "Concatenated species trees") +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"),
+        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
+  geom_cladelab(node = 151, label = "Choanoflagellata", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = 114, label = "Ctenophora", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "navy", barcolor = "navy") +
+  geom_cladelab(node = 90, label = "Porifera", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "goldenrod", barcolor = "goldenrod") +
+  geom_cladelab(node = 82, label = "Cnidaria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "firebrick", barcolor = "firebrick") +
+  geom_cladelab(node = 84, label = "Bilateria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "black", barcolor = "black") +
+  geom_cladelab(node = 62, label = "Placozoa", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen")
+# Construct file name for this densitree plot
+densitree_name <- paste0(plot_dir, "Metazoan_Species_tree_comparison_ggdensitree_annotated")
+# Assemble the figure
+quilt <- (astral_densitree + concat_densitree) + 
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 16.5, height = 12, units = "in")
+
+
+## ggdensitree for Plants dataset ##
+# Get all species trees
+all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
+# Extract trees for that combination of dataset and tree method
+plot_tree_files <- grep("Plants", all_trees, value = TRUE)
+astral_trees_files <- grep("ASTRAL", plot_tree_files, value = TRUE)
+concat_trees_files <- grep("CONCAT", plot_tree_files, value = TRUE)
+# Extract text file for each tree
+astral_trees_text <- unlist(lapply(astral_trees_files, readLines))
+concat_trees_text <- unlist(lapply(concat_trees_files, readLines))
+# Read trees into a multiphylo object
+astral_trees <- read.tree(text = astral_trees_text)
+concat_trees <- read.tree(text = concat_trees_text)
+# Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
+notest_astral_tree_file <- grep("NoTest", astral_trees_files, value = TRUE)
+notest_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
+# Open the consensus tree
+notest_astral_tree <- read.tree(notest_astral_tree_file)
+notest_concat_tree <- read.tree(notest_concat_tree_file)
+# Root trees
+astral_trees <- lapply(astral_trees, root, roots_by_group[["Metazoan"]])
+class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
+concat_trees <- lapply(concat_trees, root, roots_by_group[["Metazoan"]])
+class(concat_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
+notest_astral_tree <- root(notest_astral_tree, roots_by_group[["Metazoan"]])
+notest_concat_tree <- root(notest_concat_tree, roots_by_group[["Metazoan"]])
+# If tree estimation method is ASTRAL, add an arbitrary terminal branch length
+astral_trees <- lapply(1:length(astral_trees), 
+                       function(i){astral_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(astral_trees[[i]], 
+                                                                                          add.arbitrary.terminal.branches = TRUE, 
+                                                                                          terminal.branch.length = 1, 
+                                                                                          strip.nodes = FALSE,
+                                                                                          scale.tree.length = FALSE, 
+                                                                                          new.tree.length = NA)} )
+class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
+notest_astral_tree <- reformat.ASTRAL.tree.for.plotting(notest_astral_tree, 
+                                                           add.arbitrary.terminal.branches = TRUE, 
+                                                           terminal.branch.length = 1, 
+                                                           strip.nodes = FALSE,
+                                                           scale.tree.length = FALSE, 
+                                                           new.tree.length = NA)
+# Get the order for the tips (bottom species first, top species last)
+metazoans_tip_order <- c("Monosiga_ovata", "Acanthoeca_sp", "Monosiga_brevicolis", "Salpingoeca_rosetta", "Salpingoeca_pyxidium",
+                         "Beroe_abyssicola", "Beroe_sp_Antarctica", "Beroe_ovata", "Beroe_forskalii", "Beroe_sp_Queensland_Australia",
+                         "Lobata_sp_Punta_Arenas_Argentina", "Bolinopsis_ashleyi", "Ctenophora_sp_Florida_USA", "Cestum_veneris",
+                         "Eurhamphaea_vexilligera", "Mnemiopsis_leidyi", "Bolinopsis_infundibulum", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA", 
+                         "Ocyropsis_sp_Bimini_Bahamas", "Lobatolampea_tetragona", "Dryodora_glandiformis", "Cydippida_sp", "Mertensiidae_sp_Washington_USA",
+                         "Mertensiidae_sp_Antarctica", "Callianira_Antarctica", "Cydippida_sp_Maryland_USA", "Pleurobrachia_sp_South_Carolina_USA",
+                         "Pleurobrachia_bachei", "Pleurobrachia_pileus", "Hormiphora_californica", "Hormiphora_palmata", "Coeloplana_astericola",
+                         "Vallicula_sp", "Euplokamis_dunlapae",
+                         "Amphimedon_queenslandica", "Petrosia_ficiformis", "Crella_elegans", "Kirkpatrickia_variolosa", "Latrunculia_apicalis",
+                         "Mycale_phylophylla", "Pseudospongosorites_suberitoides", "Cliona_varians", "Spongilla_lacustris", "Chondrilla_nucula",
+                         "Ircinia_fasciculata", "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Hyalonema_populiferum",
+                         "Corticium_candelabrum", "Oscarella_carmela", "Sycon_ciliatum", "Sycon_coactum",
+                         "Trichoplax_adhaerens",
+                         "Nanomia_bijuga", "Agalma_elegans", "Abylopsis_tetragona", "Craseo_lathetica", "Physalia_physalia", "Hydra_oligactis",
+                         "Hydra_vulgaris", "Hydra_viridissima", "Periphyla_periphyla", "Aiptasia_pallida", "Hormathia_digitata", "Bolocera_tuediae",
+                         "Nematostella_vectensis", "Acropora_digitifera", "Eunicella_verrucosa",
+                         "Capitella_teleta", "Hemithris_psittacea", "Drosophila_melanogaster", "Daphnia_pulex", "Homo_sapiens", "Strongylocentrotus_purpatus")
+# Create labels for the tips
+tip_labels_df <- color.code.metazoan.clades(notest_concat_tree, trimmed = "FALSE", color = FALSE)
 # Reorder tip_labels_df to match tomato_species_order
 labs <- tip_labels_df[match(metazoans_tip_order, tip_labels_df$taxa),]
 # Plot a nice densitree of the astral species trees
@@ -1244,9 +1367,6 @@ densitree_name <- paste0(plot_dir, "Metazoan_Species_tree_comparison_ggdensitree
 quilt <- (astral_densitree + concat_densitree) + 
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 16.5, height = 12, units = "in")
-
-
-
 
 
 
