@@ -1244,6 +1244,11 @@ ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", 
 
 
 ## ggdensitree for Plants dataset ##
+# Open the annotations file for the plants dataset
+annotations_df <- read.csv(annotation_csv_file)
+# Extract Chromista taxa: these will be the outgroups
+outgroup_taxa <- annotations_df[annotations_df$Very.Brief.Classification == "Chromista ",]$Code
+
 # Get all species trees
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
 # Extract trees for that combination of dataset and tree method
@@ -1262,13 +1267,16 @@ notest_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
 # Open the consensus tree
 notest_astral_tree <- read.tree(notest_astral_tree_file)
 notest_concat_tree <- read.tree(notest_concat_tree_file)
-# Root trees
-astral_trees <- lapply(astral_trees, root, roots_by_group[["Metazoan"]])
+# Trim the outgroup - get rid of any taxa that aren't in the trees
+notest_astral_tree_outgroup <- outgroup_taxa[outgroup_taxa %in% notest_astral_tree$tip.label]
+notest_concat_tree_outgroup <- outgroup_taxa[outgroup_taxa %in% notest_concat_tree$tip.label]
+# Root multiphylo trees using the trimmed outgroups
+notest_astral_tree <- root(notest_astral_tree, notest_astral_tree_outgroup)
+notest_concat_tree <- root(notest_concat_tree, notest_concat_tree_outgroup)
+astral_trees <- lapply(astral_trees, root, notest_astral_tree_outgroup)
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-concat_trees <- lapply(concat_trees, root, roots_by_group[["Metazoan"]])
+concat_trees <- lapply(concat_trees, root, notest_concat_tree_outgroup)
 class(concat_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-notest_astral_tree <- root(notest_astral_tree, roots_by_group[["Metazoan"]])
-notest_concat_tree <- root(notest_concat_tree, roots_by_group[["Metazoan"]])
 # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
 astral_trees <- lapply(1:length(astral_trees), 
                        function(i){astral_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(astral_trees[[i]], 
@@ -1284,24 +1292,7 @@ notest_astral_tree <- reformat.ASTRAL.tree.for.plotting(notest_astral_tree,
                                                            strip.nodes = FALSE,
                                                            scale.tree.length = FALSE, 
                                                            new.tree.length = NA)
-# Get the order for the tips (bottom species first, top species last)
-metazoans_tip_order <- c("Monosiga_ovata", "Acanthoeca_sp", "Monosiga_brevicolis", "Salpingoeca_rosetta", "Salpingoeca_pyxidium",
-                         "Beroe_abyssicola", "Beroe_sp_Antarctica", "Beroe_ovata", "Beroe_forskalii", "Beroe_sp_Queensland_Australia",
-                         "Lobata_sp_Punta_Arenas_Argentina", "Bolinopsis_ashleyi", "Ctenophora_sp_Florida_USA", "Cestum_veneris",
-                         "Eurhamphaea_vexilligera", "Mnemiopsis_leidyi", "Bolinopsis_infundibulum", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA", 
-                         "Ocyropsis_sp_Bimini_Bahamas", "Lobatolampea_tetragona", "Dryodora_glandiformis", "Cydippida_sp", "Mertensiidae_sp_Washington_USA",
-                         "Mertensiidae_sp_Antarctica", "Callianira_Antarctica", "Cydippida_sp_Maryland_USA", "Pleurobrachia_sp_South_Carolina_USA",
-                         "Pleurobrachia_bachei", "Pleurobrachia_pileus", "Hormiphora_californica", "Hormiphora_palmata", "Coeloplana_astericola",
-                         "Vallicula_sp", "Euplokamis_dunlapae",
-                         "Amphimedon_queenslandica", "Petrosia_ficiformis", "Crella_elegans", "Kirkpatrickia_variolosa", "Latrunculia_apicalis",
-                         "Mycale_phylophylla", "Pseudospongosorites_suberitoides", "Cliona_varians", "Spongilla_lacustris", "Chondrilla_nucula",
-                         "Ircinia_fasciculata", "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Hyalonema_populiferum",
-                         "Corticium_candelabrum", "Oscarella_carmela", "Sycon_ciliatum", "Sycon_coactum",
-                         "Trichoplax_adhaerens",
-                         "Nanomia_bijuga", "Agalma_elegans", "Abylopsis_tetragona", "Craseo_lathetica", "Physalia_physalia", "Hydra_oligactis",
-                         "Hydra_vulgaris", "Hydra_viridissima", "Periphyla_periphyla", "Aiptasia_pallida", "Hormathia_digitata", "Bolocera_tuediae",
-                         "Nematostella_vectensis", "Acropora_digitifera", "Eunicella_verrucosa",
-                         "Capitella_teleta", "Hemithris_psittacea", "Drosophila_melanogaster", "Daphnia_pulex", "Homo_sapiens", "Strongylocentrotus_purpatus")
+
 # Create labels for the tips
 tip_labels_df <- color.code.metazoan.clades(notest_concat_tree, trimmed = "FALSE", color = FALSE)
 # Reorder tip_labels_df to match tomato_species_order
