@@ -14,8 +14,7 @@
 # maindir                 <- "gene_filtering" repository location (github.com/caitlinch/gene_filtering)
 # plot_dir                <- for saving plots and analyses.
 # annotations_csv_file    <- location of misc/annotations.csv file from the Leebens-Mack (2019) "Data from 1000 Plants Transcriptomes" data repository
-# datasets                <- set name(s) for the dataset(s)
-# roots                   <- set which taxa is outgroup for each dataset
+# roots_by_groups         <- set which taxa is outgroup for each dataset: Primates, Tomatoes, Metazoans, and Plants
 
 ### Caitlin's paths ###
 # Folders and filepaths
@@ -24,13 +23,6 @@ plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results
 annotation_csv_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/misc/annotations.csv"
 
 # Dataset information
-datasets <- c("Vanderpool2020", "Pease2016", "Whelan2017", "1KP")
-roots <- list("1KP" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
-                        "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
-                        "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
-              "Whelan2017" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
-              "Vanderpool2020" = c("Mus_musculus"), 
-              "Pease2016" = c("LA4116", "LA2951", "LA4126"))
 roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
                                     "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
                                     "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
@@ -69,7 +61,7 @@ primate_concat_trees <- grep("CONCAT", primate_tree_files, value = TRUE)
 pt1_file <- grep("NoTest", primate_astral_trees, value = TRUE)
 pt1 <- read.tree(pt1_file)
 # Root tree (as in Vanderpool 2020 paper)
-pt1 <- root(pt1, outgroup = roots[["Vanderpool2020"]])
+pt1 <- root(pt1, outgroup = roots_by_group[["Primates"]])
 # Change edge.length to 0.5
 pt1$edge.length[which(is.nan(pt1$edge.length))] <- 0.5
 # Remove underscores from tips
@@ -105,9 +97,9 @@ pt1 <- read.tree(file = pt1_file)
 pt2 <- read.tree(file = pt2_file)
 pt3 <- read.tree(file = pt3_file)
 # Root trees (as in Vanderpool 2020 paper)
-pt1 <- root(pt1, outgroup = roots[["Vanderpool2020"]])
-pt2 <- root(pt2, outgroup = roots[["Vanderpool2020"]])
-pt3 <- root(pt3, outgroup = roots[["Vanderpool2020"]])
+pt1 <- root(pt1, outgroup = roots_by_group[["Primates"]])
+pt2 <- root(pt2, outgroup = roots_by_group[["Primates"]])
+pt3 <- root(pt3, outgroup = roots_by_group[["Primates"]])
 # Drop all tips except the four tips inside the variable clade
 pt1 <- keep.tip(pt1, c("Callithrix_jacchus", "Aotus_nancymaae", "Saimiri_boliviensis", "Cebus_capucinus_imitator"))
 pt2 <- keep.tip(pt2, c("Callithrix_jacchus", "Aotus_nancymaae", "Saimiri_boliviensis", "Cebus_capucinus_imitator"))
@@ -142,7 +134,7 @@ ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf", height = 10,
 pt1_file <- grep("NoTest", primate_concat_trees, value = TRUE)
 pt1 <- read.tree(pt1_file)
 # Root tree (as in Vanderpool 2020 paper)
-pt1 <- root(pt1, outgroup = roots[["Vanderpool2020"]])
+pt1 <- root(pt1, outgroup = roots_by_group[["Primates"]])
 # Remove underscores from tips
 pt1$tip.label <- gsub("_", " ", pt1$tip.label)
 # Color code incongruent clade
@@ -172,8 +164,8 @@ pt2_file <- grep("PHI_fail", primate_concat_trees, value = TRUE)
 pt1 <- read.tree(file = pt1_file)
 pt2 <- read.tree(file = pt2_file)
 # Root trees (as in Vanderpool 2020 paper)
-pt1 <- root(pt1, outgroup = roots[["Vanderpool2020"]])
-pt2 <- root(pt2, outgroup = roots[["Vanderpool2020"]])
+pt1 <- root(pt1, outgroup = roots_by_group[["Primates"]])
+pt2 <- root(pt2, outgroup = roots_by_group[["Primates"]])
 # Drop all tips except the four tips inside the variable clade
 pt1 <- keep.tip(pt1, c("Cercocebus_atys", "Mandrillus_leucophaeus", "Papio_anubis", "Theropithecus_gelada"))
 pt2 <- keep.tip(pt2, c("Cercocebus_atys", "Mandrillus_leucophaeus", "Papio_anubis", "Theropithecus_gelada"))
@@ -226,7 +218,7 @@ tt4 <- read.tree(tt4_file)
 tt5 <- read.tree(tt5_file)
 tt6 <- read.tree(tt6_file)
 # Reroot tree 1 at proper outgroup
-tt1 <- root(tt1, outgroup = roots[["Pease2016"]])
+tt1 <- root(tt1, outgroup = roots_by_group[["Tomatoes"]])
 # Reformat tomato clades for trees 1-6
 tt1_small <- reformat.congruent.tomato.clades(tt1_small)
 tt2 <- reformat.congruent.tomato.clades(tt2)
@@ -358,7 +350,7 @@ tt2 <- read.tree(tt2_file)
 tt3 <- read.tree(tt3_file)
 tt4 <- read.tree(tt4_file)
 # Reroot tree 1 at proper outgroup
-tt1 <- root(tt1, outgroup = roots[["Pease2016"]])
+tt1 <- root(tt1, outgroup = roots_by_group[["Tomatoes"]])
 # Reformat tomato clades for trees 1-4
 tt1_small <- reformat.congruent.tomato.clades(tt1_small)
 tt2 <- reformat.congruent.tomato.clades(tt2)
@@ -663,7 +655,7 @@ palette2 <- c("#D81B60", "#1E88E5", "#E0A800", "#004D40", "#b1b1b1")
 ## Plot Cebidae trees
 cebidae_trees <- read.tree(cebidae_tree_file)
 # Root tree (as in Vanderpool 2020 paper)
-cebidae_trees <- root(cebidae_trees, outgroup = roots[["Vanderpool2020"]])
+cebidae_trees <- root(cebidae_trees, outgroup = roots_by_group[["Primates"]])
 # Create color scheme
 cebidae_df <- color.code.comparison.clades(cebidae_trees, variable = "Cebidae")
 
@@ -700,7 +692,7 @@ ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", heig
 ## Plot comparison trees
 comparison_trees <- read.tree(comparison_tree_file)
 # Root tree (as in Vanderpool 2020 paper)
-comparison_trees <- root(comparison_trees, outgroup = roots[["Vanderpool2020"]])
+comparison_trees <- root(comparison_trees, outgroup = roots_by_group[["Primates"]])
 # Create color scheme
 comparison_df <- color.code.comparison.clades(comparison_trees, variable = "Comparison")
 
@@ -835,7 +827,7 @@ tomato_gts <- read.tree(all_tomato_gene_trees_file)
 # Open the coalescent species tree to be the consensus tree and root it
 consensus_tree_file <- paste0(maindir, "species_trees/Tomatoes_NoTest_ASTRAL_species.tre")
 consensus_tree <- read.tree(consensus_tree_file)
-consensus_tree <- root(consensus_tree, roots[["Pease2016"]])
+consensus_tree <- root(consensus_tree, roots_by_group[["Tomatoes"]])
 consensus_tree$edge.length[which(is.na(consensus_tree$edge.length))] <- 0.1
 # Change tip names
 consensus_tree$tip.label <- rename.tomato.tips(consensus_tree$tip.label)
@@ -1286,7 +1278,7 @@ notest_astral_tree <- reformat.ASTRAL.tree.for.plotting(notest_astral_tree,
                                                            new.tree.length = NA)
 
 # Create labels for the tips
-tip_labels_df <- color.code.metazoan.clades(notest_concat_tree, trimmed = "FALSE", color = FALSE)
+tip_labels_df <- label.plant.taxa(notest_concat_tree$tip.label, annotations_df)
 # Reorder tip_labels_df to match tomato_species_order
 labs <- tip_labels_df[match(metazoans_tip_order, tip_labels_df$taxa),]
 # Plot a nice densitree of the astral species trees
