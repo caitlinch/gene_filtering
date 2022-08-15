@@ -5,6 +5,7 @@
 library(phytools) # Functions: nodeHeights
 library(dplyr)
 library(glue)
+library(ggtree)
 
 
 
@@ -485,9 +486,9 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE", color = TRUE){
     clade_groups <- c(rep("Bilateria", length(Bilateria)), rep("Cnidaria", length(Cnidaria)), rep("Placozoa", length(Placozoa)), 
                       rep("Porifera", length(Porifera)), rep("Ctenophora", length(Ctenophora)), rep("Choanoflagellata", length(Clade_Outgroup)))
     if (color == TRUE){
-    taxa_colors <- c()
-    clade_colors <- c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
-                      rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("gray", length(Clade_Outgroup)))
+      taxa_colors <- c()
+      clade_colors <- c(rep("black", length(Bilateria)), rep("red", length(Cnidaria)), rep("green", length(Placozoa)), 
+                        rep("yellow", length(Porifera)), rep("blue", length(Ctenophora)), rep("gray", length(Clade_Outgroup)))
     } else if (color == FALSE){
       taxa_colors <- c()
       clade_colors <- c(rep("black", length(Bilateria)), rep("black", length(Cnidaria)), rep("black", length(Placozoa)), 
@@ -736,6 +737,48 @@ extract.one.plant.tip <- function(tip, classification_df){
   return(row)
 }
 
+
+
+reduce.tree.to.clades <- function(tree, labels_df, annotations_df){
+  # Function to take a label df and a tree and reduce each clade to a single tip
+  
+  # Use ggtree::fortify() to create a dataframe from the tree
+  tree_df <- subset(fortify(tree), isTip)
+  # Attach the information from the tips dataframe
+  tree_df <- cbind(tree_df, labels_df[match(tree_df$label, labels_df$code), ])
+  tree_df <- cbind(tree_df, annotations_df[match(tree_df$label, annotations_df[(annotations_df$Code %in% tree$tip.label), ]$Code), ])
+  
+  # Extract a list of the unique clades
+  unique_clades <- unique(tree_df$clade)
+  
+  c = "Eudicots"
+  # Create a new copy of the tree
+  tree_new <- tree
+  
+  # Iterate through each unique clade
+  for (c in unique_clades){
+    # Reduce a copy of the dataframe to taxa from this clade only
+    c_df <- tree_df[tree_df$clade == c, ]
+    # Extract the nodes from this clade
+    c_nodes <- c_df$node
+    # Extract the list of tips from this clade
+    c_tips <- c_df$label
+    # Remove any ANAGrade tips (not a clade)
+    if (c == "ANAGrade"){
+      tree_new <- drop.tip(tree_new, c_tips, trim.internal = TRUE)
+    }
+    # Check if the clade is monophyletic
+    mono_check <- is.monophyletic(tree, c_tips)
+    print(paste0(c, " : ", mono_check))
+    if (mono_check == TRUE){
+      # If the clade is monophyletic, reduce it to one tip picked at random
+      new_c_tip <- c_tips[1]
+      drop_c_tips <- c_tips[2:length(c_tips)]
+      # Drop the tips
+      tree_new <- drop.tip(tree_new, drop_c_tips, trim.internal = TRUE)
+    }
+  } # end iterating through clades
+}
 
 
 
