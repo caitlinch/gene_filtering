@@ -720,7 +720,7 @@ label.plant.taxa <- function(tips, classification_df){
                                short_lab = glue('italic("{generic_initial}. {specific_name}")'),
                                long_lab = glue('italic("{taxa}")'),
                                short_name = glue("<i style='color:black'>{generic_initial} {specific_name}</i>"),
-                               long_name = glue("<i style='color:black'>{taxa_prettyprint}</i>") )
+                               long_name = glue("<i style='color:black'>{taxa}</i>") )
   # Return the formatted labels 
   return(taxa_lab_df)
 }
