@@ -897,11 +897,11 @@ astral_trees <- lapply(1:length(astral_trees),
                                                                                           new.tree.length = NA)} )
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
 notest_astral_tree <- reformat.ASTRAL.tree.for.plotting(notest_astral_tree, 
-                                                           add.arbitrary.terminal.branches = TRUE, 
-                                                           terminal.branch.length = 1, 
-                                                           strip.nodes = FALSE,
-                                                           scale.tree.length = FALSE, 
-                                                           new.tree.length = NA)
+                                                        add.arbitrary.terminal.branches = TRUE, 
+                                                        terminal.branch.length = 1, 
+                                                        strip.nodes = FALSE,
+                                                        scale.tree.length = FALSE, 
+                                                        new.tree.length = NA)
 # Get the order for the tips (bottom species first, top species last)
 primates_tip_order <- c("Pan troglodytes", "Pan paniscus", "Homo sapiens", "Gorilla gorilla",
                         "Pongo abelii", "Nomascus leucogenys", "Macaca mulatta", "Macaca fascicularis",
@@ -1025,11 +1025,11 @@ astral_trees <- lapply(1:length(astral_trees),
                                                                                           new.tree.length = NA)} )
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
 notest_astral_tree <- reformat.ASTRAL.tree.for.plotting(notest_astral_tree, 
-                                                           add.arbitrary.terminal.branches = TRUE, 
-                                                           terminal.branch.length = 1, 
-                                                           strip.nodes = FALSE,
-                                                           scale.tree.length = FALSE, 
-                                                           new.tree.length = NA)
+                                                        add.arbitrary.terminal.branches = TRUE, 
+                                                        terminal.branch.length = 1, 
+                                                        strip.nodes = FALSE,
+                                                        scale.tree.length = FALSE, 
+                                                        new.tree.length = NA)
 # Get the order for the tips (bottom species first, top species last)
 tomato_tip_order <- c("LA3909", "LA0436", "LA0429", "LA3124", "LA3475", "SL2.50", "LA1589", "LA1269",
                       "LA2933", "LA2133", "LA1322", "LA2172", "LA1316", "LA1028", "LA1364", "LA1782",
@@ -1138,11 +1138,11 @@ astral_trees <- lapply(1:length(astral_trees),
                                                                                           new.tree.length = NA)} )
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
 notest_astral_tree <- reformat.ASTRAL.tree.for.plotting(notest_astral_tree, 
-                                                           add.arbitrary.terminal.branches = TRUE, 
-                                                           terminal.branch.length = 1, 
-                                                           strip.nodes = FALSE,
-                                                           scale.tree.length = FALSE, 
-                                                           new.tree.length = NA)
+                                                        add.arbitrary.terminal.branches = TRUE, 
+                                                        terminal.branch.length = 1, 
+                                                        strip.nodes = FALSE,
+                                                        scale.tree.length = FALSE, 
+                                                        new.tree.length = NA)
 # Get the order for the tips (bottom species first, top species last)
 metazoans_tip_order <- c("Monosiga_ovata", "Acanthoeca_sp", "Monosiga_brevicolis", "Salpingoeca_rosetta", "Salpingoeca_pyxidium",
                          "Beroe_abyssicola", "Beroe_sp_Antarctica", "Beroe_ovata", "Beroe_forskalii", "Beroe_sp_Queensland_Australia",
@@ -1271,69 +1271,55 @@ astral_trees <- lapply(1:length(astral_trees),
                                                                                           new.tree.length = NA)} )
 class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
 notest_astral_tree <- reformat.ASTRAL.tree.for.plotting(notest_astral_tree, 
-                                                           add.arbitrary.terminal.branches = TRUE, 
-                                                           terminal.branch.length = 1, 
-                                                           strip.nodes = FALSE,
-                                                           scale.tree.length = FALSE, 
-                                                           new.tree.length = NA)
+                                                        add.arbitrary.terminal.branches = TRUE, 
+                                                        terminal.branch.length = 1, 
+                                                        strip.nodes = FALSE,
+                                                        scale.tree.length = FALSE, 
+                                                        new.tree.length = NA)
 
 # Create labels for the tips
 tip_labels_df <- label.plant.taxa(notest_concat_tree$tip.label, annotations_df)
 # Plot a nice densitree of the astral species trees
-astral_densitree <- ggdensitree(astral_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
-  geom_tiplab(aes(label = long_lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
-  labs(title = "ASTRAL species trees") +
-  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
-        axis.line.x = element_line(color = "white"),
-        plot.title = element_text(hjust = 0, size = 14, face = "bold"))
+astral_densitree <- ggdensitree(astral_trees, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") +
+  labs(title = "ASTRAL species trees")
 # Plot a nice densitree of the concatenated species trees
-concat_densitree <- ggdensitree(concat_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
-  geom_tiplab(aes(label = long_lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
-  labs(title = "Concatenated species trees") +
-  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
-        axis.line.x = element_line(color = "white"),
-        plot.title = element_text(hjust = 0, size = 14, face = "bold"))
+concat_densitree <- ggdensitree(concat_trees, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") +
+  labs(title = "Concatenated species trees")
 # Construct file name for this densitree plot
-densitree_name <- paste0(plot_dir, "Metazoan_Species_tree_comparison_ggdensitree")
+densitree_name <- paste0(plot_dir, "Plants_Species_tree_comparison_ggdensitree")
 # Assemble the figure
 quilt <- (astral_densitree + concat_densitree) + 
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 14, height = 14, units = "in")
 
+# Trim to one taxa per Very.Brief.Classification
+unique_classification_rows <- c(1, 103, 652, 654, 679, 701, 711, 828, 861, 890, 897, 946, 988, 1010, 1083, 1172)
+clade_labels_df <- tip_labels_df[unique_classification_rows, ]
+# Trim all trees to the clade_labels_df tips only 
+notest_astral_tree <- keep.tip(notest_astral_tree, clade_labels_df$code)
+notest_concat_tree <- keep.tip(notest_concat_tree, clade_labels_df$code)
+astral_trees <- lapply(astral_trees, keep.tip, clade_labels_df$code)
+class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
+concat_trees <- lapply(concat_trees, keep.tip, clade_labels_df$code)
+class(concat_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
 # Plot a nice annotated densitree of the astral species trees
-astral_densitree <- ggdensitree(astral_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
-  geom_tiplab(aes(label = short_lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
+astral_densitree <- ggdensitree(astral_trees, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% clade_labels_df +
+  geom_tiplab(aes(label = clade), parse = FALSE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
   coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 80, 6, 6)) +
+  theme_tree2(plot.margin=margin(6, 100, 6, 6)) +
   labs(title = "ASTRAL species trees") +
   theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
         axis.line.x = element_line(color = "white"),
-        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
-  geom_cladelab(node = 151, label = "Choanoflagellata", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
-  geom_cladelab(node = 122, label = "Ctenophora", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "navy", barcolor = "navy") +
-  geom_cladelab(node = 100, label = "Porifera", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "goldenrod", barcolor = "goldenrod") +
-  geom_cladelab(node = 83, label = "Cnidaria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "firebrick", barcolor = "firebrick") +
-  geom_cladelab(node = 93, label = "Bilateria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "black", barcolor = "black") +
-  geom_cladelab(node = 22, label = "Placozoa", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen")
+        plot.title = element_text(hjust = 0, size = 14, face = "bold"))
 # Plot a nice annotated densitree of the concatenated species trees
-concat_densitree <- ggdensitree(concat_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
-  geom_tiplab(aes(label = short_lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
+concat_densitree <- ggdensitree(concat_trees, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% clade_labels_df +
+  geom_tiplab(aes(label = clade), parse = FALSE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
   coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 80, 6, 6)) +
+  theme_tree2(plot.margin=margin(6, 100, 6, 6)) +
   labs(title = "Concatenated species trees") +
   theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
         axis.line.x = element_line(color = "white"),
-        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
-  geom_cladelab(node = 151, label = "Choanoflagellata", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
-  geom_cladelab(node = 114, label = "Ctenophora", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "navy", barcolor = "navy") +
-  geom_cladelab(node = 90, label = "Porifera", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "goldenrod", barcolor = "goldenrod") +
-  geom_cladelab(node = 82, label = "Cnidaria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "firebrick", barcolor = "firebrick") +
-  geom_cladelab(node = 84, label = "Bilateria", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "black", barcolor = "black") +
-  geom_cladelab(node = 62, label = "Placozoa", align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "darkgreen", barcolor = "darkgreen")
+        plot.title = element_text(hjust = 0, size = 14, face = "bold"))
 # Construct file name for this densitree plot
 densitree_name <- paste0(plot_dir, "Metazoan_Species_tree_comparison_ggdensitree_annotated")
 # Assemble the figure
