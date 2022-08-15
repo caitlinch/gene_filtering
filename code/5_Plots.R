@@ -2,12 +2,12 @@
 ## R program to plot and explore results of the gene filtering project
 # Caitlin Cherryh 2022
 
-## This script:
-# 1. Creates a variety of plots and figures
+## This script creates a variety of plots and figures from the subset trees and species trees for the 4 empirical datasets
 
 ## ggtree notes:
 # To add node labels (for defining clade labels): geom_text(aes(label=node), hjust=-.3)
 # To add clade labels (for defining clades with a vertical bar): geom_cladelab(node=34, label="Clade")
+
 
 
 ##### Step 1: Set the file paths for input and output files, and necessary functions/directories #####
@@ -37,7 +37,6 @@ roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJ
                        "Metazoan" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
                        "Primates" = c("Mus_musculus"), 
                        "Tomatoes" = c("LA4116", "LA2951", "LA4126"))
-
 ### End of Caitlin's paths ###
 
 
@@ -91,7 +90,6 @@ p_name <- paste0(plot_dir, "Primates_ASTRAL_NoTest_plot")
 # Save plot
 ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf")
 
-
 ## Primate Plot 2: ASTRAL variable clade (Cebidae)
 # Three possible topologies:
 #   1. No Test; P,PHI; P,MaxChi; P,GENECONV; and P,All tests 
@@ -139,7 +137,6 @@ p <- p1 + p2 + p3 +
 # Save plot
 ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf", height = 10, width = 32, units = "in")
 
-
 ## Primate Plot 3: CONCAT No Test
 # Assemble file path and open tree
 pt1_file <- grep("NoTest", primate_concat_trees, value = TRUE)
@@ -162,7 +159,6 @@ p <- ggtree(pt1) %<+% pt1_labs +
 p_name <- paste0(plot_dir, "Primates_CONCAT_NoTest_plot")
 # Save plot
 ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf")
-
 
 ## Primate Plot 4: CONCAT variable clade (Papionini)
 # Three possible topologies:
@@ -345,7 +341,6 @@ quilt <- (p1 | p2)/(p3 | p4)/(p5 | p6) +
 quilt_name <- paste0(plot_dir, "Tomatoes_ASTRAL_Peruvianum_comparison_plots")
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 13, width = 10, units = "in")
 
-
 ## IQ-Tree Peruvianum topologies
 # Need:
 #     1. NoTest (P,PHI; P,MaxChi; P,GENECONV; F, All tests)
@@ -473,7 +468,6 @@ p1 <- ggtree(mt1) %<+% mt1_labs +
 p1_name <- paste0(plot_dir, "Metazoan_ASTRAL_NoTest_plot")
 ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf", width = 8, height = 10, units = "in")
 
-
 ## Plotting differences in topology for ASTRAL trees
 # Find files
 mt1_file <- grep("NoTest", metazoan_astral_trees, value = TRUE)
@@ -539,7 +533,6 @@ quilt <- (p1 | p2) / (p3 | p4) +
 quilt_name <- paste0(plot_dir, "Metazoan_ASTRAL_Ctenophora_comparison_plots")
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", width = 8, height = 10, units = "in")
 
-
 ## Plot Metazoan CONCAT tree
 # Find files
 mt1_file <- grep("NoTest", metazoan_concat_trees, value = TRUE)
@@ -562,7 +555,6 @@ p1 <- ggtree(mt1) %<+% mt1_labs +
         legend.title = element_text(size = 15), legend.text = element_text (size = 12))
 p1_name <- paste0(plot_dir, "Metazoan_CONCAT_NoTest_plot")
 ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf", width = 8, height = 10, units = "in")
-
 
 ## Plotting differences in relationships between clades for CONCAT trees
 # Find files
@@ -596,7 +588,6 @@ quilt <- (p1 | p2) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 quilt_name <- paste0(plot_dir, "Metazoan_CONCAT_topology_comparison_plots")
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf")
-
 
 ## Plotting differences in Ctenophora topology for CONCAT trees
 # Find files
@@ -658,6 +649,7 @@ quilt_name <- paste0(plot_dir, "Metazoan_CONCAT_Ctenophora_comparison_plots")
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", width = 8, height = 10, units = "in")
 
 
+
 #### Step 6: Plotting differences in Primate trees for supplementary data ####
 ## Get the paths for the tree files
 cebidae_tree_file <- paste0(maindir, "primate_tree_topologies/Cebidae_three_possible_topologies.txt")
@@ -705,7 +697,6 @@ quilt_name <- paste0(plot_dir, "Primates_comparison_trees_Cebidae_clade")
 # Save plot
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 15, width = 7, units = "in")
 
-
 ## Plot comparison trees
 comparison_trees <- read.tree(comparison_tree_file)
 # Root tree (as in Vanderpool 2020 paper)
@@ -743,7 +734,6 @@ quilt_name <- paste0(plot_dir, "Primates_comparison_trees_deep_branch")
 # Save plot
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 15, width = 7, units = "in")
 
-
 ## Plot comparison tree clades
 # Open clades as phylo objects
 comparison_clades <- read.tree(comparison_clade_file)
@@ -774,6 +764,7 @@ quilt = (p2 + p1) / (p3 | p4) + plot_annotation(tag_levels = "a", tag_suffix = "
 quilt_name <- paste0(plot_dir, "Primates_comparison_trees_deep_branch_individal_clades")
 # Save plot
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf",)
+
 
 
 #### Step 7: Pretty plotting for Plants comparing deep ASTRAL trees ####
@@ -836,6 +827,7 @@ quilt_name <- paste0(plot_dir, "Plants_SuppFigure_VNMY_YGAT_OutlierBranch_plot")
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", width = 12, height = 10, units = "in")
 
 
+
 #### Step 8: Cloudogram of tomato trees ####
 # Open file containing all tomato gene trees
 all_tomato_gene_trees_file <- paste0(maindir, "tomato_cloudogram/Tomatoes_all_gene_trees.txt")
@@ -893,7 +885,7 @@ concat_trees <- read.tree(text = concat_trees_text)
 # Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
 notest_astral_tree_file <- grep("NoTest", astral_trees_files, value = TRUE)
 notest_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
-# Open the consensus tree
+# Open the NoTest tree (the tree estimated from the unfiltered set of loci)
 notest_astral_tree <- read.tree(notest_astral_tree_file)
 notest_concat_tree <- read.tree(notest_concat_tree_file)
 # Root trees
@@ -1021,7 +1013,7 @@ concat_trees <- read.tree(text = concat_trees_text)
 # Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
 notest_astral_tree_file <- grep("NoTest", astral_trees_files, value = TRUE)
 notest_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
-# Open the consensus tree
+# Open the NoTest tree (the tree estimated from the unfiltered set of loci)
 notest_astral_tree <- read.tree(notest_astral_tree_file)
 notest_concat_tree <- read.tree(notest_concat_tree_file)
 # Root trees
@@ -1134,7 +1126,7 @@ concat_trees <- read.tree(text = concat_trees_text)
 # Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
 notest_astral_tree_file <- grep("NoTest", astral_trees_files, value = TRUE)
 notest_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
-# Open the consensus tree
+# Open the NoTest tree (the tree estimated from the unfiltered set of loci)
 notest_astral_tree <- read.tree(notest_astral_tree_file)
 notest_concat_tree <- read.tree(notest_concat_tree_file)
 # Root trees
@@ -1264,7 +1256,7 @@ concat_trees <- read.tree(text = concat_trees_text)
 # Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
 notest_astral_tree_file <- grep("NoTest", astral_trees_files, value = TRUE)
 notest_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
-# Open the consensus tree
+# Open the NoTest tree (the tree estimated from the unfiltered set of loci)
 notest_astral_tree <- read.tree(notest_astral_tree_file)
 notest_concat_tree <- read.tree(notest_concat_tree_file)
 # Trim the outgroup - get rid of any taxa that aren't in the trees
