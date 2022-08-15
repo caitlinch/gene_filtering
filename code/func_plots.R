@@ -548,7 +548,7 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE", color = TRUE){
   return(tip_lab_df)
 }
 
-# Small function to get 2nd word onwards from taxa name for metazoan species
+# Small function to get 2nd word onwards from taxa name for Metazoan species or Plants species
 get.specific.taxa.name <- function(t, n){
   if (length(t) > n) {
     new_t <- paste(t[(n + 1):length(t)], collapse = " ")
@@ -695,6 +695,48 @@ reformat.ASTRAL.tree.for.plotting <- function(tree, add.arbitrary.terminal.branc
   # Return the tree
   return(tree)
 }
+
+
+
+label.plant.taxa <- function(tips, classification_df){
+  # Function to take in a list of tip from a tree from the 1000 Plants transcriptome dataset and return a nice dataframe for plotting the tree in ggplot
+  
+  # Reduce classification_df to only contain species that are present in the list of tips
+  classification_df <- classification_df[(classification_df$Code %in% tips), ]
+  # Rearrange classification_df to have rows in same order as tips
+  classification_df <- classification_df[match(tips, classification_df$Code), ]
+  # Split all the taxa by the spaces to create the short name (e.g. `S. name` instead of `Species name`)
+  all_taxa_split <- strsplit(classification_df$Species, " ")
+  # Create dataframe for labelling tips
+  taxa_tip_df <- data.frame(code = classification_df$Code,
+                            taxa = classification_df$Species,
+                            generic_name = sapply(all_taxa_split, "[[", 1),
+                            generic_initial =  as.character(sapply(sapply(all_taxa_split, "[[", 1), 
+                                                                   function(x){toupper(paste(substring(x, 1, 1), collapse = ""))})), 
+                            specific_name = sapply(all_taxa_split, get.specific.taxa.name, 1),
+                            clade = gsub("_", " ", classification_df$Very.Brief.Classification) )
+  # Mutate the labels dataframe to add formatting for taxa labels
+  taxa_lab_df <- dplyr::mutate(taxa_tip_df, 
+                               short_lab = glue('italic("{generic_initial}. {specific_name}")'),
+                               long_lab = glue('italic("{taxa}")'),
+                               short_name = glue("<i style='color:black'>{generic_initial} {specific_name}</i>"),
+                               long_name = glue("<i style='color:black'>{taxa_prettyprint}</i>") )
+  # Return the formatted labels 
+  return(taxa_lab_df)
+}
+
+
+
+extract.one.plant.tip <- function(tip, classification_df){
+  # Function to take one tip from the 1000 Plants transcriptome dataset and return the taxa and classification
+  
+  # Extract the row containing information about this taxa
+  row <- classification_df[which(classification_df$Code == tip),]
+  # Return that row
+  return(row)
+}
+
+
 
 
 
