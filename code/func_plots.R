@@ -741,6 +741,7 @@ extract.one.plant.tip <- function(tip, classification_df){
 
 reduce.tree.to.clades <- function(tree, labels_df, annotations_df){
   # Function to take a label df and a tree and reduce each clade to a single tip
+  ## NOTE: This is not a good way to do this, because two clades (Chlorophyta and Streptophyte_algae) are not monophyletic for the Plants dataset
   
   # Use ggtree::fortify() to create a dataframe from the tree
   tree_df <- subset(fortify(tree), isTip)
