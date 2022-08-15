@@ -1293,7 +1293,121 @@ quilt <- (astral_densitree + concat_densitree) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 14, height = 14, units = "in")
 
+# Replot but with clade annotations added
+# Identify unique clades
+unique_clades <- unique(annotations_df$Very.Brief.Classification)
+# Extract most recent commmon ancestor (mrca) for each clade
+astral_mrca_nodes <- lapply(unique_clades, 
+                            function(c){
+                              findMRCA(notest_astral_tree, annotations_df[(annotations_df$Code %in% notest_astral_tree$tip.label & annotations_df$Very.Brief.Classification == c), ]$Code)
+                            } )
+concat_mrca_nodes <- lapply(unique_clades, 
+                            function(c){
+                              findMRCA(notest_concat_tree, annotations_df[(annotations_df$Code %in% notest_concat_tree$tip.label & annotations_df$Very.Brief.Classification == c), ]$Code)
+                            } )
+# Format mrca results
+astral_mrca_nodes[sapply(astral_mrca_nodes, is.null)] <- NA
+astral_mrca_nodes <- unlist(astral_mrca_nodes)
+concat_mrca_nodes[sapply(concat_mrca_nodes, is.null)] <- NA
+concat_mrca_nodes <- unlist(concat_mrca_nodes)
+# Format unique_clades to remove underscores
+mrca_labels <- gsub("_", " ", unique_clades)
+# Create dataframe
+mrca_df <- data.frame(astral_nodes = mrca_nodes, concat_nodes = concat_mrca_nodes, labels = mrca_labels)
+# Remove clades without a most common recent ancestor
+mrca_df <- mrca_df[(is.na(mrca_df$concat_nodes) == FALSE), ]
+# Remove ANAGrade labels
+mrca_df[(mrca_df$labels == "ANAGrade"), ]$labels <- "ANA lineages"
+# Plot the astral nodes manually
+astral_nodes = c("Streptophyte_algae" = NA, "Chlorophyta" = NA, "Chromista " = 1179, 
+                 "Gymnos" = 1872, "ANAGrade" = 1865, "Eudicots" = 1700, "Lycophytes" = 2027, 
+                 "Monocots" = 1757, "Mosses" = 2081, "Glaucophyta " = 2174, "Ceratophyllales" = 550,
+                 "Chloranthales" = 1729, "Monilophytes" = 1954, "Hornworts" = 2050, 
+                 "Liverworts " = 2060, "Magnoliids" = 1733, "Rhodophyta " = 2178)
+# Plot a nice densitree of the astral species trees
+astral_densitree <- ggdensitree(astral_trees, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") +
+  labs(title = "ASTRAL species trees") +
+  geom_cladelab(node = astral_nodes[3], label = astral_nodes[3], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[4], label = astral_nodes[4], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[5], label = astral_nodes[5], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[6], label = astral_nodes[6], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[7], label = astral_nodes[7], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[8], label = astral_nodes[8], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[9], label = astral_nodes[9], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[10], label = astral_nodes[10], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[11], label = astral_nodes[11], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[12], label = astral_nodes[12], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[13], label = astral_nodes[13], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[14], label = astral_nodes[14], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[15], label = astral_nodes[15], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[16], label = astral_nodes[16], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = astral_nodes[17], label = astral_nodes[17], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 80, 6, 6)) +
+  labs(title = "Concatenated species trees") +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"),
+        plot.title = element_text(hjust = 0, size = 14, face = "bold"))
+
+# Output test
+test_name <- paste0(plot_dir, "test_nodes")
+# Assemble the figure
+ggsave(filename = paste0(test_name, ".pdf"), plot = astral_densitree, device = "pdf")
+
+# Plot a nice densitree of the concatenated species trees
+concat_densitree <- ggdensitree(astral_trees, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") +
+  labs(title = "Concatenated species trees") +
+  geom_cladelab(node = mrca_df$concat_nodes[1], label = mrca_df$labels[1], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[2], label = mrca_df$labels[2], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[3], label = mrca_df$labels[3], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[4], label = mrca_df$labels[4], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[5], label = mrca_df$labels[5], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[6], label = mrca_df$labels[6], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[7], label = mrca_df$labels[7], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[8], label = mrca_df$labels[8], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[9], label = mrca_df$labels[9], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[10], label = mrca_df$labels[10], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[11], label = mrca_df$labels[11], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[12], label = mrca_df$labels[12], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[13], label = mrca_df$labels[13], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[14], label = mrca_df$labels[14], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[15], label = mrca_df$labels[15], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  geom_cladelab(node = mrca_df$concat_nodes[16], label = mrca_df$labels[16], align = TRUE, offset = 8.5, offset.text = 0.2, fontsize = 4, textcolor = "gray50", barcolor = "gray50") +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 80, 6, 6)) +
+  labs(title = "Concatenated species trees") +
+  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"),
+        plot.title = element_text(hjust = 0, size = 14, face = "bold"))
+# Construct file name for this densitree plot
+densitree_name <- paste0(plot_dir, "Plants_Species_tree_comparison_ggdensitree_annotated")
+# Assemble the figure
+quilt <- (astral_densitree + concat_densitree) + 
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 14, height = 8, units = "in")
 
 
+# Test to get nodes
+test_tree <- ggdensitree(astral_trees, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue")  %<+% tip_labels_df +
+  labs(title = "ASTRAL species trees") +
+  geom_tiplab(aes(label = clade, color = clade), parse = FALSE, show.legend = FALSE, offset = 0.2, geom = "text", size = 4) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 80, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13, color = "White"),
+        axis.ticks.x = element_blank(),
+        axis.line.x = element_blank()) +
+  scale_color_manual(values = c("Streptophyte algae" = "White", "Chlorophyta" = "white", "Chromista " = "red",
+                                "Gymnos" = "white", "ANAGrade" = "red", "Eudicots" = "white", "Lycophytes" = "white", "Monocots" = "white",
+                                "Mosses" = "white", "Glaucophyta " = "white", "Ceratophyllales" = "white", "Chloranthales" = "white", 
+                                "Monilophytes" = "white", "Hornworts" = "white", "Liverworts " = "white", "Magnoliids" = "white", 
+                                "Rhodophyta " = "white")) +
+  geom_text(aes(label=node), hjust=-.3, fill = "lightgreen", label.size = 0.5)
+test_name <- paste0(plot_dir, "test_nodes")
+# Assemble the figure
+ggsave(filename = paste0(test_name, ".pdf"), plot = test_tree, device = "pdf", width = 20, height = 49, units = "in")
+
+
+is.monophyletic(notest_astral_tree, tip_labels_df[tip_labels_df$clade == "Euglenozoa ",]$code)
+tree_df <- fortify(notest_astral_tree)
 
 
