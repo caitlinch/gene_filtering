@@ -40,7 +40,8 @@ library(ggplot2) # for nice plots
 library(ggtree) # for plotting phylogenetic trees
 library(ggtext) # for nice tree plots
 library(patchwork) # for collating plots
-library(phangorn) # for densiTree
+# library(phangorn) # for densiTree function - replaced by ggdensitree
+library(TreeTools) # for CollapseNode function
 
 # Source functions
 source(paste0(maindir,"code/func_plots.R"))
@@ -1292,18 +1293,19 @@ quilt <- (astral_densitree + concat_densitree) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 14, height = 14, units = "in")
 
-# Trim to one taxa per Very.Brief.Classification
+## Plot Plants dataset clades (with one tip per Very.Brief.Classification)
+## NOTE: This is not a good way to do this, because two clades (Chlorophyta and Streptophyte_algae) are not monophyletic for the Plants dataset
 unique_classification_rows <- c(1, 103, 652, 654, 679, 701, 711, 828, 861, 890, 897, 946, 988, 1010, 1083, 1172)
 clade_labels_df <- tip_labels_df[unique_classification_rows, ]
 # Trim all trees to the clade_labels_df tips only 
-notest_astral_tree <- keep.tip(notest_astral_tree, clade_labels_df$code)
-notest_concat_tree <- keep.tip(notest_concat_tree, clade_labels_df$code)
-astral_trees <- lapply(astral_trees, keep.tip, clade_labels_df$code)
-class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-concat_trees <- lapply(concat_trees, keep.tip, clade_labels_df$code)
-class(concat_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
+notest_astral_tree_short <- keep.tip(notest_astral_tree, clade_labels_df$code)
+notest_concat_tree_short <- keep.tip(notest_concat_tree, clade_labels_df$code)
+astral_trees_short <- lapply(astral_trees, keep.tip, clade_labels_df$code)
+class(astral_trees_short) <- "multiPhylo" # change object class from "list" into "multiPhylo
+concat_trees_short <- lapply(concat_trees, keep.tip, clade_labels_df$code)
+class(concat_trees_short) <- "multiPhylo" # change object class from "list" into "multiPhylo
 # Plot a nice annotated densitree of the astral species trees
-astral_densitree <- ggdensitree(astral_trees, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% clade_labels_df +
+astral_densitree <- ggdensitree(astral_trees_short, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% clade_labels_df +
   geom_tiplab(aes(label = clade), parse = FALSE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
   coord_cartesian(clip = 'off') +
   theme_tree2(plot.margin=margin(6, 100, 6, 6)) +
@@ -1312,7 +1314,7 @@ astral_densitree <- ggdensitree(astral_trees, align.tips = TRUE, branch.length =
         axis.line.x = element_line(color = "white"),
         plot.title = element_text(hjust = 0, size = 14, face = "bold"))
 # Plot a nice annotated densitree of the concatenated species trees
-concat_densitree <- ggdensitree(concat_trees, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% clade_labels_df +
+concat_densitree <- ggdensitree(concat_trees_short, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% clade_labels_df +
   geom_tiplab(aes(label = clade), parse = FALSE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
   coord_cartesian(clip = 'off') +
   theme_tree2(plot.margin=margin(6, 100, 6, 6)) +
@@ -1321,11 +1323,11 @@ concat_densitree <- ggdensitree(concat_trees, align.tips = TRUE, branch.length =
         axis.line.x = element_line(color = "white"),
         plot.title = element_text(hjust = 0, size = 14, face = "bold"))
 # Construct file name for this densitree plot
-densitree_name <- paste0(plot_dir, "Metazoan_Species_tree_comparison_ggdensitree_annotated")
+densitree_name <- paste0(plot_dir, "Plant_Species_tree_clade_comparison_ggdensitree_annotated")
 # Assemble the figure
 quilt <- (astral_densitree + concat_densitree) + 
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
-ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 16.5, height = 12, units = "in")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 8, height = 6, units = "in")
 
 
 
