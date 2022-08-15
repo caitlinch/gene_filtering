@@ -913,9 +913,9 @@ primates_tip_order <- c("Pan troglodytes", "Pan paniscus", "Homo sapiens", "Gori
                         "Mus musculus")
 # Create labels for the tips
 tip_labels_df <- color.code.primate.clades(notest_concat_tree, color = FALSE)
-# Reorder tip_labels_df to match tomato_species_order
+# Reorder tip_labels_df to make sure ggtree will be in desired order
 labs <- tip_labels_df[match(primates_tip_order, tip_labels_df$taxa),]
-# Replace taxa names with taxa numbers
+# Format taxa names
 labs$taxa <- gsub(" ", "_", labs$taxa)
 # Plot a nice densitree of the astral species trees
 astral_densitree <- ggdensitree(astral_trees, tip.order = labs$taxa, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
@@ -1038,7 +1038,7 @@ tomato_tip_order <- c("LA3909", "LA0436", "LA0429", "LA3124", "LA3475", "SL2.50"
 tomato_species_order <- rename.tomato.tips(tomato_tip_order)
 # Create labels for the tips
 tip_labels_df <- color.code.tomato.clades(notest_astral_tree, taxa.numbers = FALSE, trimmed = FALSE, color = FALSE)
-# Reorder tip_labels_df to match tomato_species_order
+# Reorder tip_labels_df to make sure ggtree will be in desired order
 labs <- tip_labels_df[match(tomato_species_order, tip_labels_df$taxa),]
 # Replace taxa names with taxa numbers
 labs$taxa <- tomato_tip_order
@@ -1163,7 +1163,7 @@ metazoans_tip_order <- c("Monosiga_ovata", "Acanthoeca_sp", "Monosiga_brevicolis
                          "Capitella_teleta", "Hemithris_psittacea", "Drosophila_melanogaster", "Daphnia_pulex", "Homo_sapiens", "Strongylocentrotus_purpatus")
 # Create labels for the tips
 tip_labels_df <- color.code.metazoan.clades(notest_concat_tree, trimmed = "FALSE", color = FALSE)
-# Reorder tip_labels_df to match tomato_species_order
+# Reorder tip_labels_df to make sure ggtree will be in desired order
 labs <- tip_labels_df[match(metazoans_tip_order, tip_labels_df$taxa),]
 # Plot a nice densitree of the astral species trees
 astral_densitree <- ggdensitree(astral_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
@@ -1279,8 +1279,6 @@ notest_astral_tree <- reformat.ASTRAL.tree.for.plotting(notest_astral_tree,
 
 # Create labels for the tips
 tip_labels_df <- label.plant.taxa(notest_concat_tree$tip.label, annotations_df)
-# Reorder tip_labels_df to match tomato_species_order
-labs <- tip_labels_df[match(metazoans_tip_order, tip_labels_df$taxa),]
 # Plot a nice densitree of the astral species trees
 astral_densitree <- ggdensitree(astral_trees, tip.order = metazoans_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
   geom_tiplab(aes(label = long_lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
