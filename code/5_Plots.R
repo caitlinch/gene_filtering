@@ -47,7 +47,7 @@ library(TreeTools) # for CollapseNode function
 source(paste0(maindir,"code/func_plots.R"))
 
 # Assemble folder for species trees
-species_tree_folder <- paste0(maindir, "trees/")
+species_tree_folder <- paste0(maindir, "species_trees/")
 
 
 
