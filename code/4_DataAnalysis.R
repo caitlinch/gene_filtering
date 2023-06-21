@@ -1,6 +1,6 @@
-### gene_filtering/4_DataAnalysis.R
+### gene_filtering/code/4_DataAnalysis.R
 ## R program to plot and explore results of the treelikeness test statistics on empirical data
-# Caitlin Cherryh 2022
+# Caitlin Cherryh 2023
 
 ## This script:
 # 1. Extracts information about the branches within the subset trees for each dataset

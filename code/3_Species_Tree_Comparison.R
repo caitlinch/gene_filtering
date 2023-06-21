@@ -1,6 +1,6 @@
 ### gene_filtering/code/3_Species_Tree_Comparison.R
 ## R program to identify the best fitting tree for a candidate dataset
-# Caitlin Cherryh 2022
+# Caitlin Cherryh 2023
 
 ## Additional software/packages required:
 #     - IQ-Tree (http://www.iqtree.org/)

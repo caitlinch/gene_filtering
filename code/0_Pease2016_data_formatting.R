@@ -1,6 +1,6 @@
 ## gene_filtering/code/0_Pease2016_data_formatting.R
 ## This script recreates the 100kb genomic window alignments used to estimate gene trees in Pease et al (2016)
-# Caitlin Cherryh, 2022
+# Caitlin Cherryh 2023
 
 ## Pease et al (2016) paper: 
 #       Pease, J. B., Haak, D. C., Hahn, M. W., Moyle, L. 2016, Phylogenomics reveals three sources of adaptive variation during a rapid radiation, PLOS Biology, 14(2):e1002379

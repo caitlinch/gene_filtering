@@ -1,6 +1,6 @@
 # gene_filtering/code/0_Whelan2017_data_formatting.R
 ## This script separates the supermatrix from Whelan et al (2017) into fasta alignments for individual genes
-# Caitlin Cherryh, 2022
+# Caitlin Cherryh 2023
 
 ## Whelan et al (2017) paper: 
 #     Whelan, N.V., Kocot, K.M., Moroz, T.P. et al. Ctenophore relationships and their placement as the sister group to all other animals. 

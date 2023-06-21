@@ -1,6 +1,6 @@
 ### gene_filtering/code/2_Species_Tree_Estimation.R
 ## R program to estimate trees from subsets of loci that pass or fail tests for recombination
-# Caitlin Cherryh 2022
+# Caitlin Cherryh 2023
 
 ## Additional software packages are required:
 ##     - ASTRAL (Zhang et. al. 2019) (https://github.com/smirarab/ASTRAL)

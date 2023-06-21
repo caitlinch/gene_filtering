@@ -1,6 +1,6 @@
 ### gene_filtering/code/1_TestStatistics_EmpiricalData.R
 ## R program to apply recombination detection methods to empirical data
-# Caitlin Cherryh 2022
+# Caitlin Cherryh 2023
 
 ## Additional software packages are required:
 ##     - IQTREE2 (Minh et. al. 2020) (http://www.iqtree.org/)

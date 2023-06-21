@@ -1,9 +1,10 @@
 ### gene_filtering/code/func_analysis.R
 ## R functions to analyse gene_filtering project data
-# Caitlin Cherryh 2022
+# Caitlin Cherryh 2023
 
 library(ape)
 library(phangorn)
+library(treespace)
 
 # Given an alignment, this function will check the IQ-Tree .log file and .iqtree file for warnings and return all warnings and the corresponding alignment
 check.for.IQTree.warnings <- function(alignment_path){
@@ -694,9 +695,9 @@ get.filename.info <- function(full_filename, species_trees_files){
   KF_dist <- KF.dist(file_tree,species_tree, check.labels = TRUE)
   path_difference <- path.dist(file_tree, species_tree, check.labels = TRUE)
   spr_distance <- sprdist(file_tree, species_tree)[[1]]
-  KC_metric_topology <- treespace::treeDist(file_tree, species_tree, lambda = 0)
-  KC_metric_branch_lengths <- treespace::treeDist(file_tree, species_tree, lambda = 1)
-  KC_metric_both <- treespace::treeDist(file_tree, species_tree, lambda = 0.5)
+  KC_metric_topology <- treeDist(file_tree, species_tree, lambda = 0)
+  KC_metric_branch_lengths <- treeDist(file_tree, species_tree, lambda = 1)
+  KC_metric_both <- treeDist(file_tree, species_tree, lambda = 0.5)
   
   #Assemble information into a row
   info_row <- c(dataset, category, plot_category, rep_category, rep_number, 

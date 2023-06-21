@@ -1,6 +1,6 @@
-### gene_filtering/5_Plots.R
+### gene_filtering/code/5_Plots.R
 ## R program to plot and explore results of the gene filtering project
-# Caitlin Cherryh 2022
+# Caitlin Cherryh 2023
 
 ## This script creates a variety of plots and figures from the subset trees and species trees for the 4 empirical datasets
 

@@ -1,6 +1,6 @@
 ### gene_filtering/code/2.5_ExtractingModels_DeepDataset.R
 ## R program to estimate trees from treelike or non-treelike loci
-# Caitlin Cherryh 2022
+# Caitlin Cherryh 2023
 
 ## This script:
 # 1. Determines the best model for each locus that is NOT a free rate model (because for the deep datasets, using free rate models made tree estimation computationally intractable)

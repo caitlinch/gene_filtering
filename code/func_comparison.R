@@ -1,6 +1,6 @@
 ### gene_filtering/code/func_comparison.R
 ## R functions for comparing two species trees
-# Caitlin Cherryh 2022
+# Caitlin Cherryh 2023
 
 library(phytools)
 library(ape)

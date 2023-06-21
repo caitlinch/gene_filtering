@@ -1,6 +1,6 @@
 ### gene_filtering/code/func_plots.R
 ## R functions to facilitate nice plotting
-# Caitlin Cherryh 2022
+# Caitlin Cherryh 2023
 
 library(phytools) # Functions: nodeHeights
 library(dplyr)

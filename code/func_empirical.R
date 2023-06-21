@@ -1,6 +1,6 @@
 ### gene_filtering/code/func_empirical.R
 ## R functions to process and modify empirical sequence alignments
-# Caitlin Cherryh 2022
+# Caitlin Cherryh 2023
 
 # Packages required 
 library(phytools)
