@@ -31,6 +31,12 @@ roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJ
                        "Tomatoes" = c("LA4116", "LA2951", "LA4126"))
 ### End of Caitlin's paths ###
 
+## Code snippets (might be useful)
+# # To extract tips in correct order after ladderising
+# is_tip <- tt_pass$edge[,2] <= length(tt_pass$tip.label)
+# ordered_tips <- tt_pass$edge[is_tip, 2]
+# tip_labels_from_ladder <- tree$tip.label[ordered_tips]
+
 
 
 #### Step 2: Open files and packages ####
@@ -99,18 +105,15 @@ tanglegram(force.ultrametric(pap_trees[[1]], method = "extend"), force.ultrametr
 # Extract trees
 tt_pass <- pap_trees[[1]]
 tt_fail <- paf_trees[[1]]
+# Root trees
+tt_pass <- root(tt_pass, outgroup = roots_by_group[["Primates"]], resolve.root = TRUE)
+tt_fail <- root(tt_fail, outgroup= roots_by_group[["Primates"]], resolve.root = TRUE)
 # Make trees ultrametric
 tt_pass <- force.ultrametric(tt_pass, method = "extend")
 tt_fail <- force.ultrametric(tt_fail, method = "extend")
 # Ladderise trees
 tt_pass <- ladderize(tt_pass, right = TRUE)
 tt_fail <- ladderize(tt_fail, right = TRUE)
-# Get order of tips in tt_pass
-# Note: to reorder tips in tree, use: tree$tip.label[ordered_tips]
-is_tip <- tt_pass$edge[,2] <= length(tt_pass$tip.label)
-ordered_tips <- tt_pass$edge[is_tip, 2]
-# Use tip order in pass_tree as constraint for tip order
-tt_test <- rotateConstr(tt_pass, constraint = ordered_tips)
 # Make tanglegram
 tanglegram(tt_pass, tt_fail)
 
