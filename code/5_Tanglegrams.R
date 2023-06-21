@@ -2,7 +2,7 @@
 ## R program to plot tanglegrams from the species trees
 # Caitlin Cherryh 2023
 
-## This script creates a variety of plots and figures from the subset trees and species trees for the 4 empirical datasets
+## This script creates tanglegrams from the species trees for the 4 empirical datasets
 
 ## ggtree notes:
 # To add node labels (for defining clade labels): geom_text(aes(label=node), hjust=-.3)
@@ -12,14 +12,14 @@
 
 ##### Step 1: Set the file paths for input and output files, and necessary functions/directories #####
 # maindir                 <- "gene_filtering" repository location (github.com/caitlinch/gene_filtering)
-# plot_dir                <- for saving plots and analyses.
+# op_dir                <- for saving tanglegrams and analyses.
 # annotations_csv_file    <- location of misc/annotations.csv file from the Leebens-Mack (2019) "Data from 1000 Plants Transcriptomes" data repository
 # roots_by_groups         <- set which taxa is outgroup for each dataset: Primates, Tomatoes, Metazoans, and Plants
 
 ### Caitlin's paths ###
 # Folders and filepaths
 maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
-plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/"
+op_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/tanglegrams/"
 annotation_csv_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/misc/annotations.csv"
 
 # Dataset information
@@ -36,12 +36,12 @@ roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJ
 #### Step 2: Open files and packages ####
 # Open packages
 library(ape) # functions: read.tree, Ntip, root
-library(ggplot2) # for nice plots
+#library(ggplot2) # for nice plots
 library(ggtree) # for plotting phylogenetic trees
-library(ggtext) # for nice tree plots
-library(patchwork) # for collating plots
+#library(ggtext) # for nice tree plots
+#library(patchwork) # for collating plots
 # library(phangorn) # for densiTree function - replaced by ggdensitree
-library(TreeTools) # for CollapseNode function
+# library(TreeTools) # for CollapseNode function
 
 # Source functions
 source(paste0(maindir,"code/func_plots.R"))
