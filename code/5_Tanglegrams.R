@@ -34,14 +34,22 @@ roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJ
 
 
 #### Step 2: Open files and packages ####
-# Open packages
+# Open packages: Phylogenetics
 library(ape) # functions: read.tree, Ntip, root
+# library(TreeTools) # for CollapseNode function
+
+# Open packages: Plotting
 #library(ggplot2) # for nice plots
 library(ggtree) # for plotting phylogenetic trees
 #library(ggtext) # for nice tree plots
 #library(patchwork) # for collating plots
 # library(phangorn) # for densiTree function - replaced by ggdensitree
 # library(TreeTools) # for CollapseNode function
+
+# Open packages: Tanglegrams
+library(dendextend)
+# library(phylogram)
+
 
 # Source functions
 source(paste0(maindir,"code/func_plots.R"))
@@ -52,7 +60,59 @@ species_tree_folder <- paste0(maindir, "species_trees/")
 
 
 #### Step 3: Plotting Primates dataset ####
+# Find Primate tree files
+tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
+primate_tree_files <- grep("Primates", tree_files, value = TRUE)
+primate_astral_trees <- grep("ASTRAL", primate_tree_files, value = TRUE)
+primate_concat_trees <- grep("CONCAT", primate_tree_files, value = TRUE)
+# Sort trees into separate objects for pass/fail
+paf_files <- grep("fail", primate_astral_trees, value = T)
+pap_files <- grep("pass", primate_astral_trees, value = T)
+pcf_files <- grep("fail", primate_concat_trees, value = T)
+pcp_files <- grep("pass", primate_concat_trees, value = T)
+# Assemble phylo objects
+paf_trees <- lapply(paf_files, read.tree)
+class(paf_trees) <- "multiPhylo"
+pap_trees <- lapply(pap_files, read.tree)
+class(pap_trees) <- "multiPhylo"
+pcf_trees <- lapply(pcf_files, read.tree)
+class(pcf_trees) <- "multiPhylo"
+pcp_trees <- lapply(pcp_files, read.tree)
+class(pcp_trees) <- "multiPhylo"
+# Add arbitrary terminal branch lengths for ASTRAL trees
+for (i in 1:length(paf_trees)){
+  temp_tree <- paf_trees[[i]]
+  terminal_branch_inds <- which(is.na(temp_tree$edge.length))
+  temp_tree$edge.length[terminal_branch_inds] <- 1
+  paf_trees[[i]] <- temp_tree
+}
+for (i in 1:length(pap_trees)){
+  temp_tree <- pap_trees[[i]]
+  terminal_branch_inds <- which(is.na(temp_tree$edge.length))
+  temp_tree$edge.length[terminal_branch_inds] <- 1
+  pap_trees[[i]] <- temp_tree
+}
+# Make basic plots for the pass and fail trees
 
+tanglegram(force.ultrametric(pap_trees[[1]], method = "extend"), force.ultrametric(paf_trees[[1]], method = "extend"))
+
+# Extract trees
+tt_pass <- pap_trees[[1]]
+tt_fail <- paf_trees[[1]]
+# Make trees ultrametric
+tt_pass <- force.ultrametric(tt_pass, method = "extend")
+tt_fail <- force.ultrametric(tt_fail, method = "extend")
+# Ladderise trees
+tt_pass <- ladderize(tt_pass, right = TRUE)
+tt_fail <- ladderize(tt_fail, right = TRUE)
+# Get order of tips in tt_pass
+# Note: to reorder tips in tree, use: tree$tip.label[ordered_tips]
+is_tip <- tt_pass$edge[,2] <= length(tt_pass$tip.label)
+ordered_tips <- tt_pass$edge[is_tip, 2]
+# Use tip order in pass_tree as constraint for tip order
+tt_test <- rotateConstr(tt_pass, constraint = ordered_tips)
+# Make tanglegram
+tanglegram(tt_pass, tt_fail)
 
 
 #### Step 4: Plotting Tomatoes dataset ####
