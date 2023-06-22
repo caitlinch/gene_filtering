@@ -13,14 +13,12 @@
 ##### Step 1: Set the file paths for input and output files, and necessary functions/directories #####
 # maindir                 <- "gene_filtering" repository location (github.com/caitlinch/gene_filtering)
 # op_dir                <- for saving tanglegrams and analyses.
-# annotations_csv_file    <- location of misc/annotations.csv file from the Leebens-Mack (2019) "Data from 1000 Plants Transcriptomes" data repository
 # roots_by_groups         <- set which taxa is outgroup for each dataset: Primates, Tomatoes, Metazoans, and Plants
 
 ### Caitlin's paths ###
 # Folders and filepaths
 maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
 op_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/tanglegrams/"
-annotation_csv_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/misc/annotations.csv"
 
 # Dataset information
 roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
@@ -30,12 +28,6 @@ roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJ
                        "Primates" = c("Mus_musculus"), 
                        "Tomatoes" = c("LA4116", "LA2951", "LA4126"))
 ### End of Caitlin's paths ###
-
-## Code snippets (might be useful)
-# # To extract tips in correct order after ladderising
-# is_tip <- tt_pass$edge[,2] <= length(tt_pass$tip.label)
-# ordered_tips <- tt_pass$edge[is_tip, 2]
-# tip_labels_from_ladder <- tree$tip.label[ordered_tips]
 
 
 
@@ -183,28 +175,35 @@ met_params <- list(map_1 = list(cols = c(rep("grey50", 26), rep(pal_13[[8]], 3),
 all_list_vars <- names(met_params)
 list_var <- "sp"
 ## Format trees
-tt_species <- met_params[[list_var]]$left_tree
-tt_pass <- met_params[[list_var]]$right_tree
+# Extract correct tree
+tt_left <- met_params[[list_var]]$left_tree
+tt_right <- met_params[[list_var]]$right_tree
 # Root trees
-tt_species <- root(tt_species, outgroup = met_params[[list_var]]$outgroup, resolve.root = TRUE)
-tt_pass <- root(tt_pass, outgroup = met_params[[list_var]]$outgroup, resolve.root = TRUE)
+tt_left <- root(tt_left, outgroup = met_params[[list_var]]$outgroup, resolve.root = TRUE)
+tt_right <- root(tt_right, outgroup = met_params[[list_var]]$outgroup, resolve.root = TRUE)
+# Create and order new tip labels for trees
+tt_left_df <- color.code.metazoan.clades(tt_left, trimmed = "No", color = TRUE)
+tt_left_df$short_lab_noformat <- shorten.short.names(tt_left_df$short_lab_noformat)
+tt_left_df <- tt_left_df[match(tt_left$tip.label, tt_left_df$taxa),]
+tt_right_df <- color.code.metazoan.clades(tt_right, trimmed = "No", color = TRUE)
+tt_right_df$short_lab_noformat <- shorten.short.names(tt_right_df$short_lab_noformat)
+tt_right_df <- tt_right_df[match(tt_right$tip.label, tt_right_df$taxa),]
+# Update tree tip labels 
+tt_left$tip.label <- tt_left_df$short_lab_noformat
+tt_right$tip.label <- tt_right_df$short_lab_noformat
 # Make trees ultrametric
-tt_species <- force.ultrametric(tt_species, method = "extend")
-tt_pass <- force.ultrametric(tt_pass, method = "extend")
+tt_left <- force.ultrametric(tt_left, method = "extend")
+tt_right <- force.ultrametric(tt_right, method = "extend")
 # Ladderise trees
-tt_species <- ladderize(tt_species, right = TRUE)
-tt_pass <- ladderize(tt_pass, right = TRUE)
+tt_left <- ladderize(tt_left, right = TRUE)
+tt_right <- ladderize(tt_right, right = TRUE)
 # Reorder trees
-tt_species <- reorder(tt_species, "cladewise")
-tt_pass <- reorder(tt_pass, "cladewise")
+tt_left <- reorder(tt_left, "cladewise")
+tt_right <- reorder(tt_right, "cladewise")
 ## Plot trees
 # Make tanglegram
-tanglegram(tt_species, tt_pass, edge.lwd = 1.5, axes = F,
-           main = met_params[[list_var]]$sub_title,
-           main_left = met_params[[list_var]]$left_title, main_right = met_params[[list_var]]$right_title, 
-           rank_branches = T, match_order_by_labels = T, common_subtrees_color_lines = T, type = "r")
-
-tanglegram(tt_species, tt_pass, color_lines = met_params[[list_var]]$cols, edge.lwd = 1.5, axes = F,
+tanglegram(tt_left, tt_right, color_lines = met_params[[list_var]]$cols, edge.lwd = 1.5, margin_inner = 15,
+           axes = F,
            main = met_params[[list_var]]$sub_title,
            main_left = met_params[[list_var]]$left_title, main_right = met_params[[list_var]]$right_title, 
            rank_branches = T, match_order_by_labels = T, common_subtrees_color_lines = T, type = "r")
