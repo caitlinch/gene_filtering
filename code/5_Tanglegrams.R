@@ -174,39 +174,8 @@ met_params <- list(map_1 = list(cols = c(rep("grey50", 26), rep(pal_13[[8]], 3),
 ## Assemble all variables to plot
 all_list_vars <- names(met_params)
 list_var <- "sp"
-## Format trees
-# Extract correct tree
-tt_left <- met_params[[list_var]]$left_tree
-tt_right <- met_params[[list_var]]$right_tree
-# Root trees
-tt_left <- root(tt_left, outgroup = met_params[[list_var]]$outgroup, resolve.root = TRUE)
-tt_right <- root(tt_right, outgroup = met_params[[list_var]]$outgroup, resolve.root = TRUE)
-# Create and order new tip labels for trees
-tt_left_df <- color.code.metazoan.clades(tt_left, trimmed = "No", color = TRUE)
-tt_left_df$short_lab_noformat <- shorten.short.names(tt_left_df$short_lab_noformat)
-tt_left_df <- tt_left_df[match(tt_left$tip.label, tt_left_df$taxa),]
-tt_right_df <- color.code.metazoan.clades(tt_right, trimmed = "No", color = TRUE)
-tt_right_df$short_lab_noformat <- shorten.short.names(tt_right_df$short_lab_noformat)
-tt_right_df <- tt_right_df[match(tt_right$tip.label, tt_right_df$taxa),]
-# Update tree tip labels 
-tt_left$tip.label <- tt_left_df$short_lab_noformat
-tt_right$tip.label <- tt_right_df$short_lab_noformat
-# Make trees ultrametric
-tt_left <- force.ultrametric(tt_left, method = "extend")
-tt_right <- force.ultrametric(tt_right, method = "extend")
-# Ladderise trees
-tt_left <- ladderize(tt_left, right = TRUE)
-tt_right <- ladderize(tt_right, right = TRUE)
-# Reorder trees
-tt_left <- reorder(tt_left, "cladewise")
-tt_right <- reorder(tt_right, "cladewise")
-## Plot trees
-# Make tanglegram
-tanglegram(tt_left, tt_right, color_lines = met_params[[list_var]]$cols, edge.lwd = 1.5, margin_inner = 15,
-           axes = F,
-           main = met_params[[list_var]]$sub_title,
-           main_left = met_params[[list_var]]$left_title, main_right = met_params[[list_var]]$right_title, 
-           rank_branches = T, match_order_by_labels = T, common_subtrees_color_lines = T, type = "r")
+## Plot all tanglegrams
+lapply(all_list_vars, plot.Metazoan.tanglegram, metazoan_plotting_parameters)
 
 
 
