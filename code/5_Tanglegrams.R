@@ -48,6 +48,7 @@ library(ape) # functions: read.tree, Ntip, root
 #library(ggplot2) # for nice plots
 library(ggtree) # for plotting phylogenetic trees
 library(RColorBrewer) # For nice colour palettes
+library(viridisLite)
 #library(ggtext) # for nice tree plots
 #library(patchwork) # for collating plots
 # library(phangorn) # for densiTree function - replaced by ggdensitree
@@ -63,9 +64,6 @@ source(paste0(maindir,"code/func_plots.R"))
 
 # Assemble folder for species trees
 species_tree_folder <- paste0(maindir, "species_trees/")
-
-# Make the color palette for tanglegrams
-col_pal <- brewer.pal(8, "Dark2")
 
 
 
@@ -97,10 +95,16 @@ for (i in 1:length(map_trees)){
   temp_tree$edge.length[terminal_branch_inds] <- 1
   map_trees[[i]] <- temp_tree
 }
+## Prepare color palettes for plotting
+pal_13 <- turbo(13)
+pal_10 <- turbo(10)
+pal_09 <- turbo(9)
 ## Prepare parameters for plotting
-met_params <- list(map_1 = list(cols = c(rep(col_pal[[1]], 26), rep(col_pal[[2]], 3), rep(col_pal[[3]], 8), rep(col_pal[[4]], 7), rep(col_pal[[5]], 10),
-                                         rep(col_pal[[6]], 2), rep(col_pal[[7]], 2), rep(col_pal[[8]], 5), rep(col_pal[[1]], 3), rep(col_pal[[2]], 2), 
-                                         rep(col_pal[[3]], 2), rep(col_pal[[4]], 1), rep(col_pal[[5]], 2), rep("grey50", 3)),
+met_params <- list(map_1 = list(cols = c(rep("grey50", 26), rep(pal_13[[8]], 3), rep(pal_13[[2]], 8),
+                                         rep(pal_13[[9]], 7), rep(pal_13[[3]], 10), rep(pal_13[[10]], 2),
+                                         rep(pal_13[[4]], 2), rep(pal_13[[11]], 5), rep(pal_13[[5]], 3), 
+                                         rep(pal_13[[12]], 2), rep(pal_13[[6]], 2), rep(pal_13[[13]], 1),
+                                         rep(pal_13[[7]], 2), rep("grey80", 3)),
                                 left_title = "Species tree",
                                 right_title = "Pass",
                                 main_title = "Metazoan dataset",
@@ -109,7 +113,10 @@ met_params <- list(map_1 = list(cols = c(rep(col_pal[[1]], 26), rep(col_pal[[2]]
                                 right_tree = map_trees[[1]],
                                 output_file_path = paste0(op_dir, "Metazoan_ASTRAL_GENECONV_tanglegram"),
                                 outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis") ),
-                   map_2 = list(cols = c(rep(col_pal[[1]], 18), rep(col_pal[[2]], 2), rep(col_pal[[3]], 3), rep(col_pal[[4]], 3), rep("grey50", 3)),
+                   map_2 = list(cols = c(rep("grey50", 41), rep(pal_10[[6]], 3), rep(pal_10[[2]], 4),
+                                         rep(pal_10[[7]], 3), rep(pal_10[[3]], 5), rep(pal_10[[8]], 2),
+                                         rep(pal_10[[4]], 5), rep(pal_10[[9]], 7), rep(pal_10[[5]], 1), 
+                                         rep(pal_10[[10]], 3), rep("grey80", 2)),
                                 left_title = "Species tree",
                                 right_title = "Pass",
                                 sub_title = "ASTRAL trees - MaxChi",
@@ -117,7 +124,10 @@ met_params <- list(map_1 = list(cols = c(rep(col_pal[[1]], 26), rep(col_pal[[2]]
                                 right_tree = map_trees[[2]],
                                 output_file_path = paste0(op_dir, "Metazoan_ASTRAL_MaxChi_tanglegram"),
                                 outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis") ),
-                   map_3 = list(cols = c(rep(col_pal[[1]], 18), rep(col_pal[[2]], 2), rep(col_pal[[3]], 3), rep(col_pal[[4]], 3), rep("grey50", 3)),
+                   map_3 = list(cols = c(rep("grey50", 41), rep(pal_10[[6]], 3), rep(pal_10[[2]], 4), 
+                                         rep(pal_09[[7]], 3), rep(pal_10[[3]], 5), rep(pal_10[[8]], 2), 
+                                         rep(pal_10[[4]], 5), rep(pal_10[[9]], 5), rep(pal_10[[5]], 2), 
+                                         rep(pal_10[[10]], 1), rep("grey80", 5)),
                                 left_title = "Species tree",
                                 right_title = "Pass",
                                 main_title = "Metazoan dataset",
@@ -153,12 +163,15 @@ met_params <- list(map_1 = list(cols = c(rep(col_pal[[1]], 26), rep(col_pal[[2]]
                                 right_tree = mcp_trees[[3]],
                                 output_file_path = paste0(op_dir, "Metazoan_CONCAT_PHI_tanglegram"),
                                 outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis") ) )
+## Assemble all variables to plot
+all_list_vars <- names(met_params)
+list_var <- "map_1"
 ## Format trees
-tt_species <- met_params[["map_1"]]$left_tree
-tt_pass <- met_params[["map_1"]]$right_tree
+tt_species <- met_params[[list_var]]$left_tree
+tt_pass <- met_params[[list_var]]$right_tree
 # Root trees
-tt_species <- root(tt_species, outgroup = met_params[["map_1"]]$outgroup, resolve.root = TRUE)
-tt_pass <- root(tt_pass, outgroup = met_params[["map_1"]]$outgroup, resolve.root = TRUE)
+tt_species <- root(tt_species, outgroup = met_params[[list_var]]$outgroup, resolve.root = TRUE)
+tt_pass <- root(tt_pass, outgroup = met_params[[list_var]]$outgroup, resolve.root = TRUE)
 # Make trees ultrametric
 tt_species <- force.ultrametric(tt_species, method = "extend")
 tt_pass <- force.ultrametric(tt_pass, method = "extend")
@@ -171,13 +184,13 @@ tt_pass <- reorder(tt_pass, "cladewise")
 ## Plot trees
 # Make tanglegram
 tanglegram(tt_species, tt_pass, edge.lwd = 1.5, axes = F,
-           main = met_params[["map_1"]]$sub_title,
-           main_left = met_params[["map_1"]]$left_title, main_right = met_params[["map_1"]]$right_title, 
+           main = met_params[[list_var]]$sub_title,
+           main_left = met_params[[list_var]]$left_title, main_right = met_params[[list_var]]$right_title, 
            rank_branches = T, match_order_by_labels = T, common_subtrees_color_lines = T, type = "r")
 
-tanglegram(tt_species, tt_pass, color_lines = primate_params[["map_1"]]$cols, edge.lwd = 1.5, axes = F,
-           main = met_params[["map_1"]]$sub_title,
-           main_left = met_params[["map_1"]]$left_title, main_right = met_params[["map_1"]]$right_title, 
+tanglegram(tt_species, tt_pass, color_lines = met_params[[list_var]]$cols, edge.lwd = 1.5, axes = F,
+           main = met_params[[list_var]]$sub_title,
+           main_left = met_params[[list_var]]$left_title, main_right = met_params[[list_var]]$right_title, 
            rank_branches = T, match_order_by_labels = T, common_subtrees_color_lines = T, type = "r")
 
 
