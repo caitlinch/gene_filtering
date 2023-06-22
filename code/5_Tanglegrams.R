@@ -180,32 +180,6 @@ tanglegram(tt_species, tt_pass, color_lines = primate_params[["map_1"]]$cols, ed
            main_left = met_params[["map_1"]]$left_title, main_right = met_params[["map_1"]]$right_title, 
            rank_branches = T, match_order_by_labels = T, common_subtrees_color_lines = T, type = "r")
 
-tanglegram(tt_species, tt_pass, color_lines = primate_params[["a_4"]]$cols, edge.lwd = 1.5, axes = F,
-           main = primate_params[["a_4"]]$main_title, main_left = primate_params[["a_4"]]$left_title, main_right = primate_params[["a_4"]]$right_title, 
-           rank_branches = T, match_order_by_labels = T, common_subtrees_color_lines = T, type = "r")
-
-
-# Extract trees
-tt_pass <- pap_trees[[4]]
-tt_fail <- paf_trees[[4]]
-# Root trees
-tt_pass <- root(tt_pass, outgroup = roots_by_group[["Primates"]], resolve.root = TRUE)
-tt_fail <- root(tt_fail, outgroup= roots_by_group[["Primates"]], resolve.root = TRUE)
-# Make trees ultrametric
-tt_pass <- force.ultrametric(tt_pass, method = "extend")
-tt_fail <- force.ultrametric(tt_fail, method = "extend")
-# Ladderise trees
-tt_pass <- ladderize(tt_pass, right = TRUE)
-tt_fail <- ladderize(tt_fail, right = TRUE)
-# Reorder trees
-tt_pass <- reorder(tt_pass, "cladewise")
-tt_fail <- reorder(tt_fail, "cladewise")
-# Make tanglegram
-tanglegram(tt_pass, tt_fail, edge.lwd = 1.5, axes = F, rank_branches = T, match_order_by_labels = T, common_subtrees_color_lines = T, type = "r")
-
-tanglegram(tt_pass, tt_fail, color_lines = primate_params[["a_4"]]$cols, edge.lwd = 1.5, axes = F,
-           main = primate_params[["a_4"]]$main_title, main_left = primate_params[["a_4"]]$left_title, main_right = primate_params[["a_4"]]$right_title, 
-           rank_branches = T, match_order_by_labels = T, common_subtrees_color_lines = T, type = "r")
 
 
 #### Step 4: Plotting Plants dataset ####
