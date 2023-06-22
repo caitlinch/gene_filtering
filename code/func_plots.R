@@ -404,10 +404,10 @@ reformat.congruent.metazoan.clades <- function(m_tree, trim = "FALSE"){
 
 
 
-color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE", color = TRUE){
+color.code.metazoan.clades <- function(m_tree, trimmed = "No", color = TRUE){
   # Quick function to color code Metazoan clades
   
-  if (trimmed == "FALSE"){
+  if (trimmed == "No" | trimmed == "FALSE"){
     # Keep all species in all clades
     Bilateria = c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster",
                   "Daphnia_pulex")
@@ -512,6 +512,7 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "FALSE", color = TRUE){
                               color = taxa_colors)
     taxa_lab_df <- dplyr::mutate(taxa_tip_df, 
                                  short_lab = glue('italic("{generic_initial}. {specific_name}")'),
+                                 short_lab_noformat = glue("{generic_initial}. {specific_name}"),
                                  long_lab = glue('italic("{taxa_prettyprint}")'),
                                  short_name = glue("<i style='color:{color}'>{generic_initial} {specific_name}</i>"),
                                  long_name = glue("<i style='color:{color}'>{taxa_prettyprint}</i>") ) 
