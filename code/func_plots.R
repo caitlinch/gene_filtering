@@ -806,4 +806,159 @@ reduce.tree.to.clades <- function(tree, labels_df, annotations_df){
 
 
 
+plot.Metazoan.tanglegram <- function(id_variable, metazoan_plotting_parameters){
+  ### Function to plot tangletrees for Metazoan datasets
+  # Extract plotting parameters for the variable of interest
+  tt_params <-  metazoan_plotting_parameters[[id_variable]]
+  ## Format trees
+  # Extract correct tree
+  tt_left <- tt_params$left_tree
+  tt_right <- tt_params$right_tree
+  # Root trees
+  tt_left <- root(tt_left, outgroup = tt_params$outgroup, resolve.root = TRUE)
+  tt_right <- root(tt_right, outgroup = tt_params$outgroup, resolve.root = TRUE)
+  # Create and order new tip labels for trees
+  tt_left_df <- color.code.metazoan.clades(tt_left, trimmed = "No", color = TRUE)
+  tt_left_df$short_lab_noformat <- shorten.short.names(tt_left_df$short_lab_noformat)
+  tt_left_df <- tt_left_df[match(tt_left$tip.label, tt_left_df$taxa),]
+  tt_right_df <- color.code.metazoan.clades(tt_right, trimmed = "No", color = TRUE)
+  tt_right_df$short_lab_noformat <- shorten.short.names(tt_right_df$short_lab_noformat)
+  tt_right_df <- tt_right_df[match(tt_right$tip.label, tt_right_df$taxa),]
+  # Update tree tip labels 
+  tt_left$tip.label <- tt_left_df$short_lab_noformat
+  tt_right$tip.label <- tt_right_df$short_lab_noformat
+  # Make trees ultrametric
+  tt_left <- force.ultrametric(tt_left, method = "extend")
+  tt_right <- force.ultrametric(tt_right, method = "extend")
+  # Ladderise trees
+  tt_left <- ladderize(tt_left, right = TRUE)
+  tt_right <- ladderize(tt_right, right = TRUE)
+  # Reorder trees
+  tt_left <- reorder(tt_left, "cladewise")
+  tt_right <- reorder(tt_right, "cladewise")
+  ## Plot trees
+  # # Example tanglegram settings (work well for Metazoan dataset)
+  # tanglegram(tt_left, tt_right, color_lines = tt_params$cols, 
+  #            edge.lwd = 1.5, margin_inner = 17, margin_top = 2.5, margin_bottom = 2.5,
+  #            axes = F, lab.cex = 1.6, sub = tt_params$sub_title,
+  #            main_left = tt_params$left_title, 
+  #            main_right = tt_params$$right_title, 
+  #            rank_branches = T, match_order_by_labels = T, common_subtrees_color_lines = T, type = "r")
+  # Make tanglegram
+  tg <- tanglegram(tt_left, tt_right)
+  # Save the tanglegram
+  png(filename = paste0(tt_params$output_file_path, ".png"),
+      width = 850, height = 960, units = "px", pointsize = 12)
+  tanglegram(tg, color_lines = tt_params$cols, edge.lwd = 1.5, 
+             margin_inner = 17, margin_top = 2.5, margin_bottom = 2.5,
+             axes = F, lab.cex = 1.6, sub = tt_params$sub_title, 
+             main_left = tt_params$left_title, main_right = tt_params$right_title,
+             rank_branches = T, match_order_by_labels = T, 
+             common_subtrees_color_lines = T, type = "r")
+  dev.off()
+  pdf(file = paste0(tt_params$output_file_path, ".pdf"),
+      width = 14, height = 14)
+  tanglegram(tg, color_lines = tt_params$cols, edge.lwd = 1.5, 
+             margin_inner = 15, margin_top = 3, margin_bottom = 2.5, 
+             axes = F, lab.cex = 1.4, sub = tt_params$sub_title,
+             main_left = tt_params$left_title, main_right = tt_params$right_title, 
+             rank_branches = T, match_order_by_labels = T, 
+             common_subtrees_color_lines = T, type = "r")
+  dev.off()
+}
+
+
+get.Metazoan.plotting.parameters <- function(){
+  ## Short function to find and return Metazoan tanglegram plotting parameters
+  # Assemble list of parameters
+  met_params <- list(map_1 = list(cols = c(rep("grey50", 26), rep(pal_13[[8]], 3), rep(pal_13[[2]], 8),
+                                           rep(pal_13[[9]], 7), rep(pal_13[[3]], 10), rep(pal_13[[10]], 2),
+                                           rep(pal_13[[4]], 2), rep(pal_13[[11]], 5), rep(pal_13[[5]], 3), 
+                                           rep(pal_13[[12]], 2), rep(pal_13[[6]], 2), rep(pal_13[[13]], 1),
+                                           rep(pal_13[[7]], 2), rep("grey80", 3)),
+                                  left_title = "Species tree",
+                                  right_title = "Pass",
+                                  main_title = "Metazoan dataset",
+                                  sub_title = "ASTRAL - GENECONV",
+                                  left_tree = ma_sp_tree,
+                                  right_tree = map_trees[[1]],
+                                  output_file_path = paste0(op_dir, "Metazoan_ASTRAL_GENECONV_tanglegram"),
+                                  outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis") ),
+                     map_2 = list(cols = c(rep("grey50", 41), rep(pal_10[[6]], 3), rep(pal_10[[2]], 4),
+                                           rep(pal_10[[7]], 3), rep(pal_10[[3]], 5), rep(pal_10[[8]], 2),
+                                           rep(pal_10[[4]], 5), rep(pal_10[[9]], 7), rep(pal_10[[5]], 1), 
+                                           rep(pal_10[[10]], 3), rep("grey80", 2)),
+                                  left_title = "Species tree",
+                                  right_title = "Pass",
+                                  sub_title = "ASTRAL - MaxChi",
+                                  left_tree = ma_sp_tree,
+                                  right_tree = map_trees[[2]],
+                                  output_file_path = paste0(op_dir, "Metazoan_ASTRAL_MaxChi_tanglegram"),
+                                  outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis") ),
+                     map_3 = list(cols = c(rep("grey50", 41), rep(pal_10[[6]], 3), rep(pal_10[[2]], 4), 
+                                           rep(pal_10[[7]], 3), rep(pal_10[[3]], 5), rep(pal_10[[8]], 2), 
+                                           rep(pal_10[[4]], 5), rep(pal_10[[9]], 5), rep(pal_10[[5]], 2), 
+                                           rep(pal_10[[10]], 1), rep("grey80", 5)),
+                                  left_title = "Species tree",
+                                  right_title = "Pass",
+                                  main_title = "Metazoan dataset",
+                                  sub_title = "ASTRAL - PHI",
+                                  left_tree = ma_sp_tree,
+                                  right_tree = map_trees[[3]],
+                                  output_file_path = paste0(op_dir, "Metazoan_ASTRAL_PHI_tanglegram"),
+                                  outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis") ),
+                     mcp_1 = list(cols = c(rep("grey50", 21), rep(pal_14[[8]], 1), rep(pal_14[[2]], 19),
+                                           rep(pal_14[[9]], 4), rep(pal_14[[3]], 3), rep(pal_14[[10]], 3),
+                                           rep(pal_14[[4]], 1), rep(pal_14[[11]], 5), rep(pal_14[[5]], 1), 
+                                           rep(pal_14[[12]], 5), rep(pal_14[[6]], 5), rep(pal_14[[13]], 2),
+                                           rep(pal_14[[7]], 1), rep(pal_14[[14]], 3), rep("grey80", 2)),
+                                  left_title = "Species tree",
+                                  right_title = "Pass",
+                                  main_title = "Metazoan dataset",
+                                  sub_title = "CONCAT - GENECONV",
+                                  left_tree = mc_sp_tree,
+                                  right_tree = mcp_trees[[1]],
+                                  output_file_path = paste0(op_dir, "Metazoan_CONCAT_GENECONV_tanglegram"),
+                                  outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis") ),
+                     mcp_2 = list(cols = c(rep("grey50", 41), rep(pal_10[[6]], 10), rep(pal_10[[2]], 1), 
+                                           rep(pal_10[[7]], 5), rep(pal_10[[3]], 1), rep(pal_10[[8]], 5), 
+                                           rep(pal_10[[4]], 5), rep(pal_10[[9]], 2), rep(pal_10[[5]], 1), 
+                                           rep(pal_10[[10]], 2), rep("grey80", 3)),
+                                  left_title = "Species tree",
+                                  right_title = "Pass",
+                                  main_title = "Metazoan dataset",
+                                  sub_title = "CONCAT - MaxChi",
+                                  left_tree = mc_sp_tree,
+                                  right_tree = mcp_trees[[2]],
+                                  output_file_path = paste0(op_dir, "Metazoan_CONCAT_MaxChi_tanglegram"),
+                                  outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis") ),
+                     mcp_3 = list(cols = c(rep("grey50", 41), rep(pal_10[[6]], 10), rep(pal_10[[2]], 1), 
+                                           rep(pal_10[[7]], 5), rep(pal_10[[3]], 1), rep(pal_10[[8]], 5), 
+                                           rep(pal_10[[4]], 3), rep(pal_10[[9]], 2), rep(pal_10[[5]], 2), 
+                                           rep(pal_10[[10]], 1), rep("grey80", 5)),
+                                  left_title = "Species tree",
+                                  right_title = "Pass",
+                                  main_title = "Metazoan dataset",
+                                  sub_title = "CONCAT - PHI",
+                                  left_tree = mc_sp_tree,
+                                  right_tree = mcp_trees[[3]],
+                                  output_file_path = paste0(op_dir, "Metazoan_CONCAT_PHI_tanglegram"),
+                                  outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis") ),
+                     sp = list(cols = c(rep("grey50", 41), rep(pal_12[[7]], 3), rep(pal_12[[2]], 4),
+                                        rep(pal_12[[8]], 3), rep(pal_12[[3]], 5), rep(pal_12[[9]], 1),
+                                        rep(pal_12[[4]], 1), rep(pal_12[[10]], 5), rep(pal_12[[5]], 3), 
+                                        rep(pal_12[[11]], 4), rep(pal_12[[6]], 1), rep(pal_12[[12]], 2),
+                                        rep("grey80", 3)),
+                               left_title = "ASTRAL",
+                               right_title = "CONCAT",
+                               main_title = "Metazoan dataset",
+                               sub_title = "Species trees",
+                               left_tree = ma_sp_tree,
+                               right_tree = mc_sp_tree,
+                               output_file_path = paste0(op_dir, "Metazoan_SpeciesTree_ASTRAL_CONCAT_tanglegram"),
+                               outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis") ) )
+  # Return parameters
+  return(met_params)
+}
+
 
