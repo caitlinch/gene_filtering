@@ -6,6 +6,8 @@ library(phytools) # Functions: nodeHeights
 library(dplyr)
 library(glue)
 library(ggtree)
+library(dendextend) # for tangletrees
+library(viridisLite) # for color schemes for tangletrees
 
 
 
@@ -868,8 +870,38 @@ plot.Metazoan.tanglegram <- function(id_variable, metazoan_plotting_parameters){
 }
 
 
-get.Metazoan.plotting.parameters <- function(){
-  ## Short function to find and return Metazoan tanglegram plotting parameters
+get.Metazoan.plotting.parameters <- function(metazoan_tree_files){
+  ### Short function to find and return Metazoan tanglegram plotting parameters
+  ## Extract the types of tree file (ASTRAL or CONCAT) from the list of treefiles
+  m_astral_trees <- grep("ASTRAL", metazoan_tree_files, value = T, ignore.case = T)
+  m_concat_trees <- grep("CONCAT", metazoan_tree_files, value = T, ignore.case = T)
+  ## Sort file paths for the species trees and the trees that pass the tests
+  ma_sp_file <- grep("NoTest", m_astral_trees, value = T, ignore.case = T)
+  map_files <- grep("pass", m_astral_trees, value = T, ignore.case = T)
+  mc_sp_file <- grep("NoTest", m_concat_trees, value = T, ignore.case = T)
+  mcp_files <- grep("pass", m_concat_trees, value = T, ignore.case = T)
+  ## Assemble phylo objects
+  # Open species trees
+  ma_sp_tree <- read.tree(ma_sp_file)
+  mc_sp_tree <- read.tree(mc_sp_file)
+  # Open test trees
+  map_trees <- lapply(map_files, read.tree)
+  class(map_trees) <- "multiPhylo"
+  mcp_trees <- lapply(mcp_files, read.tree)
+  class(mcp_trees) <- "multiPhylo"
+  ## Add arbitrary terminal branch lengths for ASTRAL trees
+  ma_sp_tree$edge.length[which(is.na(ma_sp_tree$edge.length))] <- 1
+  for (i in 1:length(map_trees)){
+    temp_tree <- map_trees[[i]]
+    terminal_branch_inds <- which(is.na(temp_tree$edge.length))
+    temp_tree$edge.length[terminal_branch_inds] <- 1
+    map_trees[[i]] <- temp_tree
+  }
+  ## Prepare color palettes for plotting
+  pal_10 <- turbo(10)
+  pal_12 <- turbo(12)
+  pal_13 <- turbo(13)
+  pal_14 <- turbo(14)
   # Assemble list of parameters
   met_params <- list(map_1 = list(cols = c(rep("grey50", 26), rep(pal_13[[8]], 3), rep(pal_13[[2]], 8),
                                            rep(pal_13[[9]], 7), rep(pal_13[[3]], 10), rep(pal_13[[10]], 2),
