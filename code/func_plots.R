@@ -562,6 +562,28 @@ get.specific.taxa.name <- function(t, n){
 }
 
 
+shorten.short.names <- function(short_label_vector){
+  # Function to take taxa names from the Metazoan dataset and shorten them for plotting without long locations included
+  
+  # Update species names with shorter locatiosn
+  short_label_vector[which(short_label_vector == "P. sp South Carolina USA")] <- "Pleurobrachia sp. SC USA"
+  short_label_vector[which(short_label_vector == "C. sp Maryland USA")] <- "Cydippida sp. MD USA"
+  short_label_vector[which(short_label_vector == "M. sp Antarctica")] <- "Mertensiidae sp. ATA"
+  short_label_vector[which(short_label_vector == "B. sp Antarctica")] <- "Beroe sp. ATA"
+  short_label_vector[which(short_label_vector == "B. sp Queensland Australia")] <- "Beroe sp. QLD AUS"
+  short_label_vector[which(short_label_vector == "O. sp Bimini Bahamas")] <- "Ocyropsis sp. BI BHS"
+  short_label_vector[which(short_label_vector == "O. sp Florida USA")] <- "Ocyropsis sp. FL USA"
+  short_label_vector[which(short_label_vector == "L. sp Punta Arenas Argentina")] <- "Lobata sp. PA ARG"
+  short_label_vector[which(short_label_vector == "C. sp Florida USA")] <- "Ctenophora sp. FL USA"
+  short_label_vector[which(short_label_vector == "M. sp Washington USA")] <- "Mertensiidae sp. WA USA"
+  # Update species names for species representing clades
+  short_label_vector[which(short_label_vector == "C. sp")] <- "Cydippida sp."
+  short_label_vector[which(short_label_vector == "V. sp")] <- "Vallicula sp."
+  short_label_vector[which(short_label_vector == "A. sp")] <- "Acanthoeca sp."
+  # Return the updated vector
+  return(short_label_vector)
+}
+
 
 determine.outlier.tree.file <- function(i, outlier_df, tree_file_paths){
   # Small function to determine which species tree is related to which outlier_df row
