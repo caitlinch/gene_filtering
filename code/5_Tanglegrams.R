@@ -42,20 +42,13 @@ roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJ
 #### Step 2: Open files and packages ####
 # Open packages: Phylogenetics
 library(ape) # functions: read.tree, Ntip, root
-# library(phangorn) # for densiTree function - replaced by ggdensitree
-# library(TreeTools) # for CollapseNode function
-
-# Open packages: Plotting
-#library(ggplot2) # for nice plots
-library(ggtree) # for plotting phylogenetic trees
-library(RColorBrewer) # For nice colour palettes
-library(viridisLite)
-#library(ggtext) # for nice tree plots
-#library(patchwork) # for collating plots
 
 # Open packages: Tanglegrams
 library(dendextend)
-# library(phylogram)
+
+# Open packages: Plotting
+# library(ggtree) # for plotting phylogenetic trees
+library(viridisLite) # for color palettes
 
 
 # Source functions
