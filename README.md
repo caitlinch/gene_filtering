@@ -3,7 +3,7 @@
 
 Caitlin Cherryh
 
-Friday April 21, 2023
+July 2023
 
 ***
 ### Summary
@@ -16,18 +16,25 @@ If you replicate any part of these analyses or use functions from these scripts,
 #### Contents
 + Scripts
     + All scripts necessary to completely replicate this analysis are included in the `code/` folder
-    + Each script contains a detailed description and a list of software necessary to run that script
+    + Each script includes an overview, a list of necessary parameters or file paths,  and a list of software necessary to run that script
 + Species and subset trees
     + Species trees are included in the `species_trees/` folder. 
-    + Each tree is labelled by the dataset, the test for recombination estimation, and the tree estimation method (e.g. `Tomatoes_PHI_pass_ASTRAL_species.tre` means the tree is estimated from the Tomato dataset loci that passed the PHI test using the summary coalescent method ASTRAL-III).
+    + Each tree is labelled by the dataset, the test for recombination estimation, and the tree estimation method
+        + e.g. `Tomatoes_PHI_pass_ASTRAL_species.tre` means the tree is estimated from the Tomato dataset loci that passed the PHI test using the summary coalescent method ASTRAL-III
 + Comparison trees
     + Trees used to investigate the Primates dataset included in the `primate_tree_topologies/` folder
-    + These trees are used with script `code/4_DataAnalysis.R` to perform an AU test for each loci to identify the best topology (out of a set of three) around two branches within the Primates tree
+    + These trees are used with the script `code/4_DataAnalysis.R` to perform an AU test for each loci to identify the best topology (out of a set of three) around two branches within the Primates tree
+    + These trees are plotted using the scripts `code/5_Plots.R`
 + Tomato gene trees
     + Text file containing all gene trees for the Tomatoes dataset included in the `tomato_cloudogram/` folder
     + Used with the script `code/5_Plots.R` to generate a cloudogram
 + Output
     + `.csv` files containing output from each stage of the analysis can be found in the `output/` folder
+    + The `.csv` files are grouped by the number at the beginning of each file name
+        + `01` indicates output from gene tree estimation in IQ-Tree and output from recombination tests
+        + `02` indicates results for each test for recombination after problem gene trees are removed
+        + `03` indicates results from comparing trees: AU tests, Quartet Network Goodness of Fit tests, and RF/wRF distances between trees
+        + `04` indicates additional analyses investigating branches that differ between trees
 + Instructions for replication
     + Instructions for replicating these analyses, along with details about the datasets and software used, are in this `README.md` file.
 
@@ -42,21 +49,29 @@ To fully replicate the analyses, follow these steps:
     + To prepare the Tomatoes dataset, run the script `code/0_Pease2016_data_formatting.R`. This script replicates the 2745 100kbp windows used for phylogenetic analysis in Pease et. al. (2016)
     + To prepare the Metazoans dataset, run the script `code/0_Whelan2017_data_formatting.R`. This script separates the supermatrix into alignments of individual loci. 
 4. Estimate gene trees and apply tests for recombination detection
-    + Run the script `code/1_RecombinationDetection.R` to apply three tests for recombination detection (PHI, MaxChi, and GENECONV) to each locus and estimate a gene tree for each locus
+    + Run the script `code/1_RecombinationDetection.R` to:
+        1. Apply three tests for recombination detection (PHI, MaxChi, and GENECONV) to each locus
+        2. Estimate a gene tree for each locus
 5. Estimate species trees
-    + Based on the results of the tests for recombination detection, the loci for each dataset will be subsetted into categories that pass and fail each test. For each subset we estimate a summary coalescent tree in ASTRAL-III and a maximum likelihood tree in IQ-Tree2. We also estimate a tree from the unfiltered datasets (i.e. a species tree using all loci) with both ASTRAL-III and IQ-Tree2
-    + For each test, the tree estimated from the loci that passed the test will be compared to the tree estimated from loci that failed the test and the tree estimated from the whole unfiltered dataset
-        + For trees estimated in ASTRAL-III, the absolute goodness of fit will be compared using the QuartetNetworkGoodnessFit.jl package
-        + For trees estimated in IQ-Tree2, the absolute goodness of fit will be compared using the AU test
-        + We will compare the tree topology using the Robinson-Foulds and weighted Robinson-Foulds distances
-    + To estimate and compare trees, run the script `code/3_Species_Tree_Comparison.R`
-    + If you are using the Plants dataset, estimating a partitioned maximum likelihood tree where the model for each loci is selected by ModelFinder in IQ-Tree becomes intractable when free-rate models are included. In this case, you can run script `code/2.5_ExtractingModels_DeepDatasets.R` to select the best model for each loci that is not a free-rate model
-    + If you are using the Plants dataset, estimating a maximum likelihood tree in IQ-Tree is computationally intractable. To manage this, we estimated maximum likelihood trees for the Plants dataset in RAxML-ng with free-rate models excluded and no bootstraps
-6. Data analysis and plotting
-    + The script `code/4_DataAnalysis.R` performs data analysis and plots, including:
+    + Based on the results of the tests for recombination detection, the loci for each dataset will be subset into categories that pass and fail each test. For each subset we estimate a summary coalescent tree in ASTRAL-III and a maximum likelihood tree in IQ-Tree2. We also estimate a tree from the unfiltered datasets (i.e. a species tree using all loci) with both ASTRAL-III and IQ-Tree2
+    + Due to the large size of the Plants dataset, we made the following alterations: 
+        + For the Plants dataset, estimating a partitioned maximum likelihood tree where the model for each loci is selected by ModelFinder in IQ-Tree becomes intractable when free-rate models are included. In this case, you can run script `code/2.5_ExtractingModels_DeepDatasets.R` to select the best model for each loci that is not a free-rate model
+        + For the Plants dataset, estimating a concatenated maximum likelihood tree in IQ-Tree is computationally intractable. To manage this, we estimated concatenated maximum likelihood trees for the Plants dataset in RAxML-ng with free-rate models excluded and no bootstraps
+6. Compare species trees
+    + For each combination of test and dataset, the tree estimated from the loci that passed the test is compared to:
+        1. The tree estimated from loci that failed the test
+        2. The tree estimated from the whole unfiltered dataset
+    + To compare species trees, run the script `code/3_Species_Tree_Comparison.R`
+        + For trees estimated in ASTRAL-III, the absolute goodness of fit is compared using the QuartetNetworkGoodnessFit.jl package
+        + For trees estimated in IQ-Tree2, the absolute goodness of fit is compared using the AU test
+        + In addition, the distance between trees is calculated using the Robinson-Foulds and weighted Robinson-Foulds distances
+7. Data analysis and plotting
+    + Run the script `code/4_DataAnalysis.R` to perform data analysis and plots, including:
         + Identifying branches that are present in one tree and not the other (and vice versa)
         + Plotting the distribution of branch lengths
         + Plotting the distribution of support values (either Posterior Probability for trees estimated in ASTRAL-III or UltraFast Bootstraps for trees estimated in IQ-Tree)
+    + The script `code/5_Plots.R` creates plots of phylogenetic trees from the species trees
+    + The script `code/5_Tanglegrams.R` creates tanglegrams (co-phylo plots) from the species trees
 
 ***
 ### Empirical datasets
@@ -65,19 +80,23 @@ For these analyses I used four empirical phylogenetic datasets:
 - **Primates**
   - **Paper**: Vanderpool D., Minh B.Q., Lanfear R., Hughes D., Murali S. et al. 2020. Primate phylogenomics uncovers multiple rapid radiations and ancient interspecific introgression. *PLOS Biology* 18(12):e3000954. https://doi.org/10.1371/journal.pbio.3000954
   - **Data**: Vanderpool, Dan et al. 2020. Supplementary data for: Primate phylogenomics uncovers multiple rapid radiations and ancient interspecific introgression. Dryad. Dataset. https://doi.org/10.5061/dryad.rfj6q577d
-  - **Data analysed**: 1730_Alignments_FINAL.tar.gz (Used for Figure 1 in Vanderpool et. al. 2020)
+  - **Data analysed**: 1730_Alignments_FINAL.tar.gz 
+  - **Original phylogeny**: Figure 1 in Vanderpool et. al. (2020)
 - **Tomatoes**
   - **Paper**: Pease, J.B., Haak, D.C., Hahn, M. W., Moyle, L. 2016. Phylogenomics reveals three sources of adaptive variation during a rapid radiation, *PLOS Biology*, 14(2):e1002379. https://doi.org/10.1371/journal.pbio.1002379
   - **Data**: Pease, James B., Haak, D.C., Hahn, M.W., Moyle, L.C. 2016. Data from: Phylogenomics reveals three sources of adaptive variation during a rapid radiation. Dryad. Dataset. https://doi.org/10.5061/dryad.182dv
-  - **Data analysed**: Pease_etal_Tomato29acc_HQ.mvf.gz (Used for Figure 2 in Pease et. al. (2016))
+  - **Data analysed**: Pease_etal_Tomato29acc_HQ.mvf.gz 
+  - **Original phylogeny**: Figure 2 in Pease et. al. (2016)
 - **Metazoans**
   - **Paper**: Whelan, N.V., Kocot, K.M., Moroz, T.P. et al. 2017. Ctenophore relationships and their placement as the sister group to all other animals. *Nature Ecology and Evolution* 1:1737–1746 https://doi.org/10.1038/s41559-017-0331-3
   - **Data**: Whelan, N.V., Kocot, K.M., Moroz, T.P., Mukherjee, K. et al. 2017. Ctenophora Phylogeny Datasets and Core Orthologs. Figshare. Dataset. https://doi.org/10.6084/m9.figshare.4484138.v1 
-  - **Data analysed**: Metazoa_Choano_RCFV_strict.phy (Used for Figure 2 in Whelan et. al. (2017))
+  - **Data analysed**: Metazoa_Choano_RCFV_strict.phy 
+  - **Original phylogeny**: Figure 2 in Whelan et. al. (2017))
 - **Plants**
   - **Paper**: Leebens-Mack, J.H., Barker, M.S., Carpenter, E.J., Deyholos, M.K. 2019. One thousand plant transcriptomes and the phylogenomics of green plants. *Nature* 574:679–685. https://doi.org/10.1038/s41586-019-1693-2
   - **Data**: Siavash, M., & Sayyari, E. 2019. smirarab/1kp: zenodo (zenodo). Zenodo. https://doi.org/10.5281/zenodo.3255100
-  - **Data analysed**: alignments-FAA-masked.tar.bz (Used for Figure 2 of Leebens-Mack et. al. (2019))
+  - **Data analysed**: alignments-FAA-masked.tar.bz
+  - **Original phylogeny**:  Figure 2 of Leebens-Mack et. al. (2019)
 
 ***
 ### Software
@@ -123,7 +142,7 @@ For these analyses I used four empirical phylogenetic datasets:
 ### Citation information
 If you use these scripts, please cite this github repository:
 
-Cherryh, C. 2022. Gene Filtering v0.1.0. [Electronic resource: R code]. Available at: https://github.com/caitlinch/gene_filtering (Accessed: 21 April 2023)
+Cherryh, C. 2023, caitlinch/gene_filtering, GitHub repository, https://github.com/caitlinch/gene_filtering (Accessed: 6 July 2023)
 
 
 
