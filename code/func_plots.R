@@ -753,6 +753,18 @@ reformat.ASTRAL.tree.for.plotting <- function(tree, add.arbitrary.terminal.branc
 }
 
 
+add.terminal.branches <- function(tree, terminal.branch.length = 1){
+  # Add terminal branches to ASTRAL tree
+  
+  # Identify missing branches
+  n = length(tree$tip.label)
+  missing_branch_indexes <- sapply(1:n,function(x,y)   which(y==x),y=tree$edge[,2])
+  # Set length of terminal branches to 1 (or to whatever the terminal.branch.length variable is)
+  tree$edge.length[missing_branch_indexes] <- terminal.branch.length
+  # Return tree
+  return(tree)
+}
+
 
 label.plant.taxa <- function(tips, classification_df){
   # Function to take in a list of tip from a tree from the 1000 Plants transcriptome dataset and return a nice dataframe for plotting the tree in ggplot
