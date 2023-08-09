@@ -562,6 +562,7 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "No", color = TRUE){
                                color = clade_colors)
     clade_lab_df <- dplyr::mutate(clade_tip_df, 
                                   short_lab = glue('italic("{taxa_prettyprint}")'),
+                                  short_lab_noformat = glue("{generic_initial}. {specific_name}"),
                                   long_lab = glue('italic("{taxa_prettyprint}")'),
                                   short_name = glue("<i style='color:{color}'>{taxa_prettyprint}</i>"),
                                   long_name = glue("<i style='color:{color}'>{taxa_prettyprint}</i>") ) 
@@ -579,6 +580,7 @@ color.code.metazoan.clades <- function(m_tree, trimmed = "No", color = TRUE){
   # Return the tip label dataframe
   return(tip_lab_df)
 }
+
 
 # Small function to get 2nd word onwards from taxa name for Metazoan species or Plants species
 get.specific.taxa.name <- function(t, n){
