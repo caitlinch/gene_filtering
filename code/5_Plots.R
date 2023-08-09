@@ -556,69 +556,6 @@ quilt <- (p1 | p2) +
 quilt_name <- paste0(plot_dir, "Metazoan_CONCAT_topology_comparison_plots")
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf")
 
-## Plotting differences in Ctenophora topology for CONCAT trees
-# Find files
-mt1_file <- grep("NoTest", metazoan_concat_trees, value = TRUE)
-mt2_file <- grep("PHI", metazoan_concat_trees, value = TRUE)
-mt3_file <- grep("maxchi", metazoan_concat_trees, value = TRUE)
-mt4_file <- grep("geneconv", metazoan_concat_trees, value = TRUE)
-# Open trees
-mt1 <- read.tree(mt1_file)
-mt2 <- read.tree(mt2_file)
-mt3 <- read.tree(mt3_file)
-mt4 <- read.tree(mt4_file)
-# Root tree and drop tips from clades (keep tips within Ctenophora only, keep one species per other clade)
-mt1 <- reformat.congruent.metazoan.clades(mt1, trim = "Keep_Ctenophora")
-mt2 <- reformat.congruent.metazoan.clades(mt2, trim = "Keep_Ctenophora")
-mt3 <- reformat.congruent.metazoan.clades(mt3, trim = "Keep_Ctenophora")
-mt4 <- reformat.congruent.metazoan.clades(mt4, trim = "Keep_Ctenophora")
-# Relabel clades
-mt_labs <- color.code.metazoan.clades(mt1, trimmed = "Keep_Ctenophora")
-# Plot using ggtree
-p1 <- ggtree(mt1, size = 0.4) %<+% mt_labs + 
-  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
-  geom_rootedge(rootedge = 0.005, size = 0.5) + 
-  coord_cartesian(clip = 'off') + 
-  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
-        axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
-                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
-                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) )
-p2 <- ggtree(mt2, size = 0.4) %<+% mt_labs + 
-  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
-  geom_rootedge(rootedge = 0.005, size = 0.5) + 
-  coord_cartesian(clip = 'off') + 
-  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
-        axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
-                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
-                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) )
-p3 <- ggtree(mt3, size = 0.4) %<+% mt_labs + 
-  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
-  geom_rootedge(rootedge = 0.005, size = 0.5) + 
-  coord_cartesian(clip = 'off') + 
-  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
-        axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
-                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
-                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) )
-p4 <- ggtree(mt4, size = 0.4) %<+% mt_labs + 
-  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
-  geom_rootedge(rootedge = 0.005, size = 0.5) + 
-  coord_cartesian(clip = 'off') + 
-  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
-                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
-                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) )
-quilt <- (p1 | p2) / (p3 | p4) +
-  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
-quilt_name <- paste0(plot_dir, "Metazoan_CONCAT_Ctenophora_comparison_plots")
-ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", width = 8, height = 10, units = "in")
-
 
 
 #### Step 6: Plotting differences in Primate trees for supplementary data ####
