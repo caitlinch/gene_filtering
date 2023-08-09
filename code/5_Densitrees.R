@@ -32,6 +32,7 @@ roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJ
 library(ape) # functions: read.tree, Ntip, root
 library(ggplot2) # for nice plots
 library(ggtree) # for plotting phylogenetic trees and densitress (ggdensitree)
+library(patchwork)
 #library(ggtext) # for nice tree plots
 #library(patchwork) # for collating plots
 #library(TreeTools) # for CollapseNode function
@@ -147,13 +148,16 @@ primate_labels$taxa <- gsub(" ", "_", primate_labels$taxa)
 ## Plot densitress
 # Plot: ASTRAL, pass
 a_p_densitree <- ggdensitree(a_p_trees, tip.order = primate_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% primate_labels +
-  geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.2, geom = "text", size = 4) +
+  geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
   scale_color_manual(values = primate_colour_palette) +
   xlim(-15.4, 3) +
   labs(title = "ASTRAL tree - Pass") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
-        plot.title = element_text(hjust = 0, size = 20, face = "bold"))
+        plot.title = element_text(hjust = 0.5, size = 15, face = "bold"),
+        legend.title = element_text(size = 18), legend.text = element_text (size = 16), legend.position = c(0.12,0.25),
+        legend.key.size = unit(1.5, "lines")) +
+  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.", size = 6)))
 # Plot: ASTRAL, fail
 a_f_densitree <- ggdensitree(a_f_trees, tip.order = primate_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% primate_labels +
   geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.2, geom = "text", size = 4) +
@@ -162,7 +166,7 @@ a_f_densitree <- ggdensitree(a_f_trees, tip.order = primate_labels$taxa, align.t
   labs(title = "ASTRAL tree - Fail") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
-        plot.title = element_text(hjust = 0, size = 20, face = "bold"))
+        plot.title = element_text(hjust = 0.5, size = 15, face = "bold"))
 # Plot: CONCAT, pass
 c_p_densitree <- ggdensitree(c_p_trees, tip.order = primate_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% primate_labels +
   geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.002, geom = "text", size = 4) +
@@ -171,29 +175,25 @@ c_p_densitree <- ggdensitree(c_p_trees, tip.order = primate_labels$taxa, align.t
   labs(title = "Concatenated tree - Pass") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
-        plot.title = element_text(hjust = 0, size = 20, face = "bold"))
+        plot.title = element_text(hjust = 0.5, size = 15, face = "bold"))
 # Plot: CONCAT, fail
 c_f_densitree <- ggdensitree(c_f_trees, tip.order = primate_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% primate_labels +
   geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.002, geom = "text", size = 4) +
   scale_color_manual(values = primate_colour_palette) +
-  xlim(-0.196, 0.034) +
+  xlim(-0.26, 0.038) +
   labs(title = "Concatenated tree - Fail") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
-        plot.title = element_text(hjust = 0, size = 20, face = "bold"))
+        plot.title = element_text(hjust = 0.5, size = 15, face = "bold"))
 
 ## Assemble the plot using patchwork
-quilt <-  p +
-  plot_annotation(title = "Primate dataset - ASTRAL tree", subtitle = "Unfiltered dataset",
-                  theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
-                                plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
+quilt <- (a_p_densitree | a_f_densitree) / (c_p_densitree | c_f_densitree) + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
+  theme(plot.tag = element_text(size = 20))
 
 ## Save the plot
 densitree_name <- paste0(plot_dir, "Primates_ggdensitree")
-# Assemble the figure
-quilt <- (astral_densitree + concat_densitree) + 
-  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
-ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 14, height = 8, units = "in")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 16, units = "in")
 
 
 
