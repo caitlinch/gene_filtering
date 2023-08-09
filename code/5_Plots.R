@@ -66,21 +66,27 @@ pt1 <- root(pt1, outgroup = roots_by_group[["Primates"]])
 pt1$edge.length[which(is.nan(pt1$edge.length))] <- 0.5
 # Remove underscores from tips
 pt1$tip.label <- gsub("_", " ", pt1$tip.label)
-# Color code incongruent clade
-pt1_labs <-color.code.primate.clades(pt1, concatenated = FALSE)
+# Color code clades
+pt1_colors <- c("Non-primate"="#332288", "Strepsirrhini"="#117733", "Tarsiiformes"="#44AA99",
+                "Cebidae"="#88CCEE", "Hylobatidae"="#DDCC77", "Hominidae"="#CC6677",
+                "Colobinae"="#AA4499", "Cercopithecinae"="#882255")
+pt1_labs <-color.primates.by.clades(pt1, color_palette = pt1_colors)
 # Create plot
 p <- ggtree(pt1) %<+% pt1_labs +
-  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0.002, geom = "text", size = 5) + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0.002, geom = "text", size = 5) + 
+  geom_rootedge(rootedge = 0.3, size = 0.5) +
   scale_y_reverse() +  
   scale_x_continuous(breaks = seq(0,15,3)) +
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 180, 6, 6)) + 
-  scale_color_manual(values = c(Variable = "gray50", Congruent = "black")) +
-  theme(axis.text.x = element_text(size = 12))
+  scale_color_manual(values = pt1_colors) +
+  theme(axis.text.x = element_text(size = 12),
+        legend.title = element_text(size = 15), legend.text = element_text (size = 12), legend.position = c(0.1,0.2)) +
+  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.")))
 quilt <-  p + 
   plot_annotation(title = "Primate dataset - ASTRAL tree", subtitle = "Unfiltered dataset",
                   theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
-                        plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
+                                plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
 # Create plot name
 p_name <- paste0(plot_dir, "Primates_ASTRAL_NoTest_plot")
 # Save plot
@@ -141,32 +147,26 @@ pt1 <- read.tree(pt1_file)
 pt1 <- root(pt1, outgroup = roots_by_group[["Primates"]])
 # Remove underscores from tips
 pt1$tip.label <- gsub("_", " ", pt1$tip.label)
-# Color code incongruent clade
-pt1_labs <-color.code.primate.clades(pt1, concatenated = TRUE)
+# Color code clades
+pt1_colors <- c("Non-primate"="#332288", "Strepsirrhini"="#117733", "Tarsiiformes"="#44AA99",
+                "Cebidae"="#88CCEE", "Hylobatidae"="#DDCC77", "Hominidae"="#CC6677",
+                "Colobinae"="#AA4499", "Cercopithecinae"="#882255")
+pt1_labs <-color.primates.by.clades(pt1, color_palette = pt1_colors)
 # Create plot
 p <- ggtree(pt1) %<+% pt1_labs +
-  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0.002, geom = "text", size = 5) + 
+  geom_rootedge(rootedge = 0.005, size = 0.5) +
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0.002, geom = "text", size = 5) + 
   scale_y_reverse() +  
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 120, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 15)) +
-  scale_color_manual(values = c(Variable = "gray50", Congruent = "black"))
+  scale_color_manual(values = pt1_colors) +
+  theme(axis.text.x = element_text(size = 12),
+        legend.title = element_text(size = 15), legend.text = element_text (size = 12), legend.position = c(0.1,0.2)) +
+  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.")))
 quilt <-  p + 
   plot_annotation(title = "Primate dataset - Concatenated tree", subtitle = "Unfiltered dataset",
                   theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
                                 plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
-# p <- ggtree(tt1) %<+% tt1_labs +
-#   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 5) + 
-#   geom_rootedge(rootedge = 0.3, size = 0.5) +
-#   coord_cartesian(clip = 'off') + 
-#   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-#   scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
-#                                 Peruvianum = "darkgreen", Hirsutum = "navy", 
-#                                 Outgroup = "black")) +
-#   guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp."))) +
-#   theme(axis.text.x = element_text(size = 15), 
-#         legend.title = element_text(size = 15), legend.text = element_text (size = 12), legend.position = c(0.15,0.8))
-
 # Create plot name
 p_name <- paste0(plot_dir, "Primates_CONCAT_NoTest_plot")
 # Save plot
