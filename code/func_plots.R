@@ -106,6 +106,11 @@ color.primates.by.clades <- function(p_tree, color_palette){
                                 "Theropithecus gelada", "Macaca fascicularis", "Macaca mulatta", "Macaca nemestrina", "Chlorocebus sabaeus","Colobus angolensis palliatus",
                                 "Piliocolobus tephrosceles", "Rhinopithecus bieti", "Rhinopithecus roxellana", "Gorilla gorilla", "Homo sapiens", "Pan paniscus",
                                 "Pan troglodytes", "Pongo abelii", "Nomascus leucogenys", "Cebus capucinus imitator", "Saimiri boliviensis"),
+                       short_taxa = c("M. musculus", "G. variegatus", "T. chinensis", "A. nancymaae", "C. jacchus", "C. syrichta",
+                                      "M. murinus", "P. coquereli", "O. garnettii", "C. atys", "M. leucophaeus", "P. anubis",                
+                                      "T. gelada", "M. fascicularis", "M. mulatta", "M. nemestrina", "C. sabaeus","C. a. palliatus",
+                                      "P. tephrosceles", "R. bieti", "R. roxellana", "G. gorilla", "H. sapiens", "P. paniscus",
+                                      "P. troglodytes", "P. abelii", "N. leucogenys", "C. c. imitator", "S. boliviensis"),
                        clade = c("Non-primate", "Non-primate", "Non-primate", "Cebidae", "Cebidae", "Tarsiiformes",
                                  "Strepsirrhini", "Strepsirrhini", "Strepsirrhini", "Cercopithecinae", "Cercopithecinae", "Cercopithecinae",                
                                  "Cercopithecinae", "Cercopithecinae", "Cercopithecinae", "Cercopithecinae", "Cercopithecinae","Colobinae",
@@ -118,6 +123,7 @@ color.primates.by.clades <- function(p_tree, color_palette){
                                  color_palette[8], color_palette[8], color_palette[7], color_palette[4], color_palette[4]) )
   tip_lab_df <- dplyr::mutate(tip_df, 
                               lab = glue('italic("{taxa}")'),
+                              short_lab = glue('italic("{short_taxa}")'),
                               name = glue("<i style='color:{color}'>{taxa}</i>") )
   
   # Return the tip label dataframe
