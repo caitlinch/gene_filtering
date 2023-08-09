@@ -81,13 +81,42 @@ color.code.primate.clades <- function(p_tree, color = TRUE, concatenated = TRUE)
                            "Cercocebus atys","Mandrillus leucophaeus","Papio anubis","Theropithecus gelada",
                            "Colobus angolensis palliatus","Piliocolobus tephrosceles","Rhinopithecus bieti",
                            "Rhinopithecus roxellana")
-  }
+  } 
   
   # Create dataframe with tip information
   tip_df <- data.frame(taxa = c(variable_species, congruent_species),
                        clade = c(rep("Variable", length(variable_species)), rep("Congruent", length(congruent_species)) ),
                        color = c(rep("gray60", length(variable_species)), rep("black", length(congruent_species)) ) 
   )
+  tip_lab_df <- dplyr::mutate(tip_df, 
+                              lab = glue('italic("{taxa}")'),
+                              name = glue("<i style='color:{color}'>{taxa}</i>") )
+  
+  # Return the tip label dataframe
+  return(tip_lab_df)
+}
+
+
+color.primates.by.clades <- function(p_tree){
+  # Quick function to colour code clades in primates dataset based on tree estimation method
+  
+  # Create dataframe with tip information
+  color_palette <- c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255")
+  tip_df <- data.frame(taxa = c("Mus_musculus", "Galeopterus_variegatus", "Tupaia_chinensis", "Aotus_nancymaae", "Callithrix_jacchus", "Carlito_syrichta",
+                                "Microcebus_murinus", "Propithecus_coquereli", "Otolemur_garnettii", "Cercocebus_atys", "Mandrillus_leucophaeus", "Papio_anubis",                
+                                "Theropithecus_gelada", "Macaca_fascicularis", "Macaca_mulatta", "Macaca_nemestrina", "Chlorocebus_sabaeus","Colobus_angolensis_palliatus",
+                                "Piliocolobus_tephrosceles", "Rhinopithecus_bieti", "Rhinopithecus_roxellana", "Gorilla_gorilla", "Homo_sapiens", "Pan_paniscus",
+                                "Pan_troglodytes", "Pongo_abelii", "Nomascus_leucogenys", "Cebus_capucinus_imitator", "Saimiri_boliviensis"),
+                       clade = c("Non-primate", "Non-primate", "Non-primate", "Cebidae", "Cebidae", "Tarsiiformes",
+                                 "Strepsirrhini", "Strepsirrhini", "Strepsirrhini", "Cercopithecinae", "Cercopithecinae", "Cercopithecinae",                
+                                 "Cercopithecinae", "Cercopithecinae", "Cercopithecinae", "Cercopithecinae", "Cercopithecinae","Colobinae",
+                                 "Colobinae", "Colobinae", "Colobinae", "Hominidae", "Hominidae", "Hominidae",
+                                 "Hominidae", "Hominidae", "Hylobatidae", "Cebidae", "Cebidae"),
+                       color = c(color_palette[1], color_palette[1], color_palette[1], color_palette[4], color_palette[4], color_palette[3],
+                                 color_palette[2], color_palette[2], color_palette[2], color_palette[6], color_palette[6], color_palette[6],                
+                                 color_palette[6], color_palette[6], color_palette[6], color_palette[6], color_palette[6], color_palette[5],
+                                 color_palette[5], color_palette[5], color_palette[5], color_palette[8], color_palette[8], color_palette[8],
+                                 color_palette[8], color_palette[8], color_palette[7], color_palette[4], color_palette[4]) )
   tip_lab_df <- dplyr::mutate(tip_df, 
                               lab = glue('italic("{taxa}")'),
                               name = glue("<i style='color:{color}'>{taxa}</i>") )
