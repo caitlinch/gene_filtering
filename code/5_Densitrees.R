@@ -30,11 +30,11 @@ roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJ
 #### Step 2: Open files and packages ####
 # Open packages
 library(ape) # functions: read.tree, Ntip, root
-library(ggplot2) # for nice plots
+#library(ggplot2) # for nice plots
 library(ggtree) # for plotting phylogenetic trees and densitress (ggdensitree)
-library(ggtext) # for nice tree plots
-library(patchwork) # for collating plots
-library(TreeTools) # for CollapseNode function
+#library(ggtext) # for nice tree plots
+#library(patchwork) # for collating plots
+#library(TreeTools) # for CollapseNode function
 
 # Source functions
 source(paste0(maindir,"code/func_plots.R"))
@@ -105,26 +105,9 @@ class(c_f_trees) <- "multiPhylo"
 
 ## Add terminal branch lengths for ASTRAL trees
 # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
-a_p_trees <- lapply(1:length(a_p_trees), 
-                       function(i){a_p_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(a_p_trees[[i]], 
-                                                                                          add.arbitrary.terminal.branches = TRUE, 
-                                                                                          terminal.branch.length = 1, 
-                                                                                          strip.nodes = FALSE,
-                                                                                          scale.tree.length = FALSE, 
-                                                                                          new.tree.length = NA)} )
-a_f_trees <- lapply(1:length(a_f_trees), 
-                    function(i){a_f_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(a_f_trees[[i]], 
-                                                                                    add.arbitrary.terminal.branches = TRUE, 
-                                                                                    terminal.branch.length = 1, 
-                                                                                    strip.nodes = FALSE,
-                                                                                    scale.tree.length = FALSE, 
-                                                                                    new.tree.length = NA)} )
-notest_astral_tree <- reformat.ASTRAL.tree.for.plotting(notest_astral_tree, 
-                                                        add.arbitrary.terminal.branches = TRUE, 
-                                                        terminal.branch.length = 1, 
-                                                        strip.nodes = FALSE,
-                                                        scale.tree.length = FALSE, 
-                                                        new.tree.length = NA)
+a_p_trees <- lapply(1:length(a_p_trees), function(i){add.terminal.branches(a_p_trees[[i]], 1)})
+a_f_trees <- lapply(1:length(a_p_trees), function(i){add.terminal.branches(a_p_trees[[i]], 1)})
+notest_astral_tree <- add.terminal.branches(notest_astral_tree, 1)
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
 class(a_f_trees) <- "multiPhylo" 
