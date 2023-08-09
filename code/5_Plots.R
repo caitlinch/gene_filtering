@@ -516,7 +516,7 @@ mt2$edge.length[which(is.nan(mt2$edge.length))] <- 0.2
 mt3$edge.length[which(is.nan(mt3$edge.length))] <- 0.2
 mt4$edge.length[which(is.nan(mt4$edge.length))] <- 0.2
 # Relabel clades
-mt_labs <- color.code.metazoan.clades(mt1, trimmed = "Keep_Ctenophora")
+mt_labs <- color.code.metazoan.clades(mt1, trimmed = "Keep_Ctenophora", color = TRUE)
 # Plot using ggtree
 p1 <- ggtree(mt1, size = 0.4) %<+% mt_labs + 
   geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
@@ -525,8 +525,9 @@ p1 <- ggtree(mt1, size = 0.4) %<+% mt_labs +
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
         axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60"))
+  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
+                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
+                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) )
 p2 <- ggtree(mt2, size = 0.4) %<+% mt_labs + 
   geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
@@ -534,8 +535,9 @@ p2 <- ggtree(mt2, size = 0.4) %<+% mt_labs +
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
         axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60"))
+  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
+                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
+                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) )
 p3 <- ggtree(mt3, size = 0.4) %<+% mt_labs + 
   geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
@@ -543,8 +545,9 @@ p3 <- ggtree(mt3, size = 0.4) %<+% mt_labs +
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
         axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60"))
+  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
+                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
+                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) )
 p4 <- ggtree(mt4, size = 0.4) %<+% mt_labs + 
   geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
@@ -552,8 +555,9 @@ p4 <- ggtree(mt4, size = 0.4) %<+% mt_labs +
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
         axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60"))
+  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
+                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
+                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) )
 quilt <- (p1 | p2) / (p3 | p4) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 quilt_name <- paste0(plot_dir, "Metazoan_ASTRAL_Ctenophora_comparison_plots")
@@ -648,8 +652,9 @@ p1 <- ggtree(mt1, size = 0.4) %<+% mt_labs +
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
         axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "gray60"))
+  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
+                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
+                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) )
 p2 <- ggtree(mt2, size = 0.4) %<+% mt_labs + 
   geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
@@ -657,8 +662,9 @@ p2 <- ggtree(mt2, size = 0.4) %<+% mt_labs +
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
         axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "gray60"))
+  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
+                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
+                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) )
 p3 <- ggtree(mt3, size = 0.4) %<+% mt_labs + 
   geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
@@ -666,16 +672,18 @@ p3 <- ggtree(mt3, size = 0.4) %<+% mt_labs +
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), 
         axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "gray60"))
+  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
+                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
+                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) )
 p4 <- ggtree(mt4, size = 0.4) %<+% mt_labs + 
   geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 3) + 
   geom_rootedge(rootedge = 0.005, size = 0.5) + 
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
   theme(axis.text.x = element_text(size = 0), axis.line.x = element_line(colour = "white"), axis.ticks.x = element_line(colour = "white")) +
-  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Clade_Outgroup = "gray60"))
+  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
+                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
+                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) )
 quilt <- (p1 | p2) / (p3 | p4) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 quilt_name <- paste0(plot_dir, "Metazoan_CONCAT_Ctenophora_comparison_plots")
