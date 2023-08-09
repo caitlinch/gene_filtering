@@ -151,7 +151,7 @@ a_p_densitree <- ggdensitree(a_p_trees, tip.order = primate_labels$taxa, align.t
   geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
   scale_color_manual(values = primate_colour_palette) +
   xlim(-15.4, 3) +
-  labs(title = "ASTRAL tree - Pass") +
+  labs(title = "Pass tests - ASTRAL trees") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
         plot.title = element_text(hjust = 0.5, size = 15, face = "bold"),
@@ -163,7 +163,7 @@ a_f_densitree <- ggdensitree(a_f_trees, tip.order = primate_labels$taxa, align.t
   geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.2, geom = "text", size = 4) +
   scale_color_manual(values = primate_colour_palette) +
   xlim(-15.4, 3) +
-  labs(title = "ASTRAL tree - Fail") +
+  labs(title = "Fail tests - ASTRAL trees") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
         plot.title = element_text(hjust = 0.5, size = 15, face = "bold"))
@@ -172,7 +172,7 @@ c_p_densitree <- ggdensitree(c_p_trees, tip.order = primate_labels$taxa, align.t
   geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.002, geom = "text", size = 4) +
   scale_color_manual(values = primate_colour_palette) +
   xlim(-0.189, 0.034) +
-  labs(title = "Concatenated tree - Pass") +
+  labs(title = "Pass tests - Concatenated trees") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
         plot.title = element_text(hjust = 0.5, size = 15, face = "bold"))
@@ -181,7 +181,7 @@ c_f_densitree <- ggdensitree(c_f_trees, tip.order = primate_labels$taxa, align.t
   geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.002, geom = "text", size = 4) +
   scale_color_manual(values = primate_colour_palette) +
   xlim(-0.26, 0.038) +
-  labs(title = "Concatenated tree - Fail") +
+  labs(title = "Fail tests - Concatenated trees") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
         plot.title = element_text(hjust = 0.5, size = 15, face = "bold"))
