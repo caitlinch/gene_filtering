@@ -281,12 +281,13 @@ tt1_small_labs <- color.code.tomato.clades(tt1, taxa.numbers = FALSE, trimmed = 
 p <- ggtree(tt1) %<+% tt1_labs +
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 5) + 
   geom_rootedge(rootedge = 0.3, size = 0.5) +
+  scale_y_reverse() +  
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
   scale_color_manual(values = tomato_colour_palette) +
   guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp."))) +
   theme(axis.text.x = element_text(size = 15), 
-        legend.title = element_text(size = 15), legend.text = element_text (size = 12), legend.position = c(0.15,0.8))
+        legend.title = element_text(size = 15), legend.text = element_text (size = 12), legend.position = c(0.1,0.2))
 quilt <-  p + 
   plot_annotation(title = "Tomato dataset - ASTRAL tree", subtitle = "Unfiltered dataset",
                   theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
@@ -386,11 +387,12 @@ p <- ggtree(tt1) %<+% tt1_labs +
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 5) + 
   geom_rootedge(rootedge = 0.001, size = 0.5) +
   coord_cartesian(clip = 'off') + 
+  scale_y_reverse() +  
   theme_tree2(plot.margin=margin(6, 170, 6, 6)) + 
   theme(axis.text.x = element_text(size = 12)) +
   scale_color_manual(values = tomato_colour_palette) +
   guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp."))) +
-  theme(axis.text.x = element_text(size = 15), legend.position = c(0.15,0.8), 
+  theme(axis.text.x = element_text(size = 15), legend.position = c(0.1,0.2), 
         legend.title = element_text(size = 15), legend.text = element_text (size = 12))
 quilt <-  p + 
   plot_annotation(title = "Tomato dataset - Concatenated tree", subtitle = "Unfiltered dataset",
