@@ -55,9 +55,10 @@ metazoan_colour_palette <- c("Bilateria" = "#CC79A7", "Cnidaria" = "#009E73", "C
 
 
 #### Step 3: Primates dataset ####
-## ggdensitree for Primates dataset ##
 # Get all species trees
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
+# Remove trees estimated from unfiltered datasets
+all_trees <- grep("NoTest", all_trees, value = T, invert = T)
 # Extract trees for that combination of dataset and tree method
 plot_tree_files <- grep("Primates", all_trees, value = TRUE)
 astral_trees_files <- grep("ASTRAL", plot_tree_files, value = TRUE)
@@ -185,9 +186,10 @@ ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", 
 
 
 #### Step 4: Tomatoes dataset ####
-## ggdensitree for Tomatoes dataset ##
 # Get all species trees
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
+# Remove trees estimated from unfiltered datasets
+all_trees <- grep("NoTest", all_trees, value = T, invert = T)
 # Extract trees for that combination of dataset and tree method
 plot_tree_files <- grep("Tomatoes", all_trees, value = TRUE)
 astral_trees_files <- grep("ASTRAL", plot_tree_files, value = TRUE)
@@ -300,9 +302,10 @@ ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", 
 
 
 #### Step 5: Metazoans dataset ####
-## ggdensitree for Metazoans dataset ##
 # Get all species trees
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
+# Remove trees estimated from unfiltered datasets
+all_trees <- grep("NoTest", all_trees, value = T, invert = T)
 # Extract trees for that combination of dataset and tree method
 plot_tree_files <- grep("Metazoan", all_trees, value = TRUE)
 astral_trees_files <- grep("ASTRAL", plot_tree_files, value = TRUE)
@@ -426,8 +429,7 @@ ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", 
 
 
 
-#### Step 5: Plants dataset ####
-## ggdensitree for Plants dataset ##
+#### Step 6: Plants dataset ####
 # Open the annotations file for the plants dataset
 annotations_df <- read.csv(annotation_csv_file)
 # Extract Chromista taxa: these will be the outgroups
@@ -435,6 +437,8 @@ outgroup_taxa <- annotations_df[annotations_df$Very.Brief.Classification == "Chr
 
 # Get all species trees
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
+# Remove trees estimated from unfiltered datasets
+all_trees <- grep("NoTest", all_trees, value = T, invert = T)
 # Extract trees for that combination of dataset and tree method
 plot_tree_files <- grep("Plants", all_trees, value = TRUE)
 astral_trees_files <- grep("ASTRAL", plot_tree_files, value = TRUE)
