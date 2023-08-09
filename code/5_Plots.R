@@ -289,7 +289,6 @@ quilt <-  p +
 p_name <- paste0(plot_dir, "Tomatoes_ASTRAL_NoTest_plot")
 ggsave(filename = paste0(p_name, ".pdf"), plot = quilt, device = "pdf", width = 8, height = 7, units = "in")
 
-
 # Create a small plot of each of the six trees
 p1 <- ggtree(tt1_small) %<+% tt1_small_labs + 
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0, geom = "text", size = 6) + 
@@ -462,6 +461,7 @@ tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recurs
 metazoan_tree_files <- grep("Metazoan", tree_files, value = TRUE)
 metazoan_astral_trees <- grep("ASTRAL", metazoan_tree_files, value = TRUE)
 metazoan_concat_trees <- grep("CONCAT", metazoan_tree_files, value = TRUE)
+metazoan_palette <- c("Bilateria" = "#CC79A7", "Cnidaria" = "#009E73", "Ctenophora" = "#56B4E9", "Porifera" = "#E69F00", "Outgroup" = "#999999", "Placozoa" = "#000000")
 
 ## Plot Metazoan ASTRAL tree
 # Find files
@@ -475,18 +475,24 @@ mt1$edge.length[which(is.nan(mt1$edge.length))] <- 0.2
 # Relabel clades
 mt1_labs <- color.code.metazoan.clades(mt1, trimmed = "FALSE")
 # Plot and save
-p1 <- ggtree(mt1) %<+% mt1_labs +
-  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 4) + 
-  geom_rootedge(rootedge = 0.001, size = 0.5) +
+p <- ggtree(mt1) %<+% mt1_labs +
+  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 4) + 
+  geom_rootedge(rootedge = 0.3, size = 0.5) +
   coord_cartesian(clip = 'off') + 
-  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60")) +
+  theme_tree2(plot.margin=margin(0, 40, 0, 0)) + 
+  scale_y_reverse() +  
+  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
+                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
+                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) ) +
   guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp."))) + 
-  theme(axis.text.x = element_text(size = 15), legend.position = "left", 
-        legend.title = element_text(size = 15), legend.text = element_text (size = 12))
-p1_name <- paste0(plot_dir, "Metazoan_ASTRAL_NoTest_plot")
-ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf", width = 8, height = 10, units = "in")
+  theme(axis.text.x = element_text(size = 15),
+        legend.title = element_text(size = 15), legend.text = element_text (size = 12), legend.position = c(0.08,0.12))
+quilt <-  p + 
+  plot_annotation(title = "Metazoan dataset - ASTRAL tree", subtitle = "Unfiltered dataset",
+                  theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
+                                plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
+p_name <- paste0(plot_dir, "Metazoan_ASTRAL_NoTest_plot")
+ggsave(filename = paste0(p_name, ".pdf"), plot = quilt, device = "pdf", width = 12, height = 12, units = "in")
 
 ## Plotting differences in topology for ASTRAL trees
 # Find files
@@ -563,18 +569,25 @@ mt1 <- reformat.congruent.metazoan.clades(mt1, trim = "FALSE")
 # Relabel clades
 mt1_labs <- color.code.metazoan.clades(mt1, trimmed = "FALSE")
 # Plot and save
-p1 <- ggtree(mt1) %<+% mt1_labs +
-  geom_tiplab(aes(label = short_lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 4) + 
-  geom_rootedge(rootedge = 0.001, size = 0.5) +
+p <- ggtree(mt1) %<+% mt1_labs +
+  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 4) + 
+  geom_rootedge(rootedge = 0.05, size = 0.5) +
   coord_cartesian(clip = 'off') + 
-  theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
-  scale_color_manual(values = c(Bilateria = "black", Cnidaria = "firebrick3", Placozoa = "darkgreen", 
-                                Porifera = "goldenrod3", Ctenophora = "navy", Choanoflagellata = "gray60")) +
+  theme_tree2(plot.margin=margin(0, 80, 0, 0)) + 
+  scale_y_reverse() +  
+  scale_color_manual(values = c(Bilateria = metazoan_palette[["Bilateria"]], Cnidaria = metazoan_palette[["Cnidaria"]], 
+                                Placozoa = metazoan_palette[["Placozoa"]], Porifera = metazoan_palette[["Porifera"]],
+                                Ctenophora = metazoan_palette[["Ctenophora"]], Choanoflagellata = metazoan_palette[["Outgroup"]]) ) +
   guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp."))) + 
-  theme(axis.text.x = element_text(size = 15), legend.position = "left", 
-        legend.title = element_text(size = 15), legend.text = element_text (size = 12))
-p1_name <- paste0(plot_dir, "Metazoan_CONCAT_NoTest_plot")
-ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf", width = 8, height = 10, units = "in")
+  theme(axis.text.x = element_text(size = 15),
+        legend.title = element_text(size = 15), legend.text = element_text (size = 12), legend.position = c(0.08,0.12))
+quilt <-  p + 
+  plot_annotation(title = "Metazoan dataset - Concatenated tree", subtitle = "Unfiltered dataset",
+                  theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
+                                plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
+p_name <- paste0(plot_dir, "Metazoan_CONCAT_NoTest_plot")
+ggsave(filename = paste0(p_name, ".pdf"), plot = quilt, device = "pdf", width = 13, height = 12, units = "in")
+
 
 ## Plotting differences in relationships between clades for CONCAT trees
 # Find files
