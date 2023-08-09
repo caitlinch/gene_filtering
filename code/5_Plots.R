@@ -37,10 +37,9 @@ roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJ
 # Open packages
 library(ape) # functions: read.tree, Ntip, root
 library(ggplot2) # for nice plots
-library(ggtree) # for plotting phylogenetic trees
+library(ggtree) # for plotting phylogenetic trees and densitress (ggdensitree)
 library(ggtext) # for nice tree plots
 library(patchwork) # for collating plots
-# library(phangorn) # for densiTree function - replaced by ggdensitree
 library(TreeTools) # for CollapseNode function
 
 # Source functions
@@ -76,12 +75,16 @@ p <- ggtree(pt1) %<+% pt1_labs +
   scale_x_continuous(breaks = seq(0,15,3)) +
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 180, 6, 6)) + 
-  theme(axis.text.x = element_text(size = 12)) +
-  scale_color_manual(values = c(Variable = "gray50", Congruent = "black"))
+  scale_color_manual(values = c(Variable = "gray50", Congruent = "black")) +
+  theme(axis.text.x = element_text(size = 12))
+quilt <-  p + 
+  plot_annotation(title = "Primate dataset - ASTRAL tree", subtitle = "Unfiltered dataset",
+                  theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
+                        plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
 # Create plot name
 p_name <- paste0(plot_dir, "Primates_ASTRAL_NoTest_plot")
 # Save plot
-ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf")
+ggsave(filename = paste0(p_name, ".pdf"), plot = quilt, device = "pdf")
 
 ## Primate Plot 2: ASTRAL variable clade (Cebidae)
 # Three possible topologies:
@@ -114,12 +117,12 @@ pt1$edge.length[which(is.nan(pt1$edge.length))] <- 0.1
 pt2$edge.length[which(is.nan(pt2$edge.length))] <- 0.1
 pt3$edge.length[which(is.nan(pt3$edge.length))] <- 0.1
 # Create plot for each topology
-p1_0 <- ggtree(pt1, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + 
-  geom_rootedge(rootedge = 0.1, size = 1) + xlim(-0.1, 1.2)
-p2 <- ggtree(pt2, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + 
-  geom_rootedge(rootedge = 0.1, size = 1) + xlim(-0.1, 1.2)
-p3 <- ggtree(pt3, size = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + 
-  geom_rootedge(rootedge = 0.1, size = 1) + xlim(-0.1, 1.2)
+p1_0 <- ggtree(pt1, linewidth = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + 
+  geom_rootedge(rootedge = 0.1, linewidth = 1) + xlim(-0.1, 1.2)
+p2 <- ggtree(pt2, linewidth = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + 
+  geom_rootedge(rootedge = 0.1, linewidth = 1) + xlim(-0.1, 1.2)
+p3 <- ggtree(pt3, linewidth = 1) + geom_tiplab(offset = 0, geom = "text", size = 10) + 
+  geom_rootedge(rootedge = 0.1, linewidth = 1) + xlim(-0.1, 1.2)
 # Flip pt1 branch so all 3 plots have same order
 p1 <- flip(p1_0, 2, 3)
 # Create plot name 
@@ -142,16 +145,32 @@ pt1$tip.label <- gsub("_", " ", pt1$tip.label)
 pt1_labs <-color.code.primate.clades(pt1, concatenated = TRUE)
 # Create plot
 p <- ggtree(pt1) %<+% pt1_labs +
-  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0.002, geom = "text", size = 5.5) + 
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = FALSE, offset = 0.002, geom = "text", size = 5) + 
   scale_y_reverse() +  
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 120, 6, 6)) + 
   theme(axis.text.x = element_text(size = 15)) +
   scale_color_manual(values = c(Variable = "gray50", Congruent = "black"))
+quilt <-  p + 
+  plot_annotation(title = "Primate dataset - Concatenated tree", subtitle = "Unfiltered dataset",
+                  theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
+                                plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
+# p <- ggtree(tt1) %<+% tt1_labs +
+#   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 5) + 
+#   geom_rootedge(rootedge = 0.3, size = 0.5) +
+#   coord_cartesian(clip = 'off') + 
+#   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
+#   scale_color_manual(values = c(Esculentum = "firebrick3", Arcanum = "goldenrod3", 
+#                                 Peruvianum = "darkgreen", Hirsutum = "navy", 
+#                                 Outgroup = "black")) +
+#   guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp."))) +
+#   theme(axis.text.x = element_text(size = 15), 
+#         legend.title = element_text(size = 15), legend.text = element_text (size = 12), legend.position = c(0.15,0.8))
+
 # Create plot name
 p_name <- paste0(plot_dir, "Primates_CONCAT_NoTest_plot")
 # Save plot
-ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf")
+ggsave(filename = paste0(p_name, ".pdf"), plot = quilt, device = "pdf")
 
 ## Primate Plot 4: CONCAT variable clade (Papionini)
 # Three possible topologies:
@@ -252,8 +271,8 @@ tt1_small_labs <- color.code.tomato.clades(tt1, taxa.numbers = FALSE, trimmed = 
 # To colour code tip labels with richtext:
 #    ggtree(tt1_small) %<+% tt1_small_labs + geom_richtext(data=td_filter(isTip), aes(label = name), label.color=NA) + hexpand(.3)
 # For more details, see: https://yulab-smu.top/treedata-book/faq.html#faq-formatting-label
-p1 <- ggtree(tt1) %<+% tt1_labs +
-  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 6) + 
+p <- ggtree(tt1) %<+% tt1_labs +
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 5) + 
   geom_rootedge(rootedge = 0.3, size = 0.5) +
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 160, 6, 6)) + 
@@ -261,10 +280,14 @@ p1 <- ggtree(tt1) %<+% tt1_labs +
                                 Peruvianum = "darkgreen", Hirsutum = "navy", 
                                 Outgroup = "black")) +
   guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp."))) +
-  theme(axis.text.x = element_text(size = 15), legend.position = "left", 
-        legend.title = element_text(size = 15), legend.text = element_text (size = 12))
-p1_name <- paste0(plot_dir, "Tomatoes_ASTRAL_NoTest_plot")
-ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf", width = 8, height = 7, units = "in")
+  theme(axis.text.x = element_text(size = 15), 
+        legend.title = element_text(size = 15), legend.text = element_text (size = 12), legend.position = c(0.15,0.8))
+quilt <-  p + 
+  plot_annotation(title = "Tomato dataset - ASTRAL tree", subtitle = "Unfiltered dataset",
+                  theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
+                                plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
+p_name <- paste0(plot_dir, "Tomatoes_ASTRAL_NoTest_plot")
+ggsave(filename = paste0(p_name, ".pdf"), plot = quilt, device = "pdf", width = 8, height = 7, units = "in")
 
 
 # Create a small plot of each of the six trees
@@ -367,8 +390,8 @@ tt4$tip.label <- rename.tomato.tips(tt4$tip.label)
 tt1_labs <- color.code.tomato.clades(tt1, taxa.numbers = FALSE, trimmed = FALSE)
 tt1_small_labs <- color.code.tomato.clades(tt1, taxa.numbers = FALSE, trimmed = TRUE)
 # Save plot of the unfiltered tree
-p1 <- ggtree(tt1) %<+% tt1_labs +
-  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 6) + 
+p <- ggtree(tt1) %<+% tt1_labs +
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = T, offset = 0, geom = "text", size = 5) + 
   geom_rootedge(rootedge = 0.001, size = 0.5) +
   coord_cartesian(clip = 'off') + 
   theme_tree2(plot.margin=margin(6, 170, 6, 6)) + 
@@ -377,10 +400,14 @@ p1 <- ggtree(tt1) %<+% tt1_labs +
                                 Peruvianum = "darkgreen", Hirsutum = "navy", 
                                 Outgroup = "black")) +
   guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp."))) +
-  theme(axis.text.x = element_text(size = 15), legend.position = "left", 
+  theme(axis.text.x = element_text(size = 15), legend.position = c(0.15,0.8), 
         legend.title = element_text(size = 15), legend.text = element_text (size = 12))
-p1_name <- paste0(plot_dir, "Tomatoes_CONCAT_NoTest_plot")
-ggsave(filename = paste0(p1_name, ".pdf"), plot = p1, device = "pdf", height = 7, width = 8, units = "in")
+quilt <-  p + 
+  plot_annotation(title = "Tomato dataset - Concatenated tree", subtitle = "Unfiltered dataset",
+                  theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
+                                plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
+p_name <- paste0(plot_dir, "Tomatoes_CONCAT_NoTest_plot")
+ggsave(filename = paste0(p_name, ".pdf"), plot = quilt, device = "pdf", height = 7, width = 8, units = "in")
 # Create small plot of each of the four trees
 p1 <- ggtree(tt1_small, size = 0.75) %<+% tt1_small_labs + 
   geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = F, offset = 0, geom = "text", size = 6) + 
