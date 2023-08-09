@@ -30,7 +30,7 @@ roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJ
 #### Step 2: Open files and packages ####
 # Open packages
 library(ape) # functions: read.tree, Ntip, root
-#library(ggplot2) # for nice plots
+library(ggplot2) # for nice plots
 library(ggtree) # for plotting phylogenetic trees and densitress (ggdensitree)
 #library(ggtext) # for nice tree plots
 #library(patchwork) # for collating plots
@@ -66,6 +66,7 @@ notest_concat_tree_file <- grep("NoTest", grep("CONCAT", plot_tree_files, value 
 # Extract trees for that combination of dataset and tree method
 astral_trees_files <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = T, invert = T)
 concat_trees_files <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = T, invert = T)
+
 # Separate into pass and fail trees
 astral_pass_tree_files <- grep("pass", astral_trees_files, value = T)
 astral_fail_tree_files <- grep("fail", astral_trees_files, value = T)
@@ -137,103 +138,58 @@ primates_tip_order <- c("Pan troglodytes", "Pan paniscus", "Homo sapiens", "Gori
 
 ## Create labels for densitree plots
 # Create labels for the tips
-primate_labels_df <- color.primates.by.clades(notest_concat_tree, color_palette = primate_colour_palette)
-# Reorder primate_labels_df to make sure ggtree will be in desired order
-primate_labels <- primate_labels_df[match(primates_tip_order, primate_labels_df$taxa),]
+primate_labels <- color.primates.by.clades(notest_concat_tree, color_palette = primate_colour_palette)
+# Reorder primate_labels dataframe to make sure ggtree will be in desired order
+primate_labels <- primate_labels[match(primates_tip_order, primate_labels$taxa),]
 # Format taxa names
 primate_labels$taxa <- gsub(" ", "_", primate_labels$taxa)
 
 ## Plot densitress
 # Plot: ASTRAL, pass
-densiTree(a_p_trees)
-ggdensitree(a_p_trees, tip.order = primate_labels$taxa)
-
-ggdensitree(a_p_trees, tip.order = primate_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% primate_labels +
-  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.2)
-
-ggdensitree(a_p_trees, tip.order = primate_labels$taxa, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% primate_labels +
-  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.2) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
-  labs(title = "ASTRAL species trees") +
-  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
-        axis.line.x = element_line(color = "white"),
-        plot.title = element_text(hjust = 0, size = 14, face = "bold"))
+a_p_densitree <- ggdensitree(a_p_trees, tip.order = primate_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% primate_labels +
+  geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.2, geom = "text", size = 4) +
+  scale_color_manual(values = primate_colour_palette) +
+  xlim(-15.4, 3) +
+  labs(title = "ASTRAL tree - Pass") +
+  theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0, size = 20, face = "bold"))
 # Plot: ASTRAL, fail
-
+a_f_densitree <- ggdensitree(a_f_trees, tip.order = primate_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% primate_labels +
+  geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.2, geom = "text", size = 4) +
+  scale_color_manual(values = primate_colour_palette) +
+  xlim(-15.4, 3) +
+  labs(title = "ASTRAL tree - Fail") +
+  theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0, size = 20, face = "bold"))
 # Plot: CONCAT, pass
-
+c_p_densitree <- ggdensitree(c_p_trees, tip.order = primate_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% primate_labels +
+  geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.002, geom = "text", size = 4) +
+  scale_color_manual(values = primate_colour_palette) +
+  xlim(-0.189, 0.034) +
+  labs(title = "Concatenated tree - Pass") +
+  theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0, size = 20, face = "bold"))
 # Plot: CONCAT, fail
+c_f_densitree <- ggdensitree(c_f_trees, tip.order = primate_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% primate_labels +
+  geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.002, geom = "text", size = 4) +
+  scale_color_manual(values = primate_colour_palette) +
+  xlim(-0.196, 0.034) +
+  labs(title = "Concatenated tree - Fail") +
+  theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0, size = 20, face = "bold"))
 
+## Assemble the plot using patchwork
+quilt <-  p +
+  plot_annotation(title = "Primate dataset - ASTRAL tree", subtitle = "Unfiltered dataset",
+                  theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
+                                plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
 
-
-
-# Plot a nice densitree of the astral species trees
-astral_densitree <- ggdensitree(astral_trees, tip.order = primate_labels$taxa, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% primate_labels +
-  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.2) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
-  labs(title = "ASTRAL species trees") +
-  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
-        axis.line.x = element_line(color = "white"),
-        plot.title = element_text(hjust = 0, size = 14, face = "bold"))
-# Plot a nice densitree of the concatenated species trees
-concat_densitree <- ggdensitree(concat_trees, tip.order = primate_labels$taxa, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% primate_labels +
-  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.2) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
-  labs(title = "Concatenated species trees") +
-  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
-        axis.line.x = element_line(color = "white"),
-        plot.title = element_text(hjust = 0, size = 14, face = "bold"))
-# Construct file name for this densitree plot
-densitree_name <- paste0(plot_dir, "Primates_Species_tree_comparison_ggdensitree")
-# Assemble the figure
-quilt <- (astral_densitree + concat_densitree) + 
-  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
-ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 10, height = 8, units = "in")
-# Plot a nice annotated densitree of the astral species trees
-astral_densitree <- ggdensitree(astral_trees, tip.order = primate_labels$taxa, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% primate_labels +
-  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.2) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 80, 6, 6)) +
-  labs(title = "ASTRAL species trees") +
-  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
-        axis.line.x = element_line(color = "white"),
-        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
-  geom_cladelab(node = 42, label = "Hominidae", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "deepskyblue", barcolor = "deepskyblue")+
-  geom_cladelab(node = 12, label = "Hylobatidae", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "steelblue3", barcolor = "steelblue3") +
-  geom_cladelab(node = 50, label = "Cercopithecinae", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "darkslategray4", barcolor = "darkslategray4") +
-  geom_cladelab(node = 47, label = "Colobinae", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "darkslategray3", barcolor = "darkslategray3") +
-  geom_cladelab(node = 32, label = "Cebidae", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "darkseagreen4", barcolor = "darkseagreen4") +
-  geom_cladelab(node = 5, label = "Tarsiiformes", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "springgreen4", barcolor = "springgreen4") +
-  geom_cladelab(node = 39, label = "Lemuriformes", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "olivedrab4", barcolor = "olivedrab4") +
-  geom_cladelab(node = 9, label = "Lorisiformes", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "olivedrab3", barcolor = "olivedrab3") +
-  geom_cladelab(node = 6, label = "Dermoptera", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "snow4", barcolor = "snow4") +
-  geom_cladelab(node = 8, label = "Scandentia", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "snow4", barcolor = "snow4") +
-  geom_cladelab(node = 7, label = "Rodentia", align = TRUE, offset = 10, offset.text = 0.2, fontsize = 4, textcolor = "snow4", barcolor = "snow4")
-# Plot a nice annotated densitree of the concatenated species trees
-concat_densitree <- ggdensitree(concat_trees, tip.order = primate_labels$taxa, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% primate_labels +
-  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.2) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 80, 6, 6)) +
-  labs(title = "Concatenated species trees") +
-  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
-        axis.line.x = element_line(color = "white"),
-        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
-  geom_cladelab(node = 52, label = "Hominidae", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "deepskyblue", barcolor = "deepskyblue")+
-  geom_cladelab(node = 27, label = "Hylobatidae", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "steelblue3", barcolor = "steelblue3") +
-  geom_cladelab(node = 41, label = "Cercopithecinae", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "darkslategray4", barcolor = "darkslategray4") +
-  geom_cladelab(node = 48, label = "Colobinae", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "darkslategray3", barcolor = "darkslategray3") +
-  geom_cladelab(node = 32, label = "Cebidae", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "darkseagreen4", barcolor = "darkseagreen4") +
-  geom_cladelab(node = 3, label = "Tarsiiformes", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "springgreen4", barcolor = "springgreen4") +
-  geom_cladelab(node = 38, label = "Lemuriformes", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "olivedrab4", barcolor = "olivedrab4") +
-  geom_cladelab(node = 9, label = "Lorisiformes", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "olivedrab3", barcolor = "olivedrab3") +
-  geom_cladelab(node = 4, label = "Dermoptera", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "snow4", barcolor = "snow4") +
-  geom_cladelab(node = 6, label = "Scandentia", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "snow4", barcolor = "snow4") +
-  geom_cladelab(node = 5, label = "Rodentia", align = TRUE, offset = 11, offset.text = 0.2, fontsize = 4, textcolor = "snow4", barcolor = "snow4")
-# Construct file name for this densitree plot
-densitree_name <- paste0(plot_dir, "Primates_Species_tree_comparison_ggdensitree_annotated")
+## Save the plot
+densitree_name <- paste0(plot_dir, "Primates_ggdensitree")
 # Assemble the figure
 quilt <- (astral_densitree + concat_densitree) + 
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
