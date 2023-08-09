@@ -42,12 +42,14 @@ library(dendextend)
 # library(ggtree) # for plotting phylogenetic trees
 library(viridisLite) # for color palettes
 
-
 # Source functions
 source(paste0(maindir,"code/func_plots.R"))
 
 # Assemble folder for species trees
 species_tree_folder <- paste0(maindir, "species_trees/")
+
+# Save default graphical parameters
+default_par <- par()
 
 
 
