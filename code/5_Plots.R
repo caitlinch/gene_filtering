@@ -36,6 +36,7 @@ roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJ
 #### Step 2: Open files and packages ####
 # Open packages
 library(ape) # functions: read.tree, Ntip, root
+library(phangorn)
 library(ggplot2) # for nice plots
 library(ggtree) # for plotting phylogenetic trees and densitress (ggdensitree)
 library(ggtext) # for nice tree plots
@@ -742,17 +743,9 @@ tip_color[special_tips] <- "Red"
 # Plot densitree of all tomato gene trees
 plot_file <- paste0(plot_dir, "Tomatoes_all_gene_trees_densiTree_plot")
 # Save as pdf
-pdf(file = paste0(plot_file, ".pdf"), width = 10, height = 10)
+pdf(file = paste0(plot_file, ".pdf"), width = 12, height = 10)
 densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.2, 
-          tip.color = tip_color, scale.bar = FALSE)
+          tip.color = "Black", scale.bar = FALSE)
 dev.off()
-# Save as png
-png(file = paste0(plot_file, ".png"), width = 900, height = 800)
-densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.5, 
-          tip.color = tip_color, scale.bar = FALSE)
-dev.off()
-
-
-
 
 
