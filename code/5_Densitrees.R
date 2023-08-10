@@ -88,20 +88,12 @@ a_p_trees <- read.tree(text = astral_pass_trees_text)
 a_f_trees <- read.tree(text = astral_fail_trees_text)
 c_p_trees <- read.tree(text = concat_pass_trees_text)
 c_f_trees <- read.tree(text = concat_fail_trees_text)
-# Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
-notest_astral_tree_file <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = TRUE)
-notest_concat_tree_file <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = TRUE)
-# Open the NoTest tree (the tree estimated from the unfiltered set of loci)
-notest_astral_tree <- read.tree(notest_astral_tree_file)
-notest_concat_tree <- read.tree(notest_concat_tree_file)
 
 ## Root trees
 a_p_trees <- lapply(a_p_trees, root, roots_by_group[["Primates"]])
 a_f_trees <- lapply(a_f_trees, root, roots_by_group[["Primates"]])
 c_p_trees <- lapply(c_p_trees, root, roots_by_group[["Primates"]])
 c_f_trees <- lapply(c_f_trees, root, roots_by_group[["Primates"]])
-notest_astral_tree <- root(notest_astral_tree, roots_by_group[["Primates"]])
-notest_concat_tree <- root(notest_concat_tree, roots_by_group[["Primates"]])
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
 class(a_f_trees) <- "multiPhylo" 
@@ -230,20 +222,12 @@ a_p_trees <- read.tree(text = astral_pass_trees_text)
 a_f_trees <- read.tree(text = astral_fail_trees_text)
 c_p_trees <- read.tree(text = concat_pass_trees_text)
 c_f_trees <- read.tree(text = concat_fail_trees_text)
-# Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
-notest_astral_tree_file <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = TRUE)
-notest_concat_tree_file <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = TRUE)
-# Open the NoTest tree (the tree estimated from the unfiltered set of loci)
-notest_astral_tree <- read.tree(notest_astral_tree_file)
-notest_concat_tree <- read.tree(notest_concat_tree_file)
 
 ## Root trees
 a_p_trees <- lapply(a_p_trees, root, roots_by_group[["Tomatoes"]])
 a_f_trees <- lapply(a_f_trees, root, roots_by_group[["Tomatoes"]])
 c_p_trees <- lapply(c_p_trees, root, roots_by_group[["Tomatoes"]])
 c_f_trees <- lapply(c_f_trees, root, roots_by_group[["Tomatoes"]])
-notest_astral_tree <- root(notest_astral_tree, roots_by_group[["Tomatoes"]])
-notest_concat_tree <- root(notest_concat_tree, roots_by_group[["Tomatoes"]])
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
 class(a_f_trees) <- "multiPhylo" 
@@ -353,35 +337,19 @@ concat_trees_files <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRU
 
 # Separate into pass and fail trees
 astral_pass_tree_files <- grep("pass", astral_trees_files, value = T)
-astral_fail_tree_files <- grep("fail", astral_trees_files, value = T)
 concat_pass_tree_files <- grep("pass", concat_trees_files, value = T)
-concat_fail_tree_files <- grep("fail", concat_trees_files, value = T)
 # Extract text file for each tree
 astral_pass_trees_text <- unlist(lapply(astral_pass_tree_files, readLines))
-astral_fail_trees_text <- unlist(lapply(astral_fail_tree_files, readLines))
 concat_pass_trees_text <- unlist(lapply(concat_pass_tree_files, readLines))
-concat_fail_trees_text <- unlist(lapply(concat_fail_tree_files, readLines))
 
 ## Open trees
 # Read trees into a multiphylo object
 a_p_trees <- read.tree(text = astral_pass_trees_text)
-a_f_trees <- read.tree(text = astral_fail_trees_text)
 c_p_trees <- read.tree(text = concat_pass_trees_text)
-c_f_trees <- read.tree(text = concat_fail_trees_text)
-# Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
-notest_astral_tree_file <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = TRUE)
-notest_concat_tree_file <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = TRUE)
-# Open the NoTest tree (the tree estimated from the unfiltered set of loci)
-notest_astral_tree <- read.tree(notest_astral_tree_file)
-notest_concat_tree <- read.tree(notest_concat_tree_file)
 
 ## Root trees
-a_p_trees <- lapply(a_p_trees, root, roots_by_group[["Tomatoes"]])
-a_f_trees <- lapply(a_f_trees, root, roots_by_group[["Tomatoes"]])
-c_p_trees <- lapply(c_p_trees, root, roots_by_group[["Tomatoes"]])
-c_f_trees <- lapply(c_f_trees, root, roots_by_group[["Tomatoes"]])
-notest_astral_tree <- root(notest_astral_tree, roots_by_group[["Tomatoes"]])
-notest_concat_tree <- root(notest_concat_tree, roots_by_group[["Tomatoes"]])
+a_p_trees <- lapply(a_p_trees, root, roots_by_group[["Metazoans"]])
+c_p_trees <- lapply(c_p_trees, root, roots_by_group[["Metazoans"]])
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
 class(a_f_trees) <- "multiPhylo" 
