@@ -104,7 +104,6 @@ class(c_f_trees) <- "multiPhylo"
 # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
 a_p_trees <- lapply(1:length(a_p_trees), function(i){add.terminal.branches(a_p_trees[[i]], 1)})
 a_f_trees <- lapply(1:length(a_p_trees), function(i){add.terminal.branches(a_p_trees[[i]], 1)})
-notest_astral_tree <- add.terminal.branches(notest_astral_tree, 1)
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
 class(a_f_trees) <- "multiPhylo" 
@@ -238,7 +237,6 @@ class(c_f_trees) <- "multiPhylo"
 # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
 a_p_trees <- lapply(1:length(a_p_trees), function(i){add.terminal.branches(a_p_trees[[i]], 1)})
 a_f_trees <- lapply(1:length(a_f_trees), function(i){add.terminal.branches(a_f_trees[[i]], 1)})
-notest_astral_tree <- add.terminal.branches(notest_astral_tree, 1)
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
 class(a_f_trees) <- "multiPhylo" 
@@ -352,30 +350,22 @@ a_p_trees <- lapply(a_p_trees, root, roots_by_group[["Metazoans"]])
 c_p_trees <- lapply(c_p_trees, root, roots_by_group[["Metazoans"]])
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
-class(a_f_trees) <- "multiPhylo" 
 class(c_p_trees) <- "multiPhylo"
-class(c_f_trees) <- "multiPhylo"
 
 ## Add terminal branch lengths for ASTRAL trees
 # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
 a_p_trees <- lapply(1:length(a_p_trees), function(i){add.terminal.branches(a_p_trees[[i]], 1)})
-a_f_trees <- lapply(1:length(a_f_trees), function(i){add.terminal.branches(a_f_trees[[i]], 1)})
-notest_astral_tree <- add.terminal.branches(notest_astral_tree, 1)
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
-class(a_f_trees) <- "multiPhylo" 
 
 ## Force trees to ultrametric
 # Extend tips to make tree ultrametric
 a_p_trees <- lapply(1:length(a_p_trees), function(i){force.ultrametric(a_p_trees[[i]], method = "extend")})
-a_f_trees <- lapply(1:length(a_f_trees), function(i){force.ultrametric(a_f_trees[[i]], method = "extend")})
 c_p_trees <- lapply(1:length(c_p_trees), function(i){force.ultrametric(c_p_trees[[i]], method = "extend")})
-c_f_trees <- lapply(1:length(c_f_trees), function(i){force.ultrametric(c_f_trees[[i]], method = "extend")})
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
-class(a_f_trees) <- "multiPhylo" 
 class(c_p_trees) <- "multiPhylo" 
-class(c_f_trees) <- "multiPhylo" 
+
 
 ## Order tips for plots
 # Get the order for the tips (bottom species first, top species last)
@@ -415,15 +405,6 @@ a_p_densitree <- ggdensitree(a_p_trees, tip.order = tomato_labels$taxa, align.ti
         legend.title = element_text(size = 18), legend.text = element_text (size = 16), legend.position = c(0.08,0.25),
         legend.key.size = unit(1.5, "lines")) +
   guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.", size = 6)))
-# Plot: ASTRAL, fail
-a_f_densitree <- ggdensitree(a_f_trees, tip.order = tomato_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% tomato_labels +
-  geom_tiplab(aes(label = lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.2, geom = "text", size = 4.5) +
-  scale_color_manual(values = tomato_colour_palette) +
-  xlim(-19.58, 5.5) +
-  labs(title = "Fail tests - ASTRAL trees") +
-  theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
-        axis.text.x = element_text(color = "white"), 
-        plot.title = element_text(hjust = 0.5, size = 25, face = "bold"))
 # Plot: CONCAT, pass
 c_p_densitree <- ggdensitree(c_p_trees, tip.order = tomato_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% tomato_labels +
   geom_tiplab(aes(label = lab, color = clade), parse = TRUE, offset = 0.0002, show.legend = FALSE, geom = "text", size = 4.5) +
@@ -433,24 +414,15 @@ c_p_densitree <- ggdensitree(c_p_trees, tip.order = tomato_labels$taxa, align.ti
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
         plot.title = element_text(hjust = 0.5, size = 25, face = "bold"))
-# Plot: CONCAT, fail
-c_f_densitree <- ggdensitree(c_f_trees, tip.order = tomato_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% tomato_labels +
-  geom_tiplab(aes(label = lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.0002, geom = "text", size = 4.5) +
-  scale_color_manual(values = tomato_colour_palette) +
-  xlim(-0.0272, 0.0078) +
-  labs(title = "Fail tests - Concatenated trees") +
-  theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
-        axis.text.x = element_text(color = "white"), 
-        plot.title = element_text(hjust = 0.5, size = 25, face = "bold"))
 
 ## Assemble the plot using patchwork
-quilt <- (a_p_densitree | a_f_densitree) / (c_p_densitree | c_f_densitree) + 
+quilt <- (a_p_densitree) / (c_p_densitree) + 
   plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
   theme(plot.tag = element_text(size = 20))
 
 ## Save the plot
-densitree_name <- paste0(plot_dir, "Tomatoes_ggdensitree")
-ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 18, units = "in")
+densitree_name <- paste0(plot_dir, "Metazoans_ggdensitree")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 9, units = "in")
 
 
 
