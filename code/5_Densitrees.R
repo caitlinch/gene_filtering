@@ -54,7 +54,8 @@ tomato_colour_palette <- c("Esculentum" = "firebrick3", "Arcanum" = "goldenrod3"
                            "Peruvianum" = "darkgreen", "Hirsutum" = "navy", 
                            "Outgroup" = "black")
 metazoan_colour_palette <- c("Bilateria" = "#CC79A7", "Cnidaria" = "#009E73", "Ctenophora" = "#56B4E9",
-                             "Porifera" = "#E69F00", "Outgroup" = "#999999", "Placozoa" = "#000000")
+                             "Porifera" = "#E69F00", "Placozoa" = "#000000", "Outgroup" = "#999999",
+                             "Choanoflagellata" = "#999999")
 
 
 
@@ -377,6 +378,7 @@ metazoans_tip_order <- c("Monosiga_ovata", "Acanthoeca_sp", "Monosiga_brevicolis
                          "Hydra_vulgaris", "Hydra_viridissima", "Periphyla_periphyla", "Aiptasia_pallida", "Hormathia_digitata", "Bolocera_tuediae",
                          "Nematostella_vectensis", "Acropora_digitifera", "Eunicella_verrucosa",
                          "Capitella_teleta", "Hemithris_psittacea", "Drosophila_melanogaster", "Daphnia_pulex", "Homo_sapiens", "Strongylocentrotus_purpatus")
+metazoans_tip_order <- rev(metazoans_tip_order)
 
 ## Create labels for densitree plots
 metazoan_labels <- color.code.metazoan.clades(notest_concat_tree, trimmed = "FALSE", color = FALSE)
@@ -388,35 +390,33 @@ metazoan_labels$short_lab_noformat <- shorten.short.names(metazoan_labels$short_
 
 ## Plot densitress
 # Plot: ASTRAL, pass
-a_p_densitree <- ggdensitree(a_p_trees, tip.order = tomato_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% tomato_labels +
-  geom_tiplab(aes(label = lab, color = clade), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.5) +
-  scale_color_manual(values = tomato_colour_palette) +
-  xlim(-16.6, 4.8) +
+a_p_densitree <- ggdensitree(a_p_trees, tip.order = metazoan_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% metazoan_labels +
+  geom_tiplab(aes(label = short_lab_noformat, color = clade), parse = FALSE, show.legend = TRUE, offset = 0.2, geom = "text", size = 3.5, fontface = 3) +
+  scale_color_manual(values = metazoan_colour_palette) +
+  xlim(-12, 3.2) +
   labs(title = "Pass tests - ASTRAL trees") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
         plot.title = element_text(hjust = 0.5, size = 25, face = "bold"),
-        legend.title = element_text(size = 18), legend.text = element_text (size = 16), legend.position = c(0.08,0.25),
-        legend.key.size = unit(1.5, "lines")) +
-  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.", size = 6)))
+        legend.title = element_text(size = 12), legend.text = element_text (size = 10), legend.position = c(0.05,0.05),
+        legend.key.size = unit(0.9, "lines")) +
+  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.", size = 4)))
 # Plot: CONCAT, pass
-c_p_densitree <- ggdensitree(c_p_trees, tip.order = tomato_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% tomato_labels +
-  geom_tiplab(aes(label = lab, color = clade), parse = TRUE, offset = 0.0002, show.legend = FALSE, geom = "text", size = 4.5) +
-  scale_color_manual(values = tomato_colour_palette) +
-  xlim(-0.0287, 0.0078) +
+c_p_densitree <- ggdensitree(c_p_trees, tip.order = metazoan_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% metazoan_labels +
+  geom_tiplab(aes(label = short_lab_noformat, color = clade), parse = FALSE, offset = 0.0002, show.legend = FALSE, geom = "text", size = 3.5, fontface = 3) +
+  scale_color_manual(values = metazoan_colour_palette) +
+  xlim(-1.25, 0.35) +
   labs(title = "Pass tests - Concatenated trees") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
         plot.title = element_text(hjust = 0.5, size = 25, face = "bold"))
 
 ## Assemble the plot using patchwork
-quilt <- (a_p_densitree) / (c_p_densitree) + 
-  plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
-  theme(plot.tag = element_text(size = 20))
+quilt <- (a_p_densitree | c_p_densitree) +  plot_annotation(tag_levels = 'a', tag_suffix = ".") &  theme(plot.tag = element_text(size = 20))
 
 ## Save the plot
 densitree_name <- paste0(plot_dir, "Metazoans_ggdensitree")
-ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 9, units = "in")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 11, width = 16, units = "in")
 
 
 
