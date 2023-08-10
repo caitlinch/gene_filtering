@@ -40,6 +40,9 @@ library(patchwork)
 # Source functions
 source(paste0(maindir,"code/func_plots.R"))
 
+# Save original graphical parameters
+reset_graph_params <- par()
+
 # Assemble folder for species trees
 species_tree_folder <- paste0(maindir, "species_trees/")
 
@@ -198,118 +201,142 @@ ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", 
 
 
 #### Step 4: Tomatoes dataset ####
-# Get all species trees
+## Open Primate dataset trees
+# Get all files for species trees
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
-# Remove trees estimated from unfiltered datasets
-all_trees <- grep("NoTest", all_trees, value = T, invert = T)
-# Extract trees for that combination of dataset and tree method
-plot_tree_files <- grep("Tomatoes", all_trees, value = TRUE)
-astral_trees_files <- grep("ASTRAL", plot_tree_files, value = TRUE)
-concat_trees_files <- grep("CONCAT", plot_tree_files, value = TRUE)
-# Extract text file for each tree
-astral_trees_text <- unlist(lapply(astral_trees_files, readLines))
-concat_trees_text <- unlist(lapply(concat_trees_files, readLines))
-# Read trees into a multiphylo object
-astral_trees <- read.tree(text = astral_trees_text)
-concat_trees <- read.tree(text = concat_trees_text)
+# Extract files for this dataset
+plot_tree_files <- grep("Tomato", all_trees, value = TRUE)
 # Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
-notest_astral_tree_file <- grep("NoTest", astral_trees_files, value = TRUE)
-notest_concat_tree_file <- grep("NoTest", concat_trees_files, value = TRUE)
+notest_astral_tree_file <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = TRUE)
+notest_concat_tree_file <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = TRUE)
+# Extract trees for that combination of dataset and tree method
+astral_trees_files <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = T, invert = T)
+concat_trees_files <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = T, invert = T)
+
+# Separate into pass and fail trees
+astral_pass_tree_files <- grep("pass", astral_trees_files, value = T)
+astral_fail_tree_files <- grep("fail", astral_trees_files, value = T)
+concat_pass_tree_files <- grep("pass", concat_trees_files, value = T)
+concat_fail_tree_files <- grep("fail", concat_trees_files, value = T)
+# Extract text file for each tree
+astral_pass_trees_text <- unlist(lapply(astral_pass_tree_files, readLines))
+astral_fail_trees_text <- unlist(lapply(astral_fail_tree_files, readLines))
+concat_pass_trees_text <- unlist(lapply(concat_pass_tree_files, readLines))
+concat_fail_trees_text <- unlist(lapply(concat_fail_tree_files, readLines))
+
+## Open trees
+# Read trees into a multiphylo object
+a_p_trees <- read.tree(text = astral_pass_trees_text)
+a_f_trees <- read.tree(text = astral_fail_trees_text)
+c_p_trees <- read.tree(text = concat_pass_trees_text)
+c_f_trees <- read.tree(text = concat_fail_trees_text)
+# Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
+notest_astral_tree_file <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = TRUE)
+notest_concat_tree_file <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = TRUE)
 # Open the NoTest tree (the tree estimated from the unfiltered set of loci)
 notest_astral_tree <- read.tree(notest_astral_tree_file)
 notest_concat_tree <- read.tree(notest_concat_tree_file)
-# Root trees
-astral_trees <- lapply(astral_trees, root, roots_by_group[["Tomatoes"]])
-class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-concat_trees <- lapply(concat_trees, root, roots_by_group[["Tomatoes"]])
-class(concat_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
+
+## Root trees
+a_p_trees <- lapply(a_p_trees, root, roots_by_group[["Tomatoes"]])
+a_f_trees <- lapply(a_f_trees, root, roots_by_group[["Tomatoes"]])
+c_p_trees <- lapply(c_p_trees, root, roots_by_group[["Tomatoes"]])
+c_f_trees <- lapply(c_f_trees, root, roots_by_group[["Tomatoes"]])
 notest_astral_tree <- root(notest_astral_tree, roots_by_group[["Tomatoes"]])
 notest_concat_tree <- root(notest_concat_tree, roots_by_group[["Tomatoes"]])
+# Convert object class from "list" into "multiPhylo
+class(a_p_trees) <- "multiPhylo" 
+class(a_f_trees) <- "multiPhylo" 
+class(c_p_trees) <- "multiPhylo"
+class(c_f_trees) <- "multiPhylo"
+
+## Add terminal branch lengths for ASTRAL trees
 # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
-astral_trees <- lapply(1:length(astral_trees), 
-                       function(i){astral_trees[[i]] <- reformat.ASTRAL.tree.for.plotting(astral_trees[[i]], 
-                                                                                          add.arbitrary.terminal.branches = TRUE, 
-                                                                                          terminal.branch.length = 1, 
-                                                                                          strip.nodes = FALSE,
-                                                                                          scale.tree.length = FALSE, 
-                                                                                          new.tree.length = NA)} )
-class(astral_trees) <- "multiPhylo" # change object class from "list" into "multiPhylo
-notest_astral_tree <- reformat.ASTRAL.tree.for.plotting(notest_astral_tree, 
-                                                        add.arbitrary.terminal.branches = TRUE, 
-                                                        terminal.branch.length = 1, 
-                                                        strip.nodes = FALSE,
-                                                        scale.tree.length = FALSE, 
-                                                        new.tree.length = NA)
+a_p_trees <- lapply(1:length(a_p_trees), function(i){add.terminal.branches(a_p_trees[[i]], 1)})
+a_f_trees <- lapply(1:length(a_f_trees), function(i){add.terminal.branches(a_f_trees[[i]], 1)})
+notest_astral_tree <- add.terminal.branches(notest_astral_tree, 1)
+# Convert object class from "list" into "multiPhylo
+class(a_p_trees) <- "multiPhylo" 
+class(a_f_trees) <- "multiPhylo" 
+
+## Force trees to ultrametric
+# Extend tips to make tree ultrametric
+a_p_trees <- lapply(1:length(a_p_trees), function(i){force.ultrametric(a_p_trees[[i]], method = "extend")})
+a_f_trees <- lapply(1:length(a_f_trees), function(i){force.ultrametric(a_f_trees[[i]], method = "extend")})
+c_p_trees <- lapply(1:length(c_p_trees), function(i){force.ultrametric(c_p_trees[[i]], method = "extend")})
+c_f_trees <- lapply(1:length(c_f_trees), function(i){force.ultrametric(c_f_trees[[i]], method = "extend")})
+# Convert object class from "list" into "multiPhylo
+class(a_p_trees) <- "multiPhylo" 
+class(a_f_trees) <- "multiPhylo" 
+class(c_p_trees) <- "multiPhylo" 
+class(c_f_trees) <- "multiPhylo" 
+
+## Order tips for plots
 # Get the order for the tips (bottom species first, top species last)
 tomato_tip_order <- c("LA3909", "LA0436", "LA0429", "LA3124", "LA3475", "SL2.50", "LA1589", "LA1269",
-                      "LA2933", "LA2133", "LA1322", "LA2172", "LA1316", "LA1028", "LA1364", "LA1782",
-                      "LA4117", "LA2744", "LA2964", "LA1358", "LA0107", "LA0444", "LA1777", "LA0407",
-                      "LA3778", "LA0716", "LA4126", "LA2951", "LA4116")
+                      "LA2933", "LA2133", "LA1322", "LA2172", "LA1316", "LA1028", "LA0444", "LA0107",
+                      "LA1358", "LA2964", "LA2744", "LA4117", "LA1782", "LA1364", "LA1777", "LA0407",
+                      "LA3778", "LA0716", "LA4116", "LA4126", "LA2951")
 tomato_species_order <- rename.tomato.tips(tomato_tip_order)
-# Create labels for the tips
-tip_labels_df <- color.code.tomato.clades(notest_astral_tree, taxa.numbers = FALSE, trimmed = FALSE, color = FALSE)
+
+## Create labels for densitree plots
+tomato_labels <- color.code.tomato.clades(notest_astral_tree, taxa.numbers = FALSE, trimmed = FALSE, color = FALSE)
 # Reorder tip_labels_df to make sure ggtree will be in desired order
-labs <- tip_labels_df[match(tomato_species_order, tip_labels_df$taxa),]
+tomato_labels <- tomato_labels[match(tomato_species_order, tomato_labels$taxa),]
 # Replace taxa names with taxa numbers
-labs$taxa <- tomato_tip_order
-# Plot a nice densitree of the astral species trees
-astral_densitree <- ggdensitree(astral_trees, tip.order = tomato_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
-  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.5) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
-  labs(title = "ASTRAL species trees") +
-  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
-        axis.line.x = element_line(color = "white"),
-        plot.title = element_text(hjust = 0, size = 14, face = "bold"))
-# Plot a nice densitree of the concatenated species trees
-concat_densitree <- ggdensitree(concat_trees, tip.order = tomato_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
-  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.5) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
-  labs(title = "Concatenated species trees") +
-  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
-        axis.line.x = element_line(color = "white"),
-        plot.title = element_text(hjust = 0, size = 14, face = "bold"))
-# Construct file name for this densitree plot
-densitree_name <- paste0(plot_dir, "Tomatoes_Species_tree_comparison_ggdensitree")
-# Assemble the figure
-quilt <- (astral_densitree + concat_densitree) + 
-  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
-ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 10, height = 8, units = "in")
-# Plot a nice annotated densitree of the astral species trees
-astral_densitree <- ggdensitree(astral_trees, tip.order = tomato_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
-  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.5) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 110, 6, 6)) +
-  labs(title = "ASTRAL species trees") +
-  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
-        axis.line.x = element_line(color = "white"),
-        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
-  geom_cladelab(node = 57, label = "sect.\nLycopersicoides", align = TRUE, horizontal = TRUE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "black", barcolor = "black") +
-  geom_cladelab(node = 47, label = "Hirsutum", align = TRUE, horizontal = FALSE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "navy", barcolor = "navy") +
-  geom_cladelab(node = 50, label = "Peruvianum", align = TRUE, horizontal = FALSE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "darkgreen", barcolor = "darkgreen") +
-  geom_cladelab(node = 40, label = "Arcanum", align = TRUE, horizontal = FALSE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "goldenrod3", barcolor = "goldenrod3") +
-  geom_cladelab(node = 36, label = "Esculentum", align = TRUE, horizontal = FALSE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "firebrick3", barcolor = "firebrick3")
-# Plot a nice annotated densitree of the concatenated species trees
-concat_densitree <- ggdensitree(concat_trees, tip.order = tomato_tip_order, align.tips = TRUE, branch.length = "none", alpha = 0.5, color = "steelblue") %<+% labs +
-  geom_tiplab(aes(label = lab), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.5) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 110, 6, 6)) +
-  labs(title = "Concatenated species trees") +
-  theme(axis.text.x = element_text(color = "white"), axis.ticks.x = element_line(color = "white"),
-        axis.line.x = element_line(color = "white"),
-        plot.title = element_text(hjust = 0, size = 14, face = "bold")) +
-  geom_cladelab(node = 57, label = "sect.\nLycopersicoides", align = TRUE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "black", barcolor = "black") +
-  geom_cladelab(node = 44, label = "Hirsutum", align = TRUE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "navy", barcolor = "navy") +
-  geom_cladelab(node = 36, label = "Peruvianum", align = TRUE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "darkgreen", barcolor = "darkgreen") +
-  geom_cladelab(node = 48, label = "Arcanum", align = TRUE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "goldenrod3", barcolor = "goldenrod3") +
-  geom_cladelab(node = 33, label = "Esculentum", align = TRUE, offset = 6.5, offset.text = 0.2, fontsize = 6, textcolor = "firebrick3", barcolor = "firebrick3")
-# Construct file name for this densitree plot
-densitree_name <- paste0(plot_dir, "Tomatoes_Species_tree_comparison_ggdensitree_annotated")
-# Assemble the figure
-quilt <- (astral_densitree + concat_densitree) + 
-  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 20))
-ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 16, height = 8, units = "in")
+tomato_labels$taxa <- tomato_tip_order
+
+## Plot densitress
+margin(t = 1, r = 1, b = 1, l = 1)
+
+# Plot: ASTRAL, pass
+a_p_densitree <- ggdensitree(a_p_trees, tip.order = tomato_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% tomato_labels +
+  geom_tiplab(aes(label = lab, color = clade), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.5) +
+  scale_color_manual(values = tomato_colour_palette) +
+  xlim(-16.6, 4.8) +
+  labs(title = "Pass tests - ASTRAL trees") +
+  theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0.5, size = 25, face = "bold"),
+        legend.title = element_text(size = 18), legend.text = element_text (size = 16), legend.position = c(0.12,0.25),
+        legend.key.size = unit(1.5, "lines")) +
+  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.", size = 6)))
+# Plot: ASTRAL, fail
+a_f_densitree <- ggdensitree(a_f_trees, tip.order = tomato_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% tomato_labels +
+  geom_tiplab(aes(label = lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.2, geom = "text", size = 4.5) +
+  scale_color_manual(values = tomato_colour_palette) +
+  xlim(-19.58, 5.5) +
+  labs(title = "Fail tests - ASTRAL trees") +
+  theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0.5, size = 25, face = "bold"))
+# Plot: CONCAT, pass
+c_p_densitree <- ggdensitree(c_p_trees, tip.order = tomato_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% tomato_labels +
+  geom_tiplab(aes(label = lab, color = clade), parse = TRUE, offset = 0.0002, show.legend = FALSE, geom = "text", size = 4.5) +
+  scale_color_manual(values = tomato_colour_palette) +
+  xlim(-0.0287, 0.0078) +
+  labs(title = "Pass tests - Concatenated trees") +
+  theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0.5, size = 25, face = "bold"))
+# Plot: CONCAT, fail
+c_f_densitree <- ggdensitree(c_f_trees, tip.order = tomato_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% tomato_labels +
+  geom_tiplab(aes(label = lab, color = clade), parse = TRUE, show.legend = FALSE, offset = 0.0002, geom = "text", size = 4.5) +
+  scale_color_manual(values = tomato_colour_palette) +
+  xlim(-0.0272, 0.0078) +
+  labs(title = "Fail tests - Concatenated trees") +
+  theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0.5, size = 25, face = "bold"))
+
+## Assemble the plot using patchwork
+quilt <- (a_p_densitree | a_f_densitree) / (c_p_densitree | c_f_densitree) + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
+  theme(plot.tag = element_text(size = 20))
+
+## Save the plot
+densitree_name <- paste0(plot_dir, "Tomatoes_ggdensitree")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 18, units = "in")
 
 
 
