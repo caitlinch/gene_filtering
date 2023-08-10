@@ -64,9 +64,6 @@ metazoan_colour_palette <- c("Bilateria" = "#CC79A7", "Cnidaria" = "#009E73", "C
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
 # Extract files for this dataset
 plot_tree_files <- grep("Primates", all_trees, value = TRUE)
-# Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
-notest_astral_tree_file <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = TRUE)
-notest_concat_tree_file <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = TRUE)
 # Extract trees for that combination of dataset and tree method
 astral_trees_files <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = T, invert = T)
 concat_trees_files <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = T, invert = T)
@@ -197,9 +194,6 @@ ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", 
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
 # Extract files for this dataset
 plot_tree_files <- grep("Tomato", all_trees, value = TRUE)
-# Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
-notest_astral_tree_file <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = TRUE)
-notest_concat_tree_file <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = TRUE)
 # Extract trees for that combination of dataset and tree method
 astral_trees_files <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = T, invert = T)
 concat_trees_files <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = T, invert = T)
@@ -326,9 +320,6 @@ ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", 
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
 # Extract files for this dataset
 plot_tree_files <- grep("Metazoan", all_trees, value = TRUE)
-# Extract the NoTest tree (the tree estimated from the unfiltered set of loci)
-notest_astral_tree_file <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = TRUE)
-notest_concat_tree_file <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = TRUE)
 # Extract trees for that combination of dataset and tree method
 astral_trees_files <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = T, invert = T)
 concat_trees_files <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = T, invert = T)
@@ -346,8 +337,8 @@ a_p_trees <- read.tree(text = astral_pass_trees_text)
 c_p_trees <- read.tree(text = concat_pass_trees_text)
 
 ## Root trees
-a_p_trees <- lapply(a_p_trees, root, roots_by_group[["Metazoans"]])
-c_p_trees <- lapply(c_p_trees, root, roots_by_group[["Metazoans"]])
+a_p_trees <- lapply(a_p_trees, root, roots_by_group[["Metazoan"]])
+c_p_trees <- lapply(c_p_trees, root, roots_by_group[["Metazoan"]])
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
 class(c_p_trees) <- "multiPhylo"
@@ -391,6 +382,9 @@ metazoans_tip_order <- c("Monosiga_ovata", "Acanthoeca_sp", "Monosiga_brevicolis
 metazoan_labels <- color.code.metazoan.clades(notest_concat_tree, trimmed = "FALSE", color = FALSE)
 # Reorder tip_labels_df to make sure ggtree will be in desired order
 metazoan_labels <- metazoan_labels[match(metazoans_tip_order, metazoan_labels$taxa),]
+# Format taxa names
+metazoan_labels$taxa <- gsub(" ", "_", metazoan_labels$taxa)
+metazoan_labels$short_lab_noformat <- shorten.short.names(metazoan_labels$short_lab_noformat)
 
 ## Plot densitress
 # Plot: ASTRAL, pass
