@@ -61,6 +61,12 @@ metazoan_colour_palette <- c("Bilateria" = "#CC79A7", "Cnidaria" = "#009E73", "C
                              "Porifera" = "#E69F00", "Outgroup" = "#999999", "Placozoa" = "#000000")
 plants_color_palette <- Blue2DarkOrange18Steps
 plants_color_palette_2 <- c(SteppedSequential5Steps[c(1,3,5,6,8,10,11,13,15,16,18,20,21,23,25)], "black", "grey40", "grey70")
+plant_classifications <- c("ANAGrade", "Ceratophyllales", "Chloranthales", "Chlorophyta", "Chromista", "Eudicots", "Glaucophyta", "Gymnos", 
+                           "Hornworts", "Liverworts", "Lycophytes", "Magnoliids", "Monilophytes", "Monocots", "Mosses", "Rhodophyta",
+                           "Streptophyte algae")
+names(plants_color_palette) <- plant_classifications
+names(plants_color_palette_2) <- plant_classifications
+
 
 
 
