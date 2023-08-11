@@ -42,6 +42,7 @@ library(ggtree) # for plotting phylogenetic trees and densitress (ggdensitree)
 library(ggtext) # for nice tree plots
 library(patchwork) # for collating plots
 library(TreeTools) # for CollapseNode function
+library(colorBlindness) # For Plants clade labels
 
 # Source functions
 source(paste0(maindir,"code/func_plots.R"))
@@ -58,6 +59,8 @@ tomato_colour_palette <- c("Esculentum" = "firebrick3", "Arcanum" = "goldenrod3"
                            "Outgroup" = "black")
 metazoan_colour_palette <- c("Bilateria" = "#CC79A7", "Cnidaria" = "#009E73", "Ctenophora" = "#56B4E9",
                              "Porifera" = "#E69F00", "Outgroup" = "#999999", "Placozoa" = "#000000")
+plants_color_palette <- Blue2DarkOrange18Steps
+plants_color_palette_2 <- c(SteppedSequential5Steps[c(1,3,5,6,8,10,11,13,15,16,18,20,21,23,25)], "black", "grey40", "grey70")
 
 
 
@@ -214,7 +217,124 @@ ggsave(filename = paste0(p_name, ".pdf"), plot = p, device = "pdf", height = 10,
 
 
 
-#### Step 4: Plotting Tomatoes dataset ####
+#### Step 4: Plotting differences in Primate trees for supplementary data ####
+## Get the paths for the tree files
+cebidae_tree_file <- paste0(maindir, "primate_tree_topologies/Cebidae_three_possible_topologies.txt")
+comparison_tree_file <- paste0(maindir, "primate_tree_topologies/ComparisonTrees_three_possible_topologies.txt")
+comparison_clade_file <- paste0(maindir, "primate_tree_topologies/ComparisonTrees_Clades_phylo.txt")
+
+# Palettes
+palette1 <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#999999")
+palette2 <- c("#D81B60", "#1E88E5", "#E0A800", "#004D40", "#b1b1b1")
+
+## Plot Cebidae trees
+cebidae_trees <- read.tree(cebidae_tree_file)
+# Root tree (as in Vanderpool 2020 paper)
+cebidae_trees <- root(cebidae_trees, outgroup = roots_by_group[["Primates"]])
+# Create color scheme
+cebidae_df <- color.code.comparison.clades(cebidae_trees, variable = "Cebidae")
+
+# Plot each tree
+p1 <- ggtree(cebidae_trees[[1]])  %<+% cebidae_df + 
+  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13)) +
+  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4], clade_e = palette2[5]))
+
+p2 <- ggtree(cebidae_trees[[2]])  %<+% cebidae_df + 
+  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13)) +
+  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4], clade_e = palette2[5]))
+
+p3 <- ggtree(cebidae_trees[[3]])  %<+% cebidae_df + 
+  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13)) +
+  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4], clade_e = palette2[5]))
+
+# Assemble patchwork
+quilt <- p1 / p2 / p3 +
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+# Create plot name
+quilt_name <- paste0(plot_dir, "Primates_comparison_trees_Cebidae_clade")
+# Save plot
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 15, width = 7, units = "in")
+
+## Plot comparison trees
+comparison_trees <- read.tree(comparison_tree_file)
+# Root tree (as in Vanderpool 2020 paper)
+comparison_trees <- root(comparison_trees, outgroup = roots_by_group[["Primates"]])
+# Create color scheme
+comparison_df <- color.code.comparison.clades(comparison_trees, variable = "Comparison")
+
+# Plot each tree
+p1 <- ggtree(comparison_trees[[1]])  %<+% comparison_df + 
+  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13)) +
+  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4]))
+
+p2 <- ggtree(comparison_trees[[2]])  %<+% comparison_df + 
+  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13)) +
+  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4]))
+
+p3 <- ggtree(comparison_trees[[3]])  %<+% comparison_df + 
+  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  coord_cartesian(clip = 'off') +
+  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
+  theme(axis.text.x = element_text(size = 13)) +
+  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4]))
+
+# Assemble patchwork
+quilt <- p1 / p2 / p3 +
+  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+# Create plot name
+quilt_name <- paste0(plot_dir, "Primates_comparison_trees_deep_branch")
+# Save plot
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 15, width = 7, units = "in")
+
+## Plot comparison tree clades
+# Open clades as phylo objects
+comparison_clades <- read.tree(comparison_clade_file)
+# Make labels for each clade
+c1_labs <- comparison.clade.tip.labels(comparison_clades[[1]])
+c2_labs <- comparison.clade.tip.labels(comparison_clades[[2]])
+c3_labs <- comparison.clade.tip.labels(comparison_clades[[3]])
+c4_labs <- comparison.clade.tip.labels(comparison_clades[[4]])
+
+# Plot each  clade
+p1 <- textGrob(c1_labs$clean_taxa_names[[1]], gp = gpar(fontface = "italic", size = 12))
+
+p2 <- ggtree(comparison_clades[2])  %<+% c2_labs + 
+  geom_tiplab(aes(label = lab), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  xlim(0, 7.5)
+
+p3 <- ggtree(comparison_clades[3])  %<+% c3_labs + 
+  geom_tiplab(aes(label = lab), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  xlim(0, 9)
+
+p4 <- ggtree(comparison_clades[4])  %<+% c4_labs + 
+  geom_tiplab(aes(label = lab), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
+  xlim(0, 30)
+
+# Assemble patchwork 
+quilt = (p2 + p1) / (p3 | p4) + plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+# Create plot name
+quilt_name <- paste0(plot_dir, "Primates_comparison_trees_deep_branch_individal_clades")
+# Save plot
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf")
+
+
+
+#### Step 5: Plotting Tomatoes dataset ####
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
 tomatoes_tree_files <- grep("Tomatoes", tree_files, value = TRUE)
 tomatoes_astral_trees <- grep("ASTRAL", tomatoes_tree_files, value = TRUE)
@@ -441,7 +561,42 @@ ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", heig
 
 
 
-#### Step 5: Plotting Metazoan dataset ####
+#### Step 6: Cloudogram of tomato trees ####
+# Open file containing all tomato gene trees
+all_tomato_gene_trees_file <- paste0(maindir, "tomato_cloudogram/Tomatoes_all_gene_trees.txt")
+tomato_gts <- read.tree(all_tomato_gene_trees_file)
+# Open the coalescent species tree to be the consensus tree and root it
+consensus_tree_file <- paste0(maindir, "species_trees/Tomatoes_NoTest_ASTRAL_species.tre")
+consensus_tree <- read.tree(consensus_tree_file)
+consensus_tree <- root(consensus_tree, roots_by_group[["Tomatoes"]])
+consensus_tree$edge.length[which(is.na(consensus_tree$edge.length))] <- 0.1
+# Change tip names
+consensus_tree$tip.label <- rename.tomato.tips(consensus_tree$tip.label)
+for (i in 1:length(tomato_gts)){
+  # Extract tree
+  i_tree <- tomato_gts[[i]]
+  # Get vector of new tip labels
+  i_new_tips <- rename.tomato.tips(i_tree$tip.label)
+  # Replace old tips with new tip labels
+  i_tree$tip.label <- i_new_tips
+  # Replace tree
+  tomato_gts[[i]] <- i_tree
+}
+# Get tip color list
+tip_color <- rep("Black", length(consensus_tree$tip.label))
+special_tips <- c(15, 18)
+tip_color[special_tips] <- "Red"
+# Plot densitree of all tomato gene trees
+plot_file <- paste0(plot_dir, "Tomatoes_all_gene_trees_densiTree_plot")
+# Save as pdf
+pdf(file = paste0(plot_file, ".pdf"), width = 12, height = 10)
+densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.2, 
+          tip.color = "Black", scale.bar = FALSE)
+dev.off()
+
+
+
+#### Step 7: Plotting Metazoan dataset ####
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
 metazoan_tree_files <- grep("Metazoan", tree_files, value = TRUE)
 metazoan_astral_trees <- grep("ASTRAL", metazoan_tree_files, value = TRUE)
@@ -539,124 +694,84 @@ ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf")
 
 
 
-#### Step 6: Plotting differences in Primate trees for supplementary data ####
-## Get the paths for the tree files
-cebidae_tree_file <- paste0(maindir, "primate_tree_topologies/Cebidae_three_possible_topologies.txt")
-comparison_tree_file <- paste0(maindir, "primate_tree_topologies/ComparisonTrees_three_possible_topologies.txt")
-comparison_clade_file <- paste0(maindir, "primate_tree_topologies/ComparisonTrees_Clades_phylo.txt")
+#### Step 8: Plotting Plants species trees ####
+# Extract tree files
+tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
+plant_tree_files <- grep("Plants", tree_files, value = TRUE)
+plant_astral_trees <- grep("ASTRAL", plant_tree_files, value = TRUE)
+plant_concat_trees <- grep("CONCAT", plant_tree_files, value = TRUE)
 
-# Palettes
-palette1 <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#999999")
-palette2 <- c("#D81B60", "#1E88E5", "#E0A800", "#004D40", "#b1b1b1")
+# Open the annotation csv file as a dataframe
+annotation_df <- read.csv(annotation_csv_file, stringsAsFactors = FALSE)
 
-## Plot Cebidae trees
-cebidae_trees <- read.tree(cebidae_tree_file)
+## Plants Plot 1: ASTRAL No Test
+# Assemble file path and open tree
+plants_notest_astral_file <- grep("NoTest", plant_astral_trees, value = TRUE)
+p_n_a_tree <- read.tree(plants_notest_astral_file)
+# Change edge.length to 0.5
+p_n_a_tree <- add.terminal.branches(p_n_a_tree, 0.5)
 # Root tree (as in Vanderpool 2020 paper)
-cebidae_trees <- root(cebidae_trees, outgroup = roots_by_group[["Primates"]])
-# Create color scheme
-cebidae_df <- color.code.comparison.clades(cebidae_trees, variable = "Cebidae")
-
-# Plot each tree
-p1 <- ggtree(cebidae_trees[[1]])  %<+% cebidae_df + 
-  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
-  theme(axis.text.x = element_text(size = 13)) +
-  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4], clade_e = palette2[5]))
-
-p2 <- ggtree(cebidae_trees[[2]])  %<+% cebidae_df + 
-  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
-  theme(axis.text.x = element_text(size = 13)) +
-  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4], clade_e = palette2[5]))
-
-p3 <- ggtree(cebidae_trees[[3]])  %<+% cebidae_df + 
-  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
-  theme(axis.text.x = element_text(size = 13)) +
-  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4], clade_e = palette2[5]))
-
-# Assemble patchwork
-quilt <- p1 / p2 / p3 +
-  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+outgroup_tips_present <- p_n_a_tree$tip.label[which(roots_by_group[["Plants"]] %in% p_n_a_tree$tip.label)]
+p_n_a_tree <- root(p_n_a_tree, outgroup = outgroup_tips_present)
+# Color code clades
+plant_labs <- color.plants.by.clades(p_n_a_tree, color_palette = plant_color_palette, clade_df = annotation_df)
+# Create plot
+p <- ggtree(p_n_a_tree) %<+% plant_labs +
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0.002, geom = "text", size = 5) + 
+  geom_rootedge(rootedge = 0.3, size = 0.5) +
+  scale_y_reverse() +  
+  scale_x_continuous(breaks = seq(0,15,3)) +
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 180, 6, 6)) + 
+  scale_color_manual(values = plant_color_palette) +
+  theme(axis.text.x = element_text(size = 12),
+        legend.title = element_text(size = 15), legend.text = element_text (size = 12), legend.position = c(0.1,0.2)) +
+  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.")))
+# Create quilt
+quilt <-  p + 
+  plot_annotation(title = "Plants dataset - ASTRAL tree", subtitle = "Unfiltered dataset",
+                  theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
+                                plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
 # Create plot name
-quilt_name <- paste0(plot_dir, "Primates_comparison_trees_Cebidae_clade")
+p_name <- paste0(plot_dir, "Plants_ASTRAL_NoTest_plot")
 # Save plot
-ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 15, width = 7, units = "in")
+ggsave(filename = paste0(p_name, ".pdf"), plot = quilt, device = "pdf")
 
-## Plot comparison trees
-comparison_trees <- read.tree(comparison_tree_file)
+## Plants Plot 2: CONCAT No Test
+# Assemble file path and open tree
+plants_notest_concat_file <- grep("NoTest", plant_concat_trees, value = TRUE)
+p_n_c_tree <- read.tree(plants_notest_concat_file)
 # Root tree (as in Vanderpool 2020 paper)
-comparison_trees <- root(comparison_trees, outgroup = roots_by_group[["Primates"]])
-# Create color scheme
-comparison_df <- color.code.comparison.clades(comparison_trees, variable = "Comparison")
-
-# Plot each tree
-p1 <- ggtree(comparison_trees[[1]])  %<+% comparison_df + 
-  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
-  theme(axis.text.x = element_text(size = 13)) +
-  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4]))
-
-p2 <- ggtree(comparison_trees[[2]])  %<+% comparison_df + 
-  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
-  theme(axis.text.x = element_text(size = 13)) +
-  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4]))
-
-p3 <- ggtree(comparison_trees[[3]])  %<+% comparison_df + 
-  geom_tiplab(aes(label = lab, color = clade), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 160, 6, 6)) +
-  theme(axis.text.x = element_text(size = 13)) +
-  scale_color_manual(values = c(clade_a = palette2[3], clade_b = palette2[2], clade_c = palette2[1], clade_d = palette2[4]))
-
-# Assemble patchwork
-quilt <- p1 / p2 / p3 +
-  plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+p_n_c_tree <- root(p_n_c_tree, outgroup = roots_by_group[["Plants"]])
+# Remove underscores from tips
+p_n_c_tree$tip.label <- gsub("_", " ", p_n_c_tree$tip.label)
+# Color code clades
+plant_labs <-color.plants.by.clades(p_n_c_tree, color_palette = plant_color_palette)
+# Create plot
+p <- ggtree(p_n_c_tree) %<+% plant_labs +
+  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0.002, geom = "text", size = 5) + 
+  geom_rootedge(rootedge = 0.3, size = 0.5) +
+  scale_y_reverse() +  
+  scale_x_continuous(breaks = seq(0,15,3)) +
+  coord_cartesian(clip = 'off') + 
+  theme_tree2(plot.margin=margin(6, 180, 6, 6)) + 
+  scale_color_manual(values = plant_color_palette) +
+  theme(axis.text.x = element_text(size = 12),
+        legend.title = element_text(size = 15), legend.text = element_text (size = 12), legend.position = c(0.1,0.2)) +
+  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.")))
+# Create quilt
+quilt <-  p + 
+  plot_annotation(title = "Plants dataset - ASTRAL tree", subtitle = "Unfiltered dataset",
+                  theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
+                                plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
 # Create plot name
-quilt_name <- paste0(plot_dir, "Primates_comparison_trees_deep_branch")
+p_name <- paste0(plot_dir, "Plants_ASTRAL_NoTest_plot")
 # Save plot
-ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 15, width = 7, units = "in")
-
-## Plot comparison tree clades
-# Open clades as phylo objects
-comparison_clades <- read.tree(comparison_clade_file)
-# Make labels for each clade
-c1_labs <- comparison.clade.tip.labels(comparison_clades[[1]])
-c2_labs <- comparison.clade.tip.labels(comparison_clades[[2]])
-c3_labs <- comparison.clade.tip.labels(comparison_clades[[3]])
-c4_labs <- comparison.clade.tip.labels(comparison_clades[[4]])
-
-# Plot each  clade
-p1 <- textGrob(c1_labs$clean_taxa_names[[1]], gp = gpar(fontface = "italic", size = 12))
-
-p2 <- ggtree(comparison_clades[2])  %<+% c2_labs + 
-  geom_tiplab(aes(label = lab), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
-  xlim(0, 7.5)
-
-p3 <- ggtree(comparison_clades[3])  %<+% c3_labs + 
-  geom_tiplab(aes(label = lab), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
-  xlim(0, 9)
-
-p4 <- ggtree(comparison_clades[4])  %<+% c4_labs + 
-  geom_tiplab(aes(label = lab), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
-  xlim(0, 30)
-
-# Assemble patchwork 
-quilt = (p2 + p1) / (p3 | p4) + plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
-# Create plot name
-quilt_name <- paste0(plot_dir, "Primates_comparison_trees_deep_branch_individal_clades")
-# Save plot
-ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf")
+ggsave(filename = paste0(p_name, ".pdf"), plot = quilt, device = "pdf")
 
 
 
-#### Step 7: Pretty plotting for Plants comparing deep ASTRAL trees ####
+#### Step 9: Pretty plotting for Plants comparing deep ASTRAL trees ####
 ## Distinct edges 2:8 - movement of taxa YGAT
 ## Supplementary Figure 14
 
@@ -714,40 +829,5 @@ p2 <- ggtree(test_tree, branch.length = "none")  %<+% lab_df +
 quilt <- (p1 + p2) + plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 quilt_name <- paste0(plot_dir, "Plants_SuppFigure_VNMY_YGAT_OutlierBranch_plot")
 ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", width = 12, height = 10, units = "in")
-
-
-
-#### Step 8: Cloudogram of tomato trees ####
-# Open file containing all tomato gene trees
-all_tomato_gene_trees_file <- paste0(maindir, "tomato_cloudogram/Tomatoes_all_gene_trees.txt")
-tomato_gts <- read.tree(all_tomato_gene_trees_file)
-# Open the coalescent species tree to be the consensus tree and root it
-consensus_tree_file <- paste0(maindir, "species_trees/Tomatoes_NoTest_ASTRAL_species.tre")
-consensus_tree <- read.tree(consensus_tree_file)
-consensus_tree <- root(consensus_tree, roots_by_group[["Tomatoes"]])
-consensus_tree$edge.length[which(is.na(consensus_tree$edge.length))] <- 0.1
-# Change tip names
-consensus_tree$tip.label <- rename.tomato.tips(consensus_tree$tip.label)
-for (i in 1:length(tomato_gts)){
-  # Extract tree
-  i_tree <- tomato_gts[[i]]
-  # Get vector of new tip labels
-  i_new_tips <- rename.tomato.tips(i_tree$tip.label)
-  # Replace old tips with new tip labels
-  i_tree$tip.label <- i_new_tips
-  # Replace tree
-  tomato_gts[[i]] <- i_tree
-}
-# Get tip color list
-tip_color <- rep("Black", length(consensus_tree$tip.label))
-special_tips <- c(15, 18)
-tip_color[special_tips] <- "Red"
-# Plot densitree of all tomato gene trees
-plot_file <- paste0(plot_dir, "Tomatoes_all_gene_trees_densiTree_plot")
-# Save as pdf
-pdf(file = paste0(plot_file, ".pdf"), width = 12, height = 10)
-densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1.2, 
-          tip.color = "Black", scale.bar = FALSE)
-dev.off()
 
 
