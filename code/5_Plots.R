@@ -716,29 +716,20 @@ plants_notest_astral_file <- grep("NoTest", plant_astral_trees, value = TRUE)
 p_n_a_tree <- read.tree(plants_notest_astral_file)
 # Change edge.length to 0.5
 p_n_a_tree <- add.terminal.branches(p_n_a_tree, 0.5)
-# Root tree (as in Vanderpool 2020 paper)
-outgroup_tips_present <- p_n_a_tree$tip.label[which(roots_by_group[["Plants"]] %in% p_n_a_tree$tip.label)]
-p_n_a_tree <- root(p_n_a_tree, outgroup = outgroup_tips_present)
 # Color code clades
 plant_labs <- color.plants.by.clades(tree = p_n_a_tree, color_palette = plants_color_palette_2, clade_df = annotation_df)
+# Root tree (as in Vanderpool 2020 paper)
+chromista_tips <- plant_labs$Code[which(plant_labs$Very.Brief.Classification == "Chromista")]
+p_n_a_tree <- root(p_n_a_tree, outgroup = chromista_tips)
 # Create plot
-p <- ""
-
-ggtree(p_n_a_tree) %<+% plant_labs +
-  geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 0.5) +
-  scale_color_manual(values = plants_color_palette_2)
-
-ggtree(p_n_a_tree) %<+% plant_labs +
-  geom_tiplab(aes(label=lab, color = clade), parse=F, show.legend = TRUE, offset = 0.002, geom = "text", size = 5) + 
-  geom_rootedge(rootedge = 0.3, size = 0.5) +
-  scale_y_reverse() +  
-  scale_x_continuous(breaks = seq(0,15,3)) +
-  coord_cartesian(clip = 'off') + 
-  theme_tree2(plot.margin=margin(6, 180, 6, 6)) + 
-  scale_color_manual(values = plant_color_palette) +
-  theme(axis.text.x = element_text(size = 12),
-        legend.title = element_text(size = 15), legend.text = element_text (size = 12), legend.position = c(0.1,0.2)) +
-  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.")))
+p <- ggtree(p_n_a_tree) %<+% plant_labs +
+  geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1) +
+  geom_rootedge(rootedge = 1, size = 0.5) +
+  scale_color_manual(values = plants_color_palette_2) +
+  scale_y_reverse() +
+  theme(axis.text.x = element_text(size = 12, color = "white"),
+        legend.title = element_text(size = 16), legend.text = element_text (size = 13), legend.position = c(0.1,0.3)) +
+  guides(color = guide_legend(title = "Clade legend"))
 # Create quilt
 quilt <-  p + 
   plot_annotation(title = "Plants dataset - ASTRAL tree", subtitle = "Unfiltered dataset",
@@ -753,31 +744,27 @@ ggsave(filename = paste0(p_name, ".pdf"), plot = quilt, device = "pdf")
 # Assemble file path and open tree
 plants_notest_concat_file <- grep("NoTest", plant_concat_trees, value = TRUE)
 p_n_c_tree <- read.tree(plants_notest_concat_file)
-# Root tree (as in Vanderpool 2020 paper)
-p_n_c_tree <- root(p_n_c_tree, outgroup = roots_by_group[["Plants"]])
-# Remove underscores from tips
-p_n_c_tree$tip.label <- gsub("_", " ", p_n_c_tree$tip.label)
 # Color code clades
-plant_labs <-color.plants.by.clades(p_n_c_tree, color_palette = plant_color_palette)
+plant_labs <- color.plants.by.clades(tree = p_n_c_tree, color_palette = plants_color_palette_2, clade_df = annotation_df)
+# Root tree (as in Vanderpool 2020 paper)
+chromista_tips <- plant_labs$Code[which(plant_labs$Very.Brief.Classification == "Chromista")]
+p_n_c_tree <- root(p_n_c_tree, outgroup = chromista_tips)
 # Create plot
 p <- ggtree(p_n_c_tree) %<+% plant_labs +
-  geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0.002, geom = "text", size = 5) + 
-  geom_rootedge(rootedge = 0.3, size = 0.5) +
-  scale_y_reverse() +  
-  scale_x_continuous(breaks = seq(0,15,3)) +
-  coord_cartesian(clip = 'off') + 
-  theme_tree2(plot.margin=margin(6, 180, 6, 6)) + 
-  scale_color_manual(values = plant_color_palette) +
-  theme(axis.text.x = element_text(size = 12),
-        legend.title = element_text(size = 15), legend.text = element_text (size = 12), legend.position = c(0.1,0.2)) +
-  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.")))
+  geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1) +
+  geom_rootedge(rootedge = 1, size = 0.5) +
+  scale_color_manual(values = plants_color_palette_2) +
+  scale_y_reverse() +
+  theme(axis.text.x = element_text(size = 12, color = "white"),
+        legend.title = element_text(size = 16), legend.text = element_text (size = 13), legend.position = c(0.1,0.3)) +
+  guides(color = guide_legend(title = "Clade legend"))
 # Create quilt
 quilt <-  p + 
-  plot_annotation(title = "Plants dataset - ASTRAL tree", subtitle = "Unfiltered dataset",
+  plot_annotation(title = "Plants dataset - Concatenated tree", subtitle = "Unfiltered dataset",
                   theme = theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
                                 plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5, vjust = 0.5)) )
 # Create plot name
-p_name <- paste0(plot_dir, "Plants_ASTRAL_NoTest_plot")
+p_name <- paste0(plot_dir, "Plants_CONCAT_NoTest_plot")
 # Save plot
 ggsave(filename = paste0(p_name, ".pdf"), plot = quilt, device = "pdf")
 
