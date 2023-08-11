@@ -799,6 +799,11 @@ label.plant.taxa <- function(tips, classification_df){
   return(taxa_lab_df)
 }
 
+color.plants.by.clades <- function(tree, color_palette, annotations_df){
+  ## Function to take in a list of tip from a tree from the 1000 Plants transcriptome dataset and return labels 
+  #   in a dataframe with clades as a separate column (to colour output tips)
+}
+
 
 
 extract.one.plant.tip <- function(tip, classification_df){
