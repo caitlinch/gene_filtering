@@ -799,11 +799,83 @@ label.plant.taxa <- function(tips, classification_df){
   return(taxa_lab_df)
 }
 
-color.plants.by.clades <- function(tree, color_palette, annotations_df){
+color.plants.by.clades <- function(tree, color_palette, clade_df){
   ## Function to take in a list of tip from a tree from the 1000 Plants transcriptome dataset and return labels 
   #   in a dataframe with clades as a separate column (to colour output tips)
+  
+  # Remove any rows from the dataframe that aren't in the tree
+  labels_df <- clade_df[which(clade_df$Code %in% tree$tip.label),]
+  rownames(labels_df) <- 1:nrow(labels_df)
+  # Fix formatting for very brief classification row
+  labels_df$Very.Brief.Classification <- gsub(" ", "", labels_df$Very.Brief.Classification)
+  labels_df$Very.Brief.Classification <- gsub("_", " ", labels_df$Very.Brief.Classification)
+  # Add color column
+  labels_df$Color <- unlist(lapply(1:nrow(labels_df), function(i){color_palette[[labels_df$Very.Brief.Classification[[i]] ]]}))
+  # Add a column for the short rows
+  labels_df$Species_short <- unlist(lapply(labels_df$Species, shorten.one.plant.tip))
+  # Return the labels dataframe
+  return(labels_df)
 }
 
+
+shorten.one.plant.tip <- function(plant_species){
+  # Short code to return a shortened species name
+  
+  # Replace "spp." with "sp." for consistency
+  plant_species <- gsub("spp\\.", "sp\\.", plant_species)
+  
+  # Check whether the plant_species contains the phrase "sp."
+  if (plant_species  == "unidentified sp CCMP 1205"){
+    # Unknown species name
+    new_name <- "Unknown"
+  } else if (grepl(" x ", plant_species) == TRUE){
+    # Return the species name as is (no abbreviation)
+    new_name <- plant_species
+  }else if (grepl("sp\\.", plant_species) == TRUE){
+    # Return the species name as is (no abbreviation)
+    new_name <- plant_species
+  } else if (grepl("cf\\.", plant_species) == TRUE){
+    # Split name at the spaces
+    split_name <- strsplit(plant_species, " ")[[1]]
+    # Return shortened species (keeping cf. in middle)
+    new_name <- paste0(substring(split_name[1], 1, 1), ". ", split_name[2], " ", split_name[3])
+  } else if (grepl("aff\\.", plant_species) == TRUE){
+    # Split name at the spaces
+    split_name <- strsplit(plant_species, " ")[[1]]
+    # Return shortened species (keeping aff. in middle)
+    new_name <- paste0(substring(split_name[1], 1, 1), ". ", split_name[2], " ", split_name[3])
+  } else if (grepl("unknown", plant_species) == TRUE){
+    new_name <- "Unknown"
+  } else {
+    # Normal species name
+    # Remove punctuation marks
+    plant_species <- gsub("\\(\\?\\)", "", plant_species)
+    plant_species <- gsub("_", " ", plant_species)
+    plant_species <- gsub("-", " ", plant_species)
+    # Split name at the spaces
+    split_name <- strsplit(plant_species, " ")[[1]]
+    # If there are 2 words:
+    if (length(split_name) == 2){
+      if (split_name[[2]] == "sp"){
+        # Name is a species complex
+        new_name <- paste0(split_name[1], " sp.")
+      } else {
+        # Break into full initial and full second word
+        new_name <- paste0(substring(split_name[1], 1, 1), ". ", split_name[2])
+      }
+    } else if (length(split_name) == 3){
+      # Break into full initial and full second word
+      new_name <- paste0(substring(split_name[1], 1, 1), ". ", substring(split_name[2], 1, 1), ". ", split_name[3])
+    }
+  } else if (length(split_name) ==  4){
+    # Break into full initial and full second word
+    new_name <- paste0(substring(split_name[1], 1, 1), ". ", substring(split_name[2], 1, 1), ". ", substring(split_name[3], 1, 1), ". ", split_name[4])
+  }
+  }
+  
+  # Return the new name
+  return(new_name)
+}
 
 
 extract.one.plant.tip <- function(tip, classification_df){
