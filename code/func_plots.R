@@ -866,13 +866,11 @@ shorten.one.plant.tip <- function(plant_species){
     } else if (length(split_name) == 3){
       # Break into full initial and full second word
       new_name <- paste0(substring(split_name[1], 1, 1), ". ", substring(split_name[2], 1, 1), ". ", split_name[3])
+    } else if (length(split_name) ==  4){
+      # Break into full initial and full second word
+      new_name <- paste0(substring(split_name[1], 1, 1), ". ", substring(split_name[2], 1, 1), ". ", substring(split_name[3], 1, 1), ". ", split_name[4])
     }
-  } else if (length(split_name) ==  4){
-    # Break into full initial and full second word
-    new_name <- paste0(substring(split_name[1], 1, 1), ". ", substring(split_name[2], 1, 1), ". ", substring(split_name[3], 1, 1), ". ", split_name[4])
   }
-  }
-  
   # Return the new name
   return(new_name)
 }
