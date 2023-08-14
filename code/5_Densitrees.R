@@ -427,17 +427,17 @@ ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", 
 
 
 #### Step 6: Plants dataset ####
-# Open the annotations file for the plants dataset
-annotation_df <- read.csv(annotation_csv_file)
-
 ## Open Plant dataset trees
 # Get all files for species trees
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
 # Extract files for this dataset
 plot_tree_files <- grep("Plant", all_trees, value = TRUE)
 # Extract trees for that combination of dataset and tree method
-astral_trees_files <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = TRUE), value = T, invert = T)
-concat_trees_files <- grep("NoTest", grep("CONCAT", plot_tree_files, value = TRUE), value = T, invert = T)
+astral_trees_files <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = T), value = T, invert = T)
+concat_trees_files <- grep("NoTest", grep("CONCAT", plot_tree_files, value = T), value = T, invert = T)
+# Extract NoTest trees
+astral_notest_file <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = T), value = T)
+concat_notest_file <- grep("NoTest", grep("CONCAT", plot_tree_files, value = T), value = T)
 
 # Separate into pass and fail trees
 astral_pass_tree_files <- grep("pass", astral_trees_files, value = T)
@@ -447,18 +447,33 @@ astral_pass_trees_text <- unlist(lapply(astral_pass_tree_files, readLines))
 concat_pass_trees_text <- unlist(lapply(concat_pass_tree_files, readLines))
 
 ## Open trees
-# Read trees into a multiphylo object
+# Read pass test trees into a multiphylo object
 a_p_trees <- read.tree(text = astral_pass_trees_text)
 c_p_trees <- read.tree(text = concat_pass_trees_text)
+# Read notest tress
+a_n_tree <- read.tree(astral_notest_file)
+c_n_tree <- read.tree(concat_notest_file)
+
+## Create labels for densitree plots
+# Color code clades
+plant_labs <- color.plants.by.clades(tree = a_p_trees[[1]], color_palette = plants_color_palette, clade_df = annotation_df)
 
 ## Root trees
 # Extract Chromista taxa: these will be the outgroups
-chromista_tips <- annotation_df$Code[grep("Chromista", annotation_df$Very.Brief.Classification)]
+chromista_tips <- plant_labs$Code[grep("Chromista", plant_labs$Very.Brief.Classification)]
 a_p_trees <- lapply(a_p_trees, root, chromista_tips)
 c_p_trees <- lapply(c_p_trees, root, chromista_tips)
+a_n_tree <- root(a_n_tree, chromista_tips)
+c_n_tree <- root(c_n_tree, chromista_tips)
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
 class(c_p_trees) <- "multiPhylo"
+
+## Order tips for plots
+# Ladderize the notest CONCAT tree and use to order the tips
+c_n_tree <- ape::ladderize(c_n_tree, right = TRUE)
+# Get the order for the tips (bottom species first, top species last)
+Plants_tip_order <- c_n_tree$tip.label
 
 ## Add terminal branch lengths for ASTRAL trees
 # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
@@ -474,40 +489,25 @@ c_p_trees <- lapply(1:length(c_p_trees), function(i){force.ultrametric(c_p_trees
 class(a_p_trees) <- "multiPhylo" 
 class(c_p_trees) <- "multiPhylo" 
 
-## Order tips for plots
-# Get the order for the tips (bottom species first, top species last)
-Plants_tip_order <- c("Pan troglodytes", "Pan paniscus", "Homo sapiens", "Gorilla gorilla",
-                      "Pongo abelii", "Nomascus leucogenys", "Macaca mulatta", "Macaca fascicularis",
-                      "Macaca nemestrina", "Theropithecus gelada", "Papio anubis", "Mandrillus leucophaeus",
-                      "Cercocebus atys", "Chlorocebus sabaeus", "Rhinopithecus roxellana", "Rhinopithecus bieti",
-                      "Piliocolobus tephrosceles", "Colobus angolensis palliatus", "Saimiri boliviensis", "Cebus capucinus imitator",
-                      "Aotus nancymaae", "Callithrix jacchus", "Carlito syrichta", "Microcebus murinus", 
-                      "Propithecus coquereli", "Otolemur garnettii", "Galeopterus variegatus", "Tupaia chinensis",
-                      "Mus musculus")
-
-## Create labels for densitree plots
-# Color code clades
-plant_labs <- color.plants.by.clades(tree = a_p_trees[[1]], color_palette = plants_color_palette, clade_df = annotation_df)
-
 ## Plot densitress
 # Plot: ASTRAL, pass
-a_p_densitree <- ggdensitree(a_p_trees, tip.order = plant_labs$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% plant_labs +
+a_p_densitree <- ggdensitree(a_p_trees, tip.order = a_p_trees[[1]]$tip.label, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% plant_labs +
   geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1) +
-  scale_color_manual(values = metazoan_colour_palette) +
-  xlim(-12, 3.2) +
-  labs(title = "Pass tests - ASTRAL trees") +
+  scale_color_manual(values = plants_color_palette) +
+  xlim(-50, 0) +
+  labs(title = "Pass tests - ASTRAL trees\n") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
         plot.title = element_text(hjust = 0.5, size = 25, face = "bold"),
-        legend.title = element_text(size = 12), legend.text = element_text (size = 10), legend.position = c(0.05,0.05),
+        legend.title = element_text(size = 18), legend.text = element_text (size = 16), legend.position = c(0.15,0.3),
         legend.key.size = unit(0.9, "lines")) +
   guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.", size = 4)))
 # Plot: CONCAT, pass
-c_p_densitree <- ggdensitree(c_p_trees, tip.order = plant_labs$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% plant_labs +
-  geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1) +
-  scale_color_manual(values = metazoan_colour_palette) +
-  xlim(-1.25, 0.35) +
-  labs(title = "Pass tests - Concatenated trees") +
+c_p_densitree <- ggdensitree(c_p_trees, tip.order = a_p_trees[[1]]$tip.label, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% plant_labs +
+  geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1, show.legend = FALSE) +
+  scale_color_manual(values = plants_color_palette) +
+  xlim(-5, 0) +
+  labs(title = "Pass tests - Concatenated trees\n") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
         plot.title = element_text(hjust = 0.5, size = 25, face = "bold"))
