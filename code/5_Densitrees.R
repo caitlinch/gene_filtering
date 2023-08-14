@@ -437,7 +437,7 @@ class(a_p_trees) <- "multiPhylo"
 ## Plot densitress
 # Plot: ASTRAL, pass
 a_p_densitree <- ggdensitree(a_p_trees, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% plant_labs +
-  geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1) +
+  geom_tippoint(aes(color = Very.Brief.Classification), size = 2, alpha = 0.75) +
   scale_color_manual(values = plants_color_palette) +
   xlim(-39.2, 0) +
   scale_y_reverse() +
@@ -450,7 +450,7 @@ a_p_densitree <- ggdensitree(a_p_trees, align.tips = TRUE, alpha = 0.5, color = 
   guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.", size = 4)))
 # Plot: CONCAT, pass
 c_p_densitree <- ggdensitree(c_p_trees, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% plant_labs +
-  geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1, show.legend = FALSE) +
+  geom_tippoint(aes(color = Very.Brief.Classification), size = 2, alpha = 0.75, show.legend = FALSE) +
   scale_color_manual(values = plants_color_palette) +
   xlim(-3.18, 0) +
   scale_y_reverse() +
