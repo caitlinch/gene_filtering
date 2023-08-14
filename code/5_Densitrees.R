@@ -112,18 +112,6 @@ a_f_trees <- lapply(1:length(a_p_trees), function(i){add.terminal.branches(a_p_t
 class(a_p_trees) <- "multiPhylo" 
 class(a_f_trees) <- "multiPhylo" 
 
-## Force trees to ultrametric
-# Extend tips to make tree ultrametric
-a_p_trees <- lapply(1:length(a_p_trees), function(i){force.ultrametric(a_p_trees[[i]], method = "extend")})
-a_f_trees <- lapply(1:length(a_f_trees), function(i){force.ultrametric(a_f_trees[[i]], method = "extend")})
-c_p_trees <- lapply(1:length(c_p_trees), function(i){force.ultrametric(c_p_trees[[i]], method = "extend")})
-c_f_trees <- lapply(1:length(c_f_trees), function(i){force.ultrametric(c_f_trees[[i]], method = "extend")})
-# Convert object class from "list" into "multiPhylo
-class(a_p_trees) <- "multiPhylo" 
-class(a_f_trees) <- "multiPhylo" 
-class(c_p_trees) <- "multiPhylo" 
-class(c_f_trees) <- "multiPhylo" 
-
 ## Order tips for plots
 # Get the order for the tips (bottom species first, top species last)
 primates_tip_order <- c("Pan troglodytes", "Pan paniscus", "Homo sapiens", "Gorilla gorilla",
@@ -187,7 +175,7 @@ c_f_densitree <- ggdensitree(c_f_trees, tip.order = primate_labels$taxa, align.t
 ## Assemble the plot using patchwork
 quilt <- (a_p_densitree | a_f_densitree) / (c_p_densitree | c_f_densitree) + 
   plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
-  theme(plot.tag = element_text(size = 20))
+  theme(plot.tag = element_text(size = 30))
 
 ## Save the plot
 densitree_name <- paste0(plot_dir, "Primates_ggdensitree")
@@ -241,18 +229,6 @@ a_f_trees <- lapply(1:length(a_f_trees), function(i){add.terminal.branches(a_f_t
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
 class(a_f_trees) <- "multiPhylo" 
-
-## Force trees to ultrametric
-# Extend tips to make tree ultrametric
-a_p_trees <- lapply(1:length(a_p_trees), function(i){force.ultrametric(a_p_trees[[i]], method = "extend")})
-a_f_trees <- lapply(1:length(a_f_trees), function(i){force.ultrametric(a_f_trees[[i]], method = "extend")})
-c_p_trees <- lapply(1:length(c_p_trees), function(i){force.ultrametric(c_p_trees[[i]], method = "extend")})
-c_f_trees <- lapply(1:length(c_f_trees), function(i){force.ultrametric(c_f_trees[[i]], method = "extend")})
-# Convert object class from "list" into "multiPhylo
-class(a_p_trees) <- "multiPhylo" 
-class(a_f_trees) <- "multiPhylo" 
-class(c_p_trees) <- "multiPhylo" 
-class(c_f_trees) <- "multiPhylo" 
 
 ## Order tips for plots
 # Get the order for the tips (bottom species first, top species last)
@@ -313,7 +289,7 @@ c_f_densitree <- ggdensitree(c_f_trees, tip.order = tomato_labels$taxa, align.ti
 ## Assemble the plot using patchwork
 quilt <- (a_p_densitree | a_f_densitree) / (c_p_densitree | c_f_densitree) + 
   plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
-  theme(plot.tag = element_text(size = 20))
+  theme(plot.tag = element_text(size = 30))
 
 ## Save the plot
 densitree_name <- paste0(plot_dir, "Tomatoes_ggdensitree")
@@ -355,15 +331,6 @@ class(c_p_trees) <- "multiPhylo"
 a_p_trees <- lapply(1:length(a_p_trees), function(i){add.terminal.branches(a_p_trees[[i]], 1)})
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
-
-## Force trees to ultrametric
-# Extend tips to make tree ultrametric
-a_p_trees <- lapply(1:length(a_p_trees), function(i){force.ultrametric(a_p_trees[[i]], method = "extend")})
-c_p_trees <- lapply(1:length(c_p_trees), function(i){force.ultrametric(c_p_trees[[i]], method = "extend")})
-# Convert object class from "list" into "multiPhylo
-class(a_p_trees) <- "multiPhylo" 
-class(c_p_trees) <- "multiPhylo" 
-
 
 ## Order tips for plots
 # Get the order for the tips (bottom species first, top species last)
@@ -418,7 +385,7 @@ c_p_densitree <- ggdensitree(c_p_trees, tip.order = metazoan_labels$taxa, align.
         plot.title = element_text(hjust = 0.5, size = 25, face = "bold"))
 
 ## Assemble the plot using patchwork
-quilt <- (a_p_densitree | c_p_densitree) +  plot_annotation(tag_levels = 'a', tag_suffix = ".") &  theme(plot.tag = element_text(size = 20))
+quilt <- (a_p_densitree | c_p_densitree) +  plot_annotation(tag_levels = 'a', tag_suffix = ".") &  theme(plot.tag = element_text(size = 30))
 
 ## Save the plot
 densitree_name <- paste0(plot_dir, "Metazoans_ggdensitree")
@@ -435,9 +402,6 @@ plot_tree_files <- grep("Plant", all_trees, value = TRUE)
 # Extract trees for that combination of dataset and tree method
 astral_trees_files <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = T), value = T, invert = T)
 concat_trees_files <- grep("NoTest", grep("CONCAT", plot_tree_files, value = T), value = T, invert = T)
-# Extract NoTest trees
-astral_notest_file <- grep("NoTest", grep("ASTRAL", plot_tree_files, value = T), value = T)
-concat_notest_file <- grep("NoTest", grep("CONCAT", plot_tree_files, value = T), value = T)
 
 # Separate into pass and fail trees
 astral_pass_tree_files <- grep("pass", astral_trees_files, value = T)
@@ -450,9 +414,6 @@ concat_pass_trees_text <- unlist(lapply(concat_pass_tree_files, readLines))
 # Read pass test trees into a multiphylo object
 a_p_trees <- read.tree(text = astral_pass_trees_text)
 c_p_trees <- read.tree(text = concat_pass_trees_text)
-# Read notest tress
-a_n_tree <- read.tree(astral_notest_file)
-c_n_tree <- read.tree(concat_notest_file)
 
 ## Create labels for densitree plots
 # Color code clades
@@ -463,31 +424,15 @@ plant_labs <- color.plants.by.clades(tree = a_p_trees[[1]], color_palette = plan
 chromista_tips <- plant_labs$Code[grep("Chromista", plant_labs$Very.Brief.Classification)]
 a_p_trees <- lapply(a_p_trees, root, chromista_tips)
 c_p_trees <- lapply(c_p_trees, root, chromista_tips)
-a_n_tree <- root(a_n_tree, chromista_tips)
-c_n_tree <- root(c_n_tree, chromista_tips)
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
 class(c_p_trees) <- "multiPhylo"
-
-## Order tips for plots
-# Ladderize the notest CONCAT tree and use to order the tips
-c_n_tree <- ape::ladderize(c_n_tree, right = TRUE)
-# Get the order for the tips (bottom species first, top species last)
-Plants_tip_order <- c_n_tree$tip.label
 
 ## Add terminal branch lengths for ASTRAL trees
 # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
 a_p_trees <- lapply(1:length(a_p_trees), function(i){add.terminal.branches(a_p_trees[[i]], 1)})
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
-
-## Force trees to ultrametric
-# Extend tips to make tree ultrametric
-a_p_trees <- lapply(1:length(a_p_trees), function(i){force.ultrametric(a_p_trees[[i]], method = "extend")})
-c_p_trees <- lapply(1:length(c_p_trees), function(i){force.ultrametric(c_p_trees[[i]], method = "extend")})
-# Convert object class from "list" into "multiPhylo
-class(a_p_trees) <- "multiPhylo" 
-class(c_p_trees) <- "multiPhylo" 
 
 ## Plot densitress
 # Plot: ASTRAL, pass
