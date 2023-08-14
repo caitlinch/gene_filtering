@@ -722,7 +722,7 @@ p_n_a_tree <- root(p_n_a_tree, outgroup = chromista_tips)
 # Create plot
 p <- ggtree(p_n_a_tree) %<+% plant_labs +
   geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1) +
-  geom_rootedge(rootedge = 1, size = 0.5) +
+  geom_rootedge(rootedge = 1, linewidth = 0.5) +
   scale_color_manual(values = plants_color_palette) +
   scale_y_reverse() +
   theme(axis.text.x = element_text(size = 12, color = "white"),
@@ -750,7 +750,7 @@ p_n_c_tree <- root(p_n_c_tree, outgroup = chromista_tips)
 # Create plot
 p <- ggtree(p_n_c_tree) %<+% plant_labs +
   geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1) +
-  geom_rootedge(rootedge = 0.1, size = 0.5) +
+  geom_rootedge(rootedge = 0.1, linewidth = 0.5) +
   scale_color_manual(values = plants_color_palette) +
   scale_y_reverse() +
   theme(axis.text.x = element_text(size = 12, color = "white"),
