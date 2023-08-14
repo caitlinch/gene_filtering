@@ -59,13 +59,11 @@ tomato_colour_palette <- c("Esculentum" = "firebrick3", "Arcanum" = "goldenrod3"
                            "Outgroup" = "black")
 metazoan_colour_palette <- c("Bilateria" = "#CC79A7", "Cnidaria" = "#009E73", "Ctenophora" = "#56B4E9",
                              "Porifera" = "#E69F00", "Outgroup" = "#999999", "Placozoa" = "#000000")
-plants_color_palette <- Blue2DarkOrange18Steps
-plants_color_palette_2 <- c(SteppedSequential5Steps[c(1,3,5,6,8,10,11,13,15,16,18,20,21,23,25)], "black", "grey40", "grey70")
+plants_color_palette <- c(SteppedSequential5Steps[c(1,3,5,6,8,10,11,13,15,16,18,20,21,23,25)], "black", "grey40", "grey70")
 plant_classifications <-  c("Chromista", "Rhodophyta", "Glaucophyta", "Chlorophyta", "Streptophyte algae", 
                             "Hornworts", "Liverworts", "Mosses", "Lycophytes", "Monilophytes", "Gymnos",
                             "ANAGrade", "Monocots", "Magnoliids", "Chloranthales", "Eudicots", "Ceratophyllales")
 names(plants_color_palette) <- plant_classifications
-names(plants_color_palette_2) <- plant_classifications
 
 
 
@@ -717,7 +715,7 @@ p_n_a_tree <- read.tree(plants_notest_astral_file)
 # Change edge.length to 0.5
 p_n_a_tree <- add.terminal.branches(p_n_a_tree, 0.5)
 # Color code clades
-plant_labs <- color.plants.by.clades(tree = p_n_a_tree, color_palette = plants_color_palette_2, clade_df = annotation_df)
+plant_labs <- color.plants.by.clades(tree = p_n_a_tree, color_palette = plants_color_palette, clade_df = annotation_df)
 # Root tree (as in Vanderpool 2020 paper)
 chromista_tips <- plant_labs$Code[which(plant_labs$Very.Brief.Classification == "Chromista")]
 p_n_a_tree <- root(p_n_a_tree, outgroup = chromista_tips)
@@ -725,7 +723,7 @@ p_n_a_tree <- root(p_n_a_tree, outgroup = chromista_tips)
 p <- ggtree(p_n_a_tree) %<+% plant_labs +
   geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1) +
   geom_rootedge(rootedge = 1, size = 0.5) +
-  scale_color_manual(values = plants_color_palette_2) +
+  scale_color_manual(values = plants_color_palette) +
   scale_y_reverse() +
   theme(axis.text.x = element_text(size = 12, color = "white"),
         legend.title = element_text(size = 16), legend.text = element_text (size = 13), legend.position = c(0.1,0.3)) +
@@ -745,7 +743,7 @@ ggsave(filename = paste0(p_name, ".pdf"), plot = quilt, device = "pdf")
 plants_notest_concat_file <- grep("NoTest", plant_concat_trees, value = TRUE)
 p_n_c_tree <- read.tree(plants_notest_concat_file)
 # Color code clades
-plant_labs <- color.plants.by.clades(tree = p_n_c_tree, color_palette = plants_color_palette_2, clade_df = annotation_df)
+plant_labs <- color.plants.by.clades(tree = p_n_c_tree, color_palette = plants_color_palette, clade_df = annotation_df)
 # Root tree (as in Vanderpool 2020 paper)
 chromista_tips <- plant_labs$Code[which(plant_labs$Very.Brief.Classification == "Chromista")]
 p_n_c_tree <- root(p_n_c_tree, outgroup = chromista_tips)
@@ -753,7 +751,7 @@ p_n_c_tree <- root(p_n_c_tree, outgroup = chromista_tips)
 p <- ggtree(p_n_c_tree) %<+% plant_labs +
   geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1) +
   geom_rootedge(rootedge = 0.1, size = 0.5) +
-  scale_color_manual(values = plants_color_palette_2) +
+  scale_color_manual(values = plants_color_palette) +
   scale_y_reverse() +
   theme(axis.text.x = element_text(size = 12, color = "white"),
         legend.title = element_text(size = 16), legend.text = element_text (size = 13), legend.position = c(0.1,0.3)) +
