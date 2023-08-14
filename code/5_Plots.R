@@ -716,7 +716,7 @@ p_n_a_tree <- read.tree(plants_notest_astral_file)
 p_n_a_tree <- add.terminal.branches(p_n_a_tree, 0.5)
 # Color code clades
 plant_labs <- color.plants.by.clades(tree = p_n_a_tree, color_palette = plants_color_palette, clade_df = annotation_df)
-# Root tree (as in Vanderpool 2020 paper)
+# Root tree
 chromista_tips <- plant_labs$Code[which(plant_labs$Very.Brief.Classification == "Chromista")]
 p_n_a_tree <- root(p_n_a_tree, outgroup = chromista_tips)
 # Create plot
@@ -744,7 +744,7 @@ plants_notest_concat_file <- grep("NoTest", plant_concat_trees, value = TRUE)
 p_n_c_tree <- read.tree(plants_notest_concat_file)
 # Color code clades
 plant_labs <- color.plants.by.clades(tree = p_n_c_tree, color_palette = plants_color_palette, clade_df = annotation_df)
-# Root tree (as in Vanderpool 2020 paper)
+# Root tree
 chromista_tips <- plant_labs$Code[which(plant_labs$Very.Brief.Classification == "Chromista")]
 p_n_c_tree <- root(p_n_c_tree, outgroup = chromista_tips)
 # Create plot
