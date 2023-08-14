@@ -491,10 +491,11 @@ class(c_p_trees) <- "multiPhylo"
 
 ## Plot densitress
 # Plot: ASTRAL, pass
-a_p_densitree <- ggdensitree(a_p_trees, tip.order = a_p_trees[[1]]$tip.label, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% plant_labs +
+a_p_densitree <- ggdensitree(a_p_trees, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% plant_labs +
   geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1) +
   scale_color_manual(values = plants_color_palette) +
-  xlim(-50, 0) +
+  xlim(-39.2, 0) +
+  scale_y_reverse() +
   labs(title = "Pass tests - ASTRAL trees\n") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
@@ -503,21 +504,22 @@ a_p_densitree <- ggdensitree(a_p_trees, tip.order = a_p_trees[[1]]$tip.label, al
         legend.key.size = unit(0.9, "lines")) +
   guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.", size = 4)))
 # Plot: CONCAT, pass
-c_p_densitree <- ggdensitree(c_p_trees, tip.order = a_p_trees[[1]]$tip.label, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% plant_labs +
+c_p_densitree <- ggdensitree(c_p_trees, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% plant_labs +
   geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1, show.legend = FALSE) +
   scale_color_manual(values = plants_color_palette) +
-  xlim(-5, 0) +
+  xlim(-3.18, 0) +
+  scale_y_reverse() +
   labs(title = "Pass tests - Concatenated trees\n") +
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
         plot.title = element_text(hjust = 0.5, size = 25, face = "bold"))
 
 ## Assemble the plot using patchwork
-quilt <- (a_p_densitree | c_p_densitree) +  plot_annotation(tag_levels = 'a', tag_suffix = ".") &  theme(plot.tag = element_text(size = 20))
+quilt <- (a_p_densitree | c_p_densitree) +  plot_annotation(tag_levels = 'a', tag_suffix = ".") &  theme(plot.tag = element_text(size = 30))
 
 ## Save the plot
 densitree_name <- paste0(plot_dir, "Plants_ggdensitree")
-ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 11, width = 16, units = "in")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf")
 
 
 
