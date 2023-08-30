@@ -107,7 +107,7 @@ class(c_f_trees) <- "multiPhylo"
 ## Add terminal branch lengths for ASTRAL trees
 # If tree estimation method is ASTRAL, add an arbitrary terminal branch length
 a_p_trees <- lapply(1:length(a_p_trees), function(i){add.terminal.branches(a_p_trees[[i]], 1)})
-a_f_trees <- lapply(1:length(a_p_trees), function(i){add.terminal.branches(a_p_trees[[i]], 1)})
+a_f_trees <- lapply(1:length(a_f_trees), function(i){add.terminal.branches(a_f_trees[[i]], 1)})
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
 class(a_f_trees) <- "multiPhylo" 
