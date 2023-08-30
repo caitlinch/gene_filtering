@@ -180,6 +180,7 @@ quilt <- (a_p_densitree | a_f_densitree) / (c_p_densitree | c_f_densitree) +
 ## Save the plot
 densitree_name <- paste0(plot_dir, "Primates_ggdensitree")
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 16, units = "in")
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png")
 
 
 
@@ -294,6 +295,7 @@ quilt <- (a_p_densitree | a_f_densitree) / (c_p_densitree | c_f_densitree) +
 ## Save the plot
 densitree_name <- paste0(plot_dir, "Tomatoes_ggdensitree")
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 18, units = "in")
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png")
 
 
 
@@ -390,6 +392,7 @@ quilt <- (a_p_densitree | c_p_densitree) +  plot_annotation(tag_levels = 'a', ta
 ## Save the plot
 densitree_name <- paste0(plot_dir, "Metazoans_ggdensitree")
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 11, width = 16, units = "in")
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png")
 
 
 
@@ -465,6 +468,7 @@ quilt <- (a_p_densitree | c_p_densitree) +  plot_annotation(tag_levels = 'a', ta
 ## Save the plot
 densitree_name <- paste0(plot_dir, "Plants_ggdensitree")
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf")
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png")
 
 
 

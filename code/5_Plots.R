@@ -598,6 +598,10 @@ densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tre
           tip.color = "Black", scale.bar = FALSE)
 dev.off()
 
+CairoPNG(file = paste0(plot_file, "_small.png"), width = 850, height = 950)
+densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1, 
+          font = 3, tip.color = "Black", scale.bar = FALSE)
+dev.off()
 
 
 #### Step 7: Plotting Metazoan dataset ####
