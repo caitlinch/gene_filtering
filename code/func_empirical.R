@@ -1430,9 +1430,9 @@ ASTRAL.wrapper <- function(text_file, ASTRAL_path){
 
 
 
-ASTRAL.quartets.command.output <- function(text_file, ASTRAL_path){
-  species_tree_file <- gsub(".txt", "_qCF.tre", text_file)
-  log_file <- gsub(".txt", "_qCF.log", text_file)
+ASTRAL.quartets.command.output <- function(gene_tree_file, ASTRAL_path){
+  species_tree_file <- gsub(".txt", "_qCF.tre", gene_tree_file)
+  log_file <- gsub(".txt", "_qCF.log", gene_tree_file)
   astral_command <- paste0("java -jar ", ASTRAL_path, " -i ", gene_tree_file, " -t 2 -o ", species_tree_file, " 2> ", log_file)
   return(astral_command)
 }
