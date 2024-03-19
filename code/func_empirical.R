@@ -1430,6 +1430,16 @@ ASTRAL.wrapper <- function(text_file, ASTRAL_path){
 
 
 
+ASTRAL.quartets.command.output <- function(text_file, ASTRAL_path){
+  species_tree_file <- gsub(".txt", "_qCF.tre", text_file)
+  log_file <- gsub(".txt", "_qCF.log", text_file)
+  astral_command <- paste0("java -jar ", ASTRAL_path, " -i ", gene_tree_file, " -t 2 -o ", species_tree_file, " 2> ", log_file)
+  return(astral_command)
+}
+
+
+
+
 # Function to estimate species tree of a folder full of alignments using IQ-Tree
 estimate.IQTREE.species.tree <- function(gene_tree_folder, IQTREE_path){
   print(paste0("Estimating tree in IQ-Tree: ", basename(gene_tree_folder)))
