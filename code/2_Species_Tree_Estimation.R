@@ -188,7 +188,7 @@ if (length(input_names) > 0){
       # If the collated total file hasn't been saved, save it
       all_gene_result_file <- paste0(csv_data_dir, "01_AllDatasets_RecombinationDetection_complete_collated_results.csv")
       if (file.exists(all_gene_result_file) == FALSE){
-        write.csv(gene_result_df, all_gene_result_file)
+        #write.csv(gene_result_df, all_gene_result_file)
       }
     }
     
@@ -205,7 +205,7 @@ if (length(input_names) > 0){
       exclude_df <- as.data.frame(do.call(rbind, lapply(exclude_file, read.csv)))
       # Collate and output if that file doesn't exist
       if (file.exists(collated_exclude_file) == FALSE){
-        write.csv(exclude_df, file = collated_exclude_file, row.names = FALSE)
+        #write.csv(exclude_df, file = collated_exclude_file, row.names = FALSE)
       }
     }
     
@@ -252,11 +252,11 @@ if (length(input_names) > 0){
                                         "pass_geneconv")]
     
     # Save the trimmed gene_result_df and pass_df_file
-    write.csv(gene_result_df, file = trimmed_gene_result_df_file, row.names = FALSE)
+    #write.csv(gene_result_df, file = trimmed_gene_result_df_file, row.names = FALSE)
     # Save a df of just the pass/fail info
     pass_df <- gene_result_df[,c("dataset", "loci_name", "alphabet", "n_taxa", "n_bp", "pass_phi", "pass_maxchi", 
                                  "pass_geneconv_inner", "pass_geneconv_outer", "pass_geneconv")]
-    write.csv(pass_df, file = pass_df_file, row.names = FALSE)
+    #write.csv(pass_df, file = pass_df_file, row.names = FALSE)
   }
 }
 
@@ -488,7 +488,7 @@ for (dataset in datasets_to_copy_loci_ASTRAL_IQTREE){
                           "n_pass_maxchi_geneconv", "n_fail_maxchi_geneconv", "n_na_maxchi_geneconv")
   summary_df <- data.frame(as.list(summary_row))
   summary_op_file <- paste0(output_dirs[dataset], dataset, "_species_tree_summary.csv")
-  write.csv(summary_df, file = summary_op_file, row.names = FALSE)
+  #write.csv(summary_df, file = summary_op_file, row.names = FALSE)
 }
 
 if (length(datasets_to_copy_loci_ASTRAL_IQTREE) > 0 | length(datasets_to_copy_loci_RAxML) > 0){
@@ -498,7 +498,7 @@ if (length(datasets_to_copy_loci_ASTRAL_IQTREE) > 0 | length(datasets_to_copy_lo
   summary_csvs <- summary_csvs[grepl(paste0(input_names, collapse = "|"), summary_csvs)]
   csv_list <- lapply(paste0(output_dir, summary_csvs), read.csv)
   csv_df <- do.call(rbind, csv_list)
-  write.csv(csv_df, paste0(output_dir, "02_species_tree_summary_numbers.csv"))
+  #write.csv(csv_df, paste0(output_dir, "02_species_tree_summary_numbers.csv"))
 }
 
 # If estimating deep datasets in IQ-Tree and using models without free rate parameters, create partition file for IQ-Tree for those analyses
@@ -599,16 +599,20 @@ if ((use.free.rate.models.for.deep.datasets == FALSE) &
 ### Estimate a species trees from the files prepared in Section 5.
 for (dataset in datasets_to_estimate_ASTRAL_trees){
   # Ensure the folder for species trees data exists
-  category_output_folder <- paste0(output_dirs[dataset], "species_trees/")
+  category_output_folder  <- paste0(output_dirs[dataset], "species_trees/")
   if (dir.exists(category_output_folder) == FALSE){
     dir.create(category_output_folder)
+  }
+  qcf_output_folder       <- paste0(output_dirs[dataset], "qcf/")
+  if (dir.exists(qcf_output_folder) == FALSE){
+    dir.create(qcf_output_folder)
   }
   
   # Get list of all files in that folder
   all_category_folder_files <- list.files(category_output_folder)
   # Filter into ASTRAL text files and IQ-Tree folders
   astral_files <- paste0(grep("\\.txt", grep("ASTRAL", all_category_folder_files, value = TRUE), value = TRUE))
-  # Contruct names of finished treefiles
+  # Construct names of finished treefiles
   astral_files_finished_names <- paste0(category_output_folder, gsub(".txt", "_species.tre", astral_files))
   # Identify which ASTRAL analyses have not been run
   astral_files_to_run <- astral_files[!file.exists(astral_files_finished_names)]
@@ -619,6 +623,14 @@ for (dataset in datasets_to_estimate_ASTRAL_trees){
     # Estimate the species trees using ASTRAL
     mclapply(astral_files_to_run, ASTRAL.wrapper, exec_paths["ASTRAL"], mc.cores = cores.to.use)
   }
+
+  # Copy files to qCF dir
+  species_files <-paste0(category_output_folder, astral_files)
+  qcf_files <- paste0(qcf_output_folder, basename(species_files))
+  lapply(1:length(qcf_files), function(i){file.copy(from = species_files[i], to = qcf_files[i])})
+  # Output all ASTRAL commands (with quartet concordance factor flag)
+  astral_commands <- unlist(lapply(qcf_files, ASTRAL.quartets.command.output,  exec_paths["ASTRAL"]))
+  write(astral_commands, paste0(qcf_output_folder,dataset, "_ASTRAL_commands.txt"))
 }
 
 for (dataset in datasets_to_estimate_IQTREE_trees){
