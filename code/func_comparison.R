@@ -1,9 +1,12 @@
 ### gene_filtering/code/func_comparison.R
-## R functions for comparing two species trees
-# Caitlin Cherryh 2023
+## R functions for comparing two or more species trees
+# Caitlin Cherryh 2024
 
 library(phytools)
-library(ape)
+library(ape) # read.tree, Ntip, root
+library(phangorn) # as.splits
+library(dplyr) # bind_rows
+
 
 # Function to read in tree from ASTRAL and edit it to use in the QuartetNetworkGoodnessOfFit Julia package
 # ASTRAL does not output terminal branch lengths, so these are arbitrarily given the length 1
@@ -175,7 +178,7 @@ write.Julia.GoF.script <- function(test_name, dataset, directory, pass_tree, fai
 # This function takes in the locations of multiple files and writes a Julia script to apply the 
 # quarnetGoFtest from the QuartetNetworkGoodnessOfFit Julia package
 write.Julia.GoF.script.two.trees <- function(test_name, dataset, directory, pass_tree, all_tree, gene_trees, root.species.trees = FALSE, tree_root = NA, 
-                                   output_csv_file_path, number_of_simulated_replicates = 1000){
+                                             output_csv_file_path, number_of_simulated_replicates = 1000){
   # Make name of output files
   script_file <- paste0(directory, "apply_GoF_test.jl")
   gene_cf_file <- gsub(".txt", "_geneCF.txt", gene_trees)
@@ -255,6 +258,71 @@ write.Julia.GoF.script.two.trees <- function(test_name, dataset, directory, pass
              paste0('CSV.write("', op_df_file, '",df)'))
   # Output script
   write(lines, file = script_file)
+}
+
+
+
+#### Functions for comparing splits within trees ####
+compare.splits.2.trees <- function(dataset_tree_path, comparison_tree_path, run_row){
+  ## Take 2 trees and calculate the number of different splits
+  
+  # Open trees
+  clean_tree  <- read.tree(dataset_tree_path)
+  comp_tree   <- read.tree(comparison_tree_path)
+  # Convert to splits
+  clean_splits  <- as.splits(clean_tree)
+  comp_splits   <- as.splits(comp_tree)
+  # Remove trivial splits
+  clean_splits  <- removeTrivialSplits(clean_splits)
+  comp_splits   <- removeTrivialSplits(comp_splits)
+  # Convert to dataframes
+  clean_df  <- as.data.frame(as.matrix(clean_splits))
+  comp_df   <- as.data.frame(as.matrix(comp_splits))
+  # Reorder columns
+  col_order <- colnames(clean_df)
+  comp_df <- comp_df[, col_order]
+  # Add details to each dataframe
+  clean_df$tree       <- "Clean"
+  clean_df$confidence <- attr(clean_splits, "confidence")
+  clean_df$weights    <- attr(clean_splits, "weight")
+  comp_df$tree        <- "Comp"
+  comp_df$confidence  <- attr(comp_splits, "confidence")
+  comp_df$weights     <- attr(comp_splits, "weight")
+  # Collate dataframes
+  all_df <- rbind(clean_df, comp_df)
+  all_tree_splits <- all_df |>
+    group_by_at(vars(-tree,-confidence, -weights)) %>% 
+    filter(n() == 2) |>
+    ungroup()
+  unique_splits <- all_df |>
+    group_by_at(vars(-tree,-confidence, -weights)) %>% 
+    filter(n() < 2) |>
+    ungroup()
+  # Remove rows without qCF values
+  shared_qcf_inds <- which(is.na(all_tree_splits$confidence) == FALSE & identical("", all_tree_splits$confidence) == FALSE)
+  all_tree_splits <- all_tree_splits[shared_qcf_inds, ]
+  unique_qcf_inds <- which(is.na(unique_splits$confidence) == FALSE & identical("", unique_splits$confidence) == FALSE)
+  unique_splits   <- unique_splits[unique_qcf_inds, ]
+  # Create small dataframe for confidence intervals
+  shared_confidence_splits  <- gsub("\\[", "", gsub("\\]", "", gsub("'", "", all_tree_splits$confidence)))
+  shared_confidence_vals    <- strsplit(shared_confidence_splits, ";")
+  shared_confidence_vals    <- lapply(1:length(shared_confidence_vals), function(i){unlist(strsplit(shared_confidence_vals[[i]], "="))[c(FALSE,TRUE)]})
+  shared_df                 <- as.data.frame(do.call(rbind, shared_confidence_vals))
+  names(shared_df)          <- c("q1", "q2", "q3", "f1", "f2", "f3", "pp1", "pp2", "pp3", "QC", "EN")
+  unique_confidence_splits  <- gsub("\\[", "", gsub("\\]", "", gsub("'", "", unique_splits$confidence)))
+  unique_confidence_vals    <- strsplit(unique_confidence_splits, ";")
+  unique_confidence_vals    <- lapply(1:length(unique_confidence_vals), function(i){unlist(strsplit(unique_confidence_vals[[i]], "="))[c(FALSE,TRUE)]})
+  unique_df                 <- as.data.frame(do.call(rbind, unique_confidence_vals))
+  names(unique_df)          <- c("q1", "q2", "q3", "f1", "f2", "f3", "pp1", "pp2", "pp3", "QC", "EN")
+  # Bind dataframes together
+  all_tree_splits <- cbind(all_tree_splits, shared_df)
+  unique_splits   <- cbind(unique_splits, unique_df)
+  results_df      <- rbind(all_tree_splits, unique_splits)
+  # Trim columns
+  results_df <- results_df[ , c("tree", "weights", "q1", "q2", "q3", "f1", "f2", "f3", "pp1", "pp2", "pp3", "QC", "EN")]
+  
+  # Return the number of different splits
+  return(results_df)
 }
 
 
