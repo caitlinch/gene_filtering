@@ -263,11 +263,32 @@ write.Julia.GoF.script.two.trees <- function(test_name, dataset, directory, pass
 
 
 #### Functions for comparing splits within trees ####
-compare.splits.2.trees <- function(dataset_tree_path, comparison_tree_path, run_row){
-  ## Take 2 trees and calculate the number of different splits
+compare.splits.wrapper <- function(i, df){
+  # Iterate through rows and return results of compare.splits.2.trees function
   
+  temp_row  <- df[i, ]
+  temp_results  <- compare.splits.2.trees(clean_tree_path = paste(temp_row$tree_directory, temp_row$clean_tree),
+                                          comparison_tree_path = paste0(temp_row$tree_directory, temp_row$comparison_tree))
+  temp_results$dataset <- temp_row$dataset
+  temp_results$clean_tree <- temp_row$clean_tree
+  temp_results$comparison_tree <- temp_row$comparison_tree
+  temp_results$clean_id <- temp_row$clean_id
+  temp_results$comparison_id <- temp_row$comparison_id
+  temp_results$recombination_test <- temp_row$recombination_test
+  temp_results$comparison_gene_status <- temp_row$comparison_gene_status
+  temp_results$split_id <- factor(temp_results$tree,
+                                 levels = c("Clean", "Comp"),
+                                 labels = c(temp_row$clean_id, temp_row$comparison_id) )
+  
+  return(temp_results)
+}
+
+
+
+compare.splits.2.trees <- function(clean_tree_path, comparison_tree_path){
+  ## Take 2 trees and calculate the number of different splits
   # Open trees
-  clean_tree  <- read.tree(dataset_tree_path)
+  clean_tree  <- read.tree(clean_tree_path)
   comp_tree   <- read.tree(comparison_tree_path)
   # Convert to splits
   clean_splits  <- as.splits(clean_tree)
@@ -320,7 +341,6 @@ compare.splits.2.trees <- function(dataset_tree_path, comparison_tree_path, run_
   results_df      <- rbind(all_tree_splits, unique_splits)
   # Trim columns
   results_df <- results_df[ , c("tree", "weights", "q1", "q2", "q3", "f1", "f2", "f3", "pp1", "pp2", "pp3", "QC", "EN")]
-  
   # Return the number of different splits
   return(results_df)
 }
