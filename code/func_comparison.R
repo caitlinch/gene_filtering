@@ -276,9 +276,9 @@ compare.splits.wrapper <- function(i, df){
   temp_results$comparison_id <- temp_row$comparison_id
   temp_results$recombination_test <- temp_row$recombination_test
   temp_results$comparison_gene_status <- temp_row$comparison_gene_status
-  temp_results$split_id <- factor(temp_results$tree,
-                                  levels = c("Clean", "Comp"),
-                                  labels = c(temp_row$clean_id, temp_row$comparison_id) )
+  temp_results$tree <- factor(temp_results$tree,
+                              levels = c("Clean", "Comp", "whole_clean_tree", "whole_comp_tree"),
+                              labels = c(temp_row$clean_id, temp_row$comparison_id, "Clean_allTips", "Comp_allTips") )
   
   return(temp_results)
 }
@@ -308,7 +308,7 @@ compare.splits.2.trees <- function(clean_tree_path, comparison_tree_path){
     clean_df  <- as.data.frame(as.matrix(clean_splits))
     comp_df   <- as.data.frame(as.matrix(comp_splits))
     
-    ## Set "whole tree" values - will be nothing as trees have identical tips
+    ## Set "whole tree" values - will not be needed as trees have identical tips
     whole_df <- NA
     whole_df_type <- "logical"
   } else {
@@ -317,11 +317,11 @@ compare.splits.2.trees <- function(clean_tree_path, comparison_tree_path){
     #     and secondly keeping only taxa in the comp tree, compare splits in both trees ("clean tree" and "comp tree")
     
     ## Create formatted dataframes of the splits for each tree
-    # Extract non-trivial splits for the whole tree
-    whole_tree <- read.tree(clean_tree_path)
-    whole_tree_splits <- removeTrivialSplits(as.splits(whole_tree))
+    # Identify tips present in both trees
+    both_tree_tips <- intersect(clean_tree$tip.label, comp_tree$tip.label)
     # Remove tips in the clean_tree that are not present in the comp_tree
-    clean_tree <- keep.tip(clean_tree, comp_tree$tip.label)
+    clean_tree    <- keep.tip(clean_tree, both_tree_tips)
+    comp_tree     <- keep.tip(comp_tree, both_tree_tips)
     # Convert to splits
     clean_splits  <- as.splits(clean_tree)
     comp_splits   <- as.splits(comp_tree)
@@ -329,35 +329,102 @@ compare.splits.2.trees <- function(clean_tree_path, comparison_tree_path){
     clean_splits  <- removeTrivialSplits(clean_splits)
     comp_splits   <- removeTrivialSplits(comp_splits)
     # Convert to dataframes
-    clean_df  <- as.data.frame(as.matrix(clean_splits))
-    comp_df   <- as.data.frame(as.matrix(comp_splits))
+    clean_df      <- as.data.frame(as.matrix(clean_splits))
+    comp_df       <- as.data.frame(as.matrix(comp_splits))
     
-    ## Nicely format the splits present only in the whole tree to combine to the table
-    # Convert splits to dataframe
-    whole_df  <- as.data.frame(as.matrix(whole_tree_splits))
-    # Add details from the splits
-    whole_df$tree       <- "whole_tree"
-    whole_df$confidence <- attr(whole_tree_splits, "confidence")
-    whole_df$weights    <- attr(whole_tree_splits, "weight")
-    # Remove any rows with either "" or NA as the confidence
-    remove_whole_rows <- which( ("" == whole_df$confidence) | is.na(whole_df$confidence) )
-    if (identical(remove_whole_rows, integer(0)) == FALSE){
-      keep_whole_rows <- setdiff(1:nrow(whole_df), remove_whole_rows)
-      whole_df <- whole_df[keep_whole_rows, ]
+    ## Extract non-trivial splits for the whole trees
+    whole_clean_tree <- read.tree(clean_tree_path)
+    whole_comp_tree <- read.tree(comparison_tree_path)
+    
+    ## Extract splits present only in the whole clean tree
+    if (Ntip(clean_tree) == Ntip(whole_clean_tree) & setequal(clean_tree$tip.label, whole_clean_tree$tip.label)){
+      whole_clean_df      <- NA
+      whole_clean_df_type <- "logical"
+    } else {
+      ## Nicely format the splits present only in the whole clean tree
+      # Extract splits
+      whole_clean_tree_splits   <- removeTrivialSplits(as.splits(whole_clean_tree))
+      # Convert splits to dataframe
+      whole_clean_df            <- as.data.frame(as.matrix(whole_clean_tree_splits))
+      # Add details from the splits
+      whole_clean_df$tree       <- "whole_clean_tree"
+      whole_clean_df$confidence <- attr(whole_clean_tree_splits, "confidence")
+      whole_clean_df$weights    <- attr(whole_clean_tree_splits, "weight")
+      # Remove any rows with either "" or NA as the confidence
+      remove_whole_rows         <- which( ("" == whole_clean_df$confidence) | is.na(whole_clean_df$confidence) )
+      if (identical(remove_whole_rows, integer(0)) == FALSE){
+        keep_whole_rows <- setdiff(1:nrow(whole_clean_df), remove_whole_rows)
+        whole_clean_df  <- whole_clean_df[keep_whole_rows, ]
+      } 
+      # Extract qCF values
+      whole_confidence_splits  <- gsub("\\[", "", gsub("\\]", "", gsub("'", "", whole_clean_df$confidence)))
+      whole_confidence_vals    <- strsplit(whole_confidence_splits, ";")
+      whole_confidence_vals    <- lapply(1:length(whole_confidence_vals), function(i){unlist(strsplit(whole_confidence_vals[[i]], "="))[c(FALSE,TRUE)]})
+      whole_qcf_df             <- as.data.frame(do.call(rbind, whole_confidence_vals))
+      names(whole_qcf_df)      <- c("q1", "q2", "q3", "f1", "f2", "f3", "pp1", "pp2", "pp3", "QC", "EN")
+      # Add extra columns
+      whole_qcf_df$split_type <- "Clean_allTips"
+      # Bind dataframes
+      whole_clean_df      <- cbind(whole_clean_df, whole_qcf_df)
+      # Rearrange whole_clean_df
+      whole_clean_df      <- whole_clean_df[ , c("tree", "split_type", "weights", "q1", "q2", "q3", "f1", "f2", "f3", "pp1", "pp2", "pp3", "QC", "EN")] 
+      whole_clean_df_type <- "dataframe"
+    }
+    
+    ## Extract splits present only in the whole comparison tree
+    if (Ntip(comp_tree) == Ntip(whole_comp_tree) & setequal(comp_tree$tip.label, whole_comp_tree$tip.label)){
+      whole_comp_df      <- NA
+      whole_comp_df_type <- "logical"
+    } else {
+      ## Nicely format the splits present only in the whole comparison tree
+      # Extract splits
+      whole_comp_tree_splits  <- removeTrivialSplits(as.splits(whole_comp_tree))
+      # Convert splits to dataframe
+      whole_comp_df           <- as.data.frame(as.matrix(whole_comp_tree_splits))
+      # Add details from the splits
+      whole_comp_df$tree       <- "whole_comp_tree"
+      whole_comp_df$confidence <- attr(whole_comp_tree_splits, "confidence")
+      whole_comp_df$weights    <- attr(whole_comp_tree_splits, "weight")
+      # Remove any rows with either "" or NA as the confidence
+      remove_wcomp_rows <- which( ("" == whole_comp_df$confidence) | is.na(whole_comp_df$confidence) )
+      if (identical(remove_wcomp_rows, integer(0)) == FALSE){
+        keep_wcomp_rows <- setdiff(1:nrow(whole_comp_df), remove_wcomp_rows)
+        whole_comp_df   <- whole_comp_df[keep_wcomp_rows, ]
+      } 
+      # Extract qCF values
+      wcomp_confidence_splits  <- gsub("\\[", "", gsub("\\]", "", gsub("'", "", whole_comp_df$confidence)))
+      wcomp_confidence_vals    <- strsplit(wcomp_confidence_splits, ";")
+      wcomp_confidence_vals    <- lapply(1:length(wcomp_confidence_vals), function(i){unlist(strsplit(wcomp_confidence_vals[[i]], "="))[c(FALSE,TRUE)]})
+      wcomp_qcf_df             <- as.data.frame(do.call(rbind, wcomp_confidence_vals))
+      names(wcomp_qcf_df)      <- c("q1", "q2", "q3", "f1", "f2", "f3", "pp1", "pp2", "pp3", "QC", "EN")
+      # Add extra columns
+      wcomp_qcf_df$split_type  <- "Comp_allTips"
+      # Bind dataframes
+      whole_comp_df            <- cbind(whole_comp_df, wcomp_qcf_df)
+      # Rearrange whole_comp_df
+      whole_comp_df            <- whole_comp_df[ , c("tree", "split_type", "weights", "q1", "q2", "q3", "f1", "f2", "f3", "pp1", "pp2", "pp3", "QC", "EN")]
+      whole_comp_df_type       <- "dataframe"
+    }
+    
+    ## Collate the two datasets from the whole trees
+    if (whole_clean_df_type == "dataframe" & whole_comp_df_type == "dataframe"){
+      # Both trees had tips removed
+      whole_df <- rbind(whole_clean_df, whole_comp_df)
+      whole_df_type <- "dataframe"
+    } else if (whole_clean_df_type == "dataframe" & whole_comp_df_type == "logical"){
+      # Only the "clean" tree had tips removed
+      whole_df <- whole_clean_df
+      whole_df_type <- "dataframe"
+    } else if (whole_clean_df_type == "logical" & whole_comp_df_type == "dataframe"){
+      # Only the "comparison" tree had tips removed
+      whole_df <- whole_comp_df
+      whole_df_type <- "dataframe"
+    } else if (whole_clean_df_type == "logical" & whole_comp_df_type == "logical"){
+      # Neither tree had tips removed
+      whole_df <- NA
+      whole_df_type <- "logical"
     } 
-    # Extract qCF values
-    whole_confidence_splits  <- gsub("\\[", "", gsub("\\]", "", gsub("'", "", whole_df$confidence)))
-    whole_confidence_vals    <- strsplit(whole_confidence_splits, ";")
-    whole_confidence_vals    <- lapply(1:length(whole_confidence_vals), function(i){unlist(strsplit(whole_confidence_vals[[i]], "="))[c(FALSE,TRUE)]})
-    whole_qcf_df             <- as.data.frame(do.call(rbind, whole_confidence_vals))
-    names(whole_qcf_df)          <- c("q1", "q2", "q3", "f1", "f2", "f3", "pp1", "pp2", "pp3", "QC", "EN")
-    # Add extra columns
-    whole_qcf_df$split_type <- "all_tips"
-    # Bind dataframes
-    whole_df <- cbind(whole_df, whole_qcf_df)
-    # Rearrange whole_df
-    whole_df <- whole_df[ , c("tree", "split_type", "weights", "q1", "q2", "q3", "f1", "f2", "f3", "pp1", "pp2", "pp3", "QC", "EN")]
-    whole_df_type <- "dataframe"
+    
   }
   
   ## Format dataframes
