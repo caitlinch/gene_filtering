@@ -62,8 +62,8 @@ dataset_tree_roots <- list(c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "AP
                            c("LA4116", "LA2951", "LA4126"))
 
 # Set which datasets and which tests to run
-compare_ASTRAL_trees <- c("Pease2016", "Vanderpool2020", "Whelan2017", "1KP")
-compare_IQTREE_trees <- c("Pease2016", "Vanderpool2020", "Whelan2017", "1KP")
+compare_ASTRAL_trees <- c()
+compare_IQTREE_trees <- c("Pease2016", "Vanderpool2020", "Whelan2017")
 tests_to_run <- list("Vanderpool2020" = c("allTests", "PHI", "maxchi", "geneconv"),
                      "Pease2016" = c("allTests", "PHI", "maxchi", "geneconv"),
                      "Whelan2017" = c("PHI", "maxchi", "geneconv"),
@@ -328,7 +328,7 @@ for (dataset in compare_IQTREE_trees){
   all_IQTree_files <- grep("IQTREE", all_species_trees_files, value = TRUE)
   # Find all IQ-Tree trees and partition files for this dataset
   all_IQTree_partitions <- grep(".nex.", grep("partitions.nex", all_IQTree_files, value = TRUE), value = TRUE, invert = TRUE)
-  all_IQTree_trees <- grep("contree", all_IQTree_files, value = TRUE)
+  all_IQTree_trees <- grep("treefile", all_IQTree_files, value = TRUE)
   
   
   # If dataset was run using RAxML-NG, find the bestTree files (the trees) and the IQ-Tree partitions for the no free rate model runs
@@ -378,6 +378,8 @@ for (dataset in compare_IQTREE_trees){
         file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path, overwrite = TRUE)
         
         # Apply the AU test
+        au_test_command <- AU.test.command(partition_path, three_trees_path, iqtree_path)
+        print(au_test_command)
         au_test_df <- perform.partition.AU.test(partition_path, three_trees_path, iqtree_path)
         # Assemble the output dataframe
         au_results_df <- data.frame(dataset = rep(dataset, 3), test = rep(test, 3), tree = c("test_pass", "test_fail", "no_test"))
@@ -396,9 +398,9 @@ for (dataset in compare_IQTREE_trees){
         t_test_fail <- three_trees[[2]]
         t_none <- three_trees[[3]]
         # Calculate RF/wRF distances
-        dist_df <- data.frame(dataset = rep(dataset, 3), 
-                              test = rep(test, 3), 
-                              tree = c("test_pass", "test_fail", "no_test"), 
+        dist_df <- data.frame(dataset = rep(dataset, 3),
+                              test = rep(test, 3),
+                              tree = c("test_pass", "test_fail", "no_test"),
                               analysis = rep("IQ-Tree", 3),
                               RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass, check.labels = TRUE), RF.dist(t_test_pass, t_test_fail, check.labels = TRUE), RF.dist(t_test_pass, t_none, check.labels = TRUE)),
                               RF_dist_to_test_fail = c(RF.dist(t_test_fail, t_test_pass, check.labels = TRUE), RF.dist(t_test_fail, t_test_fail, check.labels = TRUE), RF.dist(t_test_fail, t_none, check.labels = TRUE)),
@@ -433,7 +435,9 @@ for (dataset in compare_IQTREE_trees){
         file.copy(from = paste0(species_tree_folder, test_pass_partition_file), to = partition_path, overwrite = TRUE)
         
         # Apply the AU test
-        au_test_df <- perform.partition.AU.test.two.trees(partition_path, two_trees_path, iqtree_path)
+        au_test_command <- AU.test.command(partition_path, two_trees_path, iqtree_path)
+        print(au_test_command)
+        au_test_df <- perform.partition.AU.test(partition_path, two_trees_path, iqtree_path)
         # Assemble the output dataframe
         au_results_df <- data.frame(dataset = rep(dataset, 2), test = rep(test, 2), tree = c("test_pass", "no_test"))
         au_results_df <- cbind(au_results_df, au_test_df)
@@ -450,9 +454,9 @@ for (dataset in compare_IQTREE_trees){
         t_test_pass <- two_trees[[1]]
         t_none <- two_trees[[2]]
         # Calculate RF/wRF distances
-        dist_df <- data.frame(dataset = rep(dataset, 2), 
-                              test = rep(test, 2), 
-                              tree = c("test_pass", "no_test"), 
+        dist_df <- data.frame(dataset = rep(dataset, 2),
+                              test = rep(test, 2),
+                              tree = c("test_pass", "no_test"),
                               analysis = rep("IQ-Tree", 2),
                               RF_dist_to_test_pass = c(RF.dist(t_test_pass, t_test_pass, check.labels = TRUE), RF.dist(t_test_pass, t_none, check.labels = TRUE)),
                               RF_dist_to_test_fail = c(NA,NA),

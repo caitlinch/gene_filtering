@@ -308,8 +308,27 @@ perform.AU.test <- function(loci_name, data_folder, output_folder, csv_folder, t
 
 
 
+AU.test.command <- function(partition_path, three_trees_path, iqtree_path, run.command = TRUE){
+  # Assemble the path for the IQ-Tree log file and iqtree file
+  log_file <- paste0(partition_path, ".log")
+  iq_file <- paste0(partition_path, ".iqtree")
+  # If the log file doesn't exist, run IQ-Tree
+  # Assemble the IQ-Tree command
+  # Parameters:
+  #   * -p means all partitions share same set of branch lengths but each partition has its own evolutionary rate
+  #   * -z passes the file containing the set of trees
+  #   * -m MFP+MERGE uses PartitionFinder to select the best evolutionary model/best partitioning scheme
+  #   * -n 0 sets the number of search iterations to 0 (model parameters estimated from parsimony tree), so ML tree is not estimated. Allows just evaluation of input trees.
+  #   * -zb 1000 sets 1000 RELL replicates for topology tests: bootstrap proportion, Kishino-Hasegawa test, Shimodaira-Hasegawa test and expected likelihood weights
+  #   * -zw performs weighted KH and weighted SH tests
+  #   * -au option allows AU test
+  iqtree_command <- paste0(iqtree_path, " -p ", partition_path, " -z ", three_trees_path, " -n 0 -zb 10000 -zw -au -safe")
+  # return system command
+  return(iqtree_command)
+}
 
-# This function takes a partition file and calculates the AU test using IQ-Tree
+
+
 perform.partition.AU.test <- function(partition_path, three_trees_path, iqtree_path){
   # Assemble the path for the IQ-Tree log file and iqtree file
   log_file <- paste0(partition_path, ".log")
