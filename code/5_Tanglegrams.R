@@ -18,7 +18,7 @@
 ### Caitlin's paths ###
 # Folders and filepaths
 maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
-op_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/tanglegrams/"
+op_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/03_tanglegrams/"
 
 # Dataset information
 roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
@@ -62,9 +62,6 @@ metazoan_plotting_parameters <- get.Metazoan.plotting.parameters(metazoan_tree_f
 all_list_vars <- names(metazoan_plotting_parameters)
 lapply(all_list_vars, plot.Metazoan.tanglegram, metazoan_plotting_parameters)
 
-
-
-#### Step 4: Plotting Plants dataset ####
 
 
 
