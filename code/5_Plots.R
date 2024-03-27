@@ -36,10 +36,12 @@ roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJ
 #### Step 2: Open files and packages ####
 # Open packages
 library(ape) # functions: read.tree, Ntip, root
+library(Cairo) # for plotting png
 library(phangorn)
 library(ggplot2) # for nice plots
 library(ggtree) # for plotting phylogenetic trees and densitress (ggdensitree)
 library(ggtext) # for nice tree plots
+library(ggpubr) # for textGrob function
 library(patchwork) # for collating plots
 library(TreeTools) # for CollapseNode function
 library(colorBlindness) # For Plants clade labels
@@ -315,7 +317,7 @@ c3_labs <- comparison.clade.tip.labels(comparison_clades[[3]])
 c4_labs <- comparison.clade.tip.labels(comparison_clades[[4]])
 
 # Plot each  clade
-p1 <- textGrob(c1_labs$clean_taxa_names[[1]], gp = gpar(fontface = "italic", size = 12))
+p1 <- ggpubr::text_grob(c1_labs$clean_taxa_names[[1]], face = "italic", size = 12)
 
 p2 <- ggtree(comparison_clades[2])  %<+% c2_labs + 
   geom_tiplab(aes(label = lab), offset = 0, geom = "text", size = 4, parse = TRUE, show.legend = FALSE) +
@@ -598,7 +600,7 @@ densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tre
           tip.color = "Black", scale.bar = FALSE)
 dev.off()
 
-CairoPNG(file = paste0(plot_file, "_small.png"), width = 850, height = 950)
+Cairo::CairoPNG(file = paste0(plot_file, "_small.png"), width = 850, height = 950)
 densiTree(tomato_gts, type = "cladogram", alpha = 0.1, consensus = consensus_tree, scaleX = TRUE, col = "steelblue", cex = 1, 
           font = 3, tip.color = "Black", scale.bar = FALSE)
 dev.off()
