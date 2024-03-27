@@ -63,6 +63,9 @@ plant_classifications <-  c("Chromista", "Rhodophyta", "Glaucophyta", "Chlorophy
                             "ANAGrade", "Monocots", "Magnoliids", "Chloranthales", "Eudicots", "Ceratophyllales")
 names(plants_color_palette) <- plant_classifications
 
+# Read in plant annotations
+annotation_df <- read.csv(annotation_csv_file)
+
 
 
 #### Step 3: Primates dataset ####
