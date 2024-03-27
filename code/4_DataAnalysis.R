@@ -79,8 +79,8 @@ tests_to_run <- list("Vanderpool2020" = c("PHI", "maxchi", "geneconv", "allTests
                      "Whelan2017" = c("PHI", "maxchi", "geneconv"),
                      "1KP" = c("PHI", "maxchi"))
 
-datasets_to_identify_distinct_edges <- c()
-plot_distinct_edges = FALSE
+datasets_to_identify_distinct_edges <- c("Vanderpool2020", "Pease2016", "Whelan2017")
+plot_distinct_edges = TRUE
 identify_outlier_edges = TRUE
 check_primate_loci = FALSE
 plot_primate_loci = FALSE
@@ -127,7 +127,7 @@ for (dataset in datasets_to_identify_distinct_edges){
   for (test in dataset_tests){
     print(paste0("Processing ", dataset, ": ", test))
     
-    test_df_filename <- paste0(node_output_dir, dataset, "_", test, "_ExtractDistinctEdges.csv")
+    test_df_filename <- paste0(node_output_dir, dataset, "_", test, "_ExtractDistinctEdges_Final.csv")
     
     # If results csv does not exist, calculate results
     if (file.exists(test_df_filename) == FALSE){
@@ -216,7 +216,7 @@ for (dataset in datasets_to_identify_distinct_edges){
 if (plot_distinct_edges == TRUE){
   #### Open the .csv file containing branch lengths/support for all analyses for all four datasets
   node_output_dir <- paste0(output_dir, "node_comparisons/")
-  node_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges.csv")
+  node_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges_Final.csv")
   if (file.exists(node_df_filename) == FALSE){
     # Collate dataframe of conflicting/congruent branches from all four datasets
     all_csvs <- list.files(node_output_dir)
@@ -311,7 +311,7 @@ if (plot_distinct_edges == TRUE){
   
   # Combine each plot into one big plot
   p = p1 + p2 + p3 + plot_layout(ncol = 1, heights = c(8, 4, 4))
-  ggsave(filename = paste0(plot_dir, "ASTRAL_posteriorProbability_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 10)
+  ggsave(filename = paste0(plot_dir, "ASTRAL_posteriorProbability_conflicting_branches_Final.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 10)
   
   
   #### Create a lovely plot of posterior probability support values for the ASTRAL trees
@@ -356,7 +356,7 @@ if (plot_distinct_edges == TRUE){
   
   # Combine each plot into one big plot
   p = p1 + p2 + p3 + plot_layout(ncol = 1, heights = c(8, 4, 4))
-  ggsave(filename = paste0(plot_dir, "ASTRAL_edgeLength_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 10)
+  ggsave(filename = paste0(plot_dir, "ASTRAL_edgeLength_conflicting_branches_Final.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 10)
   
   
   #### Create a lovely plot of ultrafast bootstrap support values for the maximum likelihood trees
@@ -389,7 +389,7 @@ if (plot_distinct_edges == TRUE){
   
   # Combine each plot into one big plot
   p = p1 + p2 + plot_layout(ncol = 1, heights = c(8, 4))
-  ggsave(filename = paste0(plot_dir, "ML_ultrafastBootstrapSupport_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 8)
+  ggsave(filename = paste0(plot_dir, "ML_ultrafastBootstrapSupport_conflicting_branches_Final.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 8)
   
   
   #### Create a lovely plot of edge lengths for the maximum likelihood trees
@@ -434,7 +434,7 @@ if (plot_distinct_edges == TRUE){
   
   # Combine each plot into one big plot
   p = p1 + p2 + p3 + plot_layout(ncol = 1, heights = c(8, 4, 4))
-  ggsave(filename = paste0(plot_dir, "ML_edgeLength_conflicting_branches.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 10)
+  ggsave(filename = paste0(plot_dir, "ML_edgeLength_conflicting_branches_Final.pdf"), plot = p, device = "pdf", units = "in", width = 8, height = 10)
 }
 
 
@@ -444,7 +444,7 @@ if (identify_outlier_edges == TRUE){
   ## Identify outlier edges
   # Assemble the filename for and open the completed "04_AllDatasets_Collated_ExtractDistinctEdges.csv" file created in Step 5
   node_output_dir <- paste0(output_dir, "node_comparisons/")
-  node_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges.csv")
+  node_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges_Final.csv")
   node_df <- read.csv(node_df_filename, stringsAsFactors = FALSE)
   node_df <- node_df[, c("test", "dataset", "support_value_type", "tree1", "tree2", "edge_type", "edge_presence", "support_value", "edge_length", "node1", "node2")]
   
@@ -494,8 +494,9 @@ if (identify_outlier_edges == TRUE){
   } # End iterating through dataset
   
   # Save outlier branches in new csv
-  outlier_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges_OnlyOutliers.csv")
+  outlier_df_filename <- paste0(node_output_dir, "04_AllDatasets_Collated_ExtractDistinctEdges_OnlyOutliers_Final.csv")
   write.csv(outlier_df, file = outlier_df_filename, row.names = FALSE)
+  write.csv(outlier_df, file = paste0(node_output_dir, "outlier_branch_dataframe.csv"))
   
   ## Plot outlier edges
   # Create new folder to plot in
@@ -586,7 +587,7 @@ quilt <- (p1 / p2) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 plot_id <- determine.outlier.plot.name(1, outlier_df)
 quilt_name <- paste0(plot_dir, sprintf("%03d_", 1), plot_id, "OutlierBranch_plot")
-ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 10, units = "in")
+ggsave(filename = paste0(quilt_name, "_Final.pdf"), plot = quilt, device = "pdf", height = 12, width = 10, units = "in")
 
 
 
@@ -628,7 +629,7 @@ if (check_primate_loci == TRUE){
     all_AU_csvs <- paste0(csv_folder,list.files(csv_folder))
     all_csvs <- lapply(all_AU_csvs, read.csv, stringsAsFactors = FALSE, row.names = 1)
     AU_df <- as.data.frame(do.call(rbind, all_csvs))
-    AU_df_name <- paste0(check_dir, "Primates_", id,"_AU_test_collated.csv")
+    AU_df_name <- paste0(check_dir, "Primates_", id,"_AU_test_collated_Final.csv")
     write.csv(AU_df, file = AU_df_name)
   }
 }
@@ -673,7 +674,7 @@ if (plot_primate_loci == TRUE){
     theme_bw() + 
     theme(plot.title = element_text(hjust = 0, size = 30), plot.subtitle = element_text(hjust = 0.5, size = 14),
           axis.title = element_text(size = 13))
-  t1_plot_name <- paste0(check_plots_dir, "ternary_likelihood_weights_a_Cebidae.pdf")
+  t1_plot_name <- paste0(check_plots_dir, "ternary_likelihood_weights_a_Cebidae_Final.pdf")
   ggsave(filename = t1_plot_name, plot = t1, device = "pdf")
   
   t2 <- ggtern(data = au_df[au_df$test_id == "Comparison",], mapping = aes(tree2_likelihood_weight, tree1_likelihood_weight, tree3_likelihood_weight)) + 
@@ -690,12 +691,12 @@ if (plot_primate_loci == TRUE){
     theme_bw() + 
     theme(plot.title = element_text(hjust = 0, size = 30), plot.subtitle = element_text(hjust = 0.5, size = 14),
           axis.title = element_text(size = 13))
-  t2_plot_name <- paste0(check_plots_dir, "ternary_likelihood_weights_b_deep_split.pdf")
+  t2_plot_name <- paste0(check_plots_dir, "ternary_likelihood_weights_b_deep_split_Final.pdf")
   ggsave(filename = t2_plot_name, plot = t2, device = "pdf")
   
   # Use grid.arrange to save both plots next to each other
   quilt <- grid.arrange(t1, t2, ncol = 2)
-  quilt_name <- paste0(check_plots_dir, "ternary_likelihood_weights.pdf")
+  quilt_name <- paste0(check_plots_dir, "ternary_likelihood_weights_Final.pdf")
   ggsave(filename = quilt_name, plot = quilt, device = "pdf", width = 10, height = 5, units = "in")
 }
 
