@@ -21,12 +21,6 @@
 maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
 plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/"
 annotation_csv_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/misc/annotations.csv"
-
-# Laptop
-maindir <- "~/Repositories/gene_filtering/"
-plot_dir <- "/Users/caitlin/Documents/PhD/Ch01_EmpiricalTreelikeness/plots/"
-annotation_csv_file <- "/Users/caitlin/Documents/PhD/Ch01_EmpiricalTreelikeness/annotations.csv"
-
 ### End of Caitlin's paths ###
 
 
