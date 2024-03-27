@@ -162,7 +162,7 @@ for (i in 1:length(primate_concat_trees)){
           plot.subtitle = element_text(size = 14, face = "bold", hjust = 0.5, vjust = 0.5) ) +
     guides(color = guide_legend(override.aes = list(label = "Sp.")))
   # Create plot name
-  f_name <- paste0(plot_dir, gsub("\\.contree", "", basename(f_tree_path)))
+  f_name <- paste0(plot_dir, gsub("\\.treefile", "", basename(f_tree_path)))
   # Save plot
   ggsave(filename = paste0(f_name, ".pdf"), plot = f_plot, device = "pdf")
 }
@@ -215,6 +215,7 @@ for (i in 1:length(tomato_astral_trees)){
 }
 
 
+
 #### Step 6: Plot all CONCAT Tomatoes trees ####
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
 tomato_tree_files <- grep("Tomatoes", tree_files, value = TRUE)
@@ -255,7 +256,7 @@ for (i in 1:length(tomato_concat_trees)){
           plot.subtitle = element_text(size = 14, face = "bold", hjust = 0.5, vjust = 0.5) ) +
     guides(color = guide_legend(override.aes = list(label = "Sp.")))
   # Create plot name
-  f_name <- paste0(plot_dir, gsub("\\.contree", "", basename(f_tree_path)))
+  f_name <- paste0(plot_dir, gsub("\\.treefile", "", basename(f_tree_path)))
   # Save plot
   ggsave(filename = paste0(f_name, ".pdf"), plot = f_plot, device = "pdf")
 }
@@ -343,7 +344,7 @@ for (i in 1:length(metazoan_concat_trees)){
           plot.subtitle = element_text(size = 14, face = "bold", hjust = 0.5, vjust = 0.5) ) +
     guides(color = guide_legend(override.aes = list(label = "Sp.", size = 4.5)))
   # Create plot name
-  f_name <- paste0(plot_dir, gsub("\\.contree", "", basename(f_tree_path)))
+  f_name <- paste0(plot_dir, gsub("\\.treefile", "", basename(f_tree_path)))
   # Save plot
   ggsave(filename = paste0(f_name, ".pdf"), plot = f_plot, device = "pdf", height = 9)
 }
@@ -433,7 +434,7 @@ for (i in 1:length(plants_concat_trees)){
           plot.subtitle = element_text(size = 16, face = "bold", hjust = 0.5, vjust = 0.5) ) +
     guides(color = guide_legend(override.aes = list(label = "Sp.", size = 4.5)))
   # Create plot name
-  f_name <- paste0(plot_dir, gsub("\\.tre", "", basename(f_tree_path)))
+  f_name <- paste0(plot_dir, gsub("\\.raxml\\.bestTree", "", basename(f_tree_path)))
   # Save plot
   ggsave(filename = paste0(f_name, ".pdf"), plot = f_plot, device = "pdf", height = 10)
 }
@@ -498,4 +499,5 @@ plot3 <- ggtree(tree_list[[3]]) %<+% f_labs +
 quilt <- plot1 + plot2 + plot3 + plot_layout(ncol = 3, nrow = 1)
 quilt_path <- paste0(plot_dir, "Plants_CONCAT_all_trees.pdf")
 ggsave(filename = quilt_path, plot = quilt)
+
 
