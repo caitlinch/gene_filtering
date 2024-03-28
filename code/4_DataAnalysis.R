@@ -264,7 +264,62 @@ ggsave(filename = quilt_png, plot = quilt, height = 12, width = 10, units = "in"
 
 
 ##### Step 6: Plot branch lengths for ASTRAL trees #####
-
+# Save theming as object 
+theming <- theme_bw() + 
+  theme(plot.title = element_text(size = 20),
+        axis.title.x = element_text(size = 14, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
+        axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 15, b = 0, l = 0)),
+        axis.text.y = element_text(size = 12),
+        strip.text = element_text(size = 15),
+        legend.title = element_text(size = 15),
+        legend.text = element_text(size = 12))
+# Plot tomatoes
+tomatoes_bla_plot <- ggplot(tomatoes_pp, aes(x = gene_tree_formatted, y = confidence, fill = split_type)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Gene filtering") +
+  scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+# Plot primates
+primates_bla_plot <- ggplot(primates_pp, aes(x = gene_tree_formatted, y = confidence, fill = split_type)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Gene filtering") +
+  scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  labs(title = "b.") +
+  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+# Plot metazoans
+met_bla_plot <- ggplot(metazoan_pp, aes(x = gene_tree_formatted, y = confidence, fill = split_type)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Gene filtering") +
+  scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  labs(title = "c.") +
+  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+# Plot plants
+plants_bla_plot <- ggplot(plant_pp, aes(x = gene_tree_formatted, y = confidence, fill = split_type)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Gene filtering") +
+  scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  labs(title = "d.") +
+  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+# Save
+quilt <- tomatoes_bla_plot + primates_bla_plot + met_bla_plot + plants_bla_plot + plot_layout(ncol = 1)
+quilt_pdf <- paste0(plot_dir, "BranchLengths_ASTRAL_quilt.pdf")
+ggsave(filename = quilt_pdf, plot = quilt, height = 12, width = 10, units = "in")
+quilt_png <- paste0(plot_dir, "BranchLengths_ASTRAL_quilt.png")
+ggsave(filename = quilt_png, plot = quilt, height = 12, width = 10, units = "in")
 
 
 ##### Step 7: Compare the bootstraps of the trees #####
