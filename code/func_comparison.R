@@ -516,3 +516,224 @@ compare.splits.2.trees <- function(clean_tree_path, comparison_tree_path){
 }
 
 
+compare.branch.wrapper <- function(i, df){
+  # Iterate through rows and return results of compare.branches.2.trees function
+  
+  temp_row  <- df[i, ]
+  temp_results  <- compare.branches.2.trees(clean_tree_path = paste0(temp_row$tree_directory, temp_row$clean_tree),
+                                            comparison_tree_path = paste0(temp_row$tree_directory, temp_row$comparison_tree),
+                                            dataset = temp_row$dataset,
+                                            analysis_method = temp_row$analysis_method)
+  temp_results$dataset <- temp_row$dataset
+  temp_results$clean_tree <- temp_row$clean_tree
+  temp_results$comparison_tree <- temp_row$comparison_tree
+  temp_results$clean_id <- temp_row$clean_id
+  temp_results$comparison_id <- temp_row$comparison_id
+  temp_results$recombination_test <- temp_row$recombination_test
+  temp_results$comparison_gene_status <- temp_row$comparison_gene_status
+  temp_results$tree <- factor(temp_results$tree,
+                              levels = c("Clean", "Comp", "whole_clean_tree", "whole_comp_tree"),
+                              labels = c(temp_row$clean_id, temp_row$comparison_id, "Clean_allTips", "Comp_allTips") )
+  temp_results$analysis_method <- temp_row$analysis_method
+  
+  return(temp_results)
+}
+
+
+compare.branches.2.trees <- function(clean_tree_path, comparison_tree_path, dataset, analysis_method){
+  ## Return qCF values for all splits within two trees, separated into conflicting and concordant splits
+  
+  ## Read in trees
+  # Open both trees as phylo objects
+  clean_tree  <- read.tree(clean_tree_path)
+  comp_tree   <- read.tree(comparison_tree_path)
+  
+  ## Check whether the two trees have the same number of tips
+  if (Ntip(clean_tree) == Ntip(comp_tree)){
+    ## Trees have the same number of splits
+    # Convert trees to splits
+    clean_splits  <- as.splits(clean_tree)
+    comp_splits   <- as.splits(comp_tree)
+    # Remove trivial splits
+    clean_splits  <- removeTrivialSplits(clean_splits)
+    comp_splits   <- removeTrivialSplits(comp_splits)
+    
+    ## Create formatted dataframes of the splits for each tree
+    # Convert to dataframes
+    clean_df  <- as.data.frame(as.matrix(clean_splits))
+    comp_df   <- as.data.frame(as.matrix(comp_splits))
+    
+    ## Set "whole tree" values - will not be needed as trees have identical tips
+    whole_df <- NA
+    whole_df_type <- "logical"
+  } else {
+    ## Trees have different numbers of splits
+    ## We want to do 2 things: firstly extract all splits from the clean tree ("whole tree"), 
+    #     and secondly keeping only taxa in the comp tree, compare splits in both trees ("clean tree" and "comp tree")
+    
+    ## Create formatted dataframes of the splits for each tree
+    # Identify tips present in both trees
+    both_tree_tips <- intersect(clean_tree$tip.label, comp_tree$tip.label)
+    # Remove tips in the clean_tree that are not present in the comp_tree
+    clean_tree    <- keep.tip(clean_tree, both_tree_tips)
+    comp_tree     <- keep.tip(comp_tree, both_tree_tips)
+    # Convert to splits
+    clean_splits  <- as.splits(clean_tree)
+    comp_splits   <- as.splits(comp_tree)
+    # Remove trivial splits
+    clean_splits  <- removeTrivialSplits(clean_splits)
+    comp_splits   <- removeTrivialSplits(comp_splits)
+    # Convert to dataframes
+    clean_df      <- as.data.frame(as.matrix(clean_splits))
+    comp_df       <- as.data.frame(as.matrix(comp_splits))
+    
+    ## Extract non-trivial splits for the whole trees
+    whole_clean_tree <- read.tree(clean_tree_path)
+    whole_comp_tree <- read.tree(comparison_tree_path)
+    
+    ## Extract splits present only in the whole clean tree
+    if (Ntip(clean_tree) == Ntip(whole_clean_tree) & setequal(clean_tree$tip.label, whole_clean_tree$tip.label)){
+      whole_clean_df      <- NA
+      whole_clean_df_type <- "logical"
+    } else {
+      ## Nicely format the splits present only in the whole clean tree
+      # Extract splits
+      whole_clean_tree_splits   <- removeTrivialSplits(as.splits(whole_clean_tree))
+      # Convert splits to dataframe
+      whole_clean_df            <- as.data.frame(as.matrix(whole_clean_tree_splits))
+      # Add details from the splits
+      whole_clean_df$tree       <- "whole_clean_tree"
+      if (dataset == "Plants" & analysis_method == "IQTREE"){
+        whole_clean_df$confidence <- NA
+      } else {
+        whole_clean_df$confidence <- attr(whole_clean_tree_splits, "confidence")
+      }
+      whole_clean_df$weights    <- attr(whole_clean_tree_splits, "weight")
+      # Add extra columns
+      whole_clean_df$split_type  <- "Clean_allTips"
+      # Rearrange whole_clean_df
+      whole_clean_df      <- whole_clean_df[ , c("tree", "split_type", "confidence", "weights")] 
+      whole_clean_df_type <- "dataframe"
+    }
+    
+    ## Extract splits present only in the whole comparison tree
+    if (Ntip(comp_tree) == Ntip(whole_comp_tree) & setequal(comp_tree$tip.label, whole_comp_tree$tip.label)){
+      whole_comp_df      <- NA
+      whole_comp_df_type <- "logical"
+    } else {
+      ## Nicely format the splits present only in the whole comparison tree
+      # Extract splits
+      whole_comp_tree_splits  <- removeTrivialSplits(as.splits(whole_comp_tree))
+      # Convert splits to dataframe
+      whole_comp_df           <- as.data.frame(as.matrix(whole_comp_tree_splits))
+      # Add details from the splits
+      whole_comp_df$tree       <- "whole_comp_tree"
+      if (dataset == "Plants" & analysis_method == "IQTREE"){
+        whole_comp_df$confidence <- NA
+      } else {
+        whole_comp_df$confidence <- attr(whole_comp_tree_splits, "confidence")
+      }
+      whole_comp_df$weights    <- attr(whole_comp_tree_splits, "weight")
+      # Add extra columns
+      whole_comp_df$split_type  <- "Comp_allTips"
+      # Rearrange whole_comp_df
+      whole_comp_df            <- whole_comp_df[ , c("tree", "split_type", "confidence", "weights")]
+      whole_comp_df_type       <- "dataframe"
+    }
+    
+    ## Collate the two datasets from the whole trees
+    if (whole_clean_df_type == "dataframe" & whole_comp_df_type == "dataframe"){
+      # Both trees had tips removed
+      whole_df <- rbind(whole_clean_df, whole_comp_df)
+      whole_df_type <- "dataframe"
+    } else if (whole_clean_df_type == "dataframe" & whole_comp_df_type == "logical"){
+      # Only the "clean" tree had tips removed
+      whole_df <- whole_clean_df
+      whole_df_type <- "dataframe"
+    } else if (whole_clean_df_type == "logical" & whole_comp_df_type == "dataframe"){
+      # Only the "comparison" tree had tips removed
+      whole_df <- whole_comp_df
+      whole_df_type <- "dataframe"
+    } else if (whole_clean_df_type == "logical" & whole_comp_df_type == "logical"){
+      # Neither tree had tips removed
+      whole_df <- NA
+      whole_df_type <- "logical"
+    } 
+    
+  }
+  
+  ## Format dataframes
+  # Reorder columns
+  col_order <- colnames(clean_df)
+  comp_df <- comp_df[, col_order]
+  # Add details to each dataframe
+  clean_df$tree       <- "Clean"
+  if (dataset == "Plants" & analysis_method == "IQTREE"){
+    clean_df$confidence <- NA
+  } else {
+    clean_df$confidence <- attr(clean_splits, "confidence")
+  }
+  clean_df$weights    <- attr(clean_splits, "weight")
+  comp_df$tree        <- "Comp"
+  if (dataset == "Plants" & analysis_method == "IQTREE"){
+    comp_df$confidence <- NA
+  } else {
+    comp_df$confidence <- attr(comp_splits, "confidence")
+  }
+  comp_df$weights     <- attr(comp_splits, "weight")
+  
+  ## Identify the two types of splits: splits that are present in both trees, and splits that are present in one tree only
+  all_df <- rbind(clean_df, comp_df)
+  all_tree_splits <- all_df |>
+    group_by_at(vars(-tree,-confidence, -weights)) %>% 
+    filter(n() == 2) |>
+    ungroup()
+  unique_splits <- all_df |>
+    group_by_at(vars(-tree,-confidence, -weights)) %>% 
+    filter(n() < 2) |>
+    ungroup()
+  
+  ## Extract qCF values for the splits that occur in both trees
+  if (nrow(all_tree_splits) > 0){
+    # Add new column for the type of split
+    all_tree_splits$split_type <- "Concordant"
+    all_tree_splits_type = "dataframe"
+  } else {
+    all_tree_splits <- NA
+    all_tree_splits_type <- "logical"
+  }
+  
+  ## Extract qCF values for the splits that occur in only one tree
+  if (nrow(unique_splits) > 0){
+    # Add new column for the type of split
+    unique_splits$split_type      <- "Conflicting"
+    unique_splits_type = "dataframe"
+  } else {
+    unique_splits <- NA
+    unique_splits_type <- "logical"
+  }
+  
+  ## Bind dataframes of split types together, for the dataframes of split types that exist
+  if (all_tree_splits_type == "dataframe" & unique_splits_type == "dataframe"){
+    results_df   <- rbind(all_tree_splits, unique_splits)
+  } else if (all_tree_splits_type == "dataframe" & unique_splits_type == "logical"){
+    results_df  <- all_tree_splits
+  } else if (all_tree_splits_type == "logical" & unique_splits_type == "dataframe"){
+    results_df  <- unique_splits
+  } else if (all_tree_splits_type == "logical" & unique_splits_type == "logical"){
+    results_df <- as.data.frame(matrix(ncol = 14, nrow = 0))
+    names(results_df) <- c("tree", "split_type", "confidence", "weights")
+  }
+  # Trim columns
+  results_df <- results_df[ , c("tree", "split_type", "confidence", "weights")]
+  
+  ## Add any splits from the whole tree, if the two trees have different numbers of tips
+  if (whole_df_type == "dataframe"){
+    results_df <- rbind(results_df, whole_df)
+  }
+  
+  # Return the number of different splits
+  return(results_df)
+}
+
+

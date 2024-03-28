@@ -39,7 +39,7 @@
 location = "local"
 if (location == "local"){
   maindir             <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
-  tree_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/"
+  tree_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/04_trees/Species_trees_for_publication/"
   test_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
   output_dir          <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
   plot_dir            <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/"
@@ -104,6 +104,7 @@ library(parallel)
 
 ##### Step 3: Source function files and prepare variables for analysis #####
 source(paste0(maindir, "code/func_analysis.R"))
+source(paste0(maindir, "code/func_comparison.R"))
 source(paste0(maindir, "code/func_plots.R"))
 
 
@@ -208,6 +209,85 @@ for (dataset in datasets_to_identify_distinct_edges){
       write.csv(test_df, file = test_df_filename)
     }
   }
+}
+
+# Create output file names
+tree_comp_df_file <- paste0(output_dir, "BranchSupport_input_trees.csv")
+branch_support_df_file <- paste0(output_dir, "BranchSupport_values.csv")
+
+# Open input dataframe
+if (file.exists(tree_comp_df_file)){
+  tree_comp_df <- read.csv(tree_comp_df_file, stringsAsFactors = FALSE)
+} else {
+  # Extract all tree files
+  all_files <- list.files(tree_data_dir)
+  tree_files <- grep(".tre|.treefile", all_files, value = T)
+  # Create dataframe for testing every pair of trees
+  tree_comp_df      <- data.frame(dataset = c(rep("Tomatoes", 8),
+                                              rep("Primates",  8),
+                                              rep("Metazoan", 3),
+                                              rep("Plants", 2),
+                                              rep("Tomatoes", 8),
+                                              rep("Primates",  8),
+                                              rep("Metazoan", 3),
+                                              rep("Plants", 2)),
+                                  clean_tree = paste0(rep(c("Tomatoes_allTests_pass", "Tomatoes_allTests_pass",
+                                                            "Tomatoes_geneconv_pass", "Tomatoes_geneconv_pass",
+                                                            "Tomatoes_maxchi_pass", "Tomatoes_maxchi_pass",
+                                                            "Tomatoes_PHI_pass", "Tomatoes_PHI_pass",
+                                                            "Primates_allTests_pass", "Primates_allTests_pass",
+                                                            "Primates_geneconv_pass", "Primates_geneconv_pass",
+                                                            "Primates_maxchi_pass", "Primates_maxchi_pass",
+                                                            "Primates_PHI_pass", "Primates_PHI_pass",
+                                                            "Metazoan_geneconv_pass", "Metazoan_maxchi_pass",
+                                                            "Metazoan_PHI_pass",
+                                                            "Plants_maxchi_pass", "Plants_PHI_pass"), 2), 
+                                                      c(rep("_ASTRAL_species.tre", 21), rep("_CONCAT_IQTREE.treefile", 21))), 
+                                  comparison_tree = paste0(rep(c("Tomatoes_allTests_fail",  "Tomatoes_NoTest",
+                                                                 "Tomatoes_geneconv_fail",  "Tomatoes_NoTest",
+                                                                 "Tomatoes_maxchi_fail",  "Tomatoes_NoTest",
+                                                                 "Tomatoes_PHI_fail",  "Tomatoes_NoTest",
+                                                                 "Primates_allTests_fail", "Primates_NoTest",
+                                                                 "Primates_geneconv_fail", "Primates_NoTest",
+                                                                 "Primates_maxchi_fail", "Primates_NoTest",
+                                                                 "Primates_PHI_fail" , "Primates_NoTest",
+                                                                 "Metazoan_NoTest", "Metazoan_NoTest",
+                                                                 "Metazoan_NoTest",
+                                                                 "Plants_NoTest", "Plants_NoTest"), 2), 
+                                                           c(rep("_ASTRAL_species.tre", 21), rep("_CONCAT_IQTREE.treefile", 21))), 
+                                  tree_directory = tree_data_dir,
+                                  comparison_id = rep(c("allTests_fail", "noTest", "geneconv_fail", "noTest", "maxchi_fail", "noTest", "PHI_fail", "noTest",
+                                                        "allTests_fail", "noTest", "geneconv_fail", "noTest", "maxchi_fail", "noTest", "PHI_fail", "noTest",
+                                                        "noTest", "noTest", "noTest",
+                                                        "noTest", "noTest"), 2),
+                                  analysis_method = c(rep("ASTRAL", 21), rep("IQTREE", 21)) )
+  tree_comp_df$clean_id <- unlist(lapply(strsplit(tree_comp_df$clean_tree, "_"), function(x){paste0(x[[2]], "_", x[[3]])}))
+  tree_comp_df$recombination_test <-  unlist(lapply(strsplit(tree_comp_df$clean_tree, "_"), function(x){x[[2]]}))
+  tree_comp_df$comparison_gene_status <- unlist(lapply(strsplit(tree_comp_df$comparison_tree, "_"), function(x){x[[3]]}))
+  tree_comp_df$comparison_gene_status[which(tree_comp_df$comparison_gene_status == "ASTRAL")] <- "unfiltered"
+  tree_comp_df$comparison_gene_status[which(tree_comp_df$comparison_gene_status == "CONCAT")] <- "unfiltered"
+  tree_comp_df$comparison_gene_status[which(tree_comp_df$comparison_gene_status == "fail")] <- "recombinant"
+  # Remove PLANT rows for CONCAT method (no support values) plants file names for CONCAT
+  
+  tree_comp_df$clean_tree[which(tree_comp_df$dataset == "Plants" & tree_comp_df$analysis_method == "IQTREE")] <- gsub("_CONCAT_IQTREE.treefile", "_CONCAT_RAxML_noFreeRates.raxml.bestTree",
+                                                                                                                      tree_comp_df$clean_tree[which(tree_comp_df$dataset == "Plants" & tree_comp_df$analysis_method == "IQTREE")])
+  tree_comp_df$comparison_tree[which(tree_comp_df$dataset == "Plants" & tree_comp_df$analysis_method == "IQTREE")] <- gsub("_CONCAT_IQTREE.treefile", "_CONCAT_RAxML_noFreeRates.raxml.bestTree",
+                                                                                                                          tree_comp_df$comparison_tree[which(tree_comp_df$dataset == "Plants" & tree_comp_df$analysis_method == "IQTREE")])
+  # Save csv
+  write.csv(tree_comp_df, file = tree_comp_df_file, row.names = FALSE)
+}
+
+# Open BranchSupport dataframe
+if (file.exists(branch_support_df_file)){
+  branch_support_df <- read.csv(branch_support_df_file, stringsAsFactors = FALSE)
+} else {
+  # Extract qCF values
+  branch_support_list <- lapply(1:nrow(tree_comp_df), compare.branch.wrapper, df = tree_comp_df)
+  branch_support_df <- as.data.frame(do.call(rbind, branch_support_list))
+  branch_support_df <- branch_support_df[ , c("dataset", "clean_tree", "comparison_tree", "clean_id", "comparison_id", "recombination_test", "comparison_gene_status",
+                                              "tree", "split_type", "confidence", "weights")]
+  # Save csv
+  write.csv(branch_support_df, file = branch_support_df_file, row.names = FALSE)
 }
 
 
