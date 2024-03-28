@@ -121,6 +121,7 @@ if (file.exists(qcf_df_file)){
 #### Step 4: Plot quartet concordance factors ####
 # Remove any splits that are not either "Concordant" or "Conflicting"
 qcf_df <- qcf_df[which(qcf_df$split_type %in% c("Concordant", "Conflicting")) , ]
+qcf_df$split_type[which(qcf_df$split_type == "Concordant")] <- "Congruent"
 # Create a nicely formatted dataset column
 qcf_df$dataset_formatted <- factor(qcf_df$dataset,
                                    levels = c("Pease2016", "Vanderpool2020", "1KP", "Whelan2017"),
@@ -156,7 +157,7 @@ shallow_plot <- ggplot(shallow_qcf, aes(x = gene_tree_formatted, y = q1, fill = 
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
   labs(title = "a.") +
-  scale_fill_manual(name = "Branch type", values = c("#1F968BFF", "#FDE725FF"), labels = c("Concordant", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("#1F968BFF", "#FDE725FF"), labels = c("Congruent", "Conflicting")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
         axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
@@ -175,7 +176,7 @@ metazoa_plot <- ggplot(metazoa_qcf, aes(x = gene_tree_formatted, y = q1, fill = 
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
   labs(title = "b.") +
-  scale_fill_manual(name = "Branch type", values = c("#1F968BFF", "#FDE725FF"), labels = c("Concordant", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("#1F968BFF", "#FDE725FF"), labels = c("Congruent", "Conflicting")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
         axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
@@ -194,7 +195,7 @@ plants_plot <- ggplot(plant_qcf, aes(x = gene_tree_formatted, y = q1, fill = spl
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
   labs(title = "c.") +
-  scale_fill_manual(name = "Branch type", values = c("#1F968BFF", "#FDE725FF"), labels = c("Concordant", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("#1F968BFF", "#FDE725FF"), labels = c("Congruent", "Conflicting")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
         axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
