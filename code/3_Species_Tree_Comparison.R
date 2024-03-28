@@ -437,7 +437,7 @@ for (dataset in compare_IQTREE_trees){
         # Apply the AU test
         au_test_command <- AU.test.command(partition_path, two_trees_path, iqtree_path)
         print(au_test_command)
-        au_test_df <- perform.partition.AU.test(partition_path, two_trees_path, iqtree_path)
+        au_test_df <- perform.partition.AU.test.two.trees(partition_path, two_trees_path, iqtree_path)
         # Assemble the output dataframe
         au_results_df <- data.frame(dataset = rep(dataset, 2), test = rep(test, 2), tree = c("test_pass", "no_test"))
         au_results_df <- cbind(au_results_df, au_test_df)
