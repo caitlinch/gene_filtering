@@ -275,41 +275,41 @@ theming <- theme_bw() +
         legend.title = element_text(size = 15),
         legend.text = element_text(size = 12))
 # Plot tomatoes
-tomatoes_bla_plot <- ggplot(tomatoes_pp, aes(x = gene_tree_formatted, y = confidence, fill = split_type)) +
+tomatoes_bla_plot <- ggplot(tomatoes_pp, aes(x = gene_tree_formatted, y = weights, fill = split_type)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering") +
-  scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  scale_y_continuous(name = "Branch length", breaks = seq(0,6.5,1),  labels = seq(0,6.5,1), minor_breaks = seq(0,6.5,0.5), limits = c(0,6.5)) +
   labs(title = "a.") +
   scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Plot primates
-primates_bla_plot <- ggplot(primates_pp, aes(x = gene_tree_formatted, y = confidence, fill = split_type)) +
+primates_bla_plot <- ggplot(primates_pp, aes(x = gene_tree_formatted, y = weights, fill = split_type)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering") +
-  scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  scale_y_continuous(name = "Branch length", breaks = seq(0,6.5,1),  labels = seq(0,6.5,1), minor_breaks = seq(0,6.5,0.5), limits = c(0,4.5)) +
   labs(title = "b.") +
   scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Plot metazoans
-met_bla_plot <- ggplot(metazoan_pp, aes(x = gene_tree_formatted, y = confidence, fill = split_type)) +
+met_bla_plot <- ggplot(metazoan_pp, aes(x = gene_tree_formatted, y = weights, fill = split_type)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering") +
-  scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  scale_y_continuous(name = "Branch length", breaks = seq(0,6.5, 1),  labels = seq(0,6.5,1), minor_breaks = seq(0,6.5,0.5), limits = c(0,3.5)) +
   labs(title = "c.") +
   scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Plot plants
-plants_bla_plot <- ggplot(plant_pp, aes(x = gene_tree_formatted, y = confidence, fill = split_type)) +
+plants_bla_plot <- ggplot(plant_pp, aes(x = gene_tree_formatted, y = weights, fill = split_type)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering") +
-  scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  scale_y_continuous(name = "Branch length", breaks = seq(0,6.5,1),  labels = seq(0,6.5,1), minor_breaks = seq(0,6.5,0.5), limits = c(0,5.5)) +
   labs(title = "d.") +
   scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
@@ -317,9 +317,10 @@ plants_bla_plot <- ggplot(plant_pp, aes(x = gene_tree_formatted, y = confidence,
 # Save
 quilt <- tomatoes_bla_plot + primates_bla_plot + met_bla_plot + plants_bla_plot + plot_layout(ncol = 1)
 quilt_pdf <- paste0(plot_dir, "BranchLengths_ASTRAL_quilt.pdf")
-ggsave(filename = quilt_pdf, plot = quilt, height = 12, width = 10, units = "in")
+ggsave(filename = quilt_pdf, plot = quilt, height = 13)
 quilt_png <- paste0(plot_dir, "BranchLengths_ASTRAL_quilt.png")
-ggsave(filename = quilt_png, plot = quilt, height = 12, width = 10, units = "in")
+ggsave(filename = quilt_png, plot = quilt, height = 13)
+
 
 
 ##### Step 7: Compare the bootstraps of the trees #####
@@ -352,6 +353,7 @@ bs_df$confidence <- as.numeric(bs_df$confidence)
 # Separate into dataframes for the different datasets
 shallow_bs <- bs_df[which(bs_df$dataset %in% c("Tomatoes", "Primates")), ]
 metazoan_bs <- bs_df[which(bs_df$dataset == "Metazoan"), ]
+plant_bs <-  bs_df[which(bs_df$dataset == "Plants"), ]
 # Save theming as object 
 theming <- theme_bw() + 
   theme(plot.title = element_text(size = 20),
@@ -378,7 +380,7 @@ met_bs_plot <- ggplot(metazoan_bs, aes(x = gene_tree_formatted, y = confidence, 
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
-  labs(title = "c.") +
+  labs(title = "b.") +
   scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
@@ -389,6 +391,55 @@ ggsave(filename = quilt_pdf, plot = quilt)
 quilt_png <- paste0(plot_dir, "UltrafastBootstrap_quilt.png")
 ggsave(filename = quilt_png, plot = quilt)
 
+
+
+##### Step 8: Plot branch lengths for CONCAT trees #####
+# Save theming as object 
+theming <- theme_bw() + 
+  theme(plot.title = element_text(size = 20),
+        axis.title.x = element_text(size = 14, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
+        axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 15, b = 0, l = 0)),
+        axis.text.y = element_text(size = 12),
+        strip.text = element_text(size = 15),
+        legend.title = element_text(size = 15),
+        legend.text = element_text(size = 12))
+# Plot tomatoes and primates
+shallow_blc_plot <- ggplot(shallow_bs, aes(x = gene_tree_formatted, y = weights, fill = split_type)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Gene filtering") +
+  scale_y_continuous(name = "Branch length", breaks = seq(0, 0.04, 0.01),  labels = seq(0, 0.04, 0.01), minor_breaks = seq(0, 0.04, 0.005), limits = c(0,0.04)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+# Plot metazoans
+met_blc_plot <- ggplot(metazoan_bs, aes(x = gene_tree_formatted, y = weights, fill = split_type)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Gene filtering") +
+  scale_y_continuous(name = "Branch length", breaks = seq(0, 0.5, 0.1),  labels = seq(0, 0.5, 0.1), minor_breaks = seq(0, 0.5, 0.05), limits = c(0,0.5)) +
+  labs(title = "b.") +
+  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+# Plot plants
+plants_blc_plot <- ggplot(plant_bs, aes(x = gene_tree_formatted, y = weights, fill = split_type)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Gene filtering") +
+  scale_y_continuous(name = "Branch length", breaks = seq(0,2,0.2),  labels = seq(0,2,0.2), minor_breaks = seq(0,2,0.1), limits = c(0,1.2)) +
+  labs(title = "c.") +
+  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+# Save
+quilt <- shallow_blc_plot + met_blc_plot + plants_blc_plot + plot_layout(ncol = 1, heights = c(2,1,1))
+quilt_pdf <- paste0(plot_dir, "BranchLengths_CONCAT_quilt.pdf")
+ggsave(filename = quilt_pdf, plot = quilt, height = 12)
+quilt_png <- paste0(plot_dir, "BranchLengths_CONCAT_quilt.png")
+ggsave(filename = quilt_png, plot = quilt, height = 12)
 
 
 
