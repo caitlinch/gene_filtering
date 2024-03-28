@@ -881,10 +881,24 @@ compare.distinct.edges.of.two.trees <- function(tree_file_1, tree_file_2, tree1_
   t_2_exclude_branches <- which.branches.to.exclude(t_2_table)
   # Exclude those branches from the list of edges (e_1_2, e_2_1, and e_both)
   # Remove the exclude_branches from t_1 from e_1_2 and e_both, which have the edges present in tree 1 and not in tree 2
-  # Remove the exclude_branches from t_2 from e_2_1, which has the edges present in tree 2 and not in tree 1
+  # Remove the exclude_branches from t_2 from e_2_1 and e_both2, which have the edges present in tree 2 and not in tree 1
   e_1_2 <- setdiff(e_1_2, t_1_exclude_branches)
   e_both <- setdiff(e_both, t_1_exclude_branches)
+  e_both2 <- setdiff(e_both, t_2_exclude_branches)
   e_2_1 <- setdiff(e_2_1, t_2_exclude_branches)
+  # Create output of the treename
+  tree1_split <- strsplit(basename(dirname(tree_file_1)), "_")[[1]]
+  if (length(tree1_split) == 4){
+    output_tree1_name <- paste0(tree1_split[2], "_", tree1_split[3])
+  } else {
+    output_tree1_name <- tree1_split[2]
+  }
+  tree2_split <- strsplit(basename(dirname(tree_file_2)), "_")[[1]]
+  if (length(tree2_split) == 4){
+    output_tree2_name <- paste0(tree2_split[2], "_", tree2_split[3])
+  } else {
+    output_tree2_name <- tree2_split[2]
+  }
   
   # Collect information about each of those different edges
   # Assemble information about the branches in t2 but not in t2, and remove the terminal branches
@@ -898,6 +912,7 @@ compare.distinct.edges.of.two.trees <- function(tree_file_1, tree_file_2, tree1_
     e_1_2_df$support_value_type <- support_value_type_name
     e_1_2_df$edge_presence <- tree1_name
     e_1_2_df$edge_type <- "Conflicting"
+    e_both2_df$tree <- output_tree1_name
     names(e_1_2_df) <- c("support_value", "edge_length", "node1", "node2", "tree1", "tree2", "test", "dataset", "support_value_type", "edge_presence", "edge_type")
     # Remove any branches that connect to tips (will have a support_value of "tip" and a node2 value of less than or equal to the number of taxa i.e. Ntip(t_1))
     e_1_2_df$node2 <- as.numeric(e_1_2_df$node2)
@@ -917,6 +932,7 @@ compare.distinct.edges.of.two.trees <- function(tree_file_1, tree_file_2, tree1_
     e_2_1_df$support_value_type <- support_value_type_name
     e_2_1_df$edge_presence <- tree2_name
     e_2_1_df$edge_type <- "Conflicting"
+    e_both2_df$tree <- output_tree2_name
     names(e_2_1_df) <- c("support_value", "edge_length", "node1", "node2", "tree1", "tree2", "test", "dataset", "support_value_type", "edge_presence", "edge_type")
     # Remove any branches that connect to tips (will have a support_value of "tip" and a node2 value of less than or equal to the number of taxa i.e. Ntip(t_2))
     e_2_1_df$node2 <- as.numeric(e_2_1_df$node2)
@@ -936,6 +952,7 @@ compare.distinct.edges.of.two.trees <- function(tree_file_1, tree_file_2, tree1_
     e_both_df$support_value_type <- support_value_type_name
     e_both_df$edge_presence <- "Both"
     e_both_df$edge_type <- "Congruent"
+    e_both2_df$tree <- output_tree1_name
     names(e_both_df) <- c("support_value", "edge_length", "node1", "node2", "tree1", "tree2", "test", "dataset", "support_value_type", "edge_presence", "edge_type")
     # Remove any branches that connect to tips (will have a support_value of "tip" and a node2 value of less than or equal to the number of taxa i.e. Ntip(t_1))
     e_both_df$node2 <- as.numeric(e_both_df$node2)
@@ -944,9 +961,29 @@ compare.distinct.edges.of.two.trees <- function(tree_file_1, tree_file_2, tree1_
     e_both_df <- data.frame()
   }
   
+  # Assemble information about the branches in both trees, and remove the terminal branches
+  if (length(e_both2) > 0){
+    e_both2_list <- lapply(e_both2, get.edge.details.from.table, t_2_table)
+    e_both2_df <- as.data.frame(do.call(rbind, e_both2_list))
+    e_both2_df$tree1 <- tree1_name
+    e_both2_df$tree2 <- tree2_name
+    e_both2_df$test <- test_name
+    e_both2_df$dataset <- dataset_name
+    e_both2_df$support_value_type <- support_value_type_name
+    e_both2_df$edge_presence <- "Both"
+    e_both2_df$edge_type <- "Congruent"
+    e_both2_df$tree <- output_tree2_name
+    names(e_both2_df) <- c("support_value", "edge_length", "node1", "node2", "tree1", "tree2", "test", "dataset", "support_value_type", "edge_presence", "edge_type")
+    # Remove any branches that connect to tips (will have a support_value of "tip" and a node2 value of less than or equal to the number of taxa i.e. Ntip(t_1))
+    e_both2_df$node2 <- as.numeric(e_both_df$node2)
+    e_both2_df <- e_both2_df[which(e_both2_df$node2 > t_1_ntips), ]
+  } else {
+    e_both2_df <- data.frame()
+  }
+  
   
   # Assemble information into a dataframe
-  e_df <- rbind(e_1_2_df, e_2_1_df, e_both_df)
+  e_df <- rbind(e_1_2_df, e_2_1_df, e_both_df, e_both2_df)
   names(e_df) <- c("support_value", "edge_length", "node1", "node2", "tree1", "tree2", "test", "dataset", "support_value_type", "edge_presence", "edge_type")
   e_df <- e_df[, c("test", "dataset", "support_value_type", "tree1", "tree2", "edge_type", "edge_presence", "support_value", "edge_length", "node1", "node2")]
   
