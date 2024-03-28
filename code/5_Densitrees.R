@@ -117,14 +117,19 @@ class(a_f_trees) <- "multiPhylo"
 
 ## Order tips for plots
 # Get the order for the tips (bottom species first, top species last)
-primates_tip_order <- c("Pan troglodytes", "Pan paniscus", "Homo sapiens", "Gorilla gorilla",
-                        "Pongo abelii", "Nomascus leucogenys", "Macaca mulatta", "Macaca fascicularis",
-                        "Macaca nemestrina", "Theropithecus gelada", "Papio anubis", "Mandrillus leucophaeus",
-                        "Cercocebus atys", "Chlorocebus sabaeus", "Rhinopithecus roxellana", "Rhinopithecus bieti",
-                        "Piliocolobus tephrosceles", "Colobus angolensis palliatus", "Saimiri boliviensis", "Cebus capucinus imitator",
-                        "Aotus nancymaae", "Callithrix jacchus", "Carlito syrichta", "Microcebus murinus", 
-                        "Propithecus coquereli", "Otolemur garnettii", "Galeopterus variegatus", "Tupaia chinensis",
-                        "Mus musculus")
+primates_tip_order <- c("Mus musculus", "Tupaia chinensis", "Galeopterus variegatus",
+                        "Otolemur garnettii", "Propithecus coquereli", "Microcebus murinus",
+                        "Carlito syrichta",
+                        "Callithrix jacchus","Aotus nancymaae", "Cebus capucinus imitator", "Saimiri boliviensis",
+                        "Nomascus leucogenys", "Pongo abelii", "Gorilla gorilla",  "Homo sapiens", "Pan paniscus",  "Pan troglodytes",
+                        "Colobus angolensis palliatus", "Piliocolobus tephrosceles", "Rhinopithecus bieti", "Rhinopithecus roxellana",
+                        "Chlorocebus sabaeus", "Cercocebus atys", "Mandrillus leucophaeus", "Papio anubis", "Theropithecus gelada", "Macaca nemestrina", "Macaca fascicularis", "Macaca mulatta")
+
+## Open ASTRAL unfiltered tree
+unfiltered_astral_tree_file <- grep("ASTRAL", grep("NoTest", plot_tree_files, value = T), value = T)
+unfiltered_astral_tree <- read.tree(unfiltered_astral_tree_file)
+unfiltered_astral_tree <- root(unfiltered_astral_tree, roots_by_group[["Primates"]])
+unfiltered_astral_tree$edge.length[which(is.nan(unfiltered_astral_tree$edge.length))] <- 1
 
 ## Create labels for densitree plots
 # Create labels for the tips
@@ -134,7 +139,45 @@ primate_labels <- primate_labels[match(primates_tip_order, primate_labels$taxa),
 # Format taxa names
 primate_labels$taxa <- gsub(" ", "_", primate_labels$taxa)
 
-## Plot densitress
+## Plot main figure ASTRAL pass
+unfiltered_astral_plot <- ggtree(unfiltered_astral_tree, alpha = 1, color = "black") %<+% primate_labels +
+  scale_y_reverse() +  
+  geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.3) +
+  scale_color_manual(values = primate_colour_palette) +
+  labs(title = "Primates: ASTRAL Unfiltered") +
+  theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0.5, size = 15, face = "bold"),
+        legend.title = element_text(size = 16), legend.text = element_text (size = 12), 
+        legend.position = c(0.12,0.18),
+        legend.key.size = unit(1.5, "lines")) +
+  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.", size = 5))) + 
+  xlim(0,17)
+astral_pass_plot <- ggdensitree(a_p_trees, tip.order = primate_labels$taxa, align.tips = TRUE, alpha = 0.8, color = "black") %<+% primate_labels +
+  scale_y_reverse() +  
+  geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4.3) +
+  scale_color_manual(values = primate_colour_palette, guide="none") +
+  labs(title = "Primates: ASTRAL Pass") +
+  xlim(-15.4, 3) +
+  theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0.5, size = 15, face = "bold"))
+# Save plot
+quilt <- unfiltered_astral_plot + astral_pass_plot + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
+  theme(plot.tag = element_text(size = 30))
+densitree_name <- paste0(plot_dir, "mainfig_ASTRAL_Primates_ggdensitree")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 13)
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png", width = 13)
+# Save long plot
+quilt <- unfiltered_astral_plot / astral_pass_plot + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
+  theme(plot.tag = element_text(size = 30))
+densitree_name <- paste0(plot_dir, "mainfig_ASTRAL_Primates_ggdensitree_long")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 7)
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png",height = 12, width = 7)
+
+#### Plot all densitrees
 # Plot: ASTRAL, pass
 a_p_densitree <- ggdensitree(a_p_trees, tip.order = primate_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% primate_labels +
   geom_tiplab(aes(label = short_lab, color = clade), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 4) +
@@ -174,16 +217,15 @@ c_f_densitree <- ggdensitree(c_f_trees, tip.order = primate_labels$taxa, align.t
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
         plot.title = element_text(hjust = 0.5, size = 15, face = "bold"))
-
-## Assemble the plot using patchwork
+# Save plots
 quilt <- (a_p_densitree | a_f_densitree) / (c_p_densitree | c_f_densitree) + 
   plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
   theme(plot.tag = element_text(size = 30))
-
-## Save the plot
 densitree_name <- paste0(plot_dir, "Primates_ggdensitree")
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 16, units = "in")
 ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png")
+
+
 
 
 
@@ -249,6 +291,55 @@ tomato_labels <- tomato_labels[match(tomato_species_order, tomato_labels$taxa),]
 # Replace taxa names with taxa numbers
 tomato_labels$taxa <- tomato_tip_order
 
+## Open ASTRAL unfiltered tree
+unfiltered_astral_tree_file <- grep("ASTRAL", grep("NoTest", plot_tree_files, value = T), value = T)
+unfiltered_astral_tree <- read.tree(unfiltered_astral_tree_file)
+unfiltered_astral_tree <- root(unfiltered_astral_tree, roots_by_group[["Tomatoes"]])
+unfiltered_astral_tree$edge.length[which(is.nan(unfiltered_astral_tree$edge.length))] <- 1
+
+## Plot ASTRAL pass main figure
+# Plot: ASTRAL, unfiltered
+unfiltered_astral_plot <- ggtree(unfiltered_astral_tree, alpha = 1, color = "black") %<+% tomato_labels +
+  geom_tiplab(aes(label = lab, color = clade), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 3.8) +
+  scale_y_reverse() +  
+  scale_color_manual(values = tomato_colour_palette) +
+  labs(title = "Tomatoes: ASTRAL Unfiltered") +
+  theme(axis.ticks.x = element_line(color = "white"), 
+        axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(size = 14, hjust = 0.5, face = "bold"),
+        legend.title = element_text(size = 14), 
+        legend.text = element_text (size = 12),
+        legend.position = c(0.12,0.15),
+        legend.key.size = unit(1.5, "lines")) +
+  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.", size = 6))) +
+  xlim(0, 24)
+# Plot: ASTRAL, pass
+astral_pass_plot <- ggdensitree(a_p_trees, tip.order = tomato_labels$taxa, align.tips = TRUE, alpha = 0.8, color = "black") %<+% tomato_labels +
+  geom_tiplab(aes(label = lab, color = clade), parse = TRUE, show.legend = TRUE, offset = 0.2, geom = "text", size = 3.8) +
+  scale_color_manual(values = tomato_colour_palette, guide = "none") +
+  xlim(-16.6, 4.8) +
+  labs(title = "Tomatoes: ASTRAL Pass") +
+  theme(axis.ticks.x = element_line(color = "white"), 
+        axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(size = 14, hjust = 0.5, face = "bold"))
+# Assemble the plot using patchwork
+quilt <- unfiltered_astral_plot + astral_pass_plot + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
+  theme(plot.tag = element_text(size = 30))
+# Save the plot
+densitree_name <- paste0(plot_dir, "mainfig_ASTRAL_Tomatoes_ggdensitree")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", width = 14)
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png", width = 14)
+# Save a long version too
+quilt <- unfiltered_astral_plot / astral_pass_plot + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
+  theme(plot.tag = element_text(size = 30))
+densitree_name <- paste0(plot_dir, "mainfig_ASTRAL_Tomatoes_ggdensitree_long")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 11, width = 8, units = "in")
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png", height = 11, width = 8, units = "in")
+
 ## Plot densitress
 # Plot: ASTRAL, pass
 a_p_densitree <- ggdensitree(a_p_trees, tip.order = tomato_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% tomato_labels +
@@ -289,13 +380,11 @@ c_f_densitree <- ggdensitree(c_f_trees, tip.order = tomato_labels$taxa, align.ti
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
         plot.title = element_text(hjust = 0.5, size = 25, face = "bold"))
-
-## Assemble the plot using patchwork
+# Assemble the plot using patchwork
 quilt <- (a_p_densitree | a_f_densitree) / (c_p_densitree | c_f_densitree) + 
   plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
   theme(plot.tag = element_text(size = 30))
-
-## Save the plot
+# Save the plot
 densitree_name <- paste0(plot_dir, "Tomatoes_ggdensitree")
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 18, units = "in")
 ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png")
@@ -339,23 +428,22 @@ class(a_p_trees) <- "multiPhylo"
 
 ## Order tips for plots
 # Get the order for the tips (bottom species first, top species last)
-metazoans_tip_order <- c("Monosiga_ovata", "Acanthoeca_sp", "Monosiga_brevicolis", "Salpingoeca_rosetta", "Salpingoeca_pyxidium",
-                         "Beroe_abyssicola", "Beroe_sp_Antarctica", "Beroe_ovata", "Beroe_forskalii", "Beroe_sp_Queensland_Australia",
-                         "Lobata_sp_Punta_Arenas_Argentina", "Bolinopsis_ashleyi", "Ctenophora_sp_Florida_USA", "Cestum_veneris",
-                         "Eurhamphaea_vexilligera", "Mnemiopsis_leidyi", "Bolinopsis_infundibulum", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA", 
-                         "Ocyropsis_sp_Bimini_Bahamas", "Lobatolampea_tetragona", "Dryodora_glandiformis", "Cydippida_sp", "Mertensiidae_sp_Washington_USA",
-                         "Mertensiidae_sp_Antarctica", "Callianira_Antarctica", "Cydippida_sp_Maryland_USA", "Pleurobrachia_sp_South_Carolina_USA",
-                         "Pleurobrachia_bachei", "Pleurobrachia_pileus", "Hormiphora_californica", "Hormiphora_palmata", "Coeloplana_astericola",
-                         "Vallicula_sp", "Euplokamis_dunlapae",
-                         "Amphimedon_queenslandica", "Petrosia_ficiformis", "Crella_elegans", "Kirkpatrickia_variolosa", "Latrunculia_apicalis",
-                         "Mycale_phylophylla", "Pseudospongosorites_suberitoides", "Cliona_varians", "Spongilla_lacustris", "Chondrilla_nucula",
-                         "Ircinia_fasciculata", "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Hyalonema_populiferum",
-                         "Corticium_candelabrum", "Oscarella_carmela", "Sycon_ciliatum", "Sycon_coactum",
+metazoans_tip_order <- c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis", 
+                         "Euplokamis_dunlapae",  "Coeloplana_astericola", "Vallicula_sp", "Hormiphora_californica", "Hormiphora_palmata",
+                         "Pleurobrachia_pileus", "Pleurobrachia_bachei",  "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA",
+                         "Callianira_Antarctica", "Mertensiidae_sp_Antarctica", "Mertensiidae_sp_Washington_USA",  "Cydippida_sp", "Dryodora_glandiformis",
+                         "Lobatolampea_tetragona",  "Beroe_abyssicola", "Beroe_sp_Antarctica", "Beroe_ovata",  "Beroe_sp_Queensland_Australia", "Beroe_forskalii",
+                         "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA", "Bolinopsis_infundibulum", "Mnemiopsis_leidyi",
+                         "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris", "Ctenophora_sp_Florida_USA",
+                         "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum", "Aphrocallistes_vastus",
+                         "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica", "Petrosia_ficiformis",
+                         "Spongilla_lacustris", "Cliona_varians", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans",
+                         "Kirkpatrickia_variolosa",
                          "Trichoplax_adhaerens",
-                         "Nanomia_bijuga", "Agalma_elegans", "Abylopsis_tetragona", "Craseo_lathetica", "Physalia_physalia", "Hydra_oligactis",
-                         "Hydra_vulgaris", "Hydra_viridissima", "Periphyla_periphyla", "Aiptasia_pallida", "Hormathia_digitata", "Bolocera_tuediae",
-                         "Nematostella_vectensis", "Acropora_digitifera", "Eunicella_verrucosa",
-                         "Capitella_teleta", "Hemithris_psittacea", "Drosophila_melanogaster", "Daphnia_pulex", "Homo_sapiens", "Strongylocentrotus_purpatus")
+                         "Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster", "Daphnia_pulex",
+                         "Eunicella_verrucosa", "Acropora_digitifera", "Nematostella_vectensis", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata",
+                         "Periphyla_periphyla", "Hydra_viridissima", "Hydra_vulgaris", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona", "Craseo_lathetica",
+                         "Nanomia_bijuga", "Agalma_elegans")
 metazoans_tip_order <- rev(metazoans_tip_order)
 
 ## Create labels for densitree plots
@@ -365,6 +453,51 @@ metazoan_labels <- metazoan_labels[match(metazoans_tip_order, metazoan_labels$ta
 # Format taxa names
 metazoan_labels$taxa <- gsub(" ", "_", metazoan_labels$taxa)
 metazoan_labels$short_lab_noformat <- shorten.short.names(metazoan_labels$short_lab_noformat)
+
+## Open ASTRAL unfiltered tree
+unfiltered_astral_tree_file <- grep("ASTRAL", grep("NoTest", plot_tree_files, value = T), value = T)
+unfiltered_astral_tree <- read.tree(unfiltered_astral_tree_file)
+unfiltered_astral_tree <- root(unfiltered_astral_tree, roots_by_group[["Metazoan"]])
+unfiltered_astral_tree$edge.length[which(is.nan(unfiltered_astral_tree$edge.length))] <- 1
+
+## Plot main figure
+unfiltered_astral_plot <- ggtree(unfiltered_astral_tree, alpha = 1, color = "black") %<+% metazoan_labels +
+  geom_tiplab(aes(label = short_lab_noformat, color = clade), parse = FALSE, show.legend = TRUE, offset = 0.2, geom = "text", size = 3, fontface = 3) +
+  scale_y_reverse() +  
+  scale_color_manual(values = metazoan_colour_palette) +
+  labs(title = "Metazoa: ASTRAL Unfiltered") +
+  theme(axis.ticks.x = element_line(color = "white"), 
+        axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        legend.title = element_text(size = 12), legend.text = element_text (size = 10), 
+        legend.position = c("left")) +
+  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.", size = 4))) +
+  xlim(0,14)
+astral_pass_plot <- ggdensitree(a_p_trees, tip.order = metazoan_labels$taxa, align.tips = TRUE, alpha = 0.8, color = "black", layout = "slanted") %<+% metazoan_labels +
+  geom_tiplab(aes(label = short_lab_noformat, color = clade), align = TRUE, parse = FALSE, show.legend = TRUE, geom = "text", size = 3, fontface = 3) +
+  scale_color_manual(values = metazoan_colour_palette, guide = "none") +
+  labs(title = "Metazoa: ASTRAL Pass") +
+  theme(axis.ticks.x = element_line(color = "white"),
+        axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold")) +
+  xlim(-12,3.8)
+# Save the plot
+quilt <- unfiltered_astral_plot + astral_pass_plot + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
+  theme(plot.tag = element_text(size = 30))
+densitree_name <- paste0(plot_dir, "mainfig_ASTRAL_Metazoan_ggdensitree")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 14, units = "in")
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png", height = 12, width = 14, units = "in")
+# Save long plot
+quilt <- unfiltered_astral_plot / astral_pass_plot + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
+  theme(plot.tag = element_text(size = 30))
+densitree_name <- paste0(plot_dir, "mainfig_ASTRAL_Metazoan_ggdensitree_long")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 20, width = 10, units = "in")
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png", height = 20, width = 10, units = "in")
+
 
 ## Plot densitress
 # Plot: ASTRAL, pass
@@ -388,11 +521,9 @@ c_p_densitree <- ggdensitree(c_p_trees, tip.order = metazoan_labels$taxa, align.
   theme(axis.ticks.x = element_line(color = "white"), axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"), 
         plot.title = element_text(hjust = 0.5, size = 25, face = "bold"))
-
-## Assemble the plot using patchwork
+# Assemble the plot using patchwork
 quilt <- (a_p_densitree | c_p_densitree) +  plot_annotation(tag_levels = 'a', tag_suffix = ".") &  theme(plot.tag = element_text(size = 30))
-
-## Save the plot
+# Save the plot
 densitree_name <- paste0(plot_dir, "Metazoans_ggdensitree")
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 11, width = 16, units = "in")
 ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png")
@@ -439,6 +570,50 @@ class(c_p_trees) <- "multiPhylo"
 a_p_trees <- lapply(1:length(a_p_trees), function(i){add.terminal.branches(a_p_trees[[i]], 1)})
 # Convert object class from "list" into "multiPhylo
 class(a_p_trees) <- "multiPhylo" 
+
+## Open ASTRAL unfiltered tree
+unfiltered_astral_tree_file <- grep("ASTRAL", grep("NoTest", plot_tree_files, value = T), value = T)
+unfiltered_astral_tree <- read.tree(unfiltered_astral_tree_file)
+unfiltered_astral_tree <- root(unfiltered_astral_tree, chromista_tips)
+unfiltered_astral_tree$edge.length[which(is.nan(unfiltered_astral_tree$edge.length))] <- 1
+
+## Plot main figure
+unfiltered_astral_plot <- ggtree(unfiltered_astral_tree, alpha = 1, color = "black") %<+% plant_labs +
+  geom_tippoint(aes(color = Very.Brief.Classification), size = 2, alpha = 0.75) +
+  scale_color_manual(values = plants_color_palette) +
+  scale_y_reverse() +
+  labs(title = "Pass tests - ASTRAL trees\n") +
+  theme(axis.ticks.x = element_line(color = "white"), 
+        axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+        legend.title = element_text(size = 16), 
+        legend.text = element_text (size = 14), 
+        legend.position = c(0.15,0.23)) +
+  guides(color = guide_legend(title = "Clade legend", override.aes=list(label = "Sp.", size = 4)))
+astral_pass_plot <- ggdensitree(a_p_trees, align.tips = TRUE, alpha = 0.8, color = "black") %<+% plant_labs +
+  geom_tippoint(aes(color = Very.Brief.Classification), size = 2, alpha = 0.75) +
+  scale_color_manual(values = plants_color_palette, guide = "none") +
+  scale_y_reverse() +
+  labs(title = "Pass tests - ASTRAL trees\n") +
+  theme(axis.ticks.x = element_line(color = "white"), 
+        axis.line.x = element_line(color = "white"),
+        axis.text.x = element_text(color = "white"), 
+        plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))
+# Save the plot
+quilt <- unfiltered_astral_plot + astral_pass_plot + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
+  theme(plot.tag = element_text(size = 30))
+densitree_name <- paste0(plot_dir, "mainfig_ASTRAL_Plants_ggdensitree")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 10, width = 10, units = "in")
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png", height = 10, width = 10, units = "in")
+# Save long plot
+quilt <- unfiltered_astral_plot / astral_pass_plot + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
+  theme(plot.tag = element_text(size = 30))
+densitree_name <- paste0(plot_dir, "mainfig_ASTRAL_Plants_ggdensitree_long")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 20, width = 10, units = "in")
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png", height = 20, width = 10, units = "in")
 
 ## Plot densitress
 # Plot: ASTRAL, pass
