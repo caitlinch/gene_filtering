@@ -43,6 +43,7 @@ library(ape)
 library(distory)
 library(ggplot2)
 library(ggtree)
+library(ggpubr)
 library(patchwork)
 
 
@@ -236,6 +237,58 @@ ggsave(filename = quilt_pdf, plot = quilt, height = 12, width = 10, units = "in"
 quilt_png <- paste0(plot_dir, "PosteriorProbabilities_quilt.png")
 ggsave(filename = quilt_png, plot = quilt, height = 12, width = 10, units = "in")
 
+## Add p-values
+# Plot tomatoes
+tomatoes_pp_plot <- ggplot(tomatoes_pp, aes(x = split_type, y = confidence, fill = gene_tree_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Branch type") +
+  scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Gene filtering", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+tomatoes_pp_pvals <- tomatoes_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+# Plot primates
+primates_pp_plot <- ggplot(primates_pp, aes(x = split_type, y = confidence, fill = gene_tree_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Branch type") +
+  scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Gene filtering", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+primates_pp_pvals <- primates_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+# Plot metazoans
+met_pp_plot <- ggplot(metazoan_pp, aes(x = split_type, y = confidence, fill = gene_tree_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Branch type") +
+  scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Gene filtering", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+met_pp_pvals <- met_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+# Plot plants
+plants_pp_plot <- ggplot(plant_pp, aes(x = split_type, y = confidence, fill = gene_tree_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Branch type") +
+  scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Gene filtering", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+plants_pp_pvals <- plants_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+# Save
+quilt <- tomatoes_pp_pvals + primates_pp_pvals + met_pp_pvals + plants_pp_pvals + plot_layout(ncol = 1)
+quilt_pdf <- paste0(plot_dir, "PosteriorProbabilities_quilt_stats.pdf")
+ggsave(filename = quilt_pdf, plot = quilt, height = 12, width = 10, units = "in")
+quilt_png <- paste0(plot_dir, "PosteriorProbabilities_quilt_stats.png")
+ggsave(filename = quilt_png, plot = quilt, height = 12, width = 10, units = "in")
+
 
 
 ##### Step 6: Plot branch lengths for ASTRAL trees #####
@@ -295,6 +348,59 @@ quilt_pdf <- paste0(plot_dir, "BranchLengths_ASTRAL_quilt.pdf")
 ggsave(filename = quilt_pdf, plot = quilt, height = 13)
 quilt_png <- paste0(plot_dir, "BranchLengths_ASTRAL_quilt.png")
 ggsave(filename = quilt_png, plot = quilt, height = 13)
+
+## Add p-values
+# Plot tomatoes
+tomatoes_pp2 <- tomatoes_pp[which(tomatoes_pp$recombination_test == "PHI" & tomatoes_pp$split_type == "Congruent"), ]
+tomatoes_pp_plot <- ggplot(tomatoes_pp2, aes(x = split_type, y = weights, fill = gene_tree_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Branch type") +
+  scale_y_continuous(name = "Branch length", breaks = seq(0,6.5,1),  labels = seq(0,6.5,1), minor_breaks = seq(0,6.5,0.5), limits = c(0,6.5)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Gene filtering", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+tomatoes_pp_pvals <- tomatoes_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(6.2), size = 4, color = "darkgrey")
+# Plot primates
+primates_pp_plot <- ggplot(primates_pp, aes(x = split_type, y = weights, fill = gene_tree_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Branch type") +
+  scale_y_continuous(name = "Branch length", breaks = seq(0,6.5,1),  labels = seq(0,6.5,1), minor_breaks = seq(0,6.5,0.5), limits = c(0,6.5)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Gene filtering", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+primates_pp_pvals <- primates_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(6.2), size = 4, color = "darkgrey")
+# Plot metazoans
+met_pp_plot <- ggplot(metazoan_pp, aes(x = split_type, y = weights, fill = gene_tree_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Branch type") +
+  scale_y_continuous(name = "Branch length", breaks = seq(0,6.5,1),  labels = seq(0,6.5,1), minor_breaks = seq(0,6.5,0.5), limits = c(0,6.5)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Gene filtering", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+met_pp_pvals <- met_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(6.2), size = 4, color = "darkgrey")
+# Plot plants
+plants_pp_plot <- ggplot(plant_pp, aes(x = split_type, y = weights, fill = gene_tree_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Branch type") +
+  scale_y_continuous(name = "Branch length", breaks = seq(0,6.5,1),  labels = seq(0,6.5,1), minor_breaks = seq(0,6.5,0.5), limits = c(0,6.5)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Gene filtering", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+plants_pp_pvals <- plants_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(6.2), size = 4, color = "darkgrey")
+# Save
+quilt <- tomatoes_pp_pvals + primates_pp_pvals + met_pp_pvals + plants_pp_pvals + plot_layout(ncol = 1) 
+quilt_pdf <- paste0(plot_dir, "ASTRAL_branchLength_quilt_stats.pdf")
+ggsave(filename = quilt_pdf, plot = quilt, height = 12, width = 10, units = "in")
+quilt_png <- paste0(plot_dir, "ASTRAL_branchLength_quilt_stats.png")
+ggsave(filename = quilt_png, plot = quilt, height = 12, width = 10, units = "in")
 
 
 
@@ -395,7 +501,7 @@ shallow_blc_plot <- ggplot(shallow_bs, aes(x = gene_tree_formatted, y = weights,
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering") +
-  scale_y_continuous(name = "Branch length", breaks = seq(0, 0.04, 0.01),  labels = seq(0, 0.04, 0.01), minor_breaks = seq(0, 0.04, 0.005), limits = c(0,0.04)) +
+  scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
   labs(title = "a.") +
   scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
@@ -405,7 +511,7 @@ met_blc_plot <- ggplot(metazoan_bs, aes(x = gene_tree_formatted, y = weights, fi
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering") +
-  scale_y_continuous(name = "Branch length", breaks = seq(0, 0.5, 0.1),  labels = seq(0, 0.5, 0.1), minor_breaks = seq(0, 0.5, 0.05), limits = c(0,0.5)) +
+  scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
   labs(title = "b.") +
   scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
@@ -415,7 +521,7 @@ plants_blc_plot <- ggplot(plant_bs, aes(x = gene_tree_formatted, y = weights, fi
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering") +
-  scale_y_continuous(name = "Branch length", breaks = seq(0,2,0.2),  labels = seq(0,2,0.2), minor_breaks = seq(0,2,0.1), limits = c(0,1.2)) +
+  scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
   labs(title = "c.") +
   scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
@@ -426,6 +532,52 @@ quilt_pdf <- paste0(plot_dir, "BranchLengths_CONCAT_quilt.pdf")
 ggsave(filename = quilt_pdf, plot = quilt, height = 12)
 quilt_png <- paste0(plot_dir, "BranchLengths_CONCAT_quilt.png")
 ggsave(filename = quilt_png, plot = quilt, height = 12)
+
+## Add p-values
+# Separate into dataframes for the different datasets
+tomatoes_bs <- bs_df[which(bs_df$dataset == "Tomatoes"), ]
+primates_bs <- bs_df[which(bs_df$dataset == "Primates"), ]
+metazoan_bs <- bs_df[which(bs_df$dataset == "Metazoan"), ]
+metazoan_bs <- bs_df[which(bs_df$dataset == "Metazoan" & bs_df$split_type == "Congruent"), ]
+# Plot tomatoes
+tomatoes_bs_plot <- ggplot(tomatoes_bs, aes(x = split_type, y = confidence, fill = gene_tree_formatted)) +
+  geom_boxplot()  +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Gene filtering")+
+  scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Gene filtering", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+tomatoes_bs_pvals <- tomatoes_bs_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(5), size = 4, color = "darkgrey")
+# Plot primates
+primates_bs_plot <- ggplot(primates_bs, aes(x = split_type, y = confidence, fill = gene_tree_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Branch type") +
+  scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Gene filtering", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+primates_bs_pvals <- primates_bs_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(5), size = 4, color = "darkgrey")
+# Plot metazoans
+met_bs_plot <- ggplot(metazoan_bs, aes(x = split_type, y = confidence, fill = gene_tree_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Branch type") +
+  scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Gene filtering", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+met_bs_pvals <- met_bs_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(5), size = 4, color = "darkgrey")
+# Save
+quilt <- tomatoes_bs_pvals + primates_bs_pvals + met_bs_pvals + + plot_layout(ncol = 1) 
+quilt_pdf <- paste0(plot_dir, "CONCAT_UFB_quilt_stats.pdf")
+ggsave(filename = quilt_pdf, plot = quilt, height = 12, width = 10, units = "in")
+quilt_png <- paste0(plot_dir, "CONCAT_UFB_quilt_stats.png")
+ggsave(filename = quilt_png, plot = quilt, height = 12, width = 10, units = "in")
 
 
 
