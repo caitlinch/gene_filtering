@@ -356,7 +356,7 @@ primates_bs_plot <- ggplot(primates_bs, aes(x = gene_tree_formatted, y = confide
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering")+
   scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
-  labs(title = "a.") +
+  labs(title = "b.") +
   scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
@@ -366,7 +366,7 @@ met_bs_plot <- ggplot(metazoan_bs, aes(x = gene_tree_formatted, y = confidence, 
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
-  labs(title = "b.") +
+  labs(title = "c.") +
   scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
