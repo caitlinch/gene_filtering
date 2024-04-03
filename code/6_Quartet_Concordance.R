@@ -140,24 +140,29 @@ qcf_df$recombination_test_formatted <- factor(qcf_df$recombination_test,
                                               levels = c("geneconv", "maxchi", "PHI", "allTests"),
                                               labels = c("GENCONV", "MaxChi", "PHI", "All tests"),
                                               ordered = T)
+# Remove any rows comparing to Fail trees
+qcf_df <- qcf_df[which(qcf_df$tree %in% c("geneconv_pass", "maxchi_pass", "PHI_pass", "allTests_pass", "noTest")), ]
+qcf_df <- qcf_df[which(qcf_df$comparison_id == "noTest"), ]
 
 ## Separate datasets into separate plots
 # Separate into dataframes for the different datasets
-shallow_qcf <- qcf_df[which(qcf_df$dataset %in% c("Pease2016", "Vanderpool2020")), ]
-plant_qcf   <- qcf_df[which(qcf_df$dataset == "1KP"), ]
-metazoa_qcf <- qcf_df[which(qcf_df$dataset == "Whelan2017"), ]
+shallow_qcf   <- qcf_df[which(qcf_df$dataset %in% c("Pease2016", "Vanderpool2020")), ]
+tomatoes_qcf  <- shallow_qcf <- qcf_df[which(qcf_df$dataset== "Pease2016"), ]
+primates_qcf  <- shallow_qcf <- qcf_df[which(qcf_df$dataset== "Vanderpool2020"), ]
+plant_qcf     <- qcf_df[which(qcf_df$dataset == "1KP"), ]
+metazoa_qcf   <- qcf_df[which(qcf_df$dataset == "Whelan2017"), ]
 # Remove any rows from the Plants dataset for genes that failed the test, and for GENECONV and allTests
-plant_qcf <- plant_qcf[which(plant_qcf$clean_tree %in% c("1KP_maxchi_pass_ASTRAL_qCF.tre", "1KP_PHI_pass_ASTRAL_qCF.tre")), ]
-plant_qcf <- plant_qcf[which(plant_qcf$comparison_tree %in% c("1KP_NoTest_ASTRAL_qCF.tre")), ]
+plant_qcf     <- plant_qcf[which(plant_qcf$clean_tree %in% c("1KP_maxchi_pass_ASTRAL_qCF.tre", "1KP_PHI_pass_ASTRAL_qCF.tre")), ]
+plant_qcf     <- plant_qcf[which(plant_qcf$comparison_tree %in% c("1KP_NoTest_ASTRAL_qCF.tre")), ]
 
-## Plot the shallow datasets (Primates and Tomatoes)
+## Plot Tomatoes dataset
 shallow_plot <- ggplot(shallow_qcf, aes(x = gene_tree_formatted, y = q1, fill = split_type)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering") +
-  scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  scale_y_continuous(name = "qCF", breaks = seq(0,1,0.25),  labels = seq(0,1,0.25), minor_breaks = seq(0,1,0.125), limits = c(0,1)) +
   labs(title = "a.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
         axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
@@ -174,9 +179,9 @@ metazoa_plot <- ggplot(metazoa_qcf, aes(x = gene_tree_formatted, y = q1, fill = 
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering") +
-  scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  scale_y_continuous(name = "qCF", breaks = seq(0,1,0.25),  labels = seq(0,1,0.25), minor_breaks = seq(0,1,0.125), limits = c(0,1)) +
   labs(title = "b.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
         axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
@@ -193,9 +198,9 @@ plants_plot <- ggplot(plant_qcf, aes(x = gene_tree_formatted, y = q1, fill = spl
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering") +
-  scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  scale_y_continuous(name = "qCF", breaks = seq(0,1,0.25),  labels = seq(0,1,0.25), minor_breaks = seq(0,1,0.125), limits = c(0,1)) +
   labs(title = "c.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
         axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
