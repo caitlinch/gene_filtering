@@ -220,13 +220,53 @@ quilt_png <- paste0(plot_dir, "qcf_quilt.png")
 ggsave(filename = quilt_png, plot = quilt, height = 12, width = 10, units = "in")
 
 ## Statistics plots for deep datasets that have sufficient conflicting branches to calculate p-values
+# Tomatoes
+tomatoes_stat_plot <- ggplot(tomatoes_qcf, aes(x = split_type, y = q1, fill = gene_tree_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Branch type") +
+  scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Gene filtering", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 20),
+        axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
+        axis.title.y = element_text(size = 15),
+        axis.text.y = element_text(size = 12),
+        strip.text = element_text(size = 15),
+        legend.title = element_text(size = 15),
+        legend.text = element_text(size = 12)) +
+  guides(fill = guide_legend(override.aes = list(size=8)))
+tomatoes_p_values <- tomatoes_stat_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+
+# Primates
+primates_stat_plot <- ggplot(primates_qcf, aes(x = split_type, y = q1, fill = gene_tree_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Branch type") +
+  scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  labs(title = "b.") +
+  scale_fill_manual(name = "Gene filtering", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 20),
+        axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
+        axis.title.y = element_text(size = 15),
+        axis.text.y = element_text(size = 12),
+        strip.text = element_text(size = 15),
+        legend.title = element_text(size = 15),
+        legend.text = element_text(size = 12)) +
+  guides(fill = guide_legend(override.aes = list(size=8)))
+primates_p_values <- primates_stat_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+
 # Metazoa
 metazoa_stat_plot <- ggplot(metazoa_qcf, aes(x = split_type, y = q1, fill = gene_tree_formatted)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Branch type") +
   scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
-  labs(title = "a.") +
+  labs(title = "c.") +
   scale_fill_manual(name = "Gene filtering", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
@@ -245,7 +285,7 @@ plants_stat_plot <- ggplot(plant_qcf, aes(x = split_type, y = q1, fill = gene_tr
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Branch type") +
   scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
-  labs(title = "b.") +
+  labs(title = "d.") +
   scale_fill_manual(name = "Gene filtering", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
@@ -259,8 +299,8 @@ plants_stat_plot <- ggplot(plant_qcf, aes(x = split_type, y = q1, fill = gene_tr
   guides(fill = guide_legend(override.aes = list(size=8)))
 plants_p_values <- plants_stat_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 5, color = "darkgrey")
 ## Save plots as a patchwork
-quilt <- metazoa_p_values + plants_p_values + plot_layout(ncol = 1)
+quilt <- tomatoes_p_values  + primates_p_values + metazoa_p_values + plants_p_values + plot_layout(ncol = 1)
 quilt_pdf <- paste0(plot_dir, "qcf_p_value_quilt.pdf")
-ggsave(filename = quilt_pdf, plot = quilt, height = 8, width = 10, units = "in")
+ggsave(filename = quilt_pdf, plot = quilt, height = 12, width = 8, units = "in")
 quilt_png <- paste0(plot_dir, "qcf_p_value_quilt.png")
-ggsave(filename = quilt_png, plot = quilt, height = 8, width = 10, units = "in")
+ggsave(filename = quilt_png, plot = quilt, height = 12, width = 8, units = "in")
