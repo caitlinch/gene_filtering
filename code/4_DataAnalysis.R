@@ -14,14 +14,7 @@
 # test_data_dir             <- Location of the results from the AU test and QuartetNetwork Goodness of Fit tests
 # output_dir                <- for saving collated output and results from treelikeness analysis.
 # plot_dir                  <- for saving outlier branch plots
-# primate_data_dir          <- directory containing alignments for individual loci from the Vanderpool et. al. (2020) Primates dataset
-# cebidae_trees             <- text file containing the three possible topologies for the Cebidae clade in the Primates dataset
-# comparison_trees          <- text file containing the three possible topologies around a deep split within the Primates dataset
-# iqtree_path               <- location of IQ-Tree2 executable
-# recombination_output_file <- location of results of recombination detection tests
 # dataset_tree_roots        <- set which taxa is outgroup for each dataset
-# check_primate_loci        <- whether to apply the AU test to each loci within the Primates dataset (TRUE = yes, FALSE = no)
-# plot_primate_loci         <- whether to plot results of the AU test from loci within the Primates dataset (TRUE = yes, FALSE = no)
 
 ### Caitlin's paths ###
 location = "local"
@@ -31,29 +24,8 @@ if (location == "local"){
   test_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
   output_dir          <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
   plot_dir            <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/"
-  primate_data_dir    <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_Vanderpool2020/1730_Alignments_FINAL/"
-  
-  iqtree_path       <- "/Users/caitlincherryh/Documents/Executables/iqtree-2.0-rc1-MacOSX/bin/iqtree"
-  
-  recombination_output_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/03_output/01_AllDatasets_RecombinationDetection_complete_collated_results.csv"
-  
-  num_threads       <- 1
-  
-} else if (location == "server"){
-  maindir             <- "/data/caitlin/empirical_treelikeness/"
-  tree_data_dir       <- "/data/caitlin/empirical_treelikeness/Output_treeEstimation/"
-  test_data_dir       <- "/data/caitlin/empirical_treelikeness/Output_dataAnalysis/"
-  output_dir          <- "/data/caitlin/empirical_treelikeness/Output/"
-  plot_dir            <- output_dir
-  primate_data_dir    <- "/data/caitlin/empirical_treelikeness/Data_Vanderpool2020/"
-  
-  iqtree_path       <- "/data/caitlin/linux_executables/iqtree-2.0-rc1-Linux/bin/iqtree"
-  
-  num_threads       <- 20
 }
 
-cebidae_trees       <- paste0(maindir, "primate_tree_topologies/Cebidae_three_possible_topologies.txt")
-comparison_trees    <- paste0(maindir, "primate_tree_topologies/ComparisonTrees_three_possible_topologies.txt")
 
 dataset_tree_roots <- list("1KP" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
                                      "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
@@ -61,25 +33,17 @@ dataset_tree_roots <- list("1KP" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BA
                            "Whelan2017" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
                            "Vanderpool2020" = c("Mus_musculus"), 
                            "Pease2016" = c("LA4116", "LA2951", "LA4126"))
-
-check_primate_loci = FALSE
-plot_primate_loci = FALSE
 ### End of Caitlin's paths ###
 
 
 
 ##### Step 2: Open packages and set directories #####
 # Open packages
-if ( (length(datasets_to_identify_distinct_edges) > 0) | identify_outlier_edges == TRUE){
-  library(ape)
-  library(distory)
-} 
-if (plot_distinct_edges == TRUE | identify_outlier_edges == TRUE){
-  library(ggplot2)
-  library(ggtree)
-  library(patchwork)
-}
-library(parallel)
+library(ape)
+library(distory)
+library(ggplot2)
+library(ggtree)
+library(patchwork)
 
 
 
@@ -200,6 +164,7 @@ pp_df <- pp_df[grep("fail", pp_df$comparison_tree, invert = T), ]
 # Convert confidence to numeric
 pp_df$confidence <- as.numeric(pp_df$confidence)
 # Separate into dataframes for the different datasets
+shallow_pp <- pp_df[which(pp_df$dataset %in% c("Tomatoes", "Primates")), ]
 tomatoes_pp <- pp_df[which(pp_df$dataset == "Tomatoes"), ]
 primates_pp <- pp_df[which(pp_df$dataset == "Primates"), ]
 plant_pp   <- pp_df[which(pp_df$dataset == "Plants"), ]
@@ -214,6 +179,16 @@ theming <- theme_bw() +
         strip.text = element_text(size = 15),
         legend.title = element_text(size = 15),
         legend.text = element_text(size = 12))
+# Plot shallow datasets
+shallow_pp_plot <- ggplot(shallow_pp, aes(x = gene_tree_formatted, y = confidence, fill = split_type)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Gene filtering") +
+  scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
 # Plot tomatoes
 tomatoes_pp_plot <- ggplot(tomatoes_pp, aes(x = gene_tree_formatted, y = confidence, fill = split_type)) +
   geom_boxplot() +
@@ -221,7 +196,7 @@ tomatoes_pp_plot <- ggplot(tomatoes_pp, aes(x = gene_tree_formatted, y = confide
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
   labs(title = "a.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Plot primates
@@ -231,7 +206,7 @@ primates_pp_plot <- ggplot(primates_pp, aes(x = gene_tree_formatted, y = confide
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
   labs(title = "b.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Plot metazoans
@@ -241,7 +216,7 @@ met_pp_plot <- ggplot(metazoan_pp, aes(x = gene_tree_formatted, y = confidence, 
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
   labs(title = "c.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Plot plants
@@ -251,7 +226,7 @@ plants_pp_plot <- ggplot(plant_pp, aes(x = gene_tree_formatted, y = confidence, 
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "Posterior\nprobability", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
   labs(title = "d.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Save
@@ -281,7 +256,7 @@ tomatoes_bla_plot <- ggplot(tomatoes_pp, aes(x = gene_tree_formatted, y = weight
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "Branch length", breaks = seq(0,6.5,1),  labels = seq(0,6.5,1), minor_breaks = seq(0,6.5,0.5), limits = c(0,6.5)) +
   labs(title = "a.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Plot primates
@@ -291,7 +266,7 @@ primates_bla_plot <- ggplot(primates_pp, aes(x = gene_tree_formatted, y = weight
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "Branch length", breaks = seq(0,6.5,1),  labels = seq(0,6.5,1), minor_breaks = seq(0,6.5,0.5), limits = c(0,4.5)) +
   labs(title = "b.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Plot metazoans
@@ -301,7 +276,7 @@ met_bla_plot <- ggplot(metazoan_pp, aes(x = gene_tree_formatted, y = weights, fi
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "Branch length", breaks = seq(0,6.5, 1),  labels = seq(0,6.5,1), minor_breaks = seq(0,6.5,0.5), limits = c(0,3.5)) +
   labs(title = "c.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Plot plants
@@ -311,7 +286,7 @@ plants_bla_plot <- ggplot(plant_pp, aes(x = gene_tree_formatted, y = weights, fi
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "Branch length", breaks = seq(0,6.5,1),  labels = seq(0,6.5,1), minor_breaks = seq(0,6.5,0.5), limits = c(0,5.5)) +
   labs(title = "d.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Save
@@ -351,7 +326,8 @@ bs_df <- bs_df[grep("fail", bs_df$comparison_tree, invert = T), ]
 # Convert confidence to numeric
 bs_df$confidence <- as.numeric(bs_df$confidence)
 # Separate into dataframes for the different datasets
-shallow_bs <- bs_df[which(bs_df$dataset %in% c("Tomatoes", "Primates")), ]
+tomatoes_bs <- bs_df[which(bs_df$dataset == "Tomatoes"), ]
+primates_bs <- bs_df[which(bs_df$dataset == "Primates"), ]
 metazoan_bs <- bs_df[which(bs_df$dataset == "Metazoan"), ]
 plant_bs <-  bs_df[which(bs_df$dataset == "Plants"), ]
 # Save theming as object 
@@ -364,14 +340,24 @@ theming <- theme_bw() +
         strip.text = element_text(size = 15),
         legend.title = element_text(size = 15),
         legend.text = element_text(size = 12))
-# Plot tomatoes
-shallow_bs_plot <- ggplot(shallow_bs, aes(x = gene_tree_formatted, y = confidence, fill = split_type)) +
+# Plot tomatoes 
+tomatoes_bs_plot <- ggplot(tomatoes_bs, aes(x = gene_tree_formatted, y = confidence, fill = split_type)) +
   geom_boxplot()  +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering")+
   scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
   labs(title = "a.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+# Plot primates
+primates_bs_plot <- ggplot(primates_bs, aes(x = gene_tree_formatted, y = confidence, fill = split_type)) +
+  geom_boxplot()  +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Gene filtering")+
+  scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Plot metazoans
@@ -381,11 +367,11 @@ met_bs_plot <- ggplot(metazoan_bs, aes(x = gene_tree_formatted, y = confidence, 
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
   labs(title = "b.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Save
-quilt <- shallow_bs_plot + met_bs_plot + plot_layout(ncol = 1, heights = c(2,1))
+quilt <- tomatoes_bs_plot + primates_bs_plot + met_bs_plot + plot_layout(ncol = 1, heights = c(1,1,1))
 quilt_pdf <- paste0(plot_dir, "UltrafastBootstrap_quilt.pdf")
 ggsave(filename = quilt_pdf, plot = quilt)
 quilt_png <- paste0(plot_dir, "UltrafastBootstrap_quilt.png")
@@ -411,7 +397,7 @@ shallow_blc_plot <- ggplot(shallow_bs, aes(x = gene_tree_formatted, y = weights,
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "Branch length", breaks = seq(0, 0.04, 0.01),  labels = seq(0, 0.04, 0.01), minor_breaks = seq(0, 0.04, 0.005), limits = c(0,0.04)) +
   labs(title = "a.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Plot metazoans
@@ -421,7 +407,7 @@ met_blc_plot <- ggplot(metazoan_bs, aes(x = gene_tree_formatted, y = weights, fi
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "Branch length", breaks = seq(0, 0.5, 0.1),  labels = seq(0, 0.5, 0.1), minor_breaks = seq(0, 0.5, 0.05), limits = c(0,0.5)) +
   labs(title = "b.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Plot plants
@@ -431,7 +417,7 @@ plants_blc_plot <- ggplot(plant_bs, aes(x = gene_tree_formatted, y = weights, fi
   scale_x_discrete(name = "Gene filtering") +
   scale_y_continuous(name = "Branch length", breaks = seq(0,2,0.2),  labels = seq(0,2,0.2), minor_breaks = seq(0,2,0.1), limits = c(0,1.2)) +
   labs(title = "c.") +
-  scale_fill_manual(name = "Branch type", values = c("#a6cee3", "#1f78b4"), labels = c("Congruent", "Conflicting")) +
+  scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Save
@@ -447,7 +433,7 @@ ggsave(filename = quilt_png, plot = quilt, height = 12)
 branch_support_df$confidence <- as.numeric(branch_support_df$confidence)
 outlier_df <- branch_support_df[c(which(branch_support_df$analysis_method == "ASTRAL" & branch_support_df$confidence > 0.9 & branch_support_df$split_type == "Conflicting"), 
                                   which(branch_support_df$analysis_method == "IQTREE" & branch_support_df$confidence > 90 & branch_support_df$split_type == "Conflicting")), ]
-outlier_df_path <- paste0(output_dir, "Outlier_Branches.csv")
+outlier_df_path <- paste0(output_dir, "Outlier_Branches_raw.csv")
 write.csv(outlier_df, file = outlier_df_path)
 
 
