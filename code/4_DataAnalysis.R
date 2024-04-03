@@ -371,11 +371,11 @@ met_bs_plot <- ggplot(metazoan_bs, aes(x = gene_tree_formatted, y = confidence, 
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
 # Save
-quilt <- tomatoes_bs_plot + primates_bs_plot + met_bs_plot + plot_layout(ncol = 1, heights = c(1,1,1))
+quilt <- tomatoes_bs_plot + primates_bs_plot + met_bs_plot + plot_layout(ncol = 1)
 quilt_pdf <- paste0(plot_dir, "UltrafastBootstrap_quilt.pdf")
-ggsave(filename = quilt_pdf, plot = quilt)
+ggsave(filename = quilt_pdf, plot = quilt, height = 10, width = 8)
 quilt_png <- paste0(plot_dir, "UltrafastBootstrap_quilt.png")
-ggsave(filename = quilt_png, plot = quilt)
+ggsave(filename = quilt_png, plot = quilt, height = 10, width = 8)
 
 
 
