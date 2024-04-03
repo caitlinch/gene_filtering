@@ -31,11 +31,11 @@ library(patchwork) # For assembling multi-panel plots
 source(paste0(maindir, "code/func_comparison.R")) # includes ape, phangorn, phytools, dplyr
 
 # Dataset information
-dataset_names <- c("Plants" = "1KP", "Tomatoes" = "Pease2016", "Metazoa" = "Whelan2017", "Primates" = "Vanderpool2020")
+dataset_names <- c("Plants" = "1KP", "Tomatoes" = "Pease2016", "Metazoan" = "Whelan2017", "Primates" = "Vanderpool2020")
 roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
                                     "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
                                     "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
-                       "Metazoa" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
+                       "Metazoan" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
                        "Primates" = c("Mus_musculus"), 
                        "Tomatoes" = c("LA4116", "LA2951", "LA4126"))
 
@@ -125,7 +125,7 @@ qcf_df$split_type[which(qcf_df$split_type == "Concordant")] <- "Congruent"
 # Create a nicely formatted dataset column
 qcf_df$dataset_formatted <- factor(qcf_df$dataset,
                                    levels = c("Pease2016", "Vanderpool2020", "1KP", "Whelan2017"),
-                                   labels = c("Tomatoes", "Primates", "Plants", "Metazoa"),
+                                   labels = c("Tomatoes", "Primates", "Plants", "Metazoan"),
                                    ordered = T)
 # Add a new columns for faceting/grouping
 qcf_df$gene_tree_formatted <- factor(qcf_df$tree,
@@ -150,7 +150,7 @@ shallow_qcf   <- qcf_df[which(qcf_df$dataset %in% c("Pease2016", "Vanderpool2020
 tomatoes_qcf  <- shallow_qcf <- qcf_df[which(qcf_df$dataset== "Pease2016"), ]
 primates_qcf  <- shallow_qcf <- qcf_df[which(qcf_df$dataset== "Vanderpool2020"), ]
 plant_qcf     <- qcf_df[which(qcf_df$dataset == "1KP"), ]
-metazoa_qcf   <- qcf_df[which(qcf_df$dataset == "Whelan2017"), ]
+metazoan_qcf   <- qcf_df[which(qcf_df$dataset == "Whelan2017"), ]
 # Remove any rows from the Plants dataset for genes that failed the test, and for GENECONV and allTests
 plant_qcf     <- plant_qcf[which(plant_qcf$clean_tree %in% c("1KP_maxchi_pass_ASTRAL_qCF.tre", "1KP_PHI_pass_ASTRAL_qCF.tre")), ]
 plant_qcf     <- plant_qcf[which(plant_qcf$comparison_tree %in% c("1KP_NoTest_ASTRAL_qCF.tre")), ]
@@ -175,7 +175,7 @@ shallow_plot <- ggplot(shallow_qcf, aes(x = gene_tree_formatted, y = q1, fill = 
   guides(fill = guide_legend(override.aes = list(size=8)))
 
 ## Plot the Metazoan dataset
-metazoa_plot <- ggplot(metazoa_qcf, aes(x = gene_tree_formatted, y = q1, fill = split_type)) +
+metazoan_plot <- ggplot(metazoan_qcf, aes(x = gene_tree_formatted, y = q1, fill = split_type)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Gene filtering") +
@@ -213,7 +213,7 @@ plants_plot <- ggplot(plant_qcf, aes(x = gene_tree_formatted, y = q1, fill = spl
   guides(fill = guide_legend(override.aes = list(size=8)))
 
 ## Save plots as a patchwork
-quilt <- shallow_plot + metazoa_plot + plants_plot + plot_layout(ncol = 1, heights = c(2,1,1))
+quilt <- shallow_plot + metazoan_plot + plants_plot + plot_layout(ncol = 1, heights = c(2,1,1))
 quilt_pdf <- paste0(plot_dir, "qcf_quilt.pdf")
 ggsave(filename = quilt_pdf, plot = quilt, height = 12, width = 10, units = "in")
 quilt_png <- paste0(plot_dir, "qcf_quilt.png")
@@ -260,8 +260,8 @@ primates_stat_plot <- ggplot(primates_qcf, aes(x = split_type, y = q1, fill = ge
   guides(fill = guide_legend(override.aes = list(size=8)))
 primates_p_values <- primates_stat_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
 
-# Metazoa
-metazoa_stat_plot <- ggplot(metazoa_qcf, aes(x = split_type, y = q1, fill = gene_tree_formatted)) +
+# Metazoan
+metazoan_stat_plot <- ggplot(metazoan_qcf, aes(x = split_type, y = q1, fill = gene_tree_formatted)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Branch type") +
@@ -278,7 +278,7 @@ metazoa_stat_plot <- ggplot(metazoa_qcf, aes(x = split_type, y = q1, fill = gene
         legend.title = element_text(size = 15),
         legend.text = element_text(size = 12)) +
   guides(fill = guide_legend(override.aes = list(size=8)))
-metazoa_p_values <- metazoa_stat_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+metazoan_p_values <- metazoan_stat_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
 # Plants
 plants_stat_plot <- ggplot(plant_qcf, aes(x = split_type, y = q1, fill = gene_tree_formatted)) +
   geom_boxplot() +
@@ -299,7 +299,7 @@ plants_stat_plot <- ggplot(plant_qcf, aes(x = split_type, y = q1, fill = gene_tr
   guides(fill = guide_legend(override.aes = list(size=8)))
 plants_p_values <- plants_stat_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 5, color = "darkgrey")
 ## Save plots as a patchwork
-quilt <- tomatoes_p_values  + primates_p_values + metazoa_p_values + plants_p_values + plot_layout(ncol = 1)
+quilt <- tomatoes_p_values  + primates_p_values + metazoan_p_values + plants_p_values + plot_layout(ncol = 1)
 quilt_pdf <- paste0(plot_dir, "qcf_p_value_quilt.pdf")
 ggsave(filename = quilt_pdf, plot = quilt, height = 12, width = 8, units = "in")
 quilt_png <- paste0(plot_dir, "qcf_p_value_quilt.png")
