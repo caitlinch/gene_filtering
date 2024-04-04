@@ -13,7 +13,7 @@
 ##### Step 1: Set the file paths for input and output files, and necessary functions/directories #####
 # maindir                 <- "gene_filtering" repository location (github.com/caitlinch/gene_filtering)
 # plot_dir                <- for saving plots and analyses.
-# annotations_csv_file    <- location of misc/annotations.csv file from the Leebens-Mack (2019) "Data from 1000 Plants Transcriptomes" data repository
+# annotations_csv_file    <- location of misc/annotations.csv file from the Leebens-Mack (2019) "Data from 1000 Plants Transcriptomes" data repository - used to assign taxa names and clades
 # roots_by_groups         <- set which taxa is outgroup for each dataset: Primates, Tomatoes, Metazoans, and Plants
 
 ### Caitlin's paths ###
@@ -68,6 +68,7 @@ names(plants_color_palette) <- plant_classifications
 
 
 #### Step 3: Plot all ASTRAL Primates trees ####
+old.par <- par(mar = c(0, 0, 0, 0))
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
 primate_tree_files <- grep("Primates", tree_files, value = TRUE)
 primate_astral_trees <- grep("ASTRAL", primate_tree_files, value = TRUE)

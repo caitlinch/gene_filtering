@@ -14,7 +14,9 @@
 # test_data_dir             <- Location of the results from the AU test and QuartetNetwork Goodness of Fit tests
 # output_dir                <- for saving collated output and results from treelikeness analysis.
 # plot_dir                  <- for saving outlier branch plots
-# dataset_tree_roots        <- set which taxa is outgroup for each dataset
+# annotations_csv_file      <- location of misc/annotations.csv file from the Leebens-Mack (2019) "Data from 1000 Plants Transcriptomes" data repository - used to assign taxa names and clades
+
+# roots_by_group            <- set which taxa is outgroup for each dataset
 
 ### Caitlin's paths ###
 location = "local"
@@ -24,15 +26,17 @@ if (location == "local"){
   test_data_dir       <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/05_dataAnalysis/"
   output_dir          <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/"
   plot_dir            <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/"
+  annotation_csv_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/misc/annotations.csv"
 }
 
 
-dataset_tree_roots <- list("1KP" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
-                                     "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
-                                     "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
-                           "Whelan2017" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
-                           "Vanderpool2020" = c("Mus_musculus"), 
-                           "Pease2016" = c("LA4116", "LA2951", "LA4126"))
+# Add roots for each dataset
+roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
+                                    "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
+                                    "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
+                       "Metazoan" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
+                       "Primates" = c("Mus_musculus"), 
+                       "Tomatoes" = c("LA4116", "LA2951", "LA4126"))
 ### End of Caitlin's paths ###
 
 
@@ -45,10 +49,30 @@ library(ggplot2)
 library(ggtree)
 library(ggpubr)
 library(patchwork)
+library(colorBlindness)
 
 
 
 ##### Step 3: Source function files and prepare variables for analysis #####
+# Open annotations for Plants dataset
+annotation_df <- read.csv(annotation_csv_file, stringsAsFactors = F)
+
+# Create color palettes
+primate_colour_palette <-  c("Non-primate"="#332288", "Strepsirrhini"="#117733", "Tarsiiformes"="#44AA99",
+                             "Cebidae"="#88CCEE", "Hylobatidae"="#DDCC77", "Hominidae"="#CC6677",
+                             "Colobinae"="#AA4499", "Cercopithecinae"="#882255")
+tomato_colour_palette <- c("Esculentum" = "firebrick3", "Arcanum" = "goldenrod3", 
+                           "Peruvianum" = "darkgreen", "Hirsutum" = "navy", 
+                           "Outgroup" = "black")
+metazoan_colour_palette <- c("Bilateria" = "#CC79A7", "Cnidaria" = "#009E73", "Ctenophora" = "#56B4E9",
+                             "Porifera" = "#E69F00", "Outgroup" = "#999999", "Placozoa" = "#000000")
+plants_color_palette <- c(SteppedSequential5Steps[c(1,3,5,6,8,10,11,13,15,16,18,20,21,23,25)], "black", "grey40", "grey70")
+plant_classifications <-  c("Chromista", "Rhodophyta", "Glaucophyta", "Chlorophyta", "Streptophyte algae", 
+                            "Hornworts", "Liverworts", "Mosses", "Lycophytes", "Monilophytes", "Gymnos",
+                            "ANAGrade", "Monocots", "Magnoliids", "Chloranthales", "Eudicots", "Ceratophyllales")
+names(plants_color_palette) <- plant_classifications
+
+# Open functions
 source(paste0(maindir, "code/func_analysis.R"))
 source(paste0(maindir, "code/func_comparison.R"))
 source(paste0(maindir, "code/func_plots.R"))
@@ -587,6 +611,95 @@ outlier_df <- branch_support_df[c(which(branch_support_df$analysis_method == "AS
                                   which(branch_support_df$analysis_method == "IQTREE" & branch_support_df$confidence > 90 & branch_support_df$split_type == "Conflicting")), ]
 outlier_df_path <- paste0(output_dir, "Outlier_Branches_raw.csv")
 write.csv(outlier_df, file = outlier_df_path)
+
+
+
+##### Step 7: Highlight outlier branches #####
+old.par <- par(mar = c(0, 0, 0, 0))
+par(mfrow = c(1, 1))
+# Remove any "fail" rows
+outlier_df <- outlier_df[which(outlier_df$comparison_id == "noTest"), ]
+# Add new column of which tree to open
+outlier_df$open_tree <- ""
+outlier_df$open_tree[which(outlier_df$tree == "noTest")] <- outlier_df$comparison_tree[which(outlier_df$tree == "noTest")]
+outlier_df$open_tree[which(outlier_df$tree != "noTest")] <- outlier_df$clean_tree[which(outlier_df$tree != "noTest")]
+# Extract unique trees
+input_trees <-  unique(outlier_df$open_tree)
+# Need i = 8
+for (i in 1:length(input_trees)){
+  # Open tree file
+  i_tree_file <- input_trees[i]
+  i_tree <- read.tree(paste0(tree_data_dir, i_tree_file))
+  # Identify dataset and plot with highlighted outlier branches
+  if (i_rows$dataset[1] == "Tomatoes"){
+    # Extract rows for this tree
+    i_rows <- outlier_df[which(outlier_df$open_tree == i_tree_file), ]
+    # Identify branches in tree
+    i_outlier_branches <- which(round(i_tree$edge.length, digits = 5) %in% round(i_rows$weights, digits = 5))
+    # Update node labels
+    branch_labels = rep(NA, length(i_tree$edge.length))
+    branch_labels[i_outlier_branches] <- "Conflicting"
+    # Rename tip labels to have scientific names (not just numbers)
+    i_tree$tip.label <- rename.tomato.tips(i_tree$tip.label)
+    # Create plot
+    plot(i_tree)
+    title(main = "ASTRAL - Tomatoes - Pass PHI", sub = "Outlier branches")
+    edgelabels(branch_labels)
+    # Create plot name
+    p_name <- paste0(plot_dir, i_tree_file, "_OutlierBranches")
+    print(p_name)
+    # Save plot
+    ggsave(filename = paste0(p_name, ".pdf"), plot = plot, device = "pdf")
+  } else if (i_rows$dataset[1] == "Metazoan"){
+    # Reroot
+    i_tree <- root(i_tree, outgroup = roots_by_group[["Metazoan"]], resolve.root = TRUE)
+    # Extract rows for this tree
+    i_rows <- outlier_df[which(outlier_df$open_tree == i_tree_file), ]
+    # Identify branches in tree
+    i_outlier_branches <- unlist(lapply(round(i_rows$weights, digits = 5), function(x){which(round(i_tree$edge.length, digits = 5) == x)}))
+    # Update node labels
+    branch_labels = rep(NA, length(i_tree$edge.length))
+    branch_labels[i_outlier_branches] <- "Conflicting"
+    # Create plot
+    plot(i_tree, cex = 0.5)
+    title(main = "CONCAT - Metazoan - Pass PHI", sub = "Outlier branches")
+    edgelabels(branch_labels)
+    # Create plot name
+    p_name <- paste0(plot_dir, i_tree_file, "_OutlierBranches")
+    print(p_name)
+    # Save plot
+    ggsave(filename = paste0(p_name, ".pdf"), plot = plot, device = "pdf")
+  }
+}
+# For Plants: i = 8
+i = 8
+i_tree_file <- input_trees[i]
+i_tree <- read.tree(paste0(tree_data_dir, i_tree_file))
+# Extract rows for this tree
+i_rows <- outlier_df[which(outlier_df$open_tree == i_tree_file), ]
+# Identify branches in tree
+i_outlier_branches <- which(round(i_tree$edge.length, digits = 5) %in% round(i_rows$weights, digits = 5))
+# Extract clade
+clade <- extract.clade(i_tree, 1306)
+clade_outlier_branch <- which(round(clade$edge.length, digits = 5) %in% round(i_rows$weights, digits = 5))
+# Update node labels
+branch_labels = rep(NA, length(clade$edge.length))
+branch_labels[clade_outlier_branch] <- "NoTest"
+# Create labels
+i_labs <- color.plants.by.clades(tree = i_tree, color_palette = plants_color_palette, clade_df = annotation_df)
+# Trim to only labels in the clade
+i_labs <- i_labs[which(i_labs$Code %in% clade$tip.label), ]
+clade$tip.label <- unlist(lapply(clade$tip.label, function(x){i_labs[which(i_labs$Code == x), ]$Species}))
+# Create plot
+plot(clade, cex = 1)
+title(main = "ASTRAL - Plants - Pass PHI\nClade in: CoreEudicots/Rosids", sub = "Outlier branches")
+edgelabels(branch_labels)
+# Create plot name
+p_name <- paste0(plot_dir, i_tree_file, "_OutlierBranches")
+print(p_name)
+# Save plot
+ggsave(filename = paste0(p_name, ".pdf"), plot = plot, device = "pdf")
+
 
 
 
