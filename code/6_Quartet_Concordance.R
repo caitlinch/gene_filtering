@@ -147,15 +147,15 @@ qcf_df <- qcf_df[which(qcf_df$comparison_id == "noTest"), ]
 ## Separate datasets into separate plots
 # Separate into dataframes for the different datasets
 shallow_qcf   <- qcf_df[which(qcf_df$dataset %in% c("Pease2016", "Vanderpool2020")), ]
-tomatoes_qcf  <- shallow_qcf <- qcf_df[which(qcf_df$dataset== "Pease2016"), ]
-primates_qcf  <- shallow_qcf <- qcf_df[which(qcf_df$dataset== "Vanderpool2020"), ]
+tomatoes_qcf  <- qcf_df[which(qcf_df$dataset== "Pease2016"), ]
+primates_qcf  <- qcf_df[which(qcf_df$dataset== "Vanderpool2020"), ]
 plant_qcf     <- qcf_df[which(qcf_df$dataset == "1KP"), ]
 metazoan_qcf   <- qcf_df[which(qcf_df$dataset == "Whelan2017"), ]
 # Remove any rows from the Plants dataset for genes that failed the test, and for GENECONV and allTests
 plant_qcf     <- plant_qcf[which(plant_qcf$clean_tree %in% c("1KP_maxchi_pass_ASTRAL_qCF.tre", "1KP_PHI_pass_ASTRAL_qCF.tre")), ]
 plant_qcf     <- plant_qcf[which(plant_qcf$comparison_tree %in% c("1KP_NoTest_ASTRAL_qCF.tre")), ]
 
-## Plot Tomatoes dataset
+## Plot shallow datasets
 shallow_plot <- ggplot(shallow_qcf, aes(x = gene_tree_formatted, y = q1, fill = split_type)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
