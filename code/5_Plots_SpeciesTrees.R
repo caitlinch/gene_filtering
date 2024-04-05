@@ -1032,3 +1032,42 @@ quilt_path <- paste0(plot_dir, "Plants_CONCAT_all_trees.pdf")
 ggsave(filename = quilt_path, plot = quilt, width = 10, height = 8)
 
 
+
+#### Step 8: Plot differences in unfiltered Primate trees ####
+# Open trees
+tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
+notest_files <- grep("NoTest", tree_files, value = T)
+p_concat <- read.tree(grep("Primates", grep("CONCAT", notest_files, value = T), value = T))
+p_astral <- read.tree(grep("Primates", grep("ASTRAL", notest_files, value = T), value = T))
+p_concat <- root(p_concat, outgroup = roots_by_group[["Primates"]], resolve.root = TRUE)
+p_astral <- root(p_astral, outgroup = roots_by_group[["Primates"]], resolve.root = TRUE)
+# Extract clade
+concat_clade <- keep.tip(p_concat, c("Aotus_nancymaae", "Callithrix_jacchus", "Cebus_capucinus_imitator", "Saimiri_boliviensis"))
+astral_clade <- keep.tip(p_astral, c("Aotus_nancymaae", "Callithrix_jacchus", "Cebus_capucinus_imitator", "Saimiri_boliviensis"))
+concat_clade$tip.label <- gsub("_", " ", concat_clade$tip.label)
+astral_clade$tip.label <- gsub("_", " ", astral_clade$tip.label)
+concat_clade <- ladderize(concat_clade)
+astral_clade <- ladderize(astral_clade)
+astral_clade$edge.length[which(is.nan(astral_clade$edge.length))] <- 1
+# Plot clade
+concat_plot <- ggtree(concat_clade) +
+  geom_rootedge(0.005) +
+  geom_tiplab(color = "black", size = 5, fontface = "italic") +
+  scale_y_reverse() +
+  xlim(-0.005, 0.03) +
+  labs(title = "CONCAT") +
+  theme(plot.title = element_text(size = 20, hjust = 0.5, vjust = 0.5, face = "bold", margin = margin(b = 20)))
+astral_plot <- ggtree(astral_clade) +
+  geom_rootedge(0.2) +
+  geom_tiplab(color = "black", size = 5, fontface = "italic") +
+  scale_y_reverse() +
+  xlim(-0.22, 2.5) +
+  labs(title = "ASTRAL") +
+  theme(plot.title = element_text(size = 20, hjust = 0.5, vjust = 0.5, face = "bold", margin = margin(b = 20)))
+# Save plot
+quilt <- astral_plot + concat_plot + plot_layout(ncol = 2, nrow = 1) + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+quilt_path <- paste0(plot_dir, "Primates_NoTest_tree_differences.pdf")
+ggsave(filename = quilt_path, plot = quilt, width = 13, height = 6)
+
+
