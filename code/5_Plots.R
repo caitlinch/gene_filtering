@@ -775,62 +775,56 @@ ggsave(filename = paste0(p_name, ".pdf"), plot = quilt, device = "pdf")
 
 
 #### Step 9: Pretty plotting for Plants comparing deep ASTRAL trees ####
-## Distinct edges 2:8 - movement of taxa YGAT
-## Supplementary Figure 14
-
+## Supplementary Figure 16
 # Get list of trees
 all_trees <- paste0(maindir, "species_trees/", list.files(paste0(maindir, "species_trees/")))
 # Find trees
 notest_tree_file <- grep("ASTRAL", grep("NoTest", grep("Plants", all_trees, value = TRUE), value = TRUE), value = TRUE)
-test_tree_file <- grep("ASTRAL", grep("PHI_pass", grep("Plants", all_trees, value = TRUE), value = TRUE), value = TRUE)
+phi_tree_file <- grep("ASTRAL", grep("PHI_pass", grep("Plants", all_trees, value = TRUE), value = TRUE), value = TRUE)
 # Open trees and drop taxa
 notest_tree <- read.tree(notest_tree_file)
-test_tree <- read.tree(test_tree_file)
-# Get list of taxa involved
-keep_tips <- c("YGAT", "VNMY", "RVGH", "ZTLR", "RPPC", "AXPJ", "KCPT", "TXMP", "VXOD", "HNCF", "BVOF", "BHYC", "AEPI", "MYVH", "POZS", 
-               "OODC", "XPBC", "HBUQ", "ZBVT", "CKDK", "TVCU","FWCQ", "OSIP", "BNDE", "NFXV", "PXYR", "RHAU", "PAZJ", "VVPY", "XNLP",
-               "Manes_v4.1", "NJLF", "LPGY", "COAQ", "EZZT", "SIZE", "ZIWB", "Poptr_v3.0", "INQX", "RZTJ", "LFOG", "TDTF", "GLVK", 
-               "IEPQ", "KKDQ")
-# Drop unneeded taxa
-notest_tree <- keep.tip(notest_tree, keep_tips)
-test_tree <- keep.tip(test_tree, keep_tips)
+phi_tree <- read.tree(test_tree_file)
+# Extract tips
+phi_clade_test <- extract.clade(phi_tree, 1306)
+phi_clade_test$edge.length[which(is.na(phi_clade_test$edge.length))] <- 1
+# Extract clade
+notest_clade <- extract.clade(notest_tree, getMRCA(notest_tree, phi_clade_test$tip.label)) 
+phi_clade <- extract.clade(phi_tree, getMRCA(phi_tree, notest_clade$tip.label)) 
+# Ladderize clades
+notest_clade <- ladderize(notest_clade)
+phi_clade <- ladderize(phi_clade)
+# Create plant labels
+plant_labs <- color.plants.by.clades(tree = notest_tree, color_palette = plants_color_palette, clade_df = annotation_df)
+# Trim to only labels in the clade
+clade_labs <- plant_labs[which(plant_labs$Code %in% phi_clade$tip.label), ]
 # Add arbitrary terminal branch length (ASTRAL does not calculate terminal branch length therefore terminal branches have length of NA)
-notest_tree$edge.length[which(is.na(notest_tree$edge.length))] <- 0.1
-test_tree$edge.length[which(is.na(test_tree$edge.length))] <- 0.1
-# Use the annotation_csv_file to extract the relevant tips and tip full names/classifications
-annotations_df <- read.csv(annotation_csv_file)
-lab_df <- annotations_df[which(annotations_df$Code %in% keep_tips),]
-lab_df <- lab_df[match(keep_tips, lab_df$Code),]
-lab_df$Species[which(lab_df$Species == "Passiflora_sp")] <- "Passiflora sp"
-# Use lab_df as labels for the ggtree plots
-lab_df$Color <- c(rep("A", 5), rep("B", (length(keep_tips) - 5) ))
-lab_df <- dplyr::mutate(lab_df, 
-                        lab = glue('italic("{Species}")'))
-# Plot tree
-p1 <- ggtree(notest_tree, branch.length = "none")  %<+% lab_df + 
-  geom_tiplab(aes(label = lab, color = Color), size = 4, parse = T, show.legend = F) + 
+phi_clade$edge.length[which(is.na(phi_clade$edge.length))] <- 1
+notest_clade$edge.length[which(is.na(notest_clade$edge.length))] <- 1
+# Change color to red for labs that are involved in branch change
+clade_labs$Color_PHI <- "black"
+clade_labs$Color_PHI[which(clade_labs$Code %in% phi_clade_test$tip.label)] <- "grey"
+clade_labs$Color_PHI[which(clade_labs$Code == "YGAT")] <- "red"
+# Plot NoTest ASTRAL clade
+notest_plot <- ggtree(notest_clade)  %<+% clade_labs + 
+  geom_tiplab(aes(label = Species, color = Color_PHI), size = 4) + 
   geom_rootedge(rootedge = 0.5) +
-  geom_text2(aes(subset = !isTip, label=label), nudge_x = -0.6, nudge_y = 0.5, color = "Gray60", size = 3) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 170, 6, 6)) +
-  theme(axis.text.x = element_text(size = 13, color = "White"),
-        axis.ticks.x = element_blank(),
-        axis.line.x = element_blank()) +
-  scale_color_manual(values = c(A = "Red", B = "Black"))
-
-p2 <- ggtree(test_tree, branch.length = "none")  %<+% lab_df + 
-  geom_tiplab(aes(label = lab, color = Color), size = 4, parse = T, show.legend = F) + 
+  scale_color_manual(values = c("red" = "red", "black" = "black")) +
+  guides(color = "none") +
+  labs(title = "ASTRAL Unfiltered") +
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5, margin = margin(b = 20))) +
+  xlim(-0.5, 14)
+# Plot P_PHI ASTRAL clade
+phi_plot <- ggtree(phi_clade)  %<+% clade_labs + 
+  geom_tiplab(aes(label = Species, color = Color_PHI), size = 4) + 
   geom_rootedge(rootedge = 0.5) +
-  geom_text2(aes(subset = !isTip, label=label), nudge_x = -0.6, nudge_y = 0.5, color = "Gray60", size = 3) +
-  coord_cartesian(clip = 'off') +
-  theme_tree2(plot.margin=margin(6, 170, 6, 6)) +
-  theme(axis.text.x = element_text(size = 13, color = "White"),
-        axis.ticks.x = element_blank(),
-        axis.line.x = element_blank()) +
-  scale_color_manual(values = c(A = "Red", B = "Black"))
+  scale_color_manual(values = c("red" = "red", "black" = "black")) +
+  guides(color = "none") +
+  labs(title = "ASTRAL P_PHI") +
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5, margin = margin(b = 20))) +
+  xlim(-0.5, 15)
 # Save tree
-quilt <- (p1 + p2) + plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
-quilt_name <- paste0(plot_dir, "Plants_SuppFigure_VNMY_YGAT_OutlierBranch_plot")
-ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, device = "pdf", width = 12, height = 10, units = "in")
+quilt <- (notest_plot + phi_plot) + plot_annotation(tag_levels = "a", tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+quilt_name <- paste0(plot_dir, "Plants_SuppFigure_OutlierBranch_plot")
+ggsave(filename = paste0(quilt_name, ".pdf"), plot = quilt, width = 15)
 
 
