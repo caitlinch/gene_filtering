@@ -116,9 +116,9 @@ for (i in 1:length(primate_astral_trees)){
 for (i in 1:2){
   if (i == 1){
     primate_ordered_trees <- c(grep("geneconv_pass", primate_astral_trees, value = T), 
-                              grep("geneconv_fail", primate_astral_trees, value = T),
-                              grep("maxchi_pass", primate_astral_trees, value = T),
-                              grep("maxchi_fail", primate_astral_trees, value = T))
+                               grep("geneconv_fail", primate_astral_trees, value = T),
+                               grep("maxchi_pass", primate_astral_trees, value = T),
+                               grep("maxchi_fail", primate_astral_trees, value = T))
     plot_titles <- c("GENECONV, pass", "GENECONV, fail", "MaxChi, Pass", "MaxChi, Fail")
     tree_list <- list("One" = NA,
                       "Two" = NA,
@@ -127,9 +127,9 @@ for (i in 1:2){
     xlimits <- c(20, 16, 17, 16)
   } else if (i == 2){
     primate_ordered_trees <- c(grep("PHI_pass", primate_astral_trees, value = T), 
-                              grep("PHI_fail", primate_astral_trees, value = T),
-                              grep("allTests_pass", primate_astral_trees, value = T),
-                              grep("allTests_fail", primate_astral_trees, value = T))
+                               grep("PHI_fail", primate_astral_trees, value = T),
+                               grep("allTests_pass", primate_astral_trees, value = T),
+                               grep("allTests_fail", primate_astral_trees, value = T))
     plot_titles <- c("PHI, pass", "PHI, fail", "All tests, Pass", "All tests, Fail")
     tree_list <- list("One" = NA,
                       "Two" = NA,
@@ -1033,7 +1033,7 @@ ggsave(filename = quilt_path, plot = quilt, width = 10, height = 8)
 
 
 
-#### Step 8: Plot differences in unfiltered Primate trees ####
+#### Step 8: Plot Ceidae clade in Plants trees ####
 # Open trees
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
 notest_files <- grep("NoTest", tree_files, value = T)
@@ -1069,5 +1069,55 @@ quilt <- astral_plot + concat_plot + plot_layout(ncol = 2, nrow = 1) +
   plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 quilt_path <- paste0(plot_dir, "Primates_NoTest_tree_differences.pdf")
 ggsave(filename = quilt_path, plot = quilt, width = 13, height = 6)
+
+
+
+#### Step 9: Plot outlier branch for Placozoa in Metazoan trees ####
+# Open trees
+tree_files          <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
+metazoa_tree_files  <- grep("Metazoan", tree_files, value = T)
+t_unfiltered        <- read.tree(grep("NoTest", grep("CONCAT", metazoa_tree_files, value = T), value = T))
+t_geneconv          <- read.tree(grep("geneconv_pass", grep("CONCAT", metazoa_tree_files, value = T), value = T))
+# Root trees
+t_unfiltered  <- root(t_unfiltered, outgroup = roots_by_group[["Metazoan"]], resolve.root = TRUE)
+t_geneconv    <- root(t_geneconv, outgroup = roots_by_group[["Metazoan"]], resolve.root = TRUE)
+# Change terminal edge.length
+t_unfiltered$edge.length[which(is.nan(t_unfiltered$edge.length))] <- 1
+t_geneconv$edge.length[which(is.nan(t_geneconv$edge.length))] <- 1
+# Create labels
+met_colors <- metazoan_colour_palette
+met_labs <-color.code.metazoan.clades(t_unfiltered, trimmed = "FALSE")
+# Create new trees for just clades
+clades_text_unfiltered  <- "(Choanoflagellata, (Ctenophora, (Porifera, (Trichoplax_adhaerens, (Cnidaria, Bilateria)))));"
+clades_text_geneconv    <- "(Choanoflagellata, (Ctenophora, (Trichoplax_adhaerens, (Porifera, (Cnidaria, Bilateria)))));"
+# Plot trees
+t_unfiltered        <- read.tree(text = clades_text_unfiltered)
+t_geneconv          <- read.tree(text = clades_text_geneconv)
+# Create clade labels
+clade_labs <- data.frame(taxa = c("Choanoflagellata", "Ctenophora", "Porifera", "Trichoplax_adhaerens", "Cnidaria", "Bilateria"),
+                         clade = c("Choanoflagellata", "Ctenophora", "Porifera", "Placozoa", "Cnidaria", "Bilateria"),
+                         pretty_label = c("Choanoflagellata", "Ctenophora", "Porifera", "Trichoplax adhaerens", "Cnidaria", "Bilateria"),
+                         color = c("black", "black", "black", "red", "black", "black"))
+# Plot clades
+p_unfiltered <- ggtree(t_unfiltered) %<+% clade_labs +
+  geom_tiplab(aes(label = pretty_label, color = color), size = 6) +
+  scale_y_reverse() +
+  scale_color_manual(values = c("black" = "black", "red" = "red"), guide = "none") + 
+  xlim(0,8)  +
+  labs(title = "CONCAT - Unfiltered") +
+  theme(plot.title = element_text(size = 20, hjust = 0.5, vjust = 0.5, face = "bold", margin = margin(b = 20)))
+p_geneconv <- ggtree(t_geneconv) %<+% clade_labs +
+  geom_tiplab(aes(label = pretty_label, color = color), size = 6) +
+  scale_y_reverse() +
+  scale_color_manual(values = c("black" = "black", "red" = "red"), guide = "none") + 
+  xlim(0,8)  +
+  labs(title = "CONCAT - P_GENECONV") +
+  theme(plot.title = element_text(size = 20, hjust = 0.5, vjust = 0.5, face = "bold", margin = margin(b = 20)))
+# Assemble image
+quilt <- p_unfiltered + p_geneconv + plot_layout(ncol = 2, nrow = 1) + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+quilt_path <- paste0(plot_dir, "Metazoan_SuppFigure_OutlierBranch_Placozoa_plot.pdf")
+ggsave(filename = quilt_path, plot = quilt, height = 6, width = 14)
+
 
 
