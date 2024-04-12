@@ -165,7 +165,7 @@ shallow_plot <- ggplot(shallow_qcf, aes(x = gene_tree_formatted, y = q1, fill = 
   scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
-        axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.title.x = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)), 
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
         axis.title.y = element_text(size = 15),
         axis.text.y = element_text(size = 12),
@@ -184,7 +184,7 @@ metazoan_plot <- ggplot(metazoan_qcf, aes(x = gene_tree_formatted, y = q1, fill 
   scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
-        axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.title.x = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)), 
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
         axis.title.y = element_text(size = 15),
         axis.text.y = element_text(size = 12),
@@ -203,7 +203,7 @@ plants_plot <- ggplot(plant_qcf, aes(x = gene_tree_formatted, y = q1, fill = spl
   scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
-        axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.title.x = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)), 
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
         axis.title.y = element_text(size = 15),
         axis.text.y = element_text(size = 12),
@@ -230,7 +230,7 @@ tomatoes_stat_plot <- ggplot(tomatoes_qcf, aes(x = split_type, y = q1, fill = ge
   scale_fill_manual(name = "Subset", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
-        axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.title.x = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)), 
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
         axis.title.y = element_text(size = 15),
         axis.text.y = element_text(size = 12),
@@ -250,7 +250,7 @@ primates_stat_plot <- ggplot(primates_qcf, aes(x = split_type, y = q1, fill = ge
   scale_fill_manual(name = "Subset", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
-        axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.title.x = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)), 
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
         axis.title.y = element_text(size = 15),
         axis.text.y = element_text(size = 12),
@@ -270,7 +270,7 @@ metazoan_stat_plot <- ggplot(metazoan_qcf, aes(x = split_type, y = q1, fill = ge
   scale_fill_manual(name = "Subset", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
-        axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.title.x = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)), 
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
         axis.title.y = element_text(size = 15),
         axis.text.y = element_text(size = 12),
@@ -289,7 +289,7 @@ plants_stat_plot <- ggplot(plant_qcf, aes(x = split_type, y = q1, fill = gene_tr
   scale_fill_manual(name = "Subset", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
-        axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.title.x = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)), 
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
         axis.title.y = element_text(size = 15),
         axis.text.y = element_text(size = 12),

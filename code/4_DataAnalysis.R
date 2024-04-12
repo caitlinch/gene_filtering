@@ -197,9 +197,9 @@ metazoan_pp <- pp_df[which(pp_df$dataset == "Metazoan"), ]
 # Save theming as object 
 theming <- theme_bw() + 
   theme(plot.title = element_text(size = 20),
-        axis.title.x = element_text(size = 14, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.title.x = element_text(size = 14, margin = margin(t = 5, r = 0, b = 0, l = 0)), 
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
-        axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 15, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 5, b = 0, l = 0)),
         axis.text.y = element_text(size = 12),
         strip.text = element_text(size = 15),
         legend.title = element_text(size = 15),
@@ -319,9 +319,9 @@ ggsave(filename = quilt_png, plot = quilt, height = 12, width = 10, units = "in"
 # Save theming as object 
 theming <- theme_bw() + 
   theme(plot.title = element_text(size = 20),
-        axis.title.x = element_text(size = 14, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.title.x = element_text(size = 14, margin = margin(t = 5, r = 0, b = 0, l = 0)), 
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
-        axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 15, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 5, b = 0, l = 0)),
         axis.text.y = element_text(size = 12),
         strip.text = element_text(size = 15),
         legend.title = element_text(size = 15),
@@ -464,9 +464,9 @@ plant_bs <-  bs_df[which(bs_df$dataset == "Plants"), ]
 # Save theming as object 
 theming <- theme_bw() + 
   theme(plot.title = element_text(size = 20),
-        axis.title.x = element_text(size = 14, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
+        axis.title.x = element_text(size = 14, margin = margin(t = 5, r = 0, b = 0, l = 0)), 
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
-        axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 15, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 5, b = 0, l = 0)),
         axis.text.y = element_text(size = 12),
         strip.text = element_text(size = 15),
         legend.title = element_text(size = 15),
