@@ -138,7 +138,7 @@ qcf_df$gene_tree_formatted <- factor(qcf_df$tree,
                                      ordered = TRUE)
 qcf_df$recombination_test_formatted <- factor(qcf_df$recombination_test,
                                               levels = c("geneconv", "maxchi", "PHI", "allTests"),
-                                              labels = c("GENCONV", "MaxChi", "PHI", "All tests"),
+                                              labels = c("GENECONV", "MaxChi", "PHI", "All tests"),
                                               ordered = T)
 # Remove any rows comparing to Fail trees
 qcf_df <- qcf_df[which(qcf_df$tree %in% c("geneconv_pass", "maxchi_pass", "PHI_pass", "allTests_pass", "noTest")), ]
@@ -221,6 +221,7 @@ ggsave(filename = quilt_png, plot = quilt, height = 12, width = 10, units = "in"
 
 ## Statistics plots for deep datasets that have sufficient conflicting branches to calculate p-values
 # Tomatoes
+tomatoes_qcf  <- qcf_df[which(qcf_df$dataset== "Pease2016"), ]
 tomatoes_stat_plot <- ggplot(tomatoes_qcf, aes(x = split_type, y = q1, fill = gene_tree_formatted)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
@@ -238,7 +239,7 @@ tomatoes_stat_plot <- ggplot(tomatoes_qcf, aes(x = split_type, y = q1, fill = ge
         legend.title = element_text(size = 15),
         legend.text = element_text(size = 12)) +
   guides(fill = guide_legend(override.aes = list(size=8)))
-tomatoes_p_values <- tomatoes_stat_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+tomatoes_p_values <- tomatoes_stat_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
 
 # Primates
 primates_stat_plot <- ggplot(primates_qcf, aes(x = split_type, y = q1, fill = gene_tree_formatted)) +
@@ -258,7 +259,7 @@ primates_stat_plot <- ggplot(primates_qcf, aes(x = split_type, y = q1, fill = ge
         legend.title = element_text(size = 15),
         legend.text = element_text(size = 12)) +
   guides(fill = guide_legend(override.aes = list(size=8)))
-primates_p_values <- primates_stat_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+primates_p_values <- primates_stat_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
 
 # Metazoan
 metazoan_stat_plot <- ggplot(metazoan_qcf, aes(x = split_type, y = q1, fill = gene_tree_formatted)) +
@@ -278,7 +279,7 @@ metazoan_stat_plot <- ggplot(metazoan_qcf, aes(x = split_type, y = q1, fill = ge
         legend.title = element_text(size = 15),
         legend.text = element_text(size = 12)) +
   guides(fill = guide_legend(override.aes = list(size=8)))
-metazoan_p_values <- metazoan_stat_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+metazoan_p_values <- metazoan_stat_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
 # Plants
 plants_stat_plot <- ggplot(plant_qcf, aes(x = split_type, y = q1, fill = gene_tree_formatted)) +
   geom_boxplot() +
@@ -297,7 +298,7 @@ plants_stat_plot <- ggplot(plant_qcf, aes(x = split_type, y = q1, fill = gene_tr
         legend.title = element_text(size = 15),
         legend.text = element_text(size = 12)) +
   guides(fill = guide_legend(override.aes = list(size=8)))
-plants_p_values <- plants_stat_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 5, color = "darkgrey")
+plants_p_values <- plants_stat_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 5, color = "darkgrey")
 ## Save plots as a patchwork
 quilt <- tomatoes_p_values  + primates_p_values + metazoan_p_values + plants_p_values + plot_layout(ncol = 1)
 quilt_pdf <- paste0(plot_dir, "qcf_p_value_quilt.pdf")

@@ -182,7 +182,7 @@ pp_df$gene_tree_formatted <- factor(pp_df$tree,
                                     ordered = TRUE)
 pp_df$recombination_test_formatted <- factor(pp_df$recombination_test,
                                              levels = c("geneconv", "maxchi", "PHI", "allTests"),
-                                             labels = c("GENCONV", "MaxChi", "PHI", "All tests"),
+                                             labels = c("GENECONV", "MaxChi", "PHI", "All tests"),
                                              ordered = T)
 # Remove any test, fail rows
 pp_df <- pp_df[grep("fail", pp_df$comparison_tree, invert = T), ]
@@ -272,7 +272,7 @@ tomatoes_pp_plot <- ggplot(tomatoes_pp, aes(x = split_type, y = confidence, fill
   scale_fill_manual(name = "Subset", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
-tomatoes_pp_pvals <- tomatoes_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+tomatoes_pp_pvals <- tomatoes_pp_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
 # Plot primates
 primates_pp_plot <- ggplot(primates_pp, aes(x = split_type, y = confidence, fill = gene_tree_formatted)) +
   geom_boxplot() +
@@ -283,7 +283,7 @@ primates_pp_plot <- ggplot(primates_pp, aes(x = split_type, y = confidence, fill
   scale_fill_manual(name = "Subset", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
-primates_pp_pvals <- primates_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+primates_pp_pvals <- primates_pp_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
 # Plot metazoans
 met_pp_plot <- ggplot(metazoan_pp, aes(x = split_type, y = confidence, fill = gene_tree_formatted)) +
   geom_boxplot() +
@@ -294,7 +294,7 @@ met_pp_plot <- ggplot(metazoan_pp, aes(x = split_type, y = confidence, fill = ge
   scale_fill_manual(name = "Subset", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
-met_pp_pvals <- met_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+met_pp_pvals <- met_pp_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
 # Plot plants
 plants_pp_plot <- ggplot(plant_pp, aes(x = split_type, y = confidence, fill = gene_tree_formatted)) +
   geom_boxplot() +
@@ -305,7 +305,7 @@ plants_pp_plot <- ggplot(plant_pp, aes(x = split_type, y = confidence, fill = ge
   scale_fill_manual(name = "Subset", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
-plants_pp_pvals <- plants_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
+plants_pp_pvals <- plants_pp_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(0.2), size = 4, color = "darkgrey")
 # Save
 quilt <- tomatoes_pp_pvals + primates_pp_pvals + met_pp_pvals + plants_pp_pvals + plot_layout(ncol = 1)
 quilt_pdf <- paste0(plot_dir, "PosteriorProbabilities_quilt_stats.pdf")
@@ -375,8 +375,8 @@ ggsave(filename = quilt_png, plot = quilt, height = 13)
 
 ## Add p-values
 # Plot tomatoes
-tomatoes_pp2 <- tomatoes_pp[which(tomatoes_pp$recombination_test == "PHI" & tomatoes_pp$split_type == "Congruent"), ]
-tomatoes_pp_plot <- ggplot(tomatoes_pp2, aes(x = split_type, y = weights, fill = gene_tree_formatted)) +
+tomatoes_pp2 <- tomatoes_pp[which(tomatoes_pp$recombination_test == "PHI" & tomatoes_pp$split_type == "Conflicting"), ]
+tomatoes_pp_plot <- ggplot(tomatoes_pp, aes(x = split_type, y = weights, fill = gene_tree_formatted)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Branch type") +
@@ -385,7 +385,7 @@ tomatoes_pp_plot <- ggplot(tomatoes_pp2, aes(x = split_type, y = weights, fill =
   scale_fill_manual(name = "Subset", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
-tomatoes_pp_pvals <- tomatoes_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(6.2), size = 4, color = "darkgrey")
+tomatoes_pp_pvals <- tomatoes_pp_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(6.2), size = 4, color = "darkgrey")
 # Plot primates
 primates_pp_plot <- ggplot(primates_pp, aes(x = split_type, y = weights, fill = gene_tree_formatted)) +
   geom_boxplot() +
@@ -396,7 +396,7 @@ primates_pp_plot <- ggplot(primates_pp, aes(x = split_type, y = weights, fill = 
   scale_fill_manual(name = "Subset", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
-primates_pp_pvals <- primates_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(6.2), size = 4, color = "darkgrey")
+primates_pp_pvals <- primates_pp_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(6.2), size = 4, color = "darkgrey")
 # Plot metazoans
 met_pp_plot <- ggplot(metazoan_pp, aes(x = split_type, y = weights, fill = gene_tree_formatted)) +
   geom_boxplot() +
@@ -407,7 +407,7 @@ met_pp_plot <- ggplot(metazoan_pp, aes(x = split_type, y = weights, fill = gene_
   scale_fill_manual(name = "Subset", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
-met_pp_pvals <- met_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(6.2), size = 4, color = "darkgrey")
+met_pp_pvals <- met_pp_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(6.2), size = 4, color = "darkgrey")
 # Plot plants
 plants_pp_plot <- ggplot(plant_pp, aes(x = split_type, y = weights, fill = gene_tree_formatted)) +
   geom_boxplot() +
@@ -418,7 +418,7 @@ plants_pp_plot <- ggplot(plant_pp, aes(x = split_type, y = weights, fill = gene_
   scale_fill_manual(name = "Subset", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
-plants_pp_pvals <- plants_pp_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(6.2), size = 4, color = "darkgrey")
+plants_pp_pvals <- plants_pp_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(6.2), size = 4, color = "darkgrey")
 # Save
 quilt <- tomatoes_pp_pvals + primates_pp_pvals + met_pp_pvals + plants_pp_pvals + plot_layout(ncol = 1) 
 quilt_pdf <- paste0(plot_dir, "ASTRAL_branchLength_quilt_stats.pdf")
@@ -449,7 +449,7 @@ bs_df$gene_tree_formatted <- factor(bs_df$tree,
                                     ordered = TRUE)
 bs_df$recombination_test_formatted <- factor(bs_df$recombination_test,
                                              levels = c("geneconv", "maxchi", "PHI", "allTests"),
-                                             labels = c("GENCONV", "MaxChi", "PHI", "All tests"),
+                                             labels = c("GENECONV", "MaxChi", "PHI", "All tests"),
                                              ordered = T)
 # Remove any test, fail rows
 bs_df <- bs_df[grep("fail", bs_df$comparison_tree, invert = T), ]
@@ -573,40 +573,51 @@ ggsave(filename = quilt_png, plot = quilt, height = 12)
 tomatoes_bs <- bs_df[which(bs_df$dataset == "Tomatoes"), ]
 primates_bs <- bs_df[which(bs_df$dataset == "Primates"), ]
 metazoan_bs <- bs_df[which(bs_df$dataset == "Metazoan"), ]
-metazoan_bs <- bs_df[which(bs_df$dataset == "Metazoan" & bs_df$split_type == "Congruent"), ]
+plant_bs <- bs_df[which(bs_df$dataset == "Plants"), ]
 # Plot tomatoes
-tomatoes_bs_plot <- ggplot(tomatoes_bs, aes(x = split_type, y = confidence, fill = gene_tree_formatted)) +
+tomatoes_bs_plot <- ggplot(tomatoes_bs, aes(x = split_type, y = weights, fill = gene_tree_formatted)) +
   geom_boxplot()  +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Subset")+
-  scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
+  scale_y_continuous(name = "Branch length") +
   labs(title = "a.") +
   scale_fill_manual(name = "Subset", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
-tomatoes_bs_pvals <- tomatoes_bs_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(5), size = 4, color = "darkgrey")
+tomatoes_bs_pvals <- tomatoes_bs_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(0.02), size = 4, color = "darkgrey")
 # Plot primates
-primates_bs_plot <- ggplot(primates_bs, aes(x = split_type, y = confidence, fill = gene_tree_formatted)) +
+primates_bs_plot <- ggplot(primates_bs, aes(x = split_type, y = weights, fill = gene_tree_formatted)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Branch type") +
-  scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
+  scale_y_continuous(name = "Branch length") +
   labs(title = "a.") +
   scale_fill_manual(name = "Subset", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
-primates_bs_pvals <- primates_bs_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(5), size = 4, color = "darkgrey")
+primates_bs_pvals <- primates_bs_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(0.035), size = 4, color = "darkgrey")
 # Plot metazoans
-met_bs_plot <- ggplot(metazoan_bs, aes(x = split_type, y = confidence, fill = gene_tree_formatted)) +
+met_bs_plot <- ggplot(metazoan_bs, aes(x = split_type, y = weights, fill = gene_tree_formatted)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
   scale_x_discrete(name = "Branch type") +
-  scale_y_continuous(name = "UFB value", breaks = seq(0,120,20),  labels = seq(0,120,20), minor_breaks = seq(0,110,10), limits = c(0,110)) +
+  scale_y_continuous(name = "Branch length") +
   labs(title = "a.") +
   scale_fill_manual(name = "Subset", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
   guides(fill = guide_legend(override.aes = list(size=8))) +
   theming
-met_bs_pvals <- met_bs_plot  + stat_compare_means(method = "t.test", aes(label = paste0("p=", ..p.format..)), label.y = c(5), size = 4, color = "darkgrey")
+met_bs_pvals <- met_bs_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(0.5), size = 4, color = "darkgrey")
+# Plot metazoans
+plant_bs_plot <- ggplot(plant_bs, aes(x = split_type, y = weights, fill = gene_tree_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_formatted~recombination_test_formatted) +
+  scale_x_discrete(name = "Branch type") +
+  scale_y_continuous(name = "Branch length") +
+  labs(title = "a.") +
+  scale_fill_manual(name = "Subset", values = c("Clean" = "#0571b0", "Unfiltered" = "#f7f7f7")) +
+  guides(fill = guide_legend(override.aes = list(size=8))) +
+  theming
+plant_bs_pvals <- plant_bs_plot  + stat_compare_means(method = "t.test", paired = T, aes(label = paste0("p=", ..p.format..)), label.y = c(1.2), size = 4, color = "darkgrey")
 # Save
 quilt <- tomatoes_bs_pvals + primates_bs_pvals + met_bs_pvals + + plot_layout(ncol = 1) 
 quilt_pdf <- paste0(plot_dir, "CONCAT_UFB_quilt_stats.pdf")
