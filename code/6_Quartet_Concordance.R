@@ -159,7 +159,7 @@ plant_qcf     <- plant_qcf[which(plant_qcf$comparison_tree %in% c("1KP_NoTest_AS
 shallow_plot <- ggplot(shallow_qcf, aes(x = gene_tree_formatted, y = q1, fill = split_type)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
-  scale_x_discrete(name = "Gene filtering") +
+  scale_x_discrete(name = "Subset") +
   scale_y_continuous(name = "qCF", breaks = seq(0,1,0.25),  labels = seq(0,1,0.25), minor_breaks = seq(0,1,0.125), limits = c(0,1)) +
   labs(title = "a.") +
   scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
@@ -178,7 +178,7 @@ shallow_plot <- ggplot(shallow_qcf, aes(x = gene_tree_formatted, y = q1, fill = 
 metazoan_plot <- ggplot(metazoan_qcf, aes(x = gene_tree_formatted, y = q1, fill = split_type)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
-  scale_x_discrete(name = "Gene filtering") +
+  scale_x_discrete(name = "Subset") +
   scale_y_continuous(name = "qCF", breaks = seq(0,1,0.25),  labels = seq(0,1,0.25), minor_breaks = seq(0,1,0.125), limits = c(0,1)) +
   labs(title = "b.") +
   scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
@@ -197,7 +197,7 @@ metazoan_plot <- ggplot(metazoan_qcf, aes(x = gene_tree_formatted, y = q1, fill 
 plants_plot <- ggplot(plant_qcf, aes(x = gene_tree_formatted, y = q1, fill = split_type)) +
   geom_boxplot() +
   facet_grid(dataset_formatted~recombination_test_formatted) +
-  scale_x_discrete(name = "Gene filtering") +
+  scale_x_discrete(name = "Subset") +
   scale_y_continuous(name = "qCF", breaks = seq(0,1,0.25),  labels = seq(0,1,0.25), minor_breaks = seq(0,1,0.125), limits = c(0,1)) +
   labs(title = "c.") +
   scale_fill_manual(name = "Branch type", values = c("Congruent" = "#a6cee3", "Conflicting" = "#1f78b4")) +
@@ -227,7 +227,7 @@ tomatoes_stat_plot <- ggplot(tomatoes_qcf, aes(x = split_type, y = q1, fill = ge
   scale_x_discrete(name = "Branch type") +
   scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
   labs(title = "a.") +
-  scale_fill_manual(name = "Gene filtering", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
+  scale_fill_manual(name = "Subset", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
         axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
@@ -247,7 +247,7 @@ primates_stat_plot <- ggplot(primates_qcf, aes(x = split_type, y = q1, fill = ge
   scale_x_discrete(name = "Branch type") +
   scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
   labs(title = "b.") +
-  scale_fill_manual(name = "Gene filtering", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
+  scale_fill_manual(name = "Subset", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
         axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
@@ -267,7 +267,7 @@ metazoan_stat_plot <- ggplot(metazoan_qcf, aes(x = split_type, y = q1, fill = ge
   scale_x_discrete(name = "Branch type") +
   scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
   labs(title = "c.") +
-  scale_fill_manual(name = "Gene filtering", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
+  scale_fill_manual(name = "Subset", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
         axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
@@ -286,7 +286,7 @@ plants_stat_plot <- ggplot(plant_qcf, aes(x = split_type, y = q1, fill = gene_tr
   scale_x_discrete(name = "Branch type") +
   scale_y_continuous(name = "qCF", breaks = seq(0,1,0.2),  labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1), limits = c(0,1)) +
   labs(title = "d.") +
-  scale_fill_manual(name = "Gene filtering", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
+  scale_fill_manual(name = "Subset", values = c("#0571b0", "#f7f7f7"), labels = c("Clean", "Unfiltered")) +
   theme_bw() +
   theme(plot.title = element_text(size = 20),
         axis.title.x = element_text(size = 15, margin = margin(t = 15, r = 0, b = 0, l = 0)), 
