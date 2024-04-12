@@ -724,4 +724,62 @@ ggsave(filename = paste0(p_name, ".pdf"), plot = plot, device = "pdf")
 
 
 
+##### Step 8: Histogram of branch lengths #####
+# Create new dataframe
+bl_df <- branch_support_df[which(branch_support_df$tree != "noTest"), ]
+# Create a nicely formatted dataset column
+bl_df$dataset_formatted <- factor(bl_df$dataset,
+                                  levels = c("Tomatoes", "Primates", "Plants", "Metazoan"),
+                                  labels = c("Tomatoes", "Primates", "Plants", "Metazoan"),
+                                  ordered = T)
+# Add a new columns for faceting/grouping
+bl_df$gene_tree_formatted <- factor(bl_df$tree,
+                                    levels = c("geneconv_pass", "geneconv_fail", "maxchi_pass", "maxchi_fail",
+                                               "PHI_pass", "PHI_fail", "allTests_pass", "allTests_fail", 
+                                               "noTest"),
+                                    labels = c("Clean", "Recombinant", "Clean", "Recombinant",
+                                               "Clean", "Recombinant", "Clean", "Recombinant",
+                                               "Unfiltered"),
+                                    ordered = TRUE)
+bl_df$recombination_test_formatted <- factor(bl_df$recombination_test,
+                                             levels = c("geneconv", "maxchi", "PHI", "allTests"),
+                                             labels = c("GENECONV", "MaxChi", "PHI", "All tests"),
+                                             ordered = T)
+bl_df$method_formatted <- factor(bl_df$analysis_method,
+                                 levels = c("ASTRAL", "IQTREE"),
+                                 labels = c("ASTRAL", "CONCAT"),
+                                 ordered = T)
+# Plot datasets
+tom_df <- bl_df[which(bl_df$dataset == "Tomatoes"), ]
+tom_hist <- ggplot(tom_df, aes(x = weights)) +
+  geom_histogram() +
+  facet_grid(recombination_test_formatted~method_formatted, scales = "free") +
+  scale_x_continuous(name = "Branch length") + 
+  scale_y_continuous(name = "Count") +
+  labs(title = "Tomatoes") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 16, hjust = 0.5, margin = margin(t = 0, r = 0, b = 10, l = 0)),
+        axis.title.x = element_text(size = 14, margin = margin(t = 5, r = 0, b = 0, l = 0)), 
+        axis.text.x = element_text(size = 12),
+        axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.y = element_text(size = 12),
+        strip.text = element_text(size = 12) )
+met_df <- bl_df[which(bl_df$dataset == "Metazoan"), ]
+met_hist <- ggplot(met_df, aes(x = weights)) +
+  geom_histogram() +
+  facet_grid(recombination_test_formatted~analysis_method, scales = "free") +
+  scale_x_continuous(name = "Branch length") + 
+  scale_y_continuous(name = "Count") +
+  labs(title = "Metazoans") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 16, hjust = 0.5, margin = margin(t = 0, r = 0, b = 10, l = 0)),
+        axis.title.x = element_text(size = 14, margin = margin(t = 5, r = 0, b = 0, l = 0)), 
+        axis.text.x = element_text(size = 12),
+        axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.y = element_text(size = 12),
+        strip.text = element_text(size = 12) )
+quilt <- tom_hist / met_hist + plot_annotation(tag_levels = 'a', tag_suffix = ".") &
+  theme(plot.tag = element_text(size = 30))
+# Save plot
+ggsave(filename = paste0(plot_dir, "branch_length_histograms.pdf"), plot = quilt, device = "pdf", height = 12, width = 10, units = "in")
 
