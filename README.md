@@ -1,9 +1,9 @@
 # Gene Filtering
-#### The impact of filtering loci with evidence of recombination on species tree topology for four empirical datasets
+#### Removing recombinant loci has minimal impact on species tree topologies estimated from empirical data
 
 Caitlin Cherryh
 
-July 2023
+June 2024
 
 ***
 ### Summary
@@ -142,7 +142,7 @@ For these analyses I used four empirical phylogenetic datasets:
 ### Citation information
 If you use these scripts, please cite this github repository:
 
-Cherryh, C. 2023, caitlinch/gene_filtering, GitHub repository, https://github.com/caitlinch/gene_filtering (Accessed: 6 July 2023)
+Cherryh, C. 2024, caitlinch/gene_filtering, GitHub repository, https://github.com/caitlinch/gene_filtering (Accessed: 23 June 2024)
 
 
 
