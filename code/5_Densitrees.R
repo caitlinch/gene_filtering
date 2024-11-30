@@ -639,8 +639,8 @@ quilt <- unfiltered_astral_plot + astral_pass_plot +
   plot_annotation(tag_levels = 'a', tag_suffix = ".") &
   theme(plot.tag = element_text(size = 30))
 densitree_name <- paste0(plot_dir, "mainfig_ASTRAL_Plants_ggdensitree")
-ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 10, width = 10, units = "in")
-ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png", height = 10, width = 10, units = "in")
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 12, width = 8, units = "in")
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png", height = 12, width = 8, units = "in")
 # Save long plot
 quilt <- unfiltered_astral_plot / astral_pass_plot +
   plot_annotation(tag_levels = 'a', tag_suffix = ".") &
