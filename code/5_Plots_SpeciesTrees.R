@@ -878,6 +878,7 @@ for (i in 1:length(plants_astral_trees)){
   f_name <- paste0(plot_dir, gsub("\\.tre", "", basename(f_tree_path)))
   # Save plot
   ggsave(filename = paste0(f_name, ".pdf"), plot = f_plot, device = "pdf", height = 10)
+  ggsave(filename = paste0(f_name, ".png"), plot = f_plot, device = "png", height = 10)
 }
 
 # Plot all plots in one figure
@@ -934,8 +935,8 @@ plot3 <- ggtree(tree_list[[3]]) %<+% f_labs +
         plot.title = element_text(size = 16, face = "bold", hjust = 0.5, vjust = 0.5))
 quilt <- plot1 + plot2 + plot3 + plot_layout(ncol = 3, nrow = 1) +
   plot_annotation(title = "Plants - ASTRAL", theme = theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold")))
-quilt_path <- paste0(plot_dir, "Plants_ASTRAL_all_trees.pdf")
-ggsave(filename = quilt_path, plot = quilt, width = 10, height = 8)
+ggsave(filename = paste0(plot_dir, "Plants_ASTRAL_all_trees.pdf"), plot = quilt, width = 12, height = 9)
+ggsave(filename = paste0(plot_dir, "Plants_ASTRAL_all_trees.png"), plot = quilt, width = 12, height = 9)
 
 
 
@@ -979,6 +980,7 @@ for (i in 1:length(plants_concat_trees)){
   f_name <- paste0(plot_dir, gsub("\\.raxml\\.bestTree", "", basename(f_tree_path)))
   # Save plot
   ggsave(filename = paste0(f_name, ".pdf"), plot = f_plot, device = "pdf", height = 10)
+  ggsave(filename = paste0(f_name, ".png"), plot = f_plot, device = "png", height = 10)
 }
 
 # Plot all plots in one figure
@@ -1035,8 +1037,8 @@ plot3 <- ggtree(tree_list[[3]]) %<+% f_labs +
         plot.title = element_text(size = 16, hjust = 0.5, vjust = 0.5))
 quilt <- plot1 + plot2 + plot3 + plot_layout(ncol = 3, nrow = 1) +
   plot_annotation(title = "Plants - CONCAT", theme = theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold")))
-quilt_path <- paste0(plot_dir, "Plants_CONCAT_all_trees.pdf")
-ggsave(filename = quilt_path, plot = quilt, width = 10, height = 8)
+ggsave(filename = paste0(plot_dir, "Plants_CONCAT_all_trees.pdf"), plot = quilt, width = 12, height = 9)
+ggsave(filename = paste0(plot_dir, "Plants_CONCAT_all_trees.png"), plot = quilt, width = 12, height = 9)
 
 
 
