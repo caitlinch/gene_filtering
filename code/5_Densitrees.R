@@ -533,7 +533,6 @@ densitree_name <- paste0(plot_dir, "mainfig_ASTRAL_Metazoan_ggdensitree_long")
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 20, width = 10, units = "in")
 ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png", height = 20, width = 10, units = "in")
 
-
 ## Plot densitress
 # Plot: ASTRAL, pass
 a_p_densitree <- ggdensitree(a_p_trees, tip.order = metazoan_labels$taxa, align.tips = TRUE, alpha = 0.5, color = "steelblue") %<+% metazoan_labels +
@@ -561,7 +560,7 @@ quilt <- (a_p_densitree | c_p_densitree) +  plot_annotation(tag_levels = 'a', ta
 # Save the plot
 densitree_name <- paste0(plot_dir, "Metazoans_ggdensitree")
 ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 11, width = 16, units = "in")
-ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png")
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png", height = 11, width = 16, units = "in")
 
 
 
@@ -634,7 +633,7 @@ astral_pass_plot <- ggdensitree(a_p_trees, align.tips = TRUE, alpha = 0.8, color
   theme(axis.ticks.x = element_line(color = "white"),
         axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"),
-        plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
 # Save the plot
 quilt <- unfiltered_astral_plot + astral_pass_plot +
   plot_annotation(tag_levels = 'a', tag_suffix = ".") &
@@ -676,12 +675,11 @@ c_p_densitree <- ggdensitree(c_p_trees, align.tips = TRUE, alpha = 0.5, color = 
         plot.title = element_text(hjust = 0.5, size = 25, face = "bold"))
 
 ## Assemble the plot using patchwork
-quilt <- (a_p_densitree | c_p_densitree) +  plot_annotation(tag_levels = 'a', tag_suffix = ".") &  theme(plot.tag = element_text(size = 30))
+quilt <- (a_p_densitree | c_p_densitree) +
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") &
+  theme(plot.tag = element_text(size = 30))
 
 ## Save the plot
 densitree_name <- paste0(plot_dir, "Plants_ggdensitree")
-ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf")
-ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png")
-
-
-
+ggsave(filename = paste0(densitree_name, ".pdf"), plot = quilt, device = "pdf", height = 10, width = 15, units = "in")
+ggsave(filename = paste0(densitree_name, ".png"), plot = quilt, device = "png", height = 10, width = 15, units = "in")
