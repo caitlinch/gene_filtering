@@ -18,9 +18,16 @@
 
 ### Caitlin's paths ###
 # Folders and filepaths
-maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
-plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/"
-annotation_csv_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/misc/annotations.csv"
+location = "macbook"
+if (location == "work"){
+  maindir <- "/Users/caitlincherryh/Documents/Repositories/gene_filtering/"
+  plot_dir <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/06_results/plots/"
+  annotation_csv_file <- "/Users/caitlincherryh/Documents/C1_EmpiricalTreelikeness/01_Data_1KP/misc/annotations.csv"
+} else if (location == "macbook"){
+  maindir <- "/Users/caitlin/Repositories/gene_filtering/"
+  plot_dir <- "/Users/caitlin/Documents/PhD/Ch01_EmpiricalTreelikeness/thesis_revision_plots/"
+  annotation_csv_file <- "/Users/caitlin/Documents/PhD/Ch01_EmpiricalTreelikeness/annotations.csv"
+}
 ### End of Caitlin's paths ###
 
 
@@ -45,22 +52,22 @@ species_tree_folder <- paste0(maindir, "species_trees/")
 # Add roots for each dataset
 roots_by_group <- list("Plants" = c("BAKF", "ROZZ", "MJMQ", "IRZA", "IAYV", "BAJW", "APTP", "LXRN", "NMAK", "RFAD", "LLEN", "RAPY", "OGZM",
                                     "QDTV", "FIDQ", "EBWI", "JQFK", "BOGT", "VKVG", "DBYD", "FSQE", "LIRF", "QLMZ", "JCXF", "ASZK", "ULXR",
-                                    "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"), 
-                       "Metazoan" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
-                       "Primates" = c("Mus_musculus"), 
+                                    "VRGZ", "LDRY", "VYER", "FIKG", "RWXW", "FOMH", "YRMA", "HFIK", "JGGD"),
+                       "Metazoan" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
+                       "Primates" = c("Mus_musculus"),
                        "Tomatoes" = c("LA4116", "LA2951", "LA4126"))
 
 # Create color palettes
 primate_colour_palette <-  c("Non-primate"="#332288", "Strepsirrhini"="#117733", "Tarsiiformes"="#44AA99",
                              "Cebidae"="#88CCEE", "Hylobatidae"="#DDCC77", "Hominidae"="#CC6677",
                              "Colobinae"="#AA4499", "Cercopithecinae"="#882255")
-tomato_colour_palette <- c("Esculentum" = "firebrick3", "Arcanum" = "goldenrod3", 
-                           "Peruvianum" = "darkgreen", "Hirsutum" = "navy", 
+tomato_colour_palette <- c("Esculentum" = "firebrick3", "Arcanum" = "goldenrod3",
+                           "Peruvianum" = "darkgreen", "Hirsutum" = "navy",
                            "Outgroup" = "black")
 metazoan_colour_palette <- c("Bilateria" = "#CC79A7", "Cnidaria" = "#009E73", "Ctenophora" = "#56B4E9",
                              "Porifera" = "#E69F00", "Outgroup" = "#999999", "Placozoa" = "#000000")
 plants_color_palette <- c(SteppedSequential5Steps[c(1,3,5,6,8,10,11,13,15,16,18,20,21,23,25)], "black", "grey40", "grey70")
-plant_classifications <-  c("Chromista", "Rhodophyta", "Glaucophyta", "Chlorophyta", "Streptophyte algae", 
+plant_classifications <-  c("Chromista", "Rhodophyta", "Glaucophyta", "Chlorophyta", "Streptophyte algae",
                             "Hornworts", "Liverworts", "Mosses", "Lycophytes", "Monilophytes", "Gymnos",
                             "ANAGrade", "Monocots", "Magnoliids", "Chloranthales", "Eudicots", "Ceratophyllales")
 names(plants_color_palette) <- plant_classifications
@@ -72,10 +79,10 @@ old.par <- par(mar = c(0, 0, 0, 0))
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
 primate_tree_files <- grep("Primates", tree_files, value = TRUE)
 primate_astral_trees <- grep("ASTRAL", primate_tree_files, value = TRUE)
-plot_titles <- paste0("Primates - ", c("All tests, Fail", "All tests, Pass", 
+plot_titles <- paste0("Primates - ", c("All tests, Fail", "All tests, Pass",
                                        "GENECONV, Fail", "GENECONV, Pass",
-                                       "MaxChi, Fail", "MaxChi, Pass", 
-                                       "No Tests (Unfiltered)", 
+                                       "MaxChi, Fail", "MaxChi, Pass",
+                                       "No Tests (Unfiltered)",
                                        "PHI, Fail", "PHI, Pass"))
 for (i in 1:length(primate_astral_trees)){
   # Select tree
@@ -93,16 +100,16 @@ for (i in 1:length(primate_astral_trees)){
   f_labs <-color.primates.by.clades(f_tree, color_palette = f_colors)
   # Create plot
   f_plot <- ggtree(f_tree) %<+% f_labs +
-    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0.002, geom = "text", size = 5) + 
-    scale_y_reverse() +  
+    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0.002, geom = "text", size = 5) +
+    scale_y_reverse() +
     scale_x_continuous(breaks = seq(0,15,3)) +
-    coord_cartesian(clip = 'off') + 
-    theme_tree2(plot.margin=margin(6, 180, 6, 6)) + 
+    coord_cartesian(clip = 'off') +
+    theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
     scale_color_manual(name = "Clade legend", values = f_colors) +
     labs(title = plot_titles[i], subtitle = "ASTRAL tree") +
     theme(axis.text.x = element_text(size = 12),
-          legend.title = element_text(size = 15), 
-          legend.text = element_text (size = 12), 
+          legend.title = element_text(size = 15),
+          legend.text = element_text (size = 12),
           legend.position	= "left",
           plot.title = element_text(size = 16, face = "bold", hjust = 0.5, vjust = 0.5),
           plot.subtitle = element_text(size = 14, face = "bold", hjust = 0.5, vjust = 0.5) ) +
@@ -115,7 +122,7 @@ for (i in 1:length(primate_astral_trees)){
 # Plot all plots in two figures
 for (i in 1:2){
   if (i == 1){
-    primate_ordered_trees <- c(grep("geneconv_pass", primate_astral_trees, value = T), 
+    primate_ordered_trees <- c(grep("geneconv_pass", primate_astral_trees, value = T),
                                grep("geneconv_fail", primate_astral_trees, value = T),
                                grep("maxchi_pass", primate_astral_trees, value = T),
                                grep("maxchi_fail", primate_astral_trees, value = T))
@@ -126,7 +133,7 @@ for (i in 1:2){
                       "Four" = NA)
     xlimits <- c(20, 16, 17, 16)
   } else if (i == 2){
-    primate_ordered_trees <- c(grep("PHI_pass", primate_astral_trees, value = T), 
+    primate_ordered_trees <- c(grep("PHI_pass", primate_astral_trees, value = T),
                                grep("PHI_fail", primate_astral_trees, value = T),
                                grep("allTests_pass", primate_astral_trees, value = T),
                                grep("allTests_fail", primate_astral_trees, value = T))
@@ -156,45 +163,45 @@ for (i in 1:2){
   }
   # Plot the four panels
   plot1 <- ggtree(tree_list[[1]]) %<+% f_labs +
-    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
+    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
     scale_color_manual(name = "Clade legend", values = f_colors) +
     labs(title = plot_titles[1]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5),
-          legend.title = element_text(size = 15), 
-          legend.text = element_text (size = 12), 
+          legend.title = element_text(size = 15),
+          legend.text = element_text (size = 12),
           legend.position	= "left",) +
     guides(color = guide_legend(override.aes = list(label = "Sp.", size = 4.5))) +
     xlim(0, xlimits[1])
   plot2 <- ggtree(tree_list[[2]]) %<+% f_labs +
-    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
+    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
     scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
     labs(title = plot_titles[2]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5)) +
     xlim(0, xlimits[2])
   plot3 <- ggtree(tree_list[[3]]) %<+% f_labs +
-    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
+    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
     scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
     labs(title = plot_titles[3]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5)) +
     xlim(0, xlimits[3])
   plot4 <- ggtree(tree_list[[4]]) %<+% f_labs +
-    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) + 
-    scale_y_reverse() +  
+    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) +
+    scale_y_reverse() +
     scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
     labs(title = plot_titles[4]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5)) +
     xlim(0, xlimits[4])
-  quilt1 <- plot1 + plot2 + plot3 + plot4 + plot_layout(ncol = 2, nrow = 2) + 
+  quilt1 <- plot1 + plot2 + plot3 + plot4 + plot_layout(ncol = 2, nrow = 2) +
     plot_annotation(title = "Primates - ASTRAL", theme = theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold")))
   quilt1_path <- paste0(plot_dir, "Primates_ASTRAL_panels_", i, ".pdf")
   ggsave(filename = quilt1_path, plot = quilt1, width = 14, height = 10)
@@ -206,10 +213,10 @@ for (i in 1:2){
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
 primate_tree_files <- grep("Primates", tree_files, value = TRUE)
 primate_concat_trees <- grep("CONCAT", primate_tree_files, value = TRUE)
-plot_titles <- paste0("Primates - ", c("All tests, Fail", "All tests, Pass", 
+plot_titles <- paste0("Primates - ", c("All tests, Fail", "All tests, Pass",
                                        "GENECONV, Fail", "GENECONV, Pass",
-                                       "MaxChi, Fail", "MaxChi, Pass", 
-                                       "No Tests (Unfiltered)", 
+                                       "MaxChi, Fail", "MaxChi, Pass",
+                                       "No Tests (Unfiltered)",
                                        "PHI, Fail", "PHI, Pass"))
 for (i in 1:length(primate_concat_trees)){
   # Select tree
@@ -227,16 +234,16 @@ for (i in 1:length(primate_concat_trees)){
   f_labs <-color.primates.by.clades(f_tree, color_palette = f_colors)
   # Create plot
   f_plot <- ggtree(f_tree) %<+% f_labs +
-    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0.002, geom = "text", size = 5) + 
+    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0.002, geom = "text", size = 5) +
     scale_x_continuous(breaks = seq(0,0.25,0.05)) +
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
-    theme_tree2(plot.margin=margin(6, 120, 6, 6)) + 
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
+    theme_tree2(plot.margin=margin(6, 120, 6, 6)) +
     scale_color_manual(name = "Clade legend", values = f_colors) +
     labs(title = plot_titles[i], subtitle = "CONCAT tree") +
     theme(axis.text.x = element_text(size = 10, angle = 30, hjust = 1, vjust = 1),
-          legend.title = element_text(size = 15), 
-          legend.text = element_text (size = 12), 
+          legend.title = element_text(size = 15),
+          legend.text = element_text (size = 12),
           legend.position	= "left",
           plot.title = element_text(size = 16, face = "bold", hjust = 0.5, vjust = 0.5),
           plot.subtitle = element_text(size = 14, face = "bold", hjust = 0.5, vjust = 0.5) ) +
@@ -249,7 +256,7 @@ for (i in 1:length(primate_concat_trees)){
 # Plot all plots in two figures
 for (i in 1:2){
   if (i == 1){
-    primate_ordered_trees <- c(grep("geneconv_pass", primate_concat_trees, value = T), 
+    primate_ordered_trees <- c(grep("geneconv_pass", primate_concat_trees, value = T),
                                grep("geneconv_fail", primate_concat_trees, value = T),
                                grep("maxchi_pass", primate_concat_trees, value = T),
                                grep("maxchi_fail", primate_concat_trees, value = T))
@@ -260,7 +267,7 @@ for (i in 1:2){
                       "Four" = NA)
     xlimits <- c(0.22, 0.22, 0.21, 0.22)
   } else if (i == 2){
-    primate_ordered_trees <- c(grep("PHI_pass", primate_concat_trees, value = T), 
+    primate_ordered_trees <- c(grep("PHI_pass", primate_concat_trees, value = T),
                                grep("PHI_fail", primate_concat_trees, value = T),
                                grep("allTests_pass", primate_concat_trees, value = T),
                                grep("allTests_fail", primate_concat_trees, value = T))
@@ -290,45 +297,45 @@ for (i in 1:2){
   }
   # Plot the four panels
   plot1 <- ggtree(tree_list[[1]]) %<+% f_labs +
-    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
+    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
     scale_color_manual(name = "Clade legend", values = f_colors) +
     labs(title = plot_titles[1]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5),
-          legend.title = element_text(size = 15), 
-          legend.text = element_text (size = 12), 
+          legend.title = element_text(size = 15),
+          legend.text = element_text (size = 12),
           legend.position	= "left",) +
     guides(color = guide_legend(override.aes = list(label = "Sp.", size = 4.5))) +
     xlim(0, xlimits[1])
   plot2 <- ggtree(tree_list[[2]]) %<+% f_labs +
-    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
+    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
     scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
     labs(title = plot_titles[2]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5)) +
     xlim(0, xlimits[2])
   plot3 <- ggtree(tree_list[[3]]) %<+% f_labs +
-    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
+    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
     scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
     labs(title = plot_titles[3]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5)) +
     xlim(0, xlimits[3])
   plot4 <- ggtree(tree_list[[4]]) %<+% f_labs +
-    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) + 
-    scale_y_reverse() +  
+    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) +
+    scale_y_reverse() +
     scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
     labs(title = plot_titles[4]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5)) +
     xlim(0, xlimits[4])
-  quilt1 <- plot1 + plot2 + plot3 + plot4 + plot_layout(ncol = 2, nrow = 2) + 
+  quilt1 <- plot1 + plot2 + plot3 + plot4 + plot_layout(ncol = 2, nrow = 2) +
     plot_annotation(title = "Primates - CONCAT", theme = theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold")))
   quilt1_path <- paste0(plot_dir, "Primates_CONCAT_panels_", i, ".pdf")
   ggsave(filename = quilt1_path, plot = quilt1, width = 13.5, height = 10)
@@ -340,10 +347,10 @@ for (i in 1:2){
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
 tomato_tree_files <- grep("Tomatoes", tree_files, value = TRUE)
 tomato_astral_trees <- grep("ASTRAL", tomato_tree_files, value = TRUE)
-plot_titles <- paste0("Tomatoes - ", c("All tests, Fail", "All tests, Pass", 
+plot_titles <- paste0("Tomatoes - ", c("All tests, Fail", "All tests, Pass",
                                        "GENECONV, Fail", "GENECONV, Pass",
-                                       "MaxChi, Fail", "MaxChi, Pass", 
-                                       "No Tests (Unfiltered)", 
+                                       "MaxChi, Fail", "MaxChi, Pass",
+                                       "No Tests (Unfiltered)",
                                        "PHI, Fail", "PHI, Pass"))
 for (i in 1:length(tomato_astral_trees)){
   # Select tree
@@ -361,15 +368,15 @@ for (i in 1:length(tomato_astral_trees)){
   f_labs <-color.code.tomato.clades(f_tree, taxa.numbers = FALSE, trimmed = FALSE)
   # Create plot
   f_plot <- ggtree(f_tree) %<+% f_labs +
-    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 5) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
-    theme_tree2(plot.margin=margin(6, 180, 6, 6)) + 
+    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 5) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
+    theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
     scale_color_manual(name = "Clade legend", values = f_colors) +
     labs(title = plot_titles[i], subtitle = "ASTRAL tree") +
     theme(axis.text.x = element_text(size = 10),
-          legend.title = element_text(size = 15), 
-          legend.text = element_text (size = 12), 
+          legend.title = element_text(size = 15),
+          legend.text = element_text (size = 12),
           legend.position	= "left",
           plot.title = element_text(size = 16, face = "bold", hjust = 0.5, vjust = 0.5),
           plot.subtitle = element_text(size = 14, face = "bold", hjust = 0.5, vjust = 0.5) ) +
@@ -382,7 +389,7 @@ for (i in 1:length(tomato_astral_trees)){
 # Plot all plots in two figures
 for (i in 1:2){
   if (i == 1){
-    tomato_ordered_trees <- c(grep("geneconv_pass", tomato_astral_trees, value = T), 
+    tomato_ordered_trees <- c(grep("geneconv_pass", tomato_astral_trees, value = T),
                               grep("geneconv_fail", tomato_astral_trees, value = T),
                               grep("maxchi_pass", tomato_astral_trees, value = T),
                               grep("maxchi_fail", tomato_astral_trees, value = T))
@@ -393,7 +400,7 @@ for (i in 1:2){
                       "Four" = NA)
     xlimits <- c(20, 22, 19, 23)
   } else if (i == 2){
-    tomato_ordered_trees <- c(grep("PHI_pass", tomato_astral_trees, value = T), 
+    tomato_ordered_trees <- c(grep("PHI_pass", tomato_astral_trees, value = T),
                               grep("PHI_fail", tomato_astral_trees, value = T),
                               grep("allTests_pass", tomato_astral_trees, value = T),
                               grep("allTests_fail", tomato_astral_trees, value = T))
@@ -422,45 +429,45 @@ for (i in 1:2){
   }
   # Plot the four panels
   plot1 <- ggtree(tree_list[[1]]) %<+% f_labs +
-    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
+    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
     scale_color_manual(name = "Clade legend", values = f_colors) +
     labs(title = plot_titles[1]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5),
-          legend.title = element_text(size = 15), 
-          legend.text = element_text (size = 12), 
+          legend.title = element_text(size = 15),
+          legend.text = element_text (size = 12),
           legend.position	= "left",) +
     guides(color = guide_legend(override.aes = list(label = "Sp.", size = 4.5)))  +
     xlim(0, xlimits[1])
   plot2 <- ggtree(tree_list[[2]]) %<+% f_labs +
-    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
+    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
     scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
     labs(title = plot_titles[2]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5)) +
     xlim(0, xlimits[2])
   plot3 <- ggtree(tree_list[[3]]) %<+% f_labs +
-    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
+    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
     scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
     labs(title = plot_titles[3]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5)) +
     xlim(0, xlimits[3])
   plot4 <- ggtree(tree_list[[4]]) %<+% f_labs +
-    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) + 
-    scale_y_reverse() +  
+    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 3) +
+    scale_y_reverse() +
     scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
     labs(title = plot_titles[4]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5)) +
     xlim(0, xlimits[4])
-  quilt1 <- plot1 + plot2 + plot3 + plot4 + plot_layout(ncol = 2, nrow = 2) + 
+  quilt1 <- plot1 + plot2 + plot3 + plot4 + plot_layout(ncol = 2, nrow = 2) +
     plot_annotation(title = "Tomatoes - ASTRAL", theme = theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold")))
   quilt1_path <- paste0(plot_dir, "Tomatoes_ASTRAL_panels_", i, ".pdf")
   ggsave(filename = quilt1_path, plot = quilt1, width = 16, height = 10)
@@ -472,10 +479,10 @@ for (i in 1:2){
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
 tomato_tree_files <- grep("Tomatoes", tree_files, value = TRUE)
 tomato_concat_trees <- grep("CONCAT", tomato_tree_files, value = TRUE)
-plot_titles <- paste0("Tomatoes - ", c("All tests, Fail", "All tests, Pass", 
+plot_titles <- paste0("Tomatoes - ", c("All tests, Fail", "All tests, Pass",
                                        "GENECONV, Fail", "GENECONV, Pass",
-                                       "MaxChi, Fail", "MaxChi, Pass", 
-                                       "No Tests (Unfiltered)", 
+                                       "MaxChi, Fail", "MaxChi, Pass",
+                                       "No Tests (Unfiltered)",
                                        "PHI, Fail", "PHI, Pass"))
 for (i in 1:length(tomato_concat_trees)){
   # Select tree
@@ -493,15 +500,15 @@ for (i in 1:length(tomato_concat_trees)){
   f_labs <-color.code.tomato.clades(f_tree, taxa.numbers = FALSE, trimmed = FALSE)
   # Create plot
   f_plot <- ggtree(f_tree) %<+% f_labs +
-    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 5) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
-    theme_tree2(plot.margin=margin(6, 180, 6, 6)) + 
+    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 5) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
+    theme_tree2(plot.margin=margin(6, 180, 6, 6)) +
     scale_color_manual(name = "Clade legend", values = f_colors) +
     labs(title = plot_titles[i], subtitle = "CONCAT tree") +
     theme(axis.text.x = element_text(size = 10, angle = 30, hjust = 1, vjust = 1),
-          legend.title = element_text(size = 15), 
-          legend.text = element_text (size = 12), 
+          legend.title = element_text(size = 15),
+          legend.text = element_text (size = 12),
           legend.position	= "left",
           plot.title = element_text(size = 16, face = "bold", hjust = 0.5, vjust = 0.5),
           plot.subtitle = element_text(size = 14, face = "bold", hjust = 0.5, vjust = 0.5) ) +
@@ -514,7 +521,7 @@ for (i in 1:length(tomato_concat_trees)){
 # Plot all plots in two figures
 for (i in 1:2){
   if (i == 1){
-    tomato_ordered_trees <- c(grep("geneconv_pass", tomato_concat_trees, value = T), 
+    tomato_ordered_trees <- c(grep("geneconv_pass", tomato_concat_trees, value = T),
                               grep("geneconv_fail", tomato_concat_trees, value = T),
                               grep("maxchi_pass", tomato_concat_trees, value = T),
                               grep("maxchi_fail", tomato_concat_trees, value = T))
@@ -525,7 +532,7 @@ for (i in 1:2){
                       "Four" = NA)
     xlimits <- c(0.034, 0.032, 0.032, 0.032)
   } else if (i == 2){
-    tomato_ordered_trees <- c(grep("PHI_pass", tomato_concat_trees, value = T), 
+    tomato_ordered_trees <- c(grep("PHI_pass", tomato_concat_trees, value = T),
                               grep("PHI_fail", tomato_concat_trees, value = T),
                               grep("allTests_pass", tomato_concat_trees, value = T),
                               grep("allTests_fail", tomato_concat_trees, value = T))
@@ -552,45 +559,45 @@ for (i in 1:2){
   }
   # Plot the four panels
   plot1 <- ggtree(tree_list[[1]]) %<+% f_labs +
-    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
+    geom_tiplab(aes(label=lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
     scale_color_manual(name = "Clade legend", values = f_colors) +
     labs(title = plot_titles[1]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5),
-          legend.title = element_text(size = 15), 
-          legend.text = element_text (size = 12), 
+          legend.title = element_text(size = 15),
+          legend.text = element_text (size = 12),
           legend.position	= "left",) +
     guides(color = guide_legend(override.aes = list(label = "Sp.", size = 4.5))) +
     xlim(0, xlimits[1])
   plot2 <- ggtree(tree_list[[2]]) %<+% f_labs +
-    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
+    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
     scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
     labs(title = plot_titles[2]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5)) +
     xlim(0, xlimits[2])
   plot3 <- ggtree(tree_list[[3]]) %<+% f_labs +
-    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
+    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
     scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
     labs(title = plot_titles[3]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5)) +
     xlim(0, xlimits[3])
   plot4 <- ggtree(tree_list[[4]]) %<+% f_labs +
-    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-    scale_y_reverse() +  
+    geom_tiplab(aes(label = lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+    scale_y_reverse() +
     scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
     labs(title = plot_titles[4]) +
     theme(axis.text.x = element_blank(),
           plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5)) +
     xlim(0, xlimits[4])
-  quilt1 <- plot1 + plot2 + plot3 + plot4 + plot_layout(ncol = 2, nrow = 2) + 
+  quilt1 <- plot1 + plot2 + plot3 + plot4 + plot_layout(ncol = 2, nrow = 2) +
     plot_annotation(title = "Tomatoes - CONCAT", theme = theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold")))
   quilt1_path <- paste0(plot_dir, "Tomatoes_CONCAT_panels_", i, ".pdf")
   ggsave(filename = quilt1_path, plot = quilt1, width = 12, height = 10)
@@ -602,9 +609,9 @@ for (i in 1:2){
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
 metazoan_tree_files <- grep("Metazoan", tree_files, value = TRUE)
 metazoan_astral_trees <- grep("ASTRAL", metazoan_tree_files, value = TRUE)
-plot_titles <- paste0("Metazoa - ", c("GENECONV, Pass", 
-                                      "MaxChi, Pass", 
-                                      "No Tests (Unfiltered)", 
+plot_titles <- paste0("Metazoa - ", c("GENECONV, Pass",
+                                      "MaxChi, Pass",
+                                      "No Tests (Unfiltered)",
                                       "PHI, Pass"))
 for (i in 1:length(metazoan_astral_trees)){
   # Select tree
@@ -620,15 +627,15 @@ for (i in 1:length(metazoan_astral_trees)){
   f_labs <-color.code.metazoan.clades(f_tree, trimmed = "FALSE")
   # Create plot
   f_plot <- ggtree(f_tree) %<+% f_labs +
-    geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
-    theme_tree2(plot.margin=margin(0, 10, 0, 0)) + 
+    geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
+    theme_tree2(plot.margin=margin(0, 10, 0, 0)) +
     scale_color_manual(name = "Clade legend", values = f_colors) +
     labs(title = plot_titles[i], subtitle = "CONCAT tree") +
     theme(axis.text.x = element_text(size = 10),
-          legend.title = element_text(size = 15), 
-          legend.text = element_text (size = 12), 
+          legend.title = element_text(size = 15),
+          legend.text = element_text (size = 12),
           legend.position	= "left",
           plot.title = element_text(size = 16, face = "bold", hjust = 0.5, vjust = 0.5),
           plot.subtitle = element_text(size = 14, face = "bold", hjust = 0.5, vjust = 0.5) ) +
@@ -639,7 +646,7 @@ for (i in 1:length(metazoan_astral_trees)){
   ggsave(filename = paste0(f_name, ".pdf"), plot = f_plot, device = "pdf", height = 9)
 }
 # Plot all plots in two figures
-metazoan_ordered_trees <- c(grep("NoTest", metazoan_astral_trees, value = T), 
+metazoan_ordered_trees <- c(grep("NoTest", metazoan_astral_trees, value = T),
                             grep("geneconv_pass", metazoan_astral_trees, value = T),
                             grep("maxchi_pass", metazoan_astral_trees, value = T),
                             grep("PHI_pass", metazoan_astral_trees, value = T))
@@ -665,50 +672,50 @@ for (i in 1:length(metazoan_ordered_trees)){
   tree_list[[i]] <- f_tree
 }
 plot1 <- ggtree(tree_list[[1]]) %<+% f_labs +
-  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors) +
   labs(title = plot_titles[1]) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5),
-        legend.title = element_text(size = 15), 
-        legend.text = element_text (size = 12), 
+        legend.title = element_text(size = 15),
+        legend.text = element_text (size = 12),
         legend.position	= "bottom",) +
   guides(color = guide_legend(override.aes = list(label = "Sp.", size = 4.5)))
 plot2 <- ggtree(tree_list[[2]]) %<+% f_labs +
-  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
   labs(title = plot_titles[2]) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5))
 plot3 <- ggtree(tree_list[[3]]) %<+% f_labs +
-  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors) +
   labs(title = plot_titles[3]) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5),
-        legend.title = element_text(size = 15), 
-        legend.text = element_text (size = 12), 
+        legend.title = element_text(size = 15),
+        legend.text = element_text (size = 12),
         legend.position	= "bottom",) +
   guides(color = guide_legend(override.aes = list(label = "Sp.", size = 4.5)))
 plot4 <- ggtree(tree_list[[4]]) %<+% f_labs +
-  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
   labs(title = plot_titles[4]) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5))
-quilt1 <- plot1 + plot2  + plot_layout(ncol = 1, nrow = 2) + 
+quilt1 <- plot1 + plot2  + plot_layout(ncol = 1, nrow = 2) +
   plot_annotation(title = "Metazoa - ASTRAL", theme = theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold")))
 quilt1_path <- paste0(plot_dir, "Metazoa_ASTRAL_panels_1.pdf")
 ggsave(filename = quilt1_path, plot = quilt1, height = 13, width = 12)
-quilt2 <- plot3 + plot4 + plot_layout(ncol = 1, nrow = 2) + 
+quilt2 <- plot3 + plot4 + plot_layout(ncol = 1, nrow = 2) +
   plot_annotation(title = "Metazoa - ASTRAL", theme = theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold")))
 quilt2_path <- paste0(plot_dir, "Metazoa_ASTRAL_panels_2.pdf")
 ggsave(filename = quilt2_path, plot = quilt2, height = 13, width = 12)
@@ -719,9 +726,9 @@ ggsave(filename = quilt2_path, plot = quilt2, height = 13, width = 12)
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
 metazoan_tree_files <- grep("Metazoan", tree_files, value = TRUE)
 metazoan_concat_trees <- grep("CONCAT", metazoan_tree_files, value = TRUE)
-plot_titles <- paste0("Metazoa - ", c("GENECONV, Pass", 
-                                      "MaxChi, Pass", 
-                                      "No Tests (Unfiltered)", 
+plot_titles <- paste0("Metazoa - ", c("GENECONV, Pass",
+                                      "MaxChi, Pass",
+                                      "No Tests (Unfiltered)",
                                       "PHI, Pass"))
 for (i in 1:length(metazoan_concat_trees)){
   # Select tree
@@ -737,15 +744,15 @@ for (i in 1:length(metazoan_concat_trees)){
   f_labs <-color.code.metazoan.clades(f_tree, trimmed = "FALSE")
   # Create plot
   f_plot <- ggtree(f_tree) %<+% f_labs +
-    geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
-    theme_tree2(plot.margin=margin(0, 10, 0, 0)) + 
+    geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
+    theme_tree2(plot.margin=margin(0, 10, 0, 0)) +
     scale_color_manual(name = "Clade legend", values = f_colors) +
     labs(title = plot_titles[i], subtitle = "CONCAT tree") +
     theme(axis.text.x = element_text(size = 10),
-          legend.title = element_text(size = 15), 
-          legend.text = element_text (size = 12), 
+          legend.title = element_text(size = 15),
+          legend.text = element_text (size = 12),
           legend.position	= "left",
           plot.title = element_text(size = 16, face = "bold", hjust = 0.5, vjust = 0.5),
           plot.subtitle = element_text(size = 14, face = "bold", hjust = 0.5, vjust = 0.5) ) +
@@ -756,7 +763,7 @@ for (i in 1:length(metazoan_concat_trees)){
   ggsave(filename = paste0(f_name, ".pdf"), plot = f_plot, device = "pdf", height = 9)
 }
 # Plot all plots in two figures
-metazoan_ordered_trees <- c(grep("NoTest", metazoan_concat_trees, value = T), 
+metazoan_ordered_trees <- c(grep("NoTest", metazoan_concat_trees, value = T),
                             grep("geneconv_pass", metazoan_concat_trees, value = T),
                             grep("maxchi_pass", metazoan_concat_trees, value = T),
                             grep("PHI_pass", metazoan_concat_trees, value = T))
@@ -781,50 +788,50 @@ for (i in 1:length(metazoan_ordered_trees)){
   tree_list[[i]] <- f_tree
 }
 plot1 <- ggtree(tree_list[[1]]) %<+% f_labs +
-  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors) +
   labs(title = plot_titles[1]) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5),
-        legend.title = element_text(size = 15), 
-        legend.text = element_text (size = 12), 
+        legend.title = element_text(size = 15),
+        legend.text = element_text (size = 12),
         legend.position	= "bottom",) +
   guides(color = guide_legend(override.aes = list(label = "Sp.", size = 4.5)))
 plot2 <- ggtree(tree_list[[2]]) %<+% f_labs +
-  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
   labs(title = plot_titles[2]) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5))
 plot3 <- ggtree(tree_list[[3]]) %<+% f_labs +
-  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors) +
   labs(title = plot_titles[3]) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5),
-        legend.title = element_text(size = 15), 
-        legend.text = element_text (size = 12), 
+        legend.title = element_text(size = 15),
+        legend.text = element_text (size = 12),
         legend.position	= "bottom",) +
   guides(color = guide_legend(override.aes = list(label = "Sp.", size = 4.5)))
 plot4 <- ggtree(tree_list[[4]]) %<+% f_labs +
-  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) + 
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  geom_tiplab(aes(label = long_lab, color = clade), parse=T, show.legend = TRUE, offset = 0, geom = "text", size = 2.5) +
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
   labs(title = plot_titles[4]) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(size = 12, face = "bold", hjust = 0.5, vjust = 0.5))
-quilt1 <- plot1 + plot2  + plot_layout(ncol = 1, nrow = 2) + 
+quilt1 <- plot1 + plot2  + plot_layout(ncol = 1, nrow = 2) +
   plot_annotation(title = "Metazoa - CONCAT", theme = theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold")))
 quilt1_path <- paste0(plot_dir, "Metazoa_CONCAT_panels_1.pdf")
 ggsave(filename = quilt1_path, plot = quilt1, height = 15, width = 13)
-quilt2 <- plot3 + plot4 + plot_layout(ncol = 1, nrow = 2) + 
+quilt2 <- plot3 + plot4 + plot_layout(ncol = 1, nrow = 2) +
   plot_annotation(title = "Metazoa - CONCAT", theme = theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold")))
 quilt2_path <- paste0(plot_dir, "Metazoa_CONCAT_panels_2.pdf")
 ggsave(filename = quilt2_path, plot = quilt2, height = 15, width = 13)
@@ -835,8 +842,8 @@ ggsave(filename = quilt2_path, plot = quilt2, height = 15, width = 13)
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
 plants_tree_files <- grep("Plants", tree_files, value = TRUE)
 plants_astral_trees <- grep("ASTRAL", plants_tree_files, value = TRUE)
-plot_titles <- paste0("Plants - ", c("MaxChi, Pass", 
-                                     "No Tests (Unfiltered)", 
+plot_titles <- paste0("Plants - ", c("MaxChi, Pass",
+                                     "No Tests (Unfiltered)",
                                      "PHI, Pass"))
 annotation_df <- read.csv(annotation_csv_file)
 for (i in 1:length(plants_astral_trees)){
@@ -855,14 +862,14 @@ for (i in 1:length(plants_astral_trees)){
   # Create plot
   f_plot <- ggtree(f_tree) %<+% f_labs +
     geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1) +
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
-    theme_tree2(plot.margin=margin(0, 5, 0, 0)) + 
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
+    theme_tree2(plot.margin=margin(0, 5, 0, 0)) +
     scale_color_manual(name = "Clade legend", values = f_colors) +
     labs(title = plot_titles[i], subtitle = "CONCAT tree") +
     theme(axis.text.x = element_text(size = 10),
-          legend.title = element_text(size = 15), 
-          legend.text = element_text (size = 12), 
+          legend.title = element_text(size = 15),
+          legend.text = element_text (size = 12),
           legend.position	= "left",
           plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
           plot.subtitle = element_text(size = 16, face = "bold", hjust = 0.5, vjust = 0.5) ) +
@@ -874,7 +881,7 @@ for (i in 1:length(plants_astral_trees)){
 }
 
 # Plot all plots in one figure
-plant_ordered_trees <- c(grep("NoTest", plants_astral_trees, value = T), 
+plant_ordered_trees <- c(grep("NoTest", plants_astral_trees, value = T),
                          grep("maxchi_pass", plants_astral_trees, value = T),
                          grep("PHI_pass", plants_astral_trees, value = T))
 plot_titles <- c("No Tests\n(Unfiltered)", "MaxChi, Pass", "PHI, Pass")
@@ -899,33 +906,33 @@ for (i in 1:length(plants_astral_trees)){
 }
 plot1 <- ggtree(tree_list[[1]]) %<+% f_labs +
   geom_tippoint(aes(color = Very.Brief.Classification), size = 1.5, alpha = 0.7) +
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors) +
   labs(title = plot_titles[1]) +
   theme(axis.text.x = element_blank(),
-        legend.title = element_text(size = 15), 
-        legend.text = element_text (size = 12), 
+        legend.title = element_text(size = 15),
+        legend.text = element_text (size = 12),
         legend.position	= "left",
         plot.title = element_text(size = 16, face = "bold", hjust = 0.5, vjust = 0.5)) +
   guides(color = guide_legend(override.aes = list(label = "Sp.", size = 4.5)))
 plot2 <- ggtree(tree_list[[2]]) %<+% f_labs +
   geom_tippoint(aes(color = Very.Brief.Classification), size = 1.5, alpha = 0.7) +
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
   labs(title = plot_titles[2]) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(size = 16, face = "bold", hjust = 0.5, vjust = 0.5))
 plot3 <- ggtree(tree_list[[3]]) %<+% f_labs +
   geom_tippoint(aes(color = Very.Brief.Classification), size = 1.5, alpha = 0.7) +
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
   labs(title = plot_titles[3]) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(size = 16, face = "bold", hjust = 0.5, vjust = 0.5))
-quilt <- plot1 + plot2 + plot3 + plot_layout(ncol = 3, nrow = 1) + 
+quilt <- plot1 + plot2 + plot3 + plot_layout(ncol = 3, nrow = 1) +
   plot_annotation(title = "Plants - ASTRAL", theme = theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold")))
 quilt_path <- paste0(plot_dir, "Plants_ASTRAL_all_trees.pdf")
 ggsave(filename = quilt_path, plot = quilt, width = 10, height = 8)
@@ -936,8 +943,8 @@ ggsave(filename = quilt_path, plot = quilt, width = 10, height = 8)
 tree_files <- paste0(species_tree_folder, list.files(species_tree_folder, recursive = TRUE))
 plants_tree_files <- grep("Plants", tree_files, value = TRUE)
 plants_concat_trees <- grep("CONCAT", plants_tree_files, value = TRUE)
-plot_titles <- paste0("Plants - ", c("MaxChi, Pass", 
-                                     "No Tests (Unfiltered)", 
+plot_titles <- paste0("Plants - ", c("MaxChi, Pass",
+                                     "No Tests (Unfiltered)",
                                      "PHI, Pass"))
 annotation_df <- read.csv(annotation_csv_file)
 for (i in 1:length(plants_concat_trees)){
@@ -956,14 +963,14 @@ for (i in 1:length(plants_concat_trees)){
   # Create plot
   f_plot <- ggtree(f_tree) %<+% f_labs +
     geom_tippoint(aes(color = Very.Brief.Classification), size = 3, alpha = 1) +
-    scale_y_reverse() +  
-    coord_cartesian(clip = 'off') + 
-    theme_tree2(plot.margin=margin(0, 5, 0, 0)) + 
+    scale_y_reverse() +
+    coord_cartesian(clip = 'off') +
+    theme_tree2(plot.margin=margin(0, 5, 0, 0)) +
     scale_color_manual(name = "Clade legend", values = f_colors) +
     labs(title = plot_titles[i], subtitle = "CONCAT tree") +
     theme(axis.text.x = element_text(size = 10),
-          legend.title = element_text(size = 15), 
-          legend.text = element_text (size = 12), 
+          legend.title = element_text(size = 15),
+          legend.text = element_text (size = 12),
           legend.position	= "left",
           plot.title = element_text(size = 20, face = "bold", hjust = 0.5, vjust = 0.5),
           plot.subtitle = element_text(size = 16, face = "bold", hjust = 0.5, vjust = 0.5) ) +
@@ -975,7 +982,7 @@ for (i in 1:length(plants_concat_trees)){
 }
 
 # Plot all plots in one figure
-plant_ordered_trees <- c(grep("NoTest", plants_concat_trees, value = T), 
+plant_ordered_trees <- c(grep("NoTest", plants_concat_trees, value = T),
                          grep("maxchi_pass", plants_concat_trees, value = T),
                          grep("PHI_pass", plants_concat_trees, value = T))
 plot_titles <- c("No Tests\n(Unfiltered)", "MaxChi, Pass", "PHI, Pass")
@@ -1000,33 +1007,33 @@ for (i in 1:length(plants_concat_trees)){
 }
 plot1 <- ggtree(tree_list[[1]]) %<+% f_labs +
   geom_tippoint(aes(color = Very.Brief.Classification), size = 1, alpha = 0.7) +
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors) +
   labs(title = plot_titles[1]) +
   theme(axis.text.x = element_blank(),
-        legend.title = element_text(size = 15), 
-        legend.text = element_text (size = 12), 
+        legend.title = element_text(size = 15),
+        legend.text = element_text (size = 12),
         legend.position	= "left",
         plot.title = element_text(size = 16, hjust = 0.5, vjust = 0.5)) +
   guides(color = guide_legend(override.aes = list(label = "Sp.", size = 4.5)))
 plot2 <- ggtree(tree_list[[2]]) %<+% f_labs +
   geom_tippoint(aes(color = Very.Brief.Classification), size = 1, alpha = 0.7) +
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
   labs(title = plot_titles[2]) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(size = 16, hjust = 0.5, vjust = 0.5))
 plot3 <- ggtree(tree_list[[3]]) %<+% f_labs +
   geom_tippoint(aes(color = Very.Brief.Classification), size = 1, alpha = 0.7) +
-  scale_y_reverse() +  
-  coord_cartesian(clip = 'off') + 
+  scale_y_reverse() +
+  coord_cartesian(clip = 'off') +
   scale_color_manual(name = "Clade legend", values = f_colors, guide = "none") +
   labs(title = plot_titles[3]) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(size = 16, hjust = 0.5, vjust = 0.5))
-quilt <- plot1 + plot2 + plot3 + plot_layout(ncol = 3, nrow = 1) + 
+quilt <- plot1 + plot2 + plot3 + plot_layout(ncol = 3, nrow = 1) +
   plot_annotation(title = "Plants - CONCAT", theme = theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold")))
 quilt_path <- paste0(plot_dir, "Plants_CONCAT_all_trees.pdf")
 ggsave(filename = quilt_path, plot = quilt, width = 10, height = 8)
@@ -1065,7 +1072,7 @@ astral_plot <- ggtree(astral_clade) +
   labs(title = "ASTRAL") +
   theme(plot.title = element_text(size = 20, hjust = 0.5, vjust = 0.5, face = "bold", margin = margin(b = 20)))
 # Save plot
-quilt <- astral_plot + concat_plot + plot_layout(ncol = 2, nrow = 1) + 
+quilt <- astral_plot + concat_plot + plot_layout(ncol = 2, nrow = 1) +
   plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 quilt_path <- paste0(plot_dir, "Primates_NoTest_tree_differences.pdf")
 ggsave(filename = quilt_path, plot = quilt, width = 13, height = 6)
@@ -1102,19 +1109,19 @@ clade_labs <- data.frame(taxa = c("Choanoflagellata", "Ctenophora", "Porifera", 
 p_unfiltered <- ggtree(t_unfiltered) %<+% clade_labs +
   geom_tiplab(aes(label = pretty_label, color = color), size = 6) +
   scale_y_reverse() +
-  scale_color_manual(values = c("black" = "black", "red" = "red"), guide = "none") + 
+  scale_color_manual(values = c("black" = "black", "red" = "red"), guide = "none") +
   xlim(0,8)  +
   labs(title = "CONCAT - Unfiltered") +
   theme(plot.title = element_text(size = 20, hjust = 0.5, vjust = 0.5, face = "bold", margin = margin(b = 20)))
 p_geneconv <- ggtree(t_geneconv) %<+% clade_labs +
   geom_tiplab(aes(label = pretty_label, color = color), size = 6) +
   scale_y_reverse() +
-  scale_color_manual(values = c("black" = "black", "red" = "red"), guide = "none") + 
+  scale_color_manual(values = c("black" = "black", "red" = "red"), guide = "none") +
   xlim(0,8)  +
   labs(title = "CONCAT - P_GENECONV") +
   theme(plot.title = element_text(size = 20, hjust = 0.5, vjust = 0.5, face = "bold", margin = margin(b = 20)))
 # Assemble image
-quilt <- p_unfiltered + p_geneconv + plot_layout(ncol = 2, nrow = 1) + 
+quilt <- p_unfiltered + p_geneconv + plot_layout(ncol = 2, nrow = 1) +
   plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 quilt_path <- paste0(plot_dir, "Metazoan_SuppFigure_OutlierBranch_Placozoa_plot.pdf")
 ggsave(filename = quilt_path, plot = quilt, height = 6, width = 14)

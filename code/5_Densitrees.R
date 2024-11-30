@@ -616,7 +616,7 @@ unfiltered_astral_plot <- ggtree(unfiltered_astral_tree, alpha = 1, color = "bla
   geom_tippoint(aes(color = Very.Brief.Classification), size = 2, alpha = 0.75) +
   scale_color_manual(values = plants_color_palette) +
   scale_y_reverse() +
-  labs(title = "Pass tests - ASTRAL trees\n") +
+  labs(title = "Unfiltered - ASTRAL tree\n") +
   theme(axis.ticks.x = element_line(color = "white"),
         axis.line.x = element_line(color = "white"),
         axis.text.x = element_text(color = "white"),
